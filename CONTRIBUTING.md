@@ -1,282 +1,274 @@
-# Contributing to PokerSwound
+# Contributing to Entropoker
 
-Thank you for your interest in contributing to PokerSwound! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Entropoker! This document provides guidelines and information for contributors.
 
-## 🎯 Project Overview
+## 🎯 Project Goals
 
-PokerSwound is a real-time multiplayer Texas Hold'em poker application with a focus on cryptographically secure randomness and provable fairness. We're building this to address concerns about incomplete random algorithms in existing poker apps.
+Entropoker aims to be the most fair, secure, and transparent online poker platform by:
 
-## 🏗️ Architecture
+1. **Entropy-Secure Shuffling**: Using external, public entropy sources for truly random deck shuffling
+2. **Provable Fairness**: Implementing cryptographic proofs of game fairness
+3. **Open Source**: Building in the open with community contributions
+4. **Scalable Architecture**: Designing for growth from MVP to enterprise
 
-This is a monorepo with three main packages:
-- **`shared/`** - Shared TypeScript types and utilities
-- **`server/`** - Fastify backend with Socket.io and secure shuffling
-- **`client/`** - React frontend with Vite and TailwindCSS
-
-## 🚀 Getting Started
+## 🛠️ Development Setup
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL database
+- PostgreSQL
 - Git
 
-### Setup
-1. **Fork and clone the repository**
-   ```bash
-   git clone https://github.com/your-username/pokerswound.git
-   cd pokerswound
-   ```
+### Quick Start
+```bash
+# Clone the repository
+git clone <repository-url>
+cd entropoker
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Set up the database**
-   ```bash
-   cd server
-   npx prisma db push
-   ```
+# Set up environment
+cp env.example .env
+# Edit .env with your configuration
 
-4. **Start development servers**
-   ```bash
-   npm run dev
-   ```
+# Set up database
+npx prisma generate
+npx prisma db push
 
-5. **Open your browser**
-   - Frontend: http://localhost:5173
-   - Backend: http://localhost:3000
+# Start development
+npm run dev
+```
+
+## 📋 Issue Guidelines
+
+### Bug Reports
+When reporting bugs, please include:
+- Clear description of the issue
+- Steps to reproduce
+- Expected vs actual behavior
+- Environment details (OS, Node version, etc.)
+- Screenshots if applicable
+
+### Feature Requests
+For feature requests, please include:
+- Clear description of the feature
+- Use case and motivation
+- Proposed implementation approach (if you have ideas)
+- Priority level (low/medium/high)
+
+### Issue Labels
+- `bug`: Something isn't working
+- `enhancement`: New feature or request
+- `documentation`: Improvements or additions to documentation
+- `good first issue`: Good for newcomers
+- `help wanted`: Extra attention is needed
+- `priority: high/medium/low`: Issue priority
 
 ## 🔧 Development Workflow
 
-### Branch Strategy
-- **main**: Production-ready code
-- **develop**: Integration branch for features
-- **feature/***: New features
-- **bugfix/***: Bug fixes
-- **hotfix/***: Critical production fixes
+### Branch Naming
+- `feature/description`: New features
+- `fix/description`: Bug fixes
+- `docs/description`: Documentation changes
+- `refactor/description`: Code refactoring
 
-### Commit Convention
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
+### Commit Messages
+Use conventional commits format:
 ```
 type(scope): description
 
-feat: add new feature
-fix: bug fix
-docs: documentation changes
-style: formatting changes
-refactor: code refactoring
-test: adding tests
-chore: maintenance tasks
+[optional body]
+
+[optional footer]
+```
+
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+
+Examples:
+```
+feat(game-engine): add hand evaluation logic
+fix(entropy-core): resolve Twitch API timeout issue
+docs(readme): update installation instructions
 ```
 
 ### Pull Request Process
-1. **Create a feature branch** from `develop`
+
+1. **Create a feature branch** from `main`
 2. **Make your changes** following the coding standards
-3. **Write tests** for new functionality
+3. **Write/update tests** for your changes
 4. **Update documentation** if needed
-5. **Submit a pull request** to `develop`
-6. **Request review** from maintainers
-7. **Address feedback** and make necessary changes
-8. **Merge** after approval
+5. **Run the test suite** and ensure all tests pass
+6. **Submit a pull request** with a clear description
 
-## 📋 Issue Labels
-
-### Type
-- `enhancement`: New features
-- `bug`: Bug fixes
-- `documentation`: Documentation updates
-- `question`: Questions or discussions
-
-### Priority
-- `P0`: Critical (security, core functionality)
-- `P1`: High (user-facing features)
-- `P2`: Medium (improvements, optimizations)
-- `P3`: Low (nice-to-have features)
-
-### Area
-- `frontend`: Client-side work
-- `backend`: Server-side work
-- `shared`: Shared types/utilities
-- `security`: Security-related changes
-- `randomness`: Randomness/security features
-- `ui/ux`: User interface improvements
-- `testing`: Test-related work
-
-## 🛠️ Coding Standards
-
-### TypeScript
-- Use strict mode
-- Prefer interfaces over types for object shapes
-- Use meaningful type names
-- Avoid `any` - use proper typing
-
-### React (Frontend)
-- Use functional components with hooks
-- Follow React best practices
-- Use TypeScript for all components
-- Implement proper error boundaries
-
-### Node.js (Backend)
-- Use async/await over callbacks
-- Implement proper error handling
-- Use TypeScript for all server code
-- Follow Fastify best practices
-
-### Security
-- **Never use `Math.random()`** - always use `crypto.randomInt()`
-- Validate all inputs server-side
-- Implement proper authentication
-- Follow OWASP guidelines
-
-### Testing
-- Write unit tests for critical functions
-- Test randomness quality
-- Test hand evaluation logic
-- Test socket communication
+### PR Guidelines
+- Provide a clear title and description
+- Reference related issues
+- Include screenshots for UI changes
+- Ensure all CI checks pass
+- Request reviews from maintainers
 
 ## 🧪 Testing
 
 ### Running Tests
 ```bash
 # All tests
-npm run test
+npm test
 
-# Randomness testing
-npm run test:randomness
+# Specific package
+npm test --workspace=@entropoker/game-engine
 
-# Type checking
-npm run type-check
+# Watch mode
+npm test -- --watch
 
-# Linting
-npm run lint
+# Coverage
+npm test -- --coverage
 ```
 
+### Writing Tests
+- Use Jest as the testing framework
+- Write unit tests for all new functionality
+- Aim for >80% code coverage
+- Test both success and error cases
+- Use descriptive test names
+
 ### Test Structure
-- **Unit tests**: Individual function testing
-- **Integration tests**: API endpoint testing
-- **Randomness tests**: Statistical validation
-- **E2E tests**: Full user flow testing
+```typescript
+describe('FeatureName', () => {
+  describe('methodName', () => {
+    it('should do something when condition', () => {
+      // Arrange
+      // Act
+      // Assert
+    });
+  });
+});
+```
+
+## 📝 Code Standards
+
+### TypeScript
+- Use strict TypeScript configuration
+- Prefer interfaces over types for object shapes
+- Use meaningful type names
+- Avoid `any` type - use proper typing
+
+### Code Style
+- Use 2 spaces for indentation
+- Use semicolons
+- Use single quotes for strings
+- Use trailing commas in objects and arrays
+- Maximum line length: 100 characters
+
+### Naming Conventions
+- `camelCase` for variables and functions
+- `PascalCase` for classes and interfaces
+- `UPPER_SNAKE_CASE` for constants
+- `kebab-case` for files and directories
+
+### Documentation
+- Use JSDoc for public APIs
+- Include examples in documentation
+- Keep README files up to date
+- Document complex algorithms
+
+## 🏗️ Architecture Guidelines
+
+### Modularity
+- Keep modules focused and single-purpose
+- Use dependency injection where appropriate
+- Minimize coupling between modules
+- Export clear, stable APIs
+
+### Error Handling
+- Use proper error types
+- Provide meaningful error messages
+- Log errors appropriately
+- Handle edge cases gracefully
+
+### Performance
+- Consider performance implications
+- Use efficient algorithms
+- Avoid unnecessary computations
+- Profile critical paths
+
+## 🔐 Security Guidelines
+
+### Entropy Security
+- Never expose entropy sources directly
+- Validate entropy quality
+- Use cryptographically secure RNG
+- Log entropy usage for auditability
+
+### Data Protection
+- Sanitize user inputs
+- Use parameterized queries
+- Validate data at boundaries
+- Follow OWASP guidelines
 
 ## 📚 Documentation
 
 ### Code Documentation
-- Use JSDoc for public functions
-- Include examples for complex logic
-- Document security considerations
-- Explain randomness implementation
+- Document complex functions
+- Include usage examples
+- Explain business logic
+- Keep documentation current
 
 ### API Documentation
-- Document all endpoints
+- Document all public APIs
 - Include request/response examples
-- Document error codes
-- Keep OpenAPI spec updated
+- Specify error conditions
+- Use OpenAPI/Swagger for REST APIs
 
-### User Documentation
-- Setup instructions
-- Game rules explanation
-- Security features explanation
-- Troubleshooting guide
+## 🚀 Release Process
 
-## 🔐 Security Guidelines
+### Versioning
+We use semantic versioning (SemVer):
+- `MAJOR.MINOR.PATCH`
+- Major: Breaking changes
+- Minor: New features (backward compatible)
+- Patch: Bug fixes (backward compatible)
 
-### Randomness
-- Always use `crypto.randomInt()` for shuffling
-- Implement provable fairness correctly
-- Test randomness quality regularly
-- Document security measures
+### Release Checklist
+- [ ] All tests passing
+- [ ] Documentation updated
+- [ ] Changelog updated
+- [ ] Version bumped
+- [ ] Release notes written
+- [ ] Tagged and pushed
 
-### Input Validation
-- Validate all client inputs
-- Sanitize user data
-- Implement rate limiting
-- Use parameterized queries
-
-### Authentication
-- Implement proper session management
-- Use secure cookies
-- Validate room access
-- Log security events
-
-## 🎮 Game Logic
-
-### Poker Rules
-- Follow standard Texas Hold'em rules
-- Implement proper hand evaluation
-- Handle edge cases correctly
-- Support multiple players
-
-### Fairness
-- Ensure unbiased shuffling
-- Prevent cheating mechanisms
-- Implement proper turn order
-- Handle disconnections gracefully
-
-## 🚀 Deployment
-
-### Environment Variables
-```bash
-# Server
-DATABASE_URL="postgresql://..."
-JWT_SECRET="your-secret-key"
-PORT=3000
-
-# Client
-VITE_API_URL="http://localhost:3000"
-```
-
-### Build Process
-```bash
-# Build all packages
-npm run build
-
-# Start production server
-npm start
-```
-
-## 🤝 Community
-
-### Communication
-- Use GitHub Issues for discussions
-- Join our Discord server
-- Follow the code of conduct
-- Be respectful and inclusive
+## 🤝 Community Guidelines
 
 ### Code of Conduct
 - Be respectful and inclusive
-- Use welcoming and inclusive language
-- Be collaborative and constructive
-- Focus on what is best for the community
+- Help newcomers
+- Provide constructive feedback
+- Follow the project's code of conduct
+
+### Communication
+- Use GitHub issues for discussions
+- Be clear and concise
+- Ask questions when unsure
+- Share knowledge and insights
 
 ## 📞 Getting Help
 
-### Resources
-- [Project README](./README.md)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
-- [React Documentation](https://react.dev/)
-- [Fastify Documentation](https://www.fastify.io/docs/)
-- [Socket.io Documentation](https://socket.io/docs/)
+- **Issues**: Use GitHub issues for bugs and feature requests
+- **Discussions**: Use GitHub discussions for general questions
+- **Documentation**: Check the README and inline docs first
 
-### Support
-- Create an issue for bugs
-- Start a discussion for questions
-- Join our community channels
-- Review existing issues first
+## 🙏 Recognition
 
-## 🎯 First Contributions
+Contributors will be recognized in:
+- GitHub contributors list
+- Release notes
+- Project documentation
+- Community acknowledgments
 
-### Good First Issues
-- Documentation improvements
-- UI component creation
-- Test writing
-- Bug fixes
-- Performance optimizations
-
-### Getting Started
-1. Look for issues labeled `good first issue`
-2. Comment on the issue to claim it
-3. Follow the development workflow
-4. Ask for help if needed
-
-Thank you for contributing to PokerSwound! 🃏 
+Thank you for contributing to Entropoker! 🃏 

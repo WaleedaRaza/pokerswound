@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Game stats
+  totalHandsPlayed Int     @default(0)
+  totalWinnings    Int     @default(0)
+  biggestPot       Int     @default(0)
+  chips            Int     @default(1000)
+
+  // Relations
+  gamePlayers GamePlayer[]
+  gameHistory GameHistory[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  name        String
+  status      GameStatus @default(WAITING)
+  maxPlayers  Int      @default(9)
+  minPlayers  Int      @default(2)
+  smallBlind  Int      @default(10)
+  bigBlind    Int      @default(20)
+  buyIn       Int      @default(1000)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  startedAt   DateTime?
+  endedAt     DateTime?
+
+  // Entropy tracking
+  entropyHash String?
+  shuffleTimestamp DateTime?
+
+  // Relations
+  players     GamePlayer[]
+  gameHistory GameHistory[]
+  hands       Hand[]
+
+  @@map("games")
+}
+
+model GamePlayer {
+  id       String @id @default(cuid())
+  userId   String
+  gameId   String
+  position Int
+  chips    Int    @default(0)
+  isActive Boolean @default(true)
+  isDealer Boolean @default(false)
+  joinedAt DateTime @default(now())
+  leftAt   DateTime?
+
+  // Relations
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, position])
+  @@map("game_players")
+}
+
+model Hand {
+  id        String   @id @default(cuid())
+  gameId    String
+  handNumber Int
+  phase     HandPhase @default(PREFLOP)
+  pot       Int      @default(0)
+  communityCards String[] // JSON array of card IDs
+  entropyHash String?
+  shuffleTimestamp DateTime?
+  createdAt DateTime @default(now())
+  endedAt   DateTime?
+
+  // Relations
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  actions   HandAction[]
+  results   HandResult[]
+
+  @@unique([gameId, handNumber])
+  @@map("hands")
+}
+
+model HandAction {
+  id       String @id @default(cuid())
+  handId   String
+  userId   String
+  action   PlayerAction
+  amount   Int?
+  position Int
+  timestamp DateTime @default(now())
+
+  // Relations
+  hand     Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
+
+  @@map("hand_actions")
+}
+
+model HandResult {
+  id       String @id @default(cuid())
+  handId   String
+  userId   String
+  position Int // 1 = winner, 2 = runner up, etc.
+  amount   Int
+  handRank HandRank
+  handDescription String
+  holeCards String[] // JSON array of card IDs
+
+  // Relations
+  hand     Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
+
+  @@map("hand_results")
+}
+
+model GameHistory {
+  id       String @id @default(cuid())
+  userId   String
+  gameId   String
+  action   String
+  details  Json?
+  timestamp DateTime @default(now())
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("game_history")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+enum GameStatus {
+  WAITING
+  PLAYING
+  FINISHED
+  CANCELLED
+}
+
+enum HandPhase {
+  PREFLOP
+  FLOP
+  TURN
+  RIVER
+  SHOWDOWN
+  COMPLETE
+}
+
+enum PlayerAction {
+  FOLD
+  CHECK
+  CALL
+  BET
+  RAISE
+  ALL_IN
+}
+
+enum HandRank {
+  HIGH_CARD
+  PAIR
+  TWO_PAIR
+  THREE_OF_A_KIND
+  STRAIGHT
+  FLUSH
+  FULL_HOUSE
+  FOUR_OF_A_KIND
+  STRAIGHT_FLUSH
+  ROYAL_FLUSH
+} 
