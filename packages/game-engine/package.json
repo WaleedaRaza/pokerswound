@@ -13,7 +13,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@entropoker/entropy-core": "workspace:*"
+    "@entropoker/entropy-core": "file:../entropy-core"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

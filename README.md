@@ -90,26 +90,83 @@ entropoker/
 ## 🛠️ Development Setup
 
 ### Prerequisites
-* Node.js 18+
-* PostgreSQL
-* Redis (optional for development)
+* **Node.js 18+** (Check with `node --version`)
+* **npm 7+** (Check with `npm --version`)
+* **PostgreSQL** (for database)
+* **Redis** (optional for development)
 
-### Installation
+### ⚠️ IMPORTANT: Installation Troubleshooting
+
+**If you get errors during `npm install`, follow these steps BEFORE trying to install:**
+
+#### For Windows Users:
+1. **Install Windows Build Tools** (REQUIRED for canvas package):
+   ```bash
+   npm install --global windows-build-tools
+   ```
+   - This may take 10-15 minutes
+   - If this fails, install Visual Studio Build Tools manually:
+     - Download from: https://visualstudio.microsoft.com/downloads/
+     - Install "C++ build tools" workload
+     - Restart your computer
+
+2. **Install Python** (if not already installed):
+   - Download from: https://www.python.org/downloads/
+   - Make sure to check "Add Python to PATH" during installation
+
+3. **Clear npm cache**:
+   ```bash
+   npm cache clean --force
+   ```
+
+#### For macOS Users:
+1. **Install required libraries** (REQUIRED for canvas package):
+   ```bash
+   brew install pkg-config cairo pango libpng jpeg giflib librsvg
+   ```
+   - If you don't have Homebrew: https://brew.sh/
+
+2. **Clear npm cache**:
+   ```bash
+   npm cache clean --force
+   ```
+
+#### For Linux Users:
+1. **Install required libraries** (REQUIRED for canvas package):
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
+   # CentOS/RHEL/Fedora
+   sudo yum install gcc-c++ cairo-devel pango-devel libjpeg-turbo-devel giflib-devel librsvg2-devel
+   ```
+
+2. **Clear npm cache**:
+   ```bash
+   npm cache clean --force
+   ```
+
+### Installation Steps
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd entropoker
+   git clone https://github.com/WaleedaRaza/pokerswound.git
+   cd pokerswound
    ```
 
-2. **Install dependencies**
+2. **Install dependencies** (AFTER completing troubleshooting steps above)
    ```bash
    npm install
    ```
+   
+   **If you still get errors:**
+   - Try: `npm install --legacy-peer-deps`
+   - Or: `npm install --force`
+   - If canvas still fails, try: `npm install --build-from-source`
 
 3. **Set up environment variables**
    ```bash
-   cp .env.example .env
+   cp env.example .env
    # Edit .env with your configuration
    ```
 
@@ -129,6 +186,42 @@ entropoker/
    npm run dev:game-engine
    npm run dev:entropy-core
    ```
+
+### 🔧 Common Error Solutions
+
+| Error | Solution |
+|-------|----------|
+| `pkg-config: command not found` | Install build tools (see troubleshooting above) |
+| `canvas` build fails | Install system dependencies (see troubleshooting above) |
+| `workspace:*` protocol error | ✅ Fixed in latest version |
+| `node-gyp` errors | Install Python and build tools |
+| `EACCES` permission errors | Use `sudo` (Linux/macOS) or run as Administrator (Windows) |
+
+### 🚨 Still Having Issues?
+
+1. **Check your Node.js version**: Must be 18+ (`node --version`)
+2. **Check your npm version**: Must be 7+ (`npm --version`)
+3. **Try using yarn instead**:
+   ```bash
+   npm install -g yarn
+   yarn install
+   ```
+4. **Try using pnpm instead**:
+   ```bash
+   npm install -g pnpm
+   pnpm install
+   ```
+5. **Delete node_modules and try again**:
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
+
+**Need help?** Open an issue on GitHub with:
+- Your operating system
+- Node.js version (`node --version`)
+- npm version (`npm --version`)
+- The exact error message you're seeing
 
 ## 🧪 Testing
 
