@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-poker-green text-white font-poker;
+  }
+}
+
+@layer components {
+  .poker-table {
+    @apply bg-poker-felt rounded-full border-8 border-poker-green shadow-2xl;
+    background-image: radial-gradient(circle at center, #2d5a3d 0%, #1a5f3c 70%, #0f5132 100%);
+  }
+  
+  .poker-card {
+    @apply bg-white text-black rounded-lg shadow-lg border-2 border-gray-300;
+    aspect-ratio: 2.5/3.5;
+  }
+  
+  .poker-chip {
+    @apply rounded-full border-4 border-white shadow-lg;
+    aspect-ratio: 1/1;
+  }
+  
+  .player-seat {
+    @apply absolute transform -translate-x-1/2 -translate-y-1/2;
+  }
+  
+  .card-back {
+    @apply bg-gradient-to-br from-blue-600 to-blue-800 text-white;
+    background-image: 
+      linear-gradient(45deg, #1e40af 25%, transparent 25%),
+      linear-gradient(-45deg, #1e40af 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1e40af 75%),
+      linear-gradient(-45deg, transparent 75%, #1e40af 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+} 

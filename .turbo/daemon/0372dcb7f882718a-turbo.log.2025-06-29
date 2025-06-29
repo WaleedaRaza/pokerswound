@@ -1,0 +1,22 @@
+2025-06-29T19:59:34.120500Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/1.cookie")}
+2025-06-29T19:59:34.120510Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-29T19:59:35.819645Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/next-env.d.ts")}
+2025-06-29T19:59:35.819654Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T20:00:07.119638Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/src/hand-eval/evaluator.ts")}
+2025-06-29T20:00:07.119671Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:08:55.124571Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/src/deck/deck.ts")}
+2025-06-29T20:08:55.125055Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:09:13.120537Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/src/index.ts")}
+2025-06-29T20:09:13.120544Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:09:20.120002Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/src/index.ts")}
+2025-06-29T20:09:20.120031Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:13:29.219043Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/src/hand-eval/evaluator.test.ts")}
+2025-06-29T20:13:29.219074Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:13:31.120412Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/src/hand-eval/evaluator.test.ts")}
+2025-06-29T20:13:31.120419Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:16:46.520336Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/jest.config.js")}
+2025-06-29T20:16:46.520360Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:16:48.120361Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/jest.config.js")}
+2025-06-29T20:16:48.120370Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T20:31:36.655661Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/2.cookie")}
+2025-06-29T20:31:36.655926Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))

@@ -120,69 +120,102 @@ export class HandEvaluator {
     return rankings;
   }
 
-  // Helper methods for hand detection (to be implemented)
+  // Hand detection methods
   private static isRoyalFlush(cards: Card[]): boolean {
-    // TODO: Implement royal flush detection
-    return false;
+    return this.isStraightFlush(cards) && cards[0].rank === Rank.ACE;
   }
 
   private static isStraightFlush(cards: Card[]): boolean {
-    // TODO: Implement straight flush detection
-    return false;
+    return this.isFlush(cards) && this.isStraight(cards);
   }
 
   private static isFourOfAKind(cards: Card[]): boolean {
-    // TODO: Implement four of a kind detection
-    return false;
+    const rankCounts = this.getRankCounts(cards);
+    return Object.values(rankCounts).some(count => count === 4);
   }
 
   private static isFullHouse(cards: Card[]): boolean {
-    // TODO: Implement full house detection
-    return false;
+    const rankCounts = this.getRankCounts(cards);
+    const counts = Object.values(rankCounts).sort((a, b) => b - a);
+    return counts.length === 2 && counts[0] === 3 && counts[1] === 2;
   }
 
   private static isFlush(cards: Card[]): boolean {
-    // TODO: Implement flush detection
-    return false;
+    const suit = cards[0].suit;
+    return cards.every(card => card.suit === suit);
   }
 
   private static isStraight(cards: Card[]): boolean {
-    // TODO: Implement straight detection
-    return false;
+    // Check for regular straight
+    for (let i = 0; i < cards.length - 1; i++) {
+      if (cards[i].rank - cards[i + 1].rank !== 1) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static isThreeOfAKind(cards: Card[]): boolean {
-    // TODO: Implement three of a kind detection
-    return false;
+    const rankCounts = this.getRankCounts(cards);
+    return Object.values(rankCounts).some(count => count === 3);
   }
 
   private static isTwoPair(cards: Card[]): boolean {
-    // TODO: Implement two pair detection
-    return false;
+    const rankCounts = this.getRankCounts(cards);
+    const pairs = Object.values(rankCounts).filter(count => count === 2);
+    return pairs.length === 2;
   }
 
   private static isPair(cards: Card[]): boolean {
-    // TODO: Implement pair detection
-    return false;
+    const rankCounts = this.getRankCounts(cards);
+    return Object.values(rankCounts).some(count => count === 2);
   }
 
   private static createHandEvaluation(rank: HandRank, cards: Card[], description: string): HandEvaluation {
+    const kickers = this.getKickers(cards, rank);
     return {
       rank,
       cards,
-      kickers: [], // TODO: Implement kicker logic
+      kickers,
       score: this.calculateScore(rank, cards),
       description
     };
   }
 
   private static calculateScore(rank: HandRank, cards: Card[]): number {
-    // TODO: Implement proper scoring algorithm
-    return rank * 1000000 + cards.reduce((sum, card) => sum + card.rank, 0);
+    // Base score from hand rank
+    let score = rank * 1000000;
+    
+    // Add card values (higher cards get more weight)
+    for (let i = 0; i < cards.length; i++) {
+      score += cards[i].rank * Math.pow(100, cards.length - 1 - i);
+    }
+    
+    return score;
   }
 
   private static getCombinations<T>(arr: T[], size: number): T[][] {
-    // TODO: Implement combination generation
-    return [arr.slice(0, size)]; // Placeholder
+    if (size === 0) return [[]];
+    if (arr.length === 0) return [];
+    
+    const [first, ...rest] = arr;
+    const withoutFirst = this.getCombinations(rest, size);
+    const withFirst = this.getCombinations(rest, size - 1).map(combo => [first, ...combo]);
+    
+    return [...withoutFirst, ...withFirst];
+  }
+
+  private static getRankCounts(cards: Card[]): Record<number, number> {
+    const counts: Record<number, number> = {};
+    cards.forEach(card => {
+      counts[card.rank] = (counts[card.rank] || 0) + 1;
+    });
+    return counts;
+  }
+
+  private static getKickers(cards: Card[], rank: HandRank): Card[] {
+    // For now, return all cards as kickers
+    // TODO: Implement proper kicker logic based on hand type
+    return [...cards];
   }
 } 

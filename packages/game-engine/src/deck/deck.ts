@@ -9,11 +9,14 @@ export class DeckManager {
     
     Object.values(Suit).forEach(suit => {
       Object.values(Rank).forEach(rank => {
-        cards.push({
-          suit,
-          rank,
-          id: `${suit}_${rank}`
-        });
+        // Filter out non-numeric values (enum reverse mappings)
+        if (typeof rank === 'number') {
+          cards.push({
+            suit,
+            rank,
+            id: `${suit}_${rank}`
+          });
+        }
       });
     });
     
