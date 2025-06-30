@@ -1,10 +1,9 @@
 import { Express } from 'express';
+import authRoutes from './auth';
 
 export function setupRoutes(app: Express): void {
   // API routes
-  app.use('/api/auth', (req, res) => {
-    res.json({ message: 'Auth routes - TODO' });
-  });
+  app.use('/api/auth', authRoutes);
   
   app.use('/api/games', (req, res) => {
     res.json({ message: 'Game routes - TODO' });

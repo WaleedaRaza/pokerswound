@@ -5,11 +5,14 @@ import PokerTable from '../components/PokerTable'
 import PlayerPanel from '../components/PlayerPanel'
 import GameControls from '../components/GameControls'
 import HandEvaluation from '../components/HandEvaluation'
+import AuthButtons from '../components/account/AuthButtons'
 import { useState } from 'react'
 
 export default function Home() {
-  const { gameState, currentPlayer, handlePlayerAction, startNewGame, dealCards } = useGameState()
-  const [activeMenu, setActiveMenu] = useState<'game' | 'entropy' | 'settings'>('game')
+  const { gameState, currentPlayer, handlePlayerAction, startNewGame } =
+    useGameState()
+  const [activeMenu, setActiveMenu] =
+    useState<'game' | 'entropy' | 'settings'>('game')
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -17,58 +20,45 @@ export default function Home() {
       <nav className="bg-black/50 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+            {/* ————— Left side (brand + menu) ————— */}
             <div className="flex items-center space-x-8">
               <h1 className="text-2xl font-bold text-white">🃏 EntroPoker</h1>
-              
+
               {/* Menu Items */}
               <div className="flex space-x-1">
-                <button
-                  onClick={() => setActiveMenu('game')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    activeMenu === 'game' 
-                      ? 'bg-white/20 text-white' 
-                      : 'text-gray-300 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Game
-                </button>
-                <button
-                  onClick={() => setActiveMenu('entropy')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    activeMenu === 'entropy' 
-                      ? 'bg-white/20 text-white' 
-                      : 'text-gray-300 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Entropy Demo
-                </button>
-                <button
-                  onClick={() => setActiveMenu('settings')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    activeMenu === 'settings' 
-                      ? 'bg-white/20 text-white' 
-                      : 'text-gray-300 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Settings
-                </button>
+                {(['game', 'entropy', 'settings'] as const).map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveMenu(key)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      activeMenu === key
+                        ? 'bg-white/20 text-white'
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {key[0].toUpperCase() + key.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-4">
-              <button 
+            {/* ————— Right side (actions) ————— */}
+            <div className="flex items-center space-x-6">
+              <button
                 onClick={startNewGame}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 New Game
               </button>
-              <a 
-                href="/entropy-demo" 
+              <a
+                href="/entropy-demo"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 Full Demo
               </a>
+
+              {/* ——— NEW auth buttons ——— */}
+              <AuthButtons />
             </div>
           </div>
         </div>

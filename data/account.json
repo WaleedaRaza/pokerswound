@@ -4,5 +4,11 @@
     "email": "cutiearjuga@sweetarjuga.arjuga",
     "passwordHash": "$2a$12$mQo49NBdvwGGFDbzwIFLgOXwiCnrHO9vUJUxdVR.Wh0av0sT2gOSK",
     "createdAt": "2025-06-30T04:36:37.222Z"
+  },
+  {
+    "id": "4204be26-fbce-4942-a9a9-290526d0c1e4",
+    "email": "cutiearjuga@sweetarjuga.arjugaa",
+    "passwordHash": "$2a$12$7JNdq/TJOgQ/ilJoT.lCNORhDv2tUHuKwJ1giha5VC1/LB2LgFauK",
+    "createdAt": "2025-06-30T05:16:40.665Z"
   }
 ]

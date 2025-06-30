@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const DB_PATH = process.env.DATA_ACCOUNT_PATH || "null"
+const DB_PATH = process.env.DATA_ACCOUNT_PATH || "../data/account.json"
 
 export interface UserRecord {
   id: string;
