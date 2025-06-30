@@ -9,24 +9,24 @@ interface PlayerPanelProps {
 
 export default function PlayerPanel({ player }: PlayerPanelProps) {
   return (
-    <div className="bg-black bg-opacity-50 p-4 rounded-lg">
-      <h3 className="text-xl font-bold mb-4 text-poker-gold">Your Hand</h3>
+    <div className="bg-black/20 backdrop-blur-sm p-6 rounded-xl">
+      <h3 className="text-xl font-bold mb-6 text-white">Your Hand</h3>
       
       {/* Player Info */}
-      <div className="mb-4">
-        <div className="text-sm text-gray-300">Name</div>
-        <div className="font-bold">{player.name}</div>
+      <div className="mb-6">
+        <div className="text-sm text-gray-400 mb-1">Name</div>
+        <div className="font-bold text-white text-lg">{player.name}</div>
       </div>
       
-      <div className="mb-4">
-        <div className="text-sm text-gray-300">Chips</div>
-        <div className="text-poker-gold font-bold">${player.chips}</div>
+      <div className="mb-6">
+        <div className="text-sm text-gray-400 mb-1">Chips</div>
+        <div className="text-emerald-400 font-bold text-xl">${player.chips.toLocaleString()}</div>
       </div>
       
       {/* Player Cards */}
-      <div className="mb-4">
-        <div className="text-sm text-gray-300 mb-2">Your Cards</div>
-        <div className="flex gap-2">
+      <div className="mb-6">
+        <div className="text-sm text-gray-400 mb-3">Your Cards</div>
+        <div className="flex gap-3">
           {player.cards.length > 0 ? (
             player.cards.map((card) => (
               <PlayingCard key={card.id} card={card} />
@@ -35,11 +35,11 @@ export default function PlayerPanel({ player }: PlayerPanelProps) {
             <>
               <PlayingCard 
                 card={{ suit: 'hearts', rank: 'A', id: 'back1' }} 
-                faceDown={true} 
+                isFaceDown={true} 
               />
               <PlayingCard 
                 card={{ suit: 'hearts', rank: 'A', id: 'back2' }} 
-                faceDown={true} 
+                isFaceDown={true} 
               />
             </>
           )}
@@ -48,17 +48,23 @@ export default function PlayerPanel({ player }: PlayerPanelProps) {
       
       {/* Current Bet */}
       {player.currentBet > 0 && (
-        <div className="mb-4">
-          <div className="text-sm text-gray-300">Current Bet</div>
-          <div className="text-poker-gold font-bold">${player.currentBet}</div>
+        <div className="mb-6">
+          <div className="text-sm text-gray-400 mb-1">Current Bet</div>
+          <div className="text-emerald-400 font-bold text-lg">${player.currentBet.toLocaleString()}</div>
         </div>
       )}
       
       {/* Status */}
-      <div className="text-sm">
-        {player.isFolded && <span className="text-red-400">Folded</span>}
-        {player.isAllIn && <span className="text-poker-gold">All In</span>}
-        {player.isDealer && <span className="text-blue-400">Dealer</span>}
+      <div className="flex flex-wrap gap-2">
+        {player.isFolded && (
+          <span className="px-3 py-1 bg-red-500/20 text-red-400 text-xs font-medium rounded-full">FOLDED</span>
+        )}
+        {player.isAllIn && (
+          <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">ALL IN</span>
+        )}
+        {player.isDealer && (
+          <span className="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full">DEALER</span>
+        )}
       </div>
     </div>
   )

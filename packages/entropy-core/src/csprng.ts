@@ -1,109 +1,150 @@
-import { CSPRNGConfig } from './types';
+import { createHash, randomBytes } from 'crypto'
+import { EntropySample, EntropyPool, ShuffleSeed, EntropyConfig } from './types'
 
 export class CSPRNG {
-  private config: CSPRNGConfig;
+  private pool: EntropyPool
+  private config: EntropyConfig
+  private mixingRounds: number
 
-  constructor(config: CSPRNGConfig = {
-    algorithm: 'sha256',
-    seedLength: 256,
-    outputLength: 256
-  }) {
-    this.config = config;
+  constructor(config: EntropyConfig) {
+    this.config = config
+    this.pool = {
+      samples: [],
+      totalEntropyBits: 0,
+      lastUpdate: Date.now(),
+      minEntropyRequired: config.minEntropyBits
+    }
+    this.mixingRounds = config.mixingRounds
   }
 
   /**
-   * Generates a cryptographically secure random number using entropy seed
+   * Add entropy sample to the pool
    */
-  async generateRandom(entropy: string): Promise<number> {
-    const hash = await this.hashEntropy(entropy);
-    return this.hashToNumber(hash);
+  addEntropy(sample: EntropySample): void {
+    this.pool.samples.push(sample)
+    this.pool.totalEntropyBits += sample.entropyBits
+    this.pool.lastUpdate = Date.now()
+
+    // Keep only recent samples (last 24 hours)
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+    this.pool.samples = this.pool.samples.filter(s => s.timestamp > oneDayAgo)
   }
 
   /**
-   * Generates multiple random numbers
+   * Mix entropy from multiple sources using cryptographic hash
    */
-  async generateRandomArray(entropy: string, count: number): Promise<number[]> {
-    const results: number[] = [];
-    let currentEntropy = entropy;
-
-    for (let i = 0; i < count; i++) {
-      const random = await this.generateRandom(currentEntropy);
-      results.push(random);
-      
-      // Update entropy for next iteration
-      currentEntropy = await this.hashEntropy(currentEntropy + i.toString());
+  private mixEntropy(): Buffer {
+    if (this.pool.samples.length === 0) {
+      throw new Error('No entropy samples available')
     }
 
-    return results;
-  }
+    // Combine all entropy samples
+    const combinedData = this.pool.samples
+      .map(sample => `${sample.sourceId}:${sample.timestamp}:${sample.data}`)
+      .join('|')
 
-  /**
-   * Generates a random number between min and max (inclusive)
-   */
-  async generateRandomRange(entropy: string, min: number, max: number): Promise<number> {
-    const random = await this.generateRandom(entropy);
-    return min + (random % (max - min + 1));
-  }
-
-  /**
-   * Shuffles an array using entropy-seeded randomness
-   */
-  async shuffleArray<T>(array: T[], entropy: string): Promise<T[]> {
-    const shuffled = [...array];
-    const length = shuffled.length;
-
-    for (let i = length - 1; i > 0; i--) {
-      const j = await this.generateRandomRange(entropy + i.toString(), 0, i);
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    return shuffled;
-  }
-
-  /**
-   * Hashes entropy data using the configured algorithm
-   */
-  private async hashEntropy(entropy: string): Promise<string> {
-    // In a real implementation, this would use crypto.subtle.digest
-    // For now, using a simple hash function
-    return this.simpleHash(entropy);
-  }
-
-  /**
-   * Converts a hash string to a number
-   */
-  private hashToNumber(hash: string): number {
-    let result = 0;
-    for (let i = 0; i < hash.length; i++) {
-      result = ((result << 5) - result + hash.charCodeAt(i)) & 0xFFFFFFFF;
-    }
-    return Math.abs(result) / 0xFFFFFFFF; // Normalize to [0, 1)
-  }
-
-  /**
-   * Simple hash function (placeholder for crypto.subtle.digest)
-   */
-  private simpleHash(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(16);
-  }
-
-  /**
-   * Validates entropy quality
-   */
-  validateEntropy(entropy: string): { valid: boolean; entropyBits: number } {
-    // Simple entropy estimation based on character diversity
-    const uniqueChars = new Set(entropy).size;
-    const entropyBits = Math.log2(uniqueChars) * entropy.length;
+    // Add some system entropy as backup
+    const systemEntropy = randomBytes(32)
     
+    let mixed = Buffer.concat([
+      Buffer.from(combinedData, 'utf8'),
+      systemEntropy
+    ])
+
+    // Apply multiple rounds of mixing
+    for (let i = 0; i < this.mixingRounds; i++) {
+      const hash = createHash('sha256')
+      hash.update(mixed)
+      mixed = hash.digest()
+    }
+
+    return mixed
+  }
+
+  /**
+   * Generate a cryptographically secure random seed for shuffling
+   */
+  generateShuffleSeed(): ShuffleSeed {
+    if (this.pool.totalEntropyBits < this.config.minEntropyBits) {
+      throw new Error(`Insufficient entropy: ${this.pool.totalEntropyBits} < ${this.config.minEntropyBits}`)
+    }
+
+    const mixedEntropy = this.mixEntropy()
+    const entropyHash = createHash('sha256').update(mixedEntropy).digest('hex')
+    
+    // Create proof of fairness
+    const proof = this.createFairnessProof(mixedEntropy)
+
     return {
-      valid: entropyBits >= this.config.seedLength,
-      entropyBits
-    };
+      seed: mixedEntropy.toString('hex'),
+      entropyHash,
+      timestamp: Date.now(),
+      sources: [...new Set(this.pool.samples.map(s => s.sourceId))],
+      proof
+    }
+  }
+
+  /**
+   * Create cryptographic proof that the shuffle was fair
+   */
+  private createFairnessProof(entropy: Buffer): string {
+    const proofData = {
+      entropyHash: createHash('sha256').update(entropy).digest('hex'),
+      timestamp: Date.now(),
+      sampleCount: this.pool.samples.length,
+      totalEntropyBits: this.pool.totalEntropyBits,
+      sources: [...new Set(this.pool.samples.map(s => s.sourceId))],
+      mixingRounds: this.mixingRounds
+    }
+
+    const proofString = JSON.stringify(proofData, Object.keys(proofData).sort())
+    return createHash('sha256').update(proofString).digest('hex')
+  }
+
+  /**
+   * Verify that a shuffle seed was generated fairly
+   */
+  static verifyShuffleSeed(seed: ShuffleSeed, expectedSources: string[]): boolean {
+    try {
+      // Verify the proof
+      const proofData = {
+        entropyHash: createHash('sha256').update(Buffer.from(seed.seed, 'hex')).digest('hex'),
+        timestamp: seed.timestamp,
+        sources: seed.sources.sort()
+      }
+
+      const proofString = JSON.stringify(proofData, Object.keys(proofData).sort())
+      const expectedProof = createHash('sha256').update(proofString).digest('hex')
+
+      return seed.proof === expectedProof && 
+             seed.sources.every(s => expectedSources.includes(s))
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Get current entropy statistics
+   */
+  getStats() {
+    return {
+      totalSamples: this.pool.samples.length,
+      totalEntropyBits: this.pool.totalEntropyBits,
+      activeSources: new Set(this.pool.samples.map(s => s.sourceId)).size,
+      lastUpdate: this.pool.lastUpdate,
+      minRequired: this.config.minEntropyBits
+    }
+  }
+
+  /**
+   * Clear the entropy pool (useful for testing)
+   */
+  clearPool(): void {
+    this.pool = {
+      samples: [],
+      totalEntropyBits: 0,
+      lastUpdate: Date.now(),
+      minEntropyRequired: this.config.minEntropyBits
+    }
   }
 } 

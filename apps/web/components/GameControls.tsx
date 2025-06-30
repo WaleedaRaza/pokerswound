@@ -24,63 +24,63 @@ export default function GameControls({ gameState, onAction }: GameControlsProps)
   }
 
   return (
-    <div className="bg-black bg-opacity-50 p-4 rounded-lg">
-      <h3 className="text-xl font-bold mb-4 text-poker-gold">Game Controls</h3>
+    <div className="bg-black/20 backdrop-blur-sm p-6 rounded-xl">
+      <h3 className="text-xl font-bold mb-6 text-white">Game Controls</h3>
       
       {/* Action Buttons */}
-      <div className="space-y-2 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <button
           onClick={() => handleAction('fold')}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
         >
           Fold
         </button>
         
         <button
           onClick={() => handleAction('check')}
-          className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
         >
           Check
         </button>
         
         <button
           onClick={() => handleAction('call')}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
         >
-          Call ${gameState.currentBet}
+          Call ${gameState.currentBet.toLocaleString()}
         </button>
         
         <button
           onClick={() => handleAction('all-in')}
-          className="w-full bg-poker-gold hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
         >
           All In
         </button>
       </div>
       
       {/* Bet/Raise Input */}
-      <div className="mb-4">
-        <label className="block text-sm text-gray-300 mb-2">
+      <div className="mb-6">
+        <label className="block text-sm text-gray-400 mb-3 font-medium">
           Bet/Raise Amount
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <input
             type="number"
             value={betAmount}
             onChange={(e) => setBetAmount(e.target.value)}
             placeholder="Amount"
-            className="flex-1 bg-gray-800 text-white px-3 py-2 rounded border border-gray-600"
+            className="flex-1 bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-emerald-500 focus:outline-none transition-colors"
             min={gameState.currentBet + 1}
           />
           <button
             onClick={() => handleAction('bet')}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
             Bet
           </button>
           <button
             onClick={() => handleAction('raise')}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
             Raise
           </button>
@@ -88,10 +88,21 @@ export default function GameControls({ gameState, onAction }: GameControlsProps)
       </div>
       
       {/* Game Info */}
-      <div className="text-sm text-gray-300">
-        <div>Phase: {gameState.phase}</div>
-        <div>Current Bet: ${gameState.currentBet}</div>
-        <div>Pot: ${gameState.pot}</div>
+      <div className="bg-black/20 p-4 rounded-lg">
+        <div className="text-sm text-gray-300 space-y-2">
+          <div className="flex justify-between">
+            <span>Phase:</span>
+            <span className="text-white font-medium capitalize">{gameState.phase}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Current Bet:</span>
+            <span className="text-white font-medium">${gameState.currentBet.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Pot:</span>
+            <span className="text-emerald-400 font-bold">${gameState.pot.toLocaleString()}</span>
+          </div>
+        </div>
       </div>
     </div>
   )

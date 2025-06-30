@@ -9,62 +9,98 @@ interface PokerTableProps {
 }
 
 export default function PokerTable({ gameState }: PokerTableProps) {
-  // Mock players for demo - replace with real data
-  const mockPlayers = [
-    { id: '1', name: 'You', chips: 1000, position: 'bottom' },
-    { id: '2', name: 'Alice', chips: 1500, position: 'bottom-right' },
-    { id: '3', name: 'Bob', chips: 800, position: 'right' },
-    { id: '4', name: 'Charlie', chips: 1200, position: 'top-right' },
-    { id: '5', name: 'Diana', chips: 900, position: 'top' },
-    { id: '6', name: 'Eve', chips: 1100, position: 'top-left' },
-  ]
+  // Map player positions around the table
+  const getPlayerPosition = (index: number, totalPlayers: number): string => {
+    if (totalPlayers === 1) return 'bottom'
+    if (totalPlayers === 2) return index === 0 ? 'bottom' : 'top'
+    if (totalPlayers === 3) {
+      if (index === 0) return 'bottom'
+      if (index === 1) return 'top-right'
+      return 'top-left'
+    }
+    if (totalPlayers === 4) {
+      if (index === 0) return 'bottom'
+      if (index === 1) return 'right'
+      if (index === 2) return 'top'
+      return 'left'
+    }
+    if (totalPlayers === 5) {
+      if (index === 0) return 'bottom'
+      if (index === 1) return 'bottom-right'
+      if (index === 2) return 'top-right'
+      if (index === 3) return 'top-left'
+      return 'bottom-left'
+    }
+    if (totalPlayers === 6) {
+      if (index === 0) return 'bottom'
+      if (index === 1) return 'bottom-right'
+      if (index === 2) return 'top-right'
+      if (index === 3) return 'top'
+      if (index === 4) return 'top-left'
+      return 'bottom-left'
+    }
+    return 'bottom'
+  }
 
   return (
-    <div className="relative w-full aspect-square max-w-2xl mx-auto">
-      {/* Poker Table */}
-      <div className="poker-table w-full h-full relative">
-        
-        {/* Community Cards */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="flex gap-2">
-            {gameState.communityCards.length > 0 ? (
-              gameState.communityCards.map((card, index) => (
-                <PlayingCard key={card.id} card={card} />
-              ))
-            ) : (
-              // Show card backs for flop
-              Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="poker-card card-back w-16 h-24 flex items-center justify-center">
-                  <span className="text-xs">🂠</span>
+    <div className="relative w-full aspect-[4/3] max-w-5xl mx-auto">
+      {/* Clean Modern Poker Table */}
+      <div className="relative w-full h-full">
+        {/* Table Background */}
+        <div className="absolute inset-0 bg-emerald-700 rounded-3xl shadow-2xl">
+          {/* Center Area */}
+          <div className="absolute inset-8 bg-emerald-600 rounded-2xl">
+            
+            {/* Community Cards */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="flex gap-3 mb-6">
+                {gameState.communityCards.length > 0 ? (
+                  gameState.communityCards.map((card, index) => (
+                    <PlayingCard key={card.id} card={card} />
+                  ))
+                ) : (
+                  // Show card backs for flop
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <PlayingCard 
+                      key={index} 
+                      card={{ suit: 'clubs', rank: 'A', id: `back-${index}` }} 
+                      isFaceDown={true}
+                    />
+                  ))
+                )}
+              </div>
+              
+              {/* Pot Display */}
+              <div className="text-center">
+                <div className="inline-flex items-center gap-3 bg-black/20 backdrop-blur-sm px-6 py-3 rounded-full">
+                  <span className="text-white font-bold text-lg">Pot:</span>
+                  <span className="text-white font-bold text-xl">${gameState.pot.toLocaleString()}</span>
                 </div>
-              ))
-            )}
-          </div>
-          
-          {/* Pot */}
-          <div className="mt-4 text-center">
-            <div className="inline-flex items-center gap-2 bg-black bg-opacity-50 px-4 py-2 rounded-full">
-              <span className="text-poker-gold font-bold">Pot:</span>
-              <span className="text-white font-bold">${gameState.pot}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Player Seats */}
-        {mockPlayers.map((player, index) => (
+        {gameState.players.map((player, index) => (
           <PlayerSeat
             key={player.id}
-            player={player}
-            position={player.position as any}
+            player={{
+              id: player.id,
+              name: player.name,
+              chips: player.chips,
+              position: getPlayerPosition(index, gameState.players.length)
+            }}
+            position={getPlayerPosition(index, gameState.players.length)}
             isCurrentTurn={gameState.currentPlayer === index}
             isDealer={gameState.dealer === index}
           />
         ))}
 
         {/* Game Phase Indicator */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-          <div className="bg-black bg-opacity-50 px-4 py-2 rounded-full">
-            <span className="text-poker-gold font-bold capitalize">
+        <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+          <div className="bg-black/20 backdrop-blur-sm px-6 py-3 rounded-full">
+            <span className="text-white font-bold capitalize text-lg">
               {gameState.phase}
             </span>
           </div>

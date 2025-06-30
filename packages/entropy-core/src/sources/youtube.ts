@@ -1,133 +1,141 @@
-import { EntropyProvider, EntropyData } from '../types';
+import { EntropySource, EntropySample } from '../types'
 
-export interface YouTubeConfig {
-  videoId: string;
-  apiKey: string;
-  updateInterval: number; // milliseconds
-}
+export class YouTubeEntropySource implements EntropySource {
+  id: string
+  name: string
+  type: 'youtube'
+  reliability: number
+  latency: number
+  entropyPerSecond: number
+  private videoId: string
+  private isActive: boolean = false
+  private lastCommentTime: number = 0
 
-export class YouTubeEntropySource implements EntropyProvider {
-  private config: YouTubeConfig;
-  private isActive: boolean = false;
-
-  constructor(config: YouTubeConfig) {
-    this.config = config;
+  constructor(videoId: string, config?: Partial<EntropySource>) {
+    this.videoId = videoId
+    this.id = `youtube:${videoId}`
+    this.name = `YouTube Comments - ${videoId}`
+    this.type = 'youtube'
+    this.reliability = config?.reliability ?? 0.7
+    this.latency = config?.latency ?? 2000
+    this.entropyPerSecond = config?.entropyPerSecond ?? 30
   }
 
   /**
-   * Gets entropy from YouTube stream frames
-   */
-  async getEntropy(): Promise<string> {
-    const data = await this.getEntropyWithMetadata();
-    return data.hash;
-  }
-
-  /**
-   * Gets entropy with full metadata
-   */
-  async getEntropyWithMetadata(): Promise<EntropyData> {
-    if (!this.isActive) {
-      throw new Error('YouTube entropy source is not active');
-    }
-
-    try {
-      // TODO: Implement actual YouTube API integration
-      // This would involve:
-      // 1. Getting live stream status
-      // 2. Capturing frame data
-      // 3. Processing frame for entropy
-      
-      const mockFrameData = this.generateMockFrameData();
-      const timestamp = Date.now();
-      const hash = await this.processFrameData(mockFrameData);
-      
-      return {
-        sourceId: `youtube_${this.config.videoId}`,
-        timestamp,
-        data: mockFrameData,
-        entropyBits: this.estimateEntropyBits(mockFrameData),
-        hash
-      };
-    } catch (error) {
-      throw new Error(`Failed to get YouTube entropy: ${error}`);
-    }
-  }
-
-  /**
-   * Checks if the YouTube source is available
-   */
-  async isAvailable(): Promise<boolean> {
-    try {
-      // TODO: Check if stream is live using YouTube API
-      return this.isActive;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Starts the entropy source
+   * Start collecting entropy from YouTube comments
    */
   async start(): Promise<void> {
-    // TODO: Initialize YouTube API connection
-    // TODO: Start frame capture process
-    this.isActive = true;
-  }
+    if (this.isActive) return
 
-  /**
-   * Stops the entropy source
-   */
-  async stop(): Promise<void> {
-    this.isActive = false;
-  }
-
-  /**
-   * Processes frame data to extract entropy
-   */
-  private async processFrameData(frameData: string): Promise<string> {
-    // TODO: Implement actual frame processing
-    // This would involve:
-    // 1. Converting frame to pixel data
-    // 2. Extracting noise patterns
-    // 3. Generating entropy hash
+    this.isActive = true
+    console.log(`Starting YouTube entropy collection from video ${this.videoId}`)
     
-    return this.simpleHash(frameData);
+    // In a real implementation, this would use YouTube Data API
+    // For now, we'll simulate live comments
+    this.simulateLiveComments()
   }
 
   /**
-   * Estimates entropy bits from frame data
+   * Stop collecting entropy
    */
-  private estimateEntropyBits(frameData: string): number {
-    // TODO: Implement proper entropy estimation
-    return frameData.length * 8; // Rough estimate
+  stop(): void {
+    this.isActive = false
+    console.log(`Stopped YouTube entropy collection from video ${this.videoId}`)
   }
 
   /**
-   * Generates mock frame data for development
+   * Generate entropy sample from comment
    */
-  private generateMockFrameData(): string {
-    const width = 1920;
-    const height = 1080;
-    const pixels = width * height * 3; // RGB
+  private generateSample(comment: string, author: string): EntropySample {
+    const timestamp = Date.now()
+    const data = `${author}:${comment}:${timestamp}`
     
-    let data = '';
-    for (let i = 0; i < pixels; i++) {
-      data += Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+    // Estimate entropy based on comment length and character diversity
+    const uniqueChars = new Set(comment).size
+    const entropyBits = Math.min(uniqueChars * comment.length * 0.08, 24)
+    
+    // Quality based on comment timing and content
+    const timeSinceLastComment = timestamp - this.lastCommentTime
+    const quality = Math.min(timeSinceLastComment / 2000, 1) * 0.7 + 0.3
+    
+    this.lastCommentTime = timestamp
+
+    return {
+      sourceId: this.id,
+      timestamp,
+      data,
+      entropyBits: Math.floor(entropyBits),
+      quality
     }
-    
-    return data;
   }
 
   /**
-   * Simple hash function (placeholder)
+   * Simulate live comments for development
    */
-  private simpleHash(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+  private simulateLiveComments(): void {
+    if (!this.isActive) return
+
+    const comments = [
+      "Great video!",
+      "Thanks for sharing",
+      "This is amazing",
+      "Love this content",
+      "Keep it up!",
+      "Awesome work",
+      "Very informative",
+      "Subscribed!",
+      "Can't wait for more",
+      "This helped a lot",
+      "Perfect timing",
+      "Exactly what I needed",
+      "Mind blown!",
+      "Incredible",
+      "This is gold"
+    ]
+
+    const authors = [
+      "Viewer123",
+      "ContentLover",
+      "TechEnthusiast",
+      "LearningCurve",
+      "DigitalNomad",
+      "CodeMaster",
+      "DesignGuru",
+      "InnovationSeeker",
+      "FutureBuilder",
+      "CreativeMind"
+    ]
+
+    const interval = setInterval(() => {
+      if (!this.isActive) {
+        clearInterval(interval)
+        return
+      }
+
+      const comment = comments[Math.floor(Math.random() * comments.length)]
+      const author = authors[Math.floor(Math.random() * authors.length)]
+      
+      // Add some randomness to timing
+      const delay = Math.random() * 3000 + 1000
+      setTimeout(() => {
+        if (this.isActive) {
+          const sample = this.generateSample(comment, author)
+          // In a real implementation, this would emit the sample
+          console.log(`YouTube entropy: ${sample.entropyBits} bits from "${comment}"`)
+        }
+      }, delay)
+    }, 2000)
+  }
+
+  /**
+   * Get current status
+   */
+  getStatus() {
+    return {
+      isActive: this.isActive,
+      videoId: this.videoId,
+      lastCommentTime: this.lastCommentTime,
+      uptime: this.isActive ? Date.now() - this.lastCommentTime : 0
     }
-    return Math.abs(hash).toString(16);
   }
 } 

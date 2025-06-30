@@ -20,3 +20,78 @@
 2025-06-29T20:16:48.120370Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
 2025-06-29T20:31:36.655661Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/2.cookie")}
 2025-06-29T20:31:36.655926Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-29T20:46:02.268509Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/hooks/useGameState.ts"), AnchoredSystemPathBuf("apps/web/hooks")}
+2025-06-29T20:46:02.269128Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T20:46:03.561863Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/hooks/useGameState.ts")}
+2025-06-29T20:46:03.561873Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T20:46:37.862879Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/hooks/useGameState.ts")}
+2025-06-29T20:46:37.862888Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T20:46:57.762310Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/app/page.tsx")}
+2025-06-29T20:46:57.762333Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T20:47:30.362533Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/components/PokerTable.tsx")}
+2025-06-29T20:47:30.362543Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T20:48:53.563498Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/hooks/useGameState.ts")}
+2025-06-29T20:48:53.563534Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:11:01.172731Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/next.config.js")}
+2025-06-29T21:11:01.173300Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:11:46.167321Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/hooks/useGameState.ts")}
+2025-06-29T21:11:46.167330Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:13:24.268477Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/package.json")}
+2025-06-29T21:13:24.268508Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:13:24.467087Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package-lock.json")}
+2025-06-29T21:13:24.467244Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-29T21:13:24.578940Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package-lock.json")}
+2025-06-29T21:13:24.578958Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-29T21:13:36.867776Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/components/HandEvaluation.tsx")}
+2025-06-29T21:13:36.867795Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:13:37.967239Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/components/HandEvaluation.tsx")}
+2025-06-29T21:13:37.967247Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:13:58.168696Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/components/HandEvaluation.tsx")}
+2025-06-29T21:13:58.168710Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:14:16.168194Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/app/page.tsx")}
+2025-06-29T21:14:16.168207Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:30:17.350755Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/tsconfig.json")}
+2025-06-29T21:30:17.351394Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T21:30:20.143986Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/dist")}
+2025-06-29T21:30:20.143996Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T21:30:20.249882Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-29T21:31:03.353888Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/tsconfig.json")}
+2025-06-29T21:31:03.355150Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T21:52:40.852172Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/node_modules"), AnchoredSystemPathBuf("apps/web/node_modules"), AnchoredSystemPathBuf("packages/game-engine/node_modules")}
+2025-06-29T21:52:40.854077Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }, WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }, WorkspacePackage { name: Other("@entropoker/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-06-29T21:52:40.856203Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-29T21:52:40.857767Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-29T21:52:43.941017Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package.json")}
+2025-06-29T21:52:43.941039Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(All)
+2025-06-29T21:52:45.180536Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package-lock.json")}
+2025-06-29T21:52:45.180554Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-29T21:59:12.185931Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package-lock.json")}
+2025-06-29T21:59:12.185958Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-29T23:50:13.067921Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/tsconfig.json")}
+2025-06-29T23:50:13.068693Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T23:50:13.169628Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/game-engine/tsconfig.json")}
+2025-06-29T23:50:13.169644Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/game-engine"), path: AnchoredSystemPathBuf("packages/game-engine") }}))
+2025-06-29T23:50:13.170101Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-29T23:53:28.162582Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/index.ts")}
+2025-06-29T23:53:28.162612Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:53:39.162412Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/types.ts")}
+2025-06-29T23:53:39.162442Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:53:59.162600Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/csprng.ts")}
+2025-06-29T23:53:59.162608Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:54:16.161943Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/sources/twitch.ts")}
+2025-06-29T23:54:16.161966Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:54:35.162868Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/sources/youtube.ts")}
+2025-06-29T23:54:35.162885Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:54:57.162970Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/utils.ts")}
+2025-06-29T23:54:57.162993Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:55:13.162527Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/utils.ts")}
+2025-06-29T23:55:13.162537Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:55:13.162552Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-29T23:57:50.163774Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/utils.ts")}
+2025-06-29T23:57:50.163805Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:59:14.162973Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/processors/audio.ts")}
+2025-06-29T23:59:14.162996Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:59:20.364082Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/processors/audio.ts")}
+2025-06-29T23:59:20.364091Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))
+2025-06-29T23:59:43.163619Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/entropy-core/src/processors/image.ts")}
+2025-06-29T23:59:43.163643Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@entropoker/entropy-core"), path: AnchoredSystemPathBuf("packages/entropy-core") }}))

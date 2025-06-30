@@ -1,85 +1,128 @@
-import { EntropyData, EntropySource } from './types';
+import { createHash } from 'crypto';
 
 /**
- * Combines multiple entropy sources into a single entropy string
+ * Estimate entropy bits in a string or buffer
  */
-export function combineEntropySources(entropyData: EntropyData[]): string {
-  if (entropyData.length === 0) {
-    throw new Error('No entropy data provided');
+export function estimateEntropyBits(data: string | Buffer): number {
+  if (typeof data === 'string') {
+    data = Buffer.from(data, 'utf8');
   }
 
-  // Sort by timestamp to ensure consistent ordering
-  const sortedData = entropyData.sort((a, b) => a.timestamp - b.timestamp);
-  
-  // Combine all entropy hashes
-  const combined = sortedData.map(data => data.hash).join('');
-  
-  return simpleHash(combined);
-}
-
-/**
- * Validates entropy quality
- */
-export function validateEntropyQuality(entropy: string, minBits: number = 128): boolean {
-  const uniqueChars = new Set(entropy).size;
-  const entropyBits = Math.log2(uniqueChars) * entropy.length;
-  
-  return entropyBits >= minBits;
-}
-
-/**
- * Estimates entropy bits from a string
- */
-export function estimateEntropyBits(data: string): number {
-  const uniqueChars = new Set(data).size;
-  return Math.log2(uniqueChars) * data.length;
-}
-
-/**
- * Generates a timestamp-based entropy fallback
- */
-export function generateFallbackEntropy(): string {
-  const timestamp = Date.now();
-  const random = Math.random();
-  const processId = process.pid || 0;
-  
-  return simpleHash(`${timestamp}_${random}_${processId}`);
-}
-
-/**
- * Simple hash function for development
- */
-export function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+  // Count byte frequencies
+  const byteCounts = new Array(256).fill(0);
+  for (let i = 0; i < data.length; i++) {
+    byteCounts[data[i]]++;
   }
-  return Math.abs(hash).toString(16);
+
+  // Calculate entropy using Shannon's formula
+  let entropy = 0;
+  const totalBytes = data.length;
+
+  for (let i = 0; i < 256; i++) {
+    if (byteCounts[i] > 0) {
+      const probability = byteCounts[i] / totalBytes;
+      entropy -= probability * Math.log2(probability);
+    }
+  }
+
+  return Math.floor(entropy * totalBytes);
 }
 
 /**
- * Formats entropy data for logging
+ * Generate a hash of entropy data
  */
-export function formatEntropyData(data: EntropyData): string {
-  return `[${data.sourceId}] ${data.entropyBits} bits at ${new Date(data.timestamp).toISOString()}`;
+export function hashEntropy(data: string | Buffer): string {
+  const hash = createHash('sha256');
+  hash.update(data);
+  return hash.digest('hex');
 }
 
 /**
- * Checks if entropy source is stale
+ * Validate entropy quality
  */
-export function isEntropyStale(source: EntropySource, maxAgeMs: number = 60000): boolean {
-  return Date.now() - source.lastUpdate > maxAgeMs;
+export function validateEntropyQuality(entropyBits: number, minRequired: number = 128): boolean {
+  return entropyBits >= minRequired;
 }
 
 /**
- * Calculates entropy source health score
+ * Calculate entropy rate (bits per second)
  */
-export function calculateSourceHealth(source: EntropySource): number {
-  const age = Date.now() - source.lastUpdate;
-  const ageScore = Math.max(0, 1 - (age / 60000)); // Decay over 1 minute
-  const entropyScore = Math.min(1, source.entropyBits / 256); // Normalize to 256 bits
+export function calculateEntropyRate(samples: Array<{ entropyBits: number; timestamp: number }>): number {
+  if (samples.length < 2) return 0;
+
+  const totalEntropy = samples.reduce((sum, sample) => sum + sample.entropyBits, 0);
+  const timeSpan = samples[samples.length - 1].timestamp - samples[0].timestamp;
+  const seconds = timeSpan / 1000;
+
+  return seconds > 0 ? totalEntropy / seconds : 0;
+}
+
+/**
+ * Mix multiple entropy sources
+ */
+export function mixEntropySources(sources: Array<{ data: string | Buffer; weight: number }>): Buffer {
+  if (sources.length === 0) {
+    throw new Error('No entropy sources provided');
+  }
+
+  // Combine all sources with their weights
+  let combined = Buffer.alloc(0);
   
-  return (ageScore + entropyScore) / 2;
+  for (const source of sources) {
+    const data = typeof source.data === 'string' ? Buffer.from(source.data, 'utf8') : source.data;
+    const weightedData = Buffer.alloc(data.length * source.weight);
+    
+    for (let i = 0; i < data.length; i++) {
+      for (let j = 0; j < source.weight; j++) {
+        weightedData[i * source.weight + j] = data[i];
+      }
+    }
+    
+    combined = Buffer.concat([combined, weightedData]);
+  }
+
+  // Hash the combined data
+  const hash = createHash('sha256');
+  hash.update(combined);
+  return hash.digest();
+}
+
+/**
+ * Generate a random seed from entropy
+ */
+export function generateSeed(entropy: Buffer, length: number = 32): Buffer {
+  const hash = createHash('sha256');
+  hash.update(entropy);
+  return hash.digest().slice(0, length);
+}
+
+/**
+ * Convert entropy to a number between 0 and 1
+ */
+export function entropyToNumber(entropy: Buffer): number {
+  const hash = createHash('sha256');
+  hash.update(entropy);
+  const digest = hash.digest();
+  
+  // Use first 8 bytes to create a 64-bit number
+  const value = digest.readBigUInt64BE(0);
+  return Number(value) / Number(BigInt(2) ** BigInt(64));
+}
+
+/**
+ * Create a cryptographic proof of entropy mixing
+ */
+export function createMixingProof(
+  sources: Array<{ id: string; data: string | Buffer }>,
+  result: Buffer,
+  timestamp: number
+): string {
+  const proofData = {
+    sources: sources.map(s => ({ id: s.id, hash: hashEntropy(s.data) })),
+    resultHash: hashEntropy(result),
+    timestamp
+  };
+
+  const proofString = JSON.stringify(proofData, Object.keys(proofData).sort());
+  return hashEntropy(proofString);
 } 
