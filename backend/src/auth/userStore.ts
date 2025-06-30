@@ -1,35 +1,48 @@
-import { promises as fs } from 'fs';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
-
-const DB_PATH = process.env.DATA_ACCOUNT_PATH || "../data/account.json"
+// src/auth/userStore.ts
+import prisma from '../prisma';
 
 export interface UserRecord {
   id: string;
   email: string;
   passwordHash: string;
-  createdAt: string;
+  createdAt: Date;
 }
 
-async function load(): Promise<UserRecord[]> {
-  try { return JSON.parse(await fs.readFile(DB_PATH, 'utf8')); }
-  catch { return []; }
+export async function findByEmail(
+  email: string
+): Promise<UserRecord | null> {
+  return prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      passwordHash: true,
+      createdAt: true,
+    },
+  });
 }
 
-async function save(users: UserRecord[]) {
-  await fs.mkdir('data', { recursive: true });
-  await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2));
-}
-
-// CRUD helpers
-export async function findByEmail(email: string) {
-  const users = await load();
-  return users.find(u => u.email === email);
-}
-
-export async function add(user: UserRecord) {
-  const users = await load();
-  users.push(user);
-  await save(users);
+export async function add(user: {
+  id: string;
+  email: string;
+  passwordHash: string;
+  createdAt: Date | string;
+}): Promise<UserRecord> {
+  return prisma.user.create({
+    data: {
+      id: user.id,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      createdAt:
+        typeof user.createdAt === 'string'
+          ? new Date(user.createdAt)
+          : user.createdAt,
+    },
+    select: {
+      id: true,
+      email: true,
+      passwordHash: true,
+      createdAt: true,
+    },
+  });
 }

@@ -45,6 +45,8 @@ router.post(
       email,
       passwordHash,
       createdAt: new Date().toISOString(),
+      lifetimeWinnings: 0,
+      lifetimeLosses: 0,
     };
     await store.add(user);
 

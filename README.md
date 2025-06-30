@@ -176,7 +176,14 @@ entropoker/
    npx prisma db push
    ```
 
-5. **Start development servers**
+5. **Ensure Docker Desktop ins installed**
+   ```bash
+   Install Docker Desktop https://www.docker.com/products/docker-desktop/
+
+   cd into prisma directory and ensure the db is initialized and on
+   ```
+
+6. **Start development servers**
    ```bash
    # Start all services
    npm run dev

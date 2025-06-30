@@ -1,14 +1,18 @@
 [
   {
-    "id": "4011d2eb-432b-4ef8-9301-7012833dc6e6",
-    "email": "cutiearjuga@sweetarjuga.arjuga",
-    "passwordHash": "$2a$12$mQo49NBdvwGGFDbzwIFLgOXwiCnrHO9vUJUxdVR.Wh0av0sT2gOSK",
-    "createdAt": "2025-06-30T04:36:37.222Z"
+    "id": "32de9870-ac2c-441b-bc6f-b7d6cf6cfaae",
+    "email": "daanishbawan@outlook.com",
+    "passwordHash": "$2a$12$o4UApCgvbiVnbSgzS9z/lOFSlRC9YrWci.JGEjF8pekF4n8eTYFN.",
+    "createdAt": "2025-06-30T18:44:53.188Z",
+    "lifetimeWinnings": 0,
+    "lifetimeLosses": 0
   },
   {
-    "id": "4204be26-fbce-4942-a9a9-290526d0c1e4",
-    "email": "cutiearjuga@sweetarjuga.arjugaa",
-    "passwordHash": "$2a$12$7JNdq/TJOgQ/ilJoT.lCNORhDv2tUHuKwJ1giha5VC1/LB2LgFauK",
-    "createdAt": "2025-06-30T05:16:40.665Z"
+    "id": "81a08961-f935-453d-9c80-a50dac3e7700",
+    "email": "sweetarjuga@sweetarjuga.com",
+    "passwordHash": "$2a$12$prFXO97VD/dH/6Lm2EI.BO84mBbB.Xis1ARgtSKbOubuXyQWzmt9K",
+    "createdAt": "2025-06-30T18:46:00.712Z",
+    "lifetimeWinnings": 0,
+    "lifetimeLosses": 0
   }
 ]

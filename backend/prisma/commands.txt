@@ -1,0 +1,11 @@
+cd ..
+
+to start db: docker compose up -d
+
+to check db status: docker compose ps
+1 time thing to load schema into postgresql: npx prisma migrate dev --name init 
+
+
+to stop db: docker compose down
+
+to view prisma visually: npx prisma studio
