@@ -75,33 +75,58 @@ router.post(
     // Send the refresh token in an HttpOnly cookie (XSS-safe)
     res.cookie('refreshToken', refresh, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure:   false,               // still fine on plain HTTP localhost
+      maxAge:   1000 * 60 * 60 * 24 * 7,
     });
-
+    console.log("Email logged in: " + email);
     return res.json({ access });
   }
 );
 
-router.post('/refresh', async (req: Request, res: Res<{ access: string }>) => {
-  const token = (req as any).cookies?.refreshToken;
-  if (!token) return res.sendStatus(401);
+router.get('/me', async (req, res) => {
+  const token = req.cookies?.refreshToken;
+  if (!token) 
+  {
+    console.log("Sent 401 status 1");
+    return res.sendStatus(401);
+  }
 
   try {
-    const payload = verifyToken(token);            // will throw if expired
-    const user = await store.findByEmail(payload.sub);
-    if (!user) return res.sendStatus(401);
-
-    const access = signAccessToken(user);
-    return res.json({ access });
+    const payload = verifyToken(token);              // { sub: <user-id> }
+    const user = await prisma.user.findUnique({      // 1️⃣  use the id
+      where: { id: payload.sub },
+      select: { id: true, email: true },
+    });
+    if (!user) 
+    {
+      console.log("Sent 401 status 2");
+      return res.sendStatus(401);
+    }
+    console.log("Sending /me: " + user.email + " " + user.id);
+    return res.json({ user });
   } catch {
+    console.log("Sent 401 status 3");
     return res.sendStatus(401);
   }
 });
 
-router.get('/me', requireAuth, (req: AuthedRequest, res: Res) => {
-  res.json({ user: req.user });
+router.post('/refresh', async (req, res) => {
+  const token = req.cookies?.refreshToken;
+  if (!token) return res.sendStatus(401);
+
+  try {
+    const payload = verifyToken(token);
+    const user = await prisma.user.findUnique({      // 1️⃣  same here
+      where: { id: payload.sub },
+    });
+    if (!user) return res.sendStatus(401);
+
+    const access = signAccessToken(user);
+    res.json({ access });
+  } catch {
+    res.sendStatus(401);
+  }
 });
 
 export default router;

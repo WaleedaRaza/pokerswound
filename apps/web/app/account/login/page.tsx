@@ -1,30 +1,25 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/context/AuthContext';   // same file as above
 
 export default function LogIn() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const { login } = useAuth();          // ⬅️  pulled from context
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
-    const res = await fetch('http://localhost:3001/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include',
-    })
-
-    if (res.ok) {
-      router.push('/')           // back to the poker table
-    } else {
-      const { msg, errors } = await res.json()
-      setError(msg ?? errors?.[0]?.msg ?? 'Invalid credentials')
+    try {
+      await login(email, password);     // ⬅️  updates context + cookie
+      router.push('/');                 // provider already knows the user
+    } catch {
+      setError('Invalid credentials');
     }
   }
 
