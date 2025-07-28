@@ -275,11 +275,80 @@ export class GameStateMachine {
       };
     }
 
-    // TODO: Implement full showdown logic with hand evaluation
+    // Evaluate all active players' hands
+    const handEvaluations: Record<string, any> = {};
+    const playerHands = activePlayers.map(player => {
+      try {
+        // Convert player cards to engine format
+        const holeCards = player.holeCards || [];
+        const hand = HandEvaluator.evaluateHand(holeCards, this.state.communityCards);
+        handEvaluations[player.id] = hand;
+        
+        return {
+          playerId: player.id,
+          holeCards,
+          hand
+        };
+      } catch (error) {
+        console.error(`Error evaluating hand for player ${player.id}:`, error);
+        return {
+          playerId: player.id,
+          holeCards: player.holeCards || [],
+          hand: { rank: HandRank.HIGH_CARD, cards: [], kickers: [], score: 0, description: 'Invalid hand' }
+        };
+      }
+    });
+
+    // Rank hands and determine winners
+    const rankings = HandEvaluator.rankHands(
+      playerHands.map(ph => ({ playerId: ph.playerId, holeCards: ph.holeCards })),
+      this.state.communityCards
+    );
+
+    // Group players by position (handle ties)
+    const winnersByPosition = new Map<number, typeof rankings>();
+    rankings.forEach(ranking => {
+      if (!winnersByPosition.has(ranking.position)) {
+        winnersByPosition.set(ranking.position, []);
+      }
+      winnersByPosition.get(ranking.position)!.push(ranking);
+    });
+
+    // Calculate pot distribution
+    const potDistribution: Array<{ playerId: string; amount: number; reason: string }> = [];
+    let remainingPot = this.state.pot;
+
+    // Distribute pot starting from winners (position 1)
+    for (let position = 1; position <= winnersByPosition.size; position++) {
+      const winners = winnersByPosition.get(position);
+      if (!winners || remainingPot <= 0) break;
+
+      const amountPerWinner = Math.floor(remainingPot / winners.length);
+      const remainder = remainingPot % winners.length;
+
+      winners.forEach((winner, index) => {
+        const amount = amountPerWinner + (index < remainder ? 1 : 0);
+        if (amount > 0) {
+          potDistribution.push({
+            playerId: winner.playerId,
+            amount,
+            reason: position === 1 ? 'winner' : `position_${position}`
+          });
+        }
+      });
+
+      remainingPot = 0; // All pot distributed
+    }
+
     return {
-      winners: [],
-      handEvaluations: {},
-      potDistribution: [],
+      winners: rankings.filter(r => r.position === 1).map(r => ({
+        playerId: r.playerId,
+        amount: potDistribution.filter(pd => pd.playerId === r.playerId).reduce((sum, pd) => sum + pd.amount, 0),
+        hand: r.hand,
+        position: r.position
+      })),
+      handEvaluations,
+      potDistribution,
       handHistory: this.state.handHistory
     };
   }

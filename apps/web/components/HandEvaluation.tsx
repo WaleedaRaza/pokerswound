@@ -2,11 +2,44 @@
 
 import { Player, Card } from '@/types/game'
 import { HandEvaluator } from '@entropoker/game-engine'
+import { Card as EngineCard, Suit, Rank } from '@entropoker/game-engine'
 
 interface HandEvaluationProps {
   players: Player[]
   communityCards: Card[]
   showEvaluations: boolean
+}
+
+// Type conversion functions (same as in useGameState)
+const convertFrontendCardToEngine = (frontendCard: Card): EngineCard => {
+  const rankMap: Record<string, Rank> = {
+    '2': Rank.TWO,
+    '3': Rank.THREE,
+    '4': Rank.FOUR,
+    '5': Rank.FIVE,
+    '6': Rank.SIX,
+    '7': Rank.SEVEN,
+    '8': Rank.EIGHT,
+    '9': Rank.NINE,
+    '10': Rank.TEN,
+    'J': Rank.JACK,
+    'Q': Rank.QUEEN,
+    'K': Rank.KING,
+    'A': Rank.ACE,
+  }
+
+  const suitMap: Record<string, Suit> = {
+    'hearts': Suit.HEARTS,
+    'diamonds': Suit.DIAMONDS,
+    'clubs': Suit.CLUBS,
+    'spades': Suit.SPADES,
+  }
+
+  return {
+    suit: suitMap[frontendCard.suit],
+    rank: rankMap[frontendCard.rank],
+    id: frontendCard.id,
+  }
 }
 
 export default function HandEvaluation({ players, communityCards, showEvaluations }: HandEvaluationProps) {
@@ -21,7 +54,10 @@ export default function HandEvaluation({ players, communityCards, showEvaluation
 
     const evaluations = activePlayers.map(player => {
       try {
-        const hand = HandEvaluator.evaluateHand(player.cards, communityCards)
+        const hand = HandEvaluator.evaluateHand(
+          player.cards.map(convertFrontendCardToEngine), 
+          communityCards.map(convertFrontendCardToEngine)
+        )
         return {
           player,
           hand,
@@ -56,23 +92,27 @@ export default function HandEvaluation({ players, communityCards, showEvaluation
   }
 
   return (
-    <div className="bg-black bg-opacity-75 p-4 rounded-lg">
-      <h3 className="text-poker-gold font-bold mb-3">Hand Evaluations</h3>
-      <div className="space-y-2">
+    <div className="bg-black/20 backdrop-blur-sm p-6 rounded-xl">
+      <h3 className="text-xl font-bold mb-4 text-white">Hand Evaluations</h3>
+      <div className="space-y-3">
         {handEvaluations.map((evaluation, index) => (
           <div 
             key={evaluation.player.id} 
-            className={`p-2 rounded ${evaluation.isWinner ? 'bg-poker-gold text-black' : 'bg-gray-800'}`}
+            className={`p-4 rounded-lg transition-colors ${
+              evaluation.isWinner 
+                ? 'bg-emerald-500/20 border border-emerald-500/30' 
+                : 'bg-black/20 border border-white/10'
+            }`}
           >
             <div className="flex justify-between items-center">
-              <span className="font-bold">{evaluation.player.name}</span>
-              <span className="text-sm">
+              <span className="font-bold text-white">{evaluation.player.name}</span>
+              <span className="text-sm text-emerald-400">
                 {evaluation.hand ? evaluation.hand.description : 'Invalid Hand'}
               </span>
             </div>
             {evaluation.isWinner && (
-              <div className="text-center mt-1">
-                <span className="text-sm font-bold">🏆 WINNER!</span>
+              <div className="text-center mt-2">
+                <span className="text-sm font-bold text-emerald-400">🏆 WINNER!</span>
               </div>
             )}
           </div>

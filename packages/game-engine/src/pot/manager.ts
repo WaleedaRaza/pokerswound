@@ -172,4 +172,114 @@ export class PotManager {
     
     return { valid: true };
   }
+
+  /**
+   * Creates side pots when players are all-in
+   */
+  static createSidePots(players: Array<{ id: string; chips: number; currentBet: number; isAllIn: boolean }>): Pot[] {
+    const pots: Pot[] = [];
+    
+    // Sort players by their current bet amount
+    const sortedPlayers = [...players].sort((a, b) => a.currentBet - b.currentBet);
+    
+    let previousBet = 0;
+    let eligiblePlayers: string[] = [];
+    let allInPlayers: string[] = [];
+    
+    for (const player of sortedPlayers) {
+      if (player.currentBet > previousBet) {
+        // Create a pot for the difference
+        const potAmount = (player.currentBet - previousBet) * eligiblePlayers.length;
+        
+        if (potAmount > 0) {
+          pots.push({
+            id: `pot-${pots.length}`,
+            amount: potAmount,
+            eligiblePlayers: [...eligiblePlayers],
+            type: eligiblePlayers.length === 1 ? 'main' : 'side',
+            allInPlayers: [...allInPlayers]
+          });
+        }
+        
+        previousBet = player.currentBet;
+      }
+      
+      // Add player to eligible list for future pots
+      eligiblePlayers.push(player.id);
+      
+      // Track all-in players
+      if (player.isAllIn) {
+        allInPlayers.push(player.id);
+      }
+    }
+    
+    // Create final pot with remaining players
+    const finalPotAmount = sortedPlayers.reduce((total, player) => total + player.currentBet, 0);
+    if (finalPotAmount > 0) {
+      pots.push({
+        id: `pot-${pots.length}`,
+        amount: finalPotAmount,
+        eligiblePlayers: sortedPlayers.map(p => p.id),
+        type: 'main',
+        allInPlayers: [...allInPlayers]
+      });
+    }
+    
+    return pots;
+  }
+
+  /**
+   * Distributes side pots to winners
+   */
+  static distributeSidePots(
+    pots: Pot[],
+    winners: Array<{ playerId: string; handRank: number; handScore: number }>
+  ): PotDistribution[] {
+    const distributions: PotDistribution[] = [];
+    
+    for (const pot of pots) {
+      if (pot.amount === 0) continue;
+      
+      // Find eligible winners for this pot
+      const eligibleWinners = winners.filter(winner => 
+        pot.eligiblePlayers.includes(winner.playerId)
+      );
+      
+      if (eligibleWinners.length === 0) continue;
+      
+      // Sort winners by hand strength (descending)
+      eligibleWinners.sort((a, b) => {
+        if (a.handRank !== b.handRank) {
+          return b.handRank - a.handRank;
+        }
+        return b.handScore - a.handScore;
+      });
+      
+      // Find the best hand(s)
+      const bestHandRank = eligibleWinners[0].handRank;
+      const bestHandScore = eligibleWinners[0].handScore;
+      
+      const bestWinners = eligibleWinners.filter(winner => 
+        winner.handRank === bestHandRank && winner.handScore === bestHandScore
+      );
+      
+      // Distribute pot among winners
+      const amountPerWinner = Math.floor(pot.amount / bestWinners.length);
+      const remainder = pot.amount % bestWinners.length;
+      
+      bestWinners.forEach((winner, index) => {
+        const amount = amountPerWinner + (index < remainder ? 1 : 0);
+        if (amount > 0) {
+          distributions.push({
+            playerId: winner.playerId,
+            amount,
+            potId: pot.id,
+            reason: bestWinners.length > 1 ? 'split' : 'winner'
+          });
+        }
+      });
+    }
+    
+    return distributions;
+  }
 } 

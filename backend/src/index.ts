@@ -28,13 +28,7 @@ const PORT = process.env.PORT || 3001;
 // Setup middleware
 setupMiddleware(app);
 
-// Setup routes
-setupRoutes(app);
-
-// Setup Socket.IO handlers
-setupSocketHandlers(io);
-
-// Health check endpoint
+// Health check endpoint (must come before routes)
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -42,6 +36,12 @@ app.get('/health', (req, res) => {
     version: process.env.npm_package_version || '0.1.0'
   });
 });
+
+// Setup routes
+setupRoutes(app);
+
+// Setup Socket.IO handlers
+setupSocketHandlers(io);
 
 // Start server
 server.listen(PORT, () => {

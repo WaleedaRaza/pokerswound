@@ -38,27 +38,46 @@ export class CSPRNG {
       throw new Error('No entropy samples available')
     }
 
-    // Combine all entropy samples
-    const combinedData = this.pool.samples
-      .map(sample => `${sample.sourceId}:${sample.timestamp}:${sample.data}`)
-      .join('|')
+    // Sort samples by timestamp to ensure consistent ordering
+    const sortedSamples = [...this.pool.samples].sort((a, b) => a.timestamp - b.timestamp)
 
-    // Add some system entropy as backup
-    const systemEntropy = randomBytes(32)
+    // Create a more robust entropy mixing algorithm
+    let mixed = Buffer.alloc(0)
     
-    let mixed = Buffer.concat([
-      Buffer.from(combinedData, 'utf8'),
-      systemEntropy
-    ])
+    // First pass: Combine all samples with their quality weights
+    for (const sample of sortedSamples) {
+      const sampleData = Buffer.from(`${sample.sourceId}:${sample.timestamp}:${sample.data}`, 'utf8')
+      const weightedData = Buffer.alloc(sampleData.length * Math.ceil(sample.quality * 10))
+      
+      // Weight the data based on quality
+      for (let i = 0; i < sampleData.length; i++) {
+        for (let j = 0; j < Math.ceil(sample.quality * 10); j++) {
+          weightedData[i * Math.ceil(sample.quality * 10) + j] = sampleData[i]
+        }
+      }
+      
+      mixed = Buffer.concat([mixed, weightedData])
+    }
 
-    // Apply multiple rounds of mixing
+    // Add system entropy as backup
+    const systemEntropy = randomBytes(64) // Increased from 32 to 64 bytes
+    mixed = Buffer.concat([mixed, systemEntropy])
+
+    // Apply multiple rounds of cryptographic mixing
     for (let i = 0; i < this.mixingRounds; i++) {
       const hash = createHash('sha256')
       hash.update(mixed)
+      hash.update(i.toString()) // Add round number to prevent fixed points
       mixed = hash.digest()
     }
 
-    return mixed
+    // Final entropy extraction using HMAC
+    const finalKey = createHash('sha256').update('entropoker-final-key').digest()
+    const hmac = createHash('sha256')
+    hmac.update(finalKey)
+    hmac.update(mixed)
+    
+    return hmac.digest()
   }
 
   /**

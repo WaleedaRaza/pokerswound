@@ -6,9 +6,11 @@ import PlayerSeat from './PlayerSeat'
 
 interface PokerTableProps {
   gameState: GameState
+  isUserTurn?: boolean
+  turnTimer?: number
 }
 
-export default function PokerTable({ gameState }: PokerTableProps) {
+export default function PokerTable({ gameState, isUserTurn = false, turnTimer = 30 }: PokerTableProps) {
   // Map player positions around the table
   const getPlayerPosition = (index: number, totalPlayers: number): string => {
     if (totalPlayers === 1) return 'bottom'
@@ -94,6 +96,9 @@ export default function PokerTable({ gameState }: PokerTableProps) {
             position={getPlayerPosition(index, gameState.players.length)}
             isCurrentTurn={gameState.currentPlayer === index}
             isDealer={gameState.dealer === index}
+            isUser={player.id === '1'}
+            isUserTurn={isUserTurn && player.id === '1'}
+            turnTimer={turnTimer}
           />
         ))}
 
@@ -102,6 +107,39 @@ export default function PokerTable({ gameState }: PokerTableProps) {
           <div className="bg-black/20 backdrop-blur-sm px-6 py-3 rounded-full">
             <span className="text-white font-bold capitalize text-lg">
               {gameState.phase}
+            </span>
+          </div>
+        </div>
+
+        {/* Turn Indicator */}
+        {isUserTurn && (
+          <div className="absolute top-6 right-6">
+            <div className="bg-emerald-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-emerald-500/30">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-emerald-400 font-bold text-sm">YOUR TURN</span>
+                <span className="text-emerald-400 text-sm">({turnTimer}s)</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Current Bet Indicator */}
+        {gameState.currentBet > 0 && (
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+            <div className="bg-blue-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-500/30">
+              <span className="text-blue-400 font-bold text-sm">
+                Current Bet: ${gameState.currentBet.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Game Status */}
+        <div className="absolute bottom-6 right-6">
+          <div className="bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full">
+            <span className="text-gray-300 text-sm">
+              Hand #{gameState.handNumber}
             </span>
           </div>
         </div>
