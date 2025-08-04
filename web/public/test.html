@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pohkur Poker - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        button {
+            background: #4ade80;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 Pohkur Poker</h1>
+        <h2>Real-time Multiplayer Poker Game</h2>
+        
+        <div class="status">
+            <h3>System Status</h3>
+            <div id="backend-status">Checking backend...</div>
+            <div id="database-status">Checking database...</div>
+            <div id="redis-status">Checking Redis...</div>
+        </div>
+
+        <div class="status">
+            <h3>Quick Actions</h3>
+            <button onclick="testBackend()">Test Backend API</button>
+            <button onclick="testDatabase()">Test Database</button>
+            <button onclick="showInfo()">Show System Info</button>
+        </div>
+
+        <div id="results" class="status" style="display: none;">
+            <h3>Test Results</h3>
+            <pre id="results-content"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Test backend connection
+        async function testBackend() {
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                document.getElementById('backend-status').innerHTML = 
+                    `<span class="success">✅ Backend: Running (${data.status})</span>`;
+                showResults('Backend Test', data);
+            } catch (error) {
+                document.getElementById('backend-status').innerHTML = 
+                    `<span class="error">❌ Backend: Connection failed</span>`;
+                showResults('Backend Test Error', error);
+            }
+        }
+
+        // Test API endpoint
+        async function testDatabase() {
+            try {
+                const response = await fetch('http://localhost:3001/api/test');
+                const data = await response.json();
+                document.getElementById('database-status').innerHTML = 
+                    `<span class="success">✅ API: ${data.message}</span>`;
+                showResults('API Test', data);
+            } catch (error) {
+                document.getElementById('database-status').innerHTML = 
+                    `<span class="error">❌ API: Connection failed</span>`;
+                showResults('API Test Error', error);
+            }
+        }
+
+        function showInfo() {
+            const info = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                screenSize: `${screen.width}x${screen.height}`,
+                windowSize: `${window.innerWidth}x${window.innerHeight}`,
+                backendUrl: 'http://localhost:3001',
+                features: {
+                    websockets: 'WebSocket' in window,
+                    localStorage: 'localStorage' in window,
+                    serviceWorker: 'serviceWorker' in navigator
+                }
+            };
+            showResults('System Information', info);
+        }
+
+        function showResults(title, data) {
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results-content').textContent = 
+                `${title}:\n${JSON.stringify(data, null, 2)}`;
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            testBackend();
+            testDatabase();
+        };
+    </script>
+</body>
+</html> 

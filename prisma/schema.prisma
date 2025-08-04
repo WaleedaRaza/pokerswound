@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String?  // null for OAuth users
+  avatar    String?
+  tokenBalance Int   @default(0)
+  isOnline  Boolean  @default(false)
+  lastSeen  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  gamesAsPlayer GamePlayer[]
+  transactions  Transaction[]
+  friends       Friendship[] @relation("UserFriends")
+  friendsOf     Friendship[] @relation("FriendOfUser")
+  chatMessages  ChatMessage[]
+
+  @@map("users")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  status    FriendshipStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendOfUser", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@map("friendships")
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+model Game {
+  id          String      @id @default(cuid())
+  name        String
+  gameType    GameType    @default(TEXAS_HOLDEM)
+  maxPlayers  Int         @default(9)
+  minBet      Int         @default(10)
+  maxBet      Int         @default(1000)
+  status      GameStatus  @default(WAITING)
+  currentHandId String? @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  players     GamePlayer[]
+  hands       Hand[]
+  chatMessages ChatMessage[]
+  currentHand Hand? @relation("GameCurrentHand", fields: [currentHandId], references: [id])
+
+  @@map("games")
+}
+
+model GamePlayer {
+  id       String @id @default(cuid())
+  userId   String
+  gameId   String
+  seat     Int
+  chips    Int    @default(1000)
+  isDealer Boolean @default(false)
+  isActive Boolean @default(true)
+  joinedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, seat])
+  @@unique([gameId, userId])
+  @@map("game_players")
+}
+
+model Hand {
+  id        String   @id @default(cuid())
+  gameId    String
+  handNumber Int
+  pot       Int      @default(0)
+  communityCards String[] // JSON array of card strings
+  winnerIds String[] // JSON array of user IDs
+  entropy   String?  // Hash of entropy used for shuffling
+  entropySources String[] // JSON array of entropy sources used
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  actions HandAction[]
+  currentHandForGame Game? @relation("GameCurrentHand")
+
+  @@map("hands")
+}
+
+model HandAction {
+  id        String     @id @default(cuid())
+  handId    String
+  userId    String
+  actionType ActionType
+  amount    Int?
+  cards     String[]   // For actions like "show"
+  timestamp DateTime   @default(now())
+
+  hand Hand @relation(fields: [handId], references: [id], onDelete: Cascade)
+
+  @@map("hand_actions")
+}
+
+model Transaction {
+  id          String           @id @default(cuid())
+  userId      String
+  type        TransactionType
+  amount      Int
+  description String
+  reference   String?          // External reference (payment ID, etc.)
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  gameId    String?
+  message   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+enum GameType {
+  TEXAS_HOLDEM
+  OMAHA
+  SEVEN_CARD_STUD
+}
+
+enum GameStatus {
+  WAITING
+  PLAYING
+  FINISHED
+  CANCELLED
+}
+
+enum ActionType {
+  FOLD
+  CHECK
+  CALL
+  BET
+  RAISE
+  ALL_IN
+  SHOW
+}
+
+enum TransactionType {
+  PURCHASE
+  WIN
+  LOSS
+  BONUS
+  REFUND
+} 

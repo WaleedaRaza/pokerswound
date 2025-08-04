@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: pohkur-postgres
+    environment:
+      POSTGRES_DB: pohkur_poker
+      POSTGRES_USER: poker_user
+      POSTGRES_PASSWORD: poker_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - pohkur-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U poker_user -d pohkur_poker"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: pohkur-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pohkur-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Main Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pohkur-app
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://poker_user:poker_password@postgres:5432/pohkur_poker
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      JWT_EXPIRES_IN: 24h
+      CORS_ORIGIN: http://localhost:3000,http://localhost:3002
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./logs:/app/logs
+      - ./src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pohkur-network
+    restart: unless-stopped
+
+  # Web Client (React)
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: pohkur-web
+    environment:
+      REACT_APP_API_URL: http://localhost:3001
+      REACT_APP_WS_URL: ws://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/src:/app/src
+      - ./web/public:/app/public
+    depends_on:
+      - app
+    networks:
+      - pohkur-network
+    restart: unless-stopped
+
+  # Mobile Client (React Native - Expo)
+  mobile:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    container_name: pohkur-mobile
+    environment:
+      EXPO_API_URL: http://localhost:3001
+      EXPO_WS_URL: ws://localhost:3001
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    volumes:
+      - ./mobile/src:/app/src
+    depends_on:
+      - app
+    networks:
+      - pohkur-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: pohkur-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+      - web
+    networks:
+      - pohkur-network
+    profiles:
+      - production
+    restart: unless-stopped
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: pohkur-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - pohkur-network
+    profiles:
+      - monitoring
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: pohkur-grafana
+    ports:
+      - "3002:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - pohkur-network
+    profiles:
+      - monitoring
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  pohkur-network:
+    driver: bridge 
