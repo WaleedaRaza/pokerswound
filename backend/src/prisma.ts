@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { PrismaClient } from '@prisma/client';
 
 declare global {
@@ -12,3 +13,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default prisma;
+=======
+import { PrismaClient } from '@prisma/client'
+
+export const prisma = new PrismaClient()
+>>>>>>> Stashed changes

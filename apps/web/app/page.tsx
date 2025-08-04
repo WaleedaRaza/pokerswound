@@ -1,5 +1,6 @@
 'use client'
 
+import JoinCreateModal from '../components/CreateJoinModal'
 import { useGameState } from '../hooks/useGameState'
 import PokerTable from '../components/PokerTable'
 import PlayerPanel from '../components/PlayerPanel'
@@ -7,12 +8,43 @@ import GameControls from '../components/GameControls'
 import HandEvaluation from '../components/HandEvaluation'
 import AuthButtons from '../components/account/AuthButtons'
 import { useState } from 'react'
+import LobbyModal, { type LobbyPlayer } from '../components/LobbyModal'
+import { getCookie, joinGameById } from '@/hooks/GameStateBackend'
+import { fetchLobbyPlayers } from '@/components/services/player'
 
 export default function Home() {
+<<<<<<< Updated upstream
   const { gameState, currentPlayer, handlePlayerAction, startNewGame } =
     useGameState()
   const [activeMenu, setActiveMenu] =
     useState<'game' | 'entropy' | 'settings'>('game')
+=======
+
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showLobbyModal, setShowLobbyModal] = useState(false)
+  const [lobbyPlayers, setLobbyPlayers]   = useState<LobbyPlayer[]>([])
+  const [lobbyAdminUuid, setLobbyAdminUuid] = useState<string>('')
+  const [lobbyGameId, setLobbyGameId]       = useState<string>('')
+
+  const { 
+    gameState, 
+    currentPlayer, 
+    handlePlayerAction, 
+    startNewGame, 
+    dealCards,
+    canCheck,
+    minRaise,
+    maxRaise,
+    gameHistory,
+    blinds,
+    isUserTurn,
+    turnTimer,
+    entropyLog,
+    gameEntropyProvider
+  } = useGameState()
+  const [activeMenu, setActiveMenu] = useState<'game' | 'entropy' | 'settings'>('game')
+>>>>>>> Stashed changes
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -42,6 +74,7 @@ export default function Home() {
               </div>
             </div>
 
+<<<<<<< Updated upstream
             {/* ————— Right side (actions) ————— */}
             <div className="flex items-center space-x-6">
               <button
@@ -52,6 +85,24 @@ export default function Home() {
               </button>
               <a
                 href="/entropy-demo"
+=======
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Create Game
+            </button>
+            <button 
+              onClick={() => setShowJoinModal(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Join Game
+            </button>
+              <button 
+                onClick={dealCards}
+>>>>>>> Stashed changes
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 Full Demo
@@ -138,6 +189,55 @@ export default function Home() {
           </div>
         )}
       </div>
+
+       <JoinCreateModal
+        type="create"
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={async (gameId) => {
+          /* game was just created & the admin player already inserted */
+
+          setLobbyGameId(gameId)
+          setLobbyAdminUuid(getCookie('uuid') || '')      // host is “me”
+
+          const roster = await fetchLobbyPlayers(gameId)
+          setLobbyPlayers(roster)
+
+          setShowCreateModal(false)
+          setShowLobbyModal(true)
+        }}
+      />
+
+      /* ---------- JOIN ---------- */
+      <JoinCreateModal
+        type="join"
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        onSubmit={async (gameId) => {
+          // hit backend join (adds me as player)
+          const { game } = await joinGameById(gameId)
+
+          setLobbyGameId(game.id)
+          setLobbyAdminUuid(game.adminUuid)
+
+          const roster = await fetchLobbyPlayers(game.id)
+          setLobbyPlayers(roster)
+
+          setShowJoinModal(false)
+          setShowLobbyModal(true)
+        }}
+      />
+
+      {/* NEW: Lobby modal after create */}
+      <LobbyModal
+        isOpen={showLobbyModal}
+        gameId={lobbyGameId}
+        adminUuid={lobbyAdminUuid}
+        onClose={() => setShowLobbyModal(false)}
+        onStart={() => {
+          // TODO: Trigger your real “start game” logic here
+        }}
+      />
     </div>
   )
 } 

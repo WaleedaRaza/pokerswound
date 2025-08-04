@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 cd ..
 
 to start db: docker compose up -d
@@ -9,3 +10,16 @@ to check db status: docker compose ps
 to stop db: docker compose down
 
 to view prisma visually: npx prisma studio
+=======
+# Start PostgreSQL container
+docker-compose up -d
+
+# Generate Prisma client
+npx prisma generate
+
+# Push schema to database
+npx prisma db push
+
+to access:
+docker-compose exec db psql -U postgres -d pokerdb
+>>>>>>> Stashed changes

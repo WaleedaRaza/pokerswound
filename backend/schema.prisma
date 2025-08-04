@@ -1,9 +1,3 @@
-<<<<<<< Updated upstream
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-=======
->>>>>>> Stashed changes
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,26 +8,6 @@ datasource db {
 }
 
 model User {
-<<<<<<< Updated upstream
-  id        String   @id @default(cuid())
-  email     String   @unique
-  passwordHash String
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Game stats
-  totalHandsPlayed Int     @default(0)
-  totalWinnings    Int     @default(0)
-  totalLossings    Int     @default(0)
-  biggestPot       Int     @default(0)
-  chips            Int     @default(1000)
-
-  // Relations
-  gamePlayers GamePlayer[]
-  gameHistory GameHistory[]
-  sessions    Session[]
-=======
   id               String        @id @default(cuid())
   email            String        @unique
   username         String        @unique
@@ -47,37 +21,11 @@ model User {
   gameHistory      GameHistory[]
   gamePlayers      GamePlayer[]
   sessions         Session[]
->>>>>>> Stashed changes
 
   @@map("users")
 }
 
 model Game {
-<<<<<<< Updated upstream
-  id          String   @id @default(cuid())
-  adminUuid   String
-  name        String
-  code        String?
-  status      GameStatus @default(WAITING)
-  maxPlayers  Int      @default(9)
-  minPlayers  Int      @default(2)
-  smallBlind  Int      @default(10)
-  bigBlind    Int      @default(20)
-  buyIn       Int      @default(1000)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  startedAt   DateTime?
-  endedAt     DateTime?
-
-  // Entropy tracking
-  entropyHash String?
-  shuffleTimestamp DateTime?
-
-  // Relations
-  players     GamePlayer[]
-  gameHistory GameHistory[]
-  hands       Hand[]
-=======
   id               String        @id @default(cuid())
   name             String
   status           GameStatus    @default(WAITING)
@@ -97,27 +45,11 @@ model Game {
   gameHistory      GameHistory[]
   players          GamePlayer[]
   hands            Hand[]
->>>>>>> Stashed changes
 
   @@map("games")
 }
 
 model GamePlayer {
-<<<<<<< Updated upstream
-  id       String @id @default(cuid())
-  userId   String
-  gameId   String
-  position Int
-  chips    Int    @default(0)
-  isActive Boolean @default(true)
-  isDealer Boolean @default(false)
-  joinedAt DateTime @default(now())
-  leftAt   DateTime?
-
-  // Relations
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
-=======
   id       String    @id @default(cuid())
   userId   String
   gameId   String
@@ -129,30 +61,12 @@ model GamePlayer {
   leftAt   DateTime?
   game     Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@unique([gameId, position])
   @@map("game_players")
 }
 
 model Hand {
-<<<<<<< Updated upstream
-  id        String   @id @default(cuid())
-  gameId    String
-  handNumber Int
-  phase     HandPhase @default(PREFLOP)
-  pot       Int      @default(0)
-  communityCards String[] // JSON array of card IDs
-  entropyHash String?
-  shuffleTimestamp DateTime?
-  createdAt DateTime @default(now())
-  endedAt   DateTime?
-
-  // Relations
-  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  actions   HandAction[]
-  results   HandResult[]
-=======
   id               String       @id @default(cuid())
   gameId           String
   handNumber       Int
@@ -166,25 +80,12 @@ model Hand {
   actions          HandAction[]
   results          HandResult[]
   game             Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@unique([gameId, handNumber])
   @@map("hands")
 }
 
 model HandAction {
-<<<<<<< Updated upstream
-  id       String @id @default(cuid())
-  handId   String
-  userId   String
-  action   PlayerAction
-  amount   Int?
-  position Int
-  timestamp DateTime @default(now())
-
-  // Relations
-  hand     Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
-=======
   id        String       @id @default(cuid())
   handId    String
   userId    String
@@ -193,25 +94,11 @@ model HandAction {
   position  Int
   timestamp DateTime     @default(now())
   hand      Hand         @relation(fields: [handId], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@map("hand_actions")
 }
 
 model HandResult {
-<<<<<<< Updated upstream
-  id       String @id @default(cuid())
-  handId   String
-  userId   String
-  position Int // 1 = winner, 2 = runner up, etc.
-  amount   Int
-  handRank HandRank
-  handDescription String
-  holeCards String[] // JSON array of card IDs
-
-  // Relations
-  hand     Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
-=======
   id              String   @id @default(cuid())
   handId          String
   userId          String
@@ -221,24 +108,11 @@ model HandResult {
   handDescription String
   holeCards       String[]
   hand            Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@map("hand_results")
 }
 
 model GameHistory {
-<<<<<<< Updated upstream
-  id       String @id @default(cuid())
-  userId   String
-  gameId   String
-  action   String
-  details  Json?
-  timestamp DateTime @default(now())
-
-  // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
-=======
   id        String   @id @default(cuid())
   userId    String
   gameId    String
@@ -247,7 +121,6 @@ model GameHistory {
   timestamp DateTime @default(now())
   game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@map("game_history")
 }
@@ -258,11 +131,6 @@ model Session {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-<<<<<<< Updated upstream
-
-  // Relations
-=======
->>>>>>> Stashed changes
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
@@ -304,8 +172,4 @@ enum HandRank {
   FOUR_OF_A_KIND
   STRAIGHT_FLUSH
   ROYAL_FLUSH
-<<<<<<< Updated upstream
-} 
-=======
 }
->>>>>>> Stashed changes
