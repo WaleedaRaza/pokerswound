@@ -14,6 +14,7 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   username  String   @unique
+<<<<<<< HEAD
   password  String?  // null for OAuth users
   avatar    String?
   tokenBalance Int   @default(0)
@@ -28,10 +29,27 @@ model User {
   friends       Friendship[] @relation("UserFriends")
   friendsOf     Friendship[] @relation("FriendOfUser")
   chatMessages  ChatMessage[]
+=======
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Game stats
+  totalHandsPlayed Int     @default(0)
+  totalWinnings    Int     @default(0)
+  biggestPot       Int     @default(0)
+  chips            Int     @default(1000)
+
+  // Relations
+  gamePlayers GamePlayer[]
+  gameHistory GameHistory[]
+  sessions    Session[]
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
 
   @@map("users")
 }
 
+<<<<<<< HEAD
 model Friendship {
   id        String   @id @default(cuid())
   userId    String
@@ -71,6 +89,30 @@ model Game {
   hands       Hand[]
   chatMessages ChatMessage[]
   currentHand Hand? @relation("GameCurrentHand", fields: [currentHandId], references: [id])
+=======
+model Game {
+  id          String   @id @default(cuid())
+  name        String
+  status      GameStatus @default(WAITING)
+  maxPlayers  Int      @default(9)
+  minPlayers  Int      @default(2)
+  smallBlind  Int      @default(10)
+  bigBlind    Int      @default(20)
+  buyIn       Int      @default(1000)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  startedAt   DateTime?
+  endedAt     DateTime?
+
+  // Entropy tracking
+  entropyHash String?
+  shuffleTimestamp DateTime?
+
+  // Relations
+  players     GamePlayer[]
+  gameHistory GameHistory[]
+  hands       Hand[]
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
 
   @@map("games")
 }
@@ -79,6 +121,7 @@ model GamePlayer {
   id       String @id @default(cuid())
   userId   String
   gameId   String
+<<<<<<< HEAD
   seat     Int
   chips    Int    @default(1000)
   isDealer Boolean @default(false)
@@ -90,6 +133,20 @@ model GamePlayer {
 
   @@unique([gameId, seat])
   @@unique([gameId, userId])
+=======
+  position Int
+  chips    Int    @default(0)
+  isActive Boolean @default(true)
+  isDealer Boolean @default(false)
+  joinedAt DateTime @default(now())
+  leftAt   DateTime?
+
+  // Relations
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, position])
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
   @@map("game_players")
 }
 
@@ -97,6 +154,7 @@ model Hand {
   id        String   @id @default(cuid())
   gameId    String
   handNumber Int
+<<<<<<< HEAD
   pot       Int      @default(0)
   communityCards String[] // JSON array of card strings
   winnerIds String[] // JSON array of user IDs
@@ -109,10 +167,27 @@ model Hand {
   actions HandAction[]
   currentHandForGame Game? @relation("GameCurrentHand")
 
+=======
+  phase     HandPhase @default(PREFLOP)
+  pot       Int      @default(0)
+  communityCards String[] // JSON array of card IDs
+  entropyHash String?
+  shuffleTimestamp DateTime?
+  createdAt DateTime @default(now())
+  endedAt   DateTime?
+
+  // Relations
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  actions   HandAction[]
+  results   HandResult[]
+
+  @@unique([gameId, handNumber])
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
   @@map("hands")
 }
 
 model HandAction {
+<<<<<<< HEAD
   id        String     @id @default(cuid())
   handId    String
   userId    String
@@ -122,10 +197,23 @@ model HandAction {
   timestamp DateTime   @default(now())
 
   hand Hand @relation(fields: [handId], references: [id], onDelete: Cascade)
+=======
+  id       String @id @default(cuid())
+  handId   String
+  userId   String
+  action   PlayerAction
+  amount   Int?
+  position Int
+  timestamp DateTime @default(now())
+
+  // Relations
+  hand     Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
 
   @@map("hand_actions")
 }
 
+<<<<<<< HEAD
 model Transaction {
   id          String           @id @default(cuid())
   userId      String
@@ -157,6 +245,50 @@ enum GameType {
   TEXAS_HOLDEM
   OMAHA
   SEVEN_CARD_STUD
+=======
+model HandResult {
+  id       String @id @default(cuid())
+  handId   String
+  userId   String
+  position Int // 1 = winner, 2 = runner up, etc.
+  amount   Int
+  handRank HandRank
+  handDescription String
+  holeCards String[] // JSON array of card IDs
+
+  // Relations
+  hand     Hand     @relation(fields: [handId], references: [id], onDelete: Cascade)
+
+  @@map("hand_results")
+}
+
+model GameHistory {
+  id       String @id @default(cuid())
+  userId   String
+  gameId   String
+  action   String
+  details  Json?
+  timestamp DateTime @default(now())
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("game_history")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
 }
 
 enum GameStatus {
@@ -166,13 +298,27 @@ enum GameStatus {
   CANCELLED
 }
 
+<<<<<<< HEAD
 enum ActionType {
+=======
+enum HandPhase {
+  PREFLOP
+  FLOP
+  TURN
+  RIVER
+  SHOWDOWN
+  COMPLETE
+}
+
+enum PlayerAction {
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
   FOLD
   CHECK
   CALL
   BET
   RAISE
   ALL_IN
+<<<<<<< HEAD
   SHOW
 }
 
@@ -182,4 +328,19 @@ enum TransactionType {
   LOSS
   BONUS
   REFUND
+=======
+}
+
+enum HandRank {
+  HIGH_CARD
+  PAIR
+  TWO_PAIR
+  THREE_OF_A_KIND
+  STRAIGHT
+  FLUSH
+  FULL_HOUSE
+  FOUR_OF_A_KIND
+  STRAIGHT_FLUSH
+  ROYAL_FLUSH
+>>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
 } 
