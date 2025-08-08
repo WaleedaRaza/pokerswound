@@ -1,4 +1,9 @@
 
+# PokerSwound - Production-Ready Poker with Real Entropy
+
+A cryptographically secure poker application that uses real-time entropy from multiple sources to ensure provably fair card shuffling.
+
+## 🎯 Production-Ready Features
 A sophisticated real-time multiplayer poker application with entropy-based randomness, built with Node.js, React, React Native, and PostgreSQL. A cryptographically secure poker application that uses real-time entropy from multiple sources to ensure provably fair card shuffling.
 
 
@@ -84,13 +89,6 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 - Secure password hashing with bcrypt
 - Token refresh mechanism
 - Session management
-
-
-# PokerSwound - Production-Ready Poker with Real Entropy
-
-A cryptographically secure poker application that uses real-time entropy from multiple sources to ensure provably fair card shuffling.
-
-## 🎯 Production-Ready Features
 
 - **Live Entropy Sources**: Twitch streams, YouTube videos, system entropy
 - **Cryptographic Proof**: SHA-256 hashing for provably fair shuffling
