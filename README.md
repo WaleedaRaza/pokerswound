@@ -1,5 +1,6 @@
 
-A sophisticated real-time multiplayer poker application with entropy-based randomness, built with Node.js, React, React Native, and PostgreSQL.
+A sophisticated real-time multiplayer poker application with entropy-based randomness, built with Node.js, React, React Native, and PostgreSQL. A cryptographically secure poker application that uses real-time entropy from multiple sources to ensure provably fair card shuffling.
+
 
 ## 🎯 Features
 
@@ -45,38 +46,6 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 4. **Token Service** - Handles virtual currency transactions
 5. **Socket Server** - Real-time communication between players
 
-## 🚀 Quick Start
-
-### Development Setup
-
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment mode | `development` |
-| `PORT` | Server port | `3001` |
-| `DATABASE_URL` | PostgreSQL connection string | - |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `JWT_SECRET` | JWT signing secret | - |
-| `YOUTUBE_API_KEY` | YouTube API key for entropy | - |
-| `TWITCH_CLIENT_ID` | Twitch API client ID | - |
-| `TWITCH_CLIENT_SECRET` | Twitch API client secret | - |
-
-### API Keys Setup
-
-1. **YouTube API Key**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing
-   - Enable YouTube Data API v3
-   - Create credentials (API Key)
-   - Add to `.env` file
-
-2. **Twitch API Credentials**
-   - Go to [Twitch Developer Console](https://dev.twitch.tv/console)
-   - Create a new application
-   - Get Client ID and Client Secret
-   - Add to `.env` file
 
 ## 🎮 Game Features
 
@@ -116,39 +85,13 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 - Token refresh mechanism
 - Session management
 
-### Data Protection
-- HTTPS/TLS encryption
-- Input validation and sanitization
-- SQL injection prevention
-- XSS protection
 
-### Game Security
-- Server-side game logic validation
-- Anti-cheat measures
-- Rate limiting
-- Fair play monitoring
-
-# EntroPoker - Production-Ready Poker with Real Entropy
+# PokerSwound - Production-Ready Poker with Real Entropy
 
 A cryptographically secure poker application that uses real-time entropy from multiple sources to ensure provably fair card shuffling.
 
 ## 🎯 Production-Ready Features
 
-### ✅ Fixed Game Logic Issues
-- **Proper Turn Management**: Clear turn indicators, no more skipped turns
-- **Accurate Betting Logic**: Calls, raises, and all-in actions work correctly
-- **Phase Progression**: Automatic community card dealing (flop, turn, river)
-- **Amount Tracking**: All bets and pot amounts are properly stored and displayed
-- **AI Player Logic**: Intelligent AI opponents with realistic decision making
-
-### ✅ Enhanced UI/UX
-- **Clear Turn Indicators**: Visual indicators showing whose turn it is
-- **Turn Timer**: 30-second countdown with auto-fold on timeout
-- **Better Visual Design**: Modern, clean interface with proper spacing
-- **Real-time Status**: Live entropy status and game information
-- **Responsive Design**: Works on all screen sizes
-
-### ✅ Real Entropy Integration
 - **Live Entropy Sources**: Twitch streams, YouTube videos, system entropy
 - **Cryptographic Proof**: SHA-256 hashing for provably fair shuffling
 - **Game Linking**: Entropy demo shows actual game entropy in real-time
@@ -199,12 +142,6 @@ The entropy demo shows:
    - System sources (performance timing, crypto random)
 3. Click "Shuffle Deck" to see entropy-based shuffling in action
 4. Verify fairness using the cryptographic proof
-
-### Frontend (Next.js)
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **Real-time updates** with useEffect hooks
-- **State management** with custom hooks
 
 ### Entropy System
 - **Multiple sources** for redundancy
