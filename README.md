@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-# Pohkur Poker - Real-Time Multiplayer Poker App
 
 A sophisticated real-time multiplayer poker application with entropy-based randomness, built with Node.js, React, React Native, and PostgreSQL.
 
@@ -49,90 +47,8 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js 18+ 
-- Docker and Docker Compose
-- PostgreSQL 15+
-- Redis 7+
-
 ### Development Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd pohkur
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install backend dependencies
-   npm install
-
-   # Install web client dependencies
-   cd web && npm install && cd ..
-
-   # Install mobile client dependencies
-   cd mobile && npm install && cd ..
-   ```
-
-3. **Environment Configuration**
-   ```bash
-   # Copy environment template
-   cp env.example .env
-
-   # Edit .env with your configuration
-   nano .env
-   ```
-
-4. **Database Setup**
-   ```bash
-   # Start PostgreSQL and Redis with Docker
-   docker-compose up postgres redis -d
-
-   # Run database migrations
-   npm run db:migrate
-
-   # Generate Prisma client
-   npm run db:generate
-   ```
-
-5. **Start Development Servers**
-   ```bash
-   # Start backend server
-   npm run dev:server
-
-   # Start web client (in new terminal)
-   npm run dev:web
-
-   # Start mobile client (in new terminal)
-   npm run dev:mobile
-   ```
-
-### Production Deployment
-
-1. **Build and deploy with Docker**
-   ```bash
-   # Build all services
-   docker-compose build
-
-   # Start all services
-   docker-compose up -d
-
-   # View logs
-   docker-compose logs -f
-   ```
-
-2. **Kubernetes Deployment**
-   ```bash
-   # Apply Kubernetes manifests
-   kubectl apply -f k8s/
-
-   # Check deployment status
-   kubectl get pods
-   ```
-
-## 🔧 Configuration
 
 ### Environment Variables
 
@@ -183,12 +99,6 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 - Uses SHA-256 hashing for unpredictability
 - Fisher-Yates shuffle algorithm for card distribution
 
-### Token Economy
-- Virtual currency system
-- Daily bonus tokens
-- Purchase packages
-- Transaction history
-- Secure balance management
 
 ## 📱 Mobile App
 
@@ -199,56 +109,6 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 - Push notifications
 - Offline support
 - Haptic feedback
-
-### Development
-```bash
-# Start Expo development server
-cd mobile && npm start
-
-# Run on iOS simulator
-npm run ios
-
-# Run on Android emulator
-npm run android
-```
-
-## 🧪 Testing
-
-```bash
-# Run backend tests
-npm test
-
-# Run web client tests
-cd web && npm test
-
-# Run mobile tests
-cd mobile && npm test
-
-# Run integration tests
-npm run test:integration
-```
-
-## 📊 Monitoring
-
-### Health Checks
-- `/health` endpoint for server status
-- Database connectivity checks
-- Redis connection monitoring
-- Socket.IO connection tracking
-
-### Metrics
-- Prometheus metrics collection
-- Grafana dashboards
-- Custom game metrics
-- Performance monitoring
-
-### Logging
-- Winston structured logging
-- Error tracking with Sentry
-- Request/response logging
-- Game action logging
-
-## 🔒 Security
 
 ### Authentication
 - JWT token-based authentication
@@ -268,29 +128,6 @@ npm run test:integration
 - Rate limiting
 - Fair play monitoring
 
-## 🚀 Deployment
-
-### Docker Compose
-```bash
-# Production deployment
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-### Kubernetes
-```bash
-# Deploy to Kubernetes cluster
-kubectl apply -f k8s/
-```
-
-### Environment Variables
-```bash
-# Production environment
-NODE_ENV=production
-DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379
-JWT_SECRET=your-super-secret-key
-```
-=======
 # EntroPoker - Production-Ready Poker with Real Entropy
 
 A cryptographically secure poker application that uses real-time entropy from multiple sources to ensure provably fair card shuffling.
@@ -317,11 +154,6 @@ A cryptographically secure poker application that uses real-time entropy from mu
 - **Game Linking**: Entropy demo shows actual game entropy in real-time
 - **Verification**: Anyone can verify shuffle fairness using cryptographic proofs
 
-## 🔐 How the Entropy System Works
-
-### 1. Real-Time Entropy Collection
-The system collects entropy from multiple live sources:
-
 - **📺 Twitch Streams**: Real viewer counts, chat messages, follower counts
 - **📹 YouTube Videos**: View counts, likes, comments, upload dates
 - **💻 System Entropy**: Performance timing, crypto random, user agent data
@@ -329,44 +161,15 @@ The system collects entropy from multiple live sources:
 ### 2. Cryptographic Mixing
 All entropy data is processed through SHA-256 hashing:
 
-```javascript
-// Combine all entropy sources
-const combinedData = twitchData + youtubeData + systemData
-
-// Create cryptographic hash
-const entropy = await crypto.subtle.digest('SHA-256', combinedData)
-```
-
 ### 3. Provably Fair Shuffling
 The entropy hash is used to seed a Fisher-Yates shuffle:
-
-```javascript
-// Use entropy to generate random numbers
-for (let i = deck.length - 1; i > 0; i--) {
-  const randomIndex = generateRandomFromEntropy(entropy, i)
-  swap(deck[i], deck[randomIndex])
-}
-```
 
 ### 4. Cryptographic Proof
 Every shuffle creates a verifiable proof:
 
-```javascript
-const proof = {
-  entropyHash: "a1b2c3d4...",
-  timestamp: Date.now(),
-  sampleCount: 75,
-  totalEntropyBits: 2400,
-  sources: ["twitch:pokergame", "system:random"]
-}
-```
-
-## 🎮 Game Features
-
 ### Real Poker Gameplay
 - **4 Players**: You + 3 AI opponents with different personalities
 - **Full Betting Rounds**: Preflop, flop, turn, river, showdown
-- **Blind System**: Small blind ($10) and big blind ($20)
 - **All Actions**: Fold, check, call, bet, raise, all-in
 - **Hand Evaluation**: Automatic winner determination
 
@@ -379,32 +182,6 @@ const proof = {
 - **30-Second Timer**: Auto-fold if no action taken
 - **Clear Indicators**: Visual cues for whose turn it is
 - **AI Thinking**: Realistic delays for AI decisions
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/your-username/entropoker.git
-cd entropoker
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
-```
-
-### Running the Application
-1. Open `http://localhost:3000`
-2. Click "New Game" to start a poker game
-3. Click "Deal Cards" to begin the hand
-4. Use the game controls to make your moves
-5. View the "Entropy Demo" tab to see real-time entropy collection
 
 ## 📊 Entropy Demo
 
@@ -422,8 +199,6 @@ The entropy demo shows:
    - System sources (performance timing, crypto random)
 3. Click "Shuffle Deck" to see entropy-based shuffling in action
 4. Verify fairness using the cryptographic proof
-
-## 🔧 Technical Architecture
 
 ### Frontend (Next.js)
 - **React 18** with TypeScript
@@ -443,94 +218,3 @@ The entropy demo shows:
 - **Betting round management** with proper validation
 - **Hand evaluation** for winner determination
 
-## 🛡️ Security Features
-
-### Cryptographic Security
-- **SHA-256 hashing** prevents entropy manipulation
-- **Multiple entropy sources** prevent single-point failure
-- **Verifiable proofs** allow fairness verification
-- **Time-stamped data** prevents replay attacks
-
-### Fairness Guarantees
-- **Impossible to predict** card order before shuffle
-- **Cryptographic proof** that shuffle was fair
-- **Public verification** of all entropy sources
-- **No hardcoded values** - all entropy is live
-
-## 📈 Production Improvements
-
-### Game Logic Fixes
-- ✅ Fixed turn skipping issues
-- ✅ Proper betting amount tracking
-- ✅ Correct phase progression
-- ✅ Accurate pot calculation
-- ✅ Realistic AI behavior
-
-### UI/UX Enhancements
-- ✅ Clear turn indicators
-- ✅ Turn timer with auto-fold
-- ✅ Better visual design
-- ✅ Real-time status updates
-- ✅ Responsive layout
-
-### Entropy Integration
-- ✅ Real entropy sources connected
-- ✅ Live game integration
-- ✅ Cryptographic proofs
-- ✅ Fairness verification
-- ✅ Real-time monitoring
->>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-<<<<<<< HEAD
-### Development Guidelines
-- Follow TypeScript best practices
-- Write comprehensive tests
-- Use conventional commits
-- Update documentation
-- Follow the code style guide
-
-=======
->>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-<<<<<<< HEAD
-## 🆘 Support
-
-- **Documentation**: [Wiki](link-to-wiki)
-- **Issues**: [GitHub Issues](link-to-issues)
-- **Discord**: [Community Server](link-to-discord)
-- **Email**: support@pohkur.com
-
-## 🙏 Acknowledgments
-
-- Socket.IO for real-time communication
-- Prisma for database management
-- Expo for React Native development
-- Tailwind CSS for styling
-- Framer Motion for animations
-
----
-
-**Built with ❤️ by the Pohkur Team** 
-=======
-## 🙏 Acknowledgments
-
-- **Twitch API** for real-time stream data
-- **YouTube Data API** for video statistics
-- **Web Crypto API** for cryptographic functions
-- **Fisher-Yates algorithm** for unbiased shuffling
-
----
-
-**EntroPoker** - Where cryptography meets poker for provably fair gameplay. 
->>>>>>> 05e80d3dca48ddc751e5ffb54e8024bd1b150aff
