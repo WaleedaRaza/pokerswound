@@ -67,37 +67,12 @@ A sophisticated real-time multiplayer poker application with entropy-based rando
 - Player join/leave notifications
 
 ### Entropy-based Randomness
-- Fetches live data from YouTube trending videos
-- Incorporates Twitch stream statistics
 - Combines multiple entropy sources
-- Uses SHA-256 hashing for unpredictability
 - Fisher-Yates shuffle algorithm for card distribution
-
-
-## 📱 Mobile App
-
-### React Native Features
-- Cross-platform (iOS/Android)
-- Expo for easy development
-- Native performance
-- Push notifications
-- Offline support
-- Haptic feedback
-
-### Authentication
-- JWT token-based authentication
-- Secure password hashing with bcrypt
-- Token refresh mechanism
-- Session management
-
 - **Live Entropy Sources**: Twitch streams, YouTube videos, system entropy
 - **Cryptographic Proof**: SHA-256 hashing for provably fair shuffling
 - **Game Linking**: Entropy demo shows actual game entropy in real-time
 - **Verification**: Anyone can verify shuffle fairness using cryptographic proofs
-
-- **📺 Twitch Streams**: Real viewer counts, chat messages, follower counts
-- **📹 YouTube Videos**: View counts, likes, comments, upload dates
-- **💻 System Entropy**: Performance timing, crypto random, user agent data
 
 ### 2. Cryptographic Mixing
 All entropy data is processed through SHA-256 hashing:
@@ -140,12 +115,6 @@ The entropy demo shows:
    - System sources (performance timing, crypto random)
 3. Click "Shuffle Deck" to see entropy-based shuffling in action
 4. Verify fairness using the cryptographic proof
-
-### Entropy System
-- **Multiple sources** for redundancy
-- **SHA-256 hashing** for cryptographic security
-- **Fisher-Yates shuffle** for unbiased card mixing
-- **Verifiable proofs** for fairness
 
 ### Game Engine
 - **State machine** for game progression
