@@ -11,13 +11,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@entropoker/game-engine": "^0.1.0",
+    "@entropoker/game-engine": "file:../../packages/game-engine",
     "clsx": "^2.0.0",
     "lucide-react": "^0.294.0",
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "socket.io-client": "^4.7.0",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.0.0"
   },
   "devDependencies": {

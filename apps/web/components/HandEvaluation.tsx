@@ -2,44 +2,11 @@
 
 import { Player, Card } from '@/types/game'
 import { HandEvaluator } from '@entropoker/game-engine'
-import { Card as EngineCard, Suit, Rank } from '@entropoker/game-engine'
 
 interface HandEvaluationProps {
   players: Player[]
   communityCards: Card[]
   showEvaluations: boolean
-}
-
-// Type conversion functions (same as in useGameState)
-const convertFrontendCardToEngine = (frontendCard: Card): EngineCard => {
-  const rankMap: Record<string, Rank> = {
-    '2': Rank.TWO,
-    '3': Rank.THREE,
-    '4': Rank.FOUR,
-    '5': Rank.FIVE,
-    '6': Rank.SIX,
-    '7': Rank.SEVEN,
-    '8': Rank.EIGHT,
-    '9': Rank.NINE,
-    '10': Rank.TEN,
-    'J': Rank.JACK,
-    'Q': Rank.QUEEN,
-    'K': Rank.KING,
-    'A': Rank.ACE,
-  }
-
-  const suitMap: Record<string, Suit> = {
-    'hearts': Suit.HEARTS,
-    'diamonds': Suit.DIAMONDS,
-    'clubs': Suit.CLUBS,
-    'spades': Suit.SPADES,
-  }
-
-  return {
-    suit: suitMap[frontendCard.suit],
-    rank: rankMap[frontendCard.rank],
-    id: frontendCard.id,
-  }
 }
 
 export default function HandEvaluation({ players, communityCards, showEvaluations }: HandEvaluationProps) {
@@ -54,14 +21,11 @@ export default function HandEvaluation({ players, communityCards, showEvaluation
 
     const evaluations = activePlayers.map(player => {
       try {
-        const hand = HandEvaluator.evaluateHand(
-          player.cards.map(convertFrontendCardToEngine), 
-          communityCards.map(convertFrontendCardToEngine)
-        )
+        const hand = HandEvaluator.evaluateHand(player.cards, communityCards)
         return {
           player,
           hand,
-          score: hand.score
+          score: hand.rank
         }
       } catch (error) {
         console.error('Error evaluating hand for player:', player.name, error)
@@ -107,7 +71,7 @@ export default function HandEvaluation({ players, communityCards, showEvaluation
             <div className="flex justify-between items-center">
               <span className="font-bold text-white">{evaluation.player.name}</span>
               <span className="text-sm text-emerald-400">
-                {evaluation.hand ? evaluation.hand.description : 'Invalid Hand'}
+                {evaluation.hand ? evaluation.hand.name : 'Invalid Hand'}
               </span>
             </div>
             {evaluation.isWinner && (

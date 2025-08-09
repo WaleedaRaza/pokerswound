@@ -40,7 +40,7 @@ export default function GameControls({
   }
 
   const isUserTurn = currentPlayer.id === '1'
-  const callAmount = gameState.currentBet - currentPlayer.currentBet
+  const callAmount = gameState.currentBet - currentPlayer.bet
   const canCall = callAmount > 0 && callAmount <= currentPlayer.chips
   const canRaise = currentPlayer.chips > callAmount && maxRaise > gameState.currentBet
 
@@ -88,7 +88,7 @@ export default function GameControls({
             </div>
             <div>
               <span className="text-gray-400">Your Bet:</span>
-              <span className="text-white font-bold ml-2">${currentPlayer.currentBet}</span>
+              <span className="text-white font-bold ml-2">${currentPlayer.bet}</span>
             </div>
             <div>
               <span className="text-gray-400">To Call:</span>
@@ -181,7 +181,7 @@ export default function GameControls({
 
           {/* All-in Button */}
           <button
-            onClick={() => onAction('all-in')}
+            onClick={() => onAction('allIn')}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             All-In ${currentPlayer.chips}

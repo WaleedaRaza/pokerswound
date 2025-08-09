@@ -1,11 +1,17 @@
 'use client'
 
+import { Card } from '@/types/game'
+import PlayingCard from './PlayingCard'
+
 interface PlayerSeatProps {
   player: {
     id: string
     name: string
     chips: number
     position: string
+    cards?: Card[]
+    bet?: number
+    folded?: boolean
   }
   position: string
   isCurrentTurn: boolean
@@ -55,6 +61,34 @@ export default function PlayerSeat({
             {isUser && <span className="text-emerald-400 ml-1">(You)</span>}
           </div>
           <div className="text-xs text-emerald-400 font-medium mb-2">${player.chips.toLocaleString()}</div>
+          
+          {/* Player Cards */}
+          {player.cards && player.cards.length > 0 && (
+            <div className="flex justify-center gap-1 mb-2">
+              {player.cards.map((card, index) => (
+                <PlayingCard 
+                  key={card.id} 
+                  card={card} 
+                  className="w-12 h-16"
+                  isFaceDown={false} // Show all cards face-up for debugging
+                />
+              ))}
+            </div>
+          )}
+          
+          {/* Player Bet */}
+          {player.bet && player.bet > 0 && (
+            <div className="text-xs text-yellow-400 font-medium mb-1">
+              Bet: ${player.bet.toLocaleString()}
+            </div>
+          )}
+          
+          {/* Folded Status */}
+          {player.folded && (
+            <div className="text-xs text-red-400 font-medium mb-1">
+              FOLDED
+            </div>
+          )}
           
           {/* Status indicators */}
           <div className="flex items-center justify-center gap-2">

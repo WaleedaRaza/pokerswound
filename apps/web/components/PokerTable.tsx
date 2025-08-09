@@ -58,15 +58,16 @@ export default function PokerTable({ gameState, isUserTurn = false, turnTimer = 
               <div className="flex gap-3 mb-6">
                 {gameState.communityCards.length > 0 ? (
                   gameState.communityCards.map((card, index) => (
-                    <PlayingCard key={card.id} card={card} />
+                    <PlayingCard key={card.id} card={card} className="w-16 h-24" />
                   ))
                 ) : (
                   // Show card backs for flop
                   Array.from({ length: 5 }).map((_, index) => (
                     <PlayingCard 
                       key={index} 
-                      card={{ suit: 'clubs', rank: 'A', id: `back-${index}` }} 
+                      card={{ suit: 'clubs', rank: 'A', id: `back-${index}`, value: 14 }} 
                       isFaceDown={true}
+                      className="w-16 h-24"
                     />
                   ))
                 )}
@@ -91,11 +92,14 @@ export default function PokerTable({ gameState, isUserTurn = false, turnTimer = 
               id: player.id,
               name: player.name,
               chips: player.chips,
-              position: getPlayerPosition(index, gameState.players.length)
+              position: getPlayerPosition(index, gameState.players.length),
+              cards: player.cards,
+              bet: player.bet,
+              folded: player.folded
             }}
             position={getPlayerPosition(index, gameState.players.length)}
-            isCurrentTurn={gameState.currentPlayer === index}
-            isDealer={gameState.dealer === index}
+            isCurrentTurn={gameState.currentPlayerIndex === index}
+            isDealer={gameState.dealerIndex === index}
             isUser={player.id === '1'}
             isUserTurn={isUserTurn && player.id === '1'}
             turnTimer={turnTimer}

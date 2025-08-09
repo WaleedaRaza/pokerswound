@@ -1,12 +1,13 @@
 export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
 export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A'
-export type PlayerAction = 'fold' | 'check' | 'call' | 'bet' | 'raise' | 'all-in'
-export type GamePhase = 'waiting' | 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'complete'
+export type PlayerAction = 'fold' | 'check' | 'call' | 'bet' | 'raise' | 'allIn'
+export type GamePhase = 'waiting' | 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'handComplete'
 
 export interface Card {
   suit: Suit
   rank: Rank
   id: string
+  value: number
 }
 
 export interface Player {
@@ -14,62 +15,38 @@ export interface Player {
   name: string
   chips: number
   cards: Card[]
-  currentBet: number
-  isFolded: boolean
-  isAllIn: boolean
+  bet: number
+  folded: boolean
+  allIn: boolean
   isDealer: boolean
   isSmallBlind: boolean
   isBigBlind: boolean
+  isCurrentPlayer: boolean
   lastAction?: PlayerAction
-  lastActionAmount?: number
-  position: number // Seat position at table
-  isActive: boolean
-  isOnline: boolean
-  timeBank: number // Time remaining for this player's turn
-  avatar?: string
-  totalHandsPlayed: number
-  totalWinnings: number
-  biggestPot: number
+  timeBank: number
+  position: number
 }
 
 export interface GameState {
-  id: string
-  phase: GamePhase
-  pot: number
-  sidePots: SidePot[]
-  currentBet: number
-  minRaise: number
-  maxRaise: number
-  communityCards: Card[]
   players: Player[]
-  dealer: number
-  currentPlayer: number
-  smallBlindAmount: number
-  bigBlindAmount: number
-  deck: any // Deck state for entropy tracking
-  entropyHash?: string
-  shuffleTimestamp?: number
-  handNumber: number
-  startTime: number
-  lastActionTime: number
-  turnTimeout: number // seconds
-  gameHistory: GameHistoryEntry[]
-}
-
-export interface SidePot {
-  id: string
-  amount: number
-  eligiblePlayers: string[] // Player IDs who can win this pot
-  type: 'main' | 'side'
-  allInPlayers: string[] // Players who went all-in to create this pot
-}
-
-export interface GameHistoryEntry {
-  playerId: string
-  action: PlayerAction
-  amount?: number
+  communityCards: Card[]
+  pot: number
+  currentBet: number
   phase: GamePhase
-  timestamp: number
+  handNumber: number
+  dealerIndex: number
+  currentPlayerIndex: number
+  smallBlind: number
+  bigBlind: number
+  minRaise: number
+  deck: Card[]
+  lastAction?: {
+    playerId: string
+    action: PlayerAction
+    amount?: number
+  }
+  winners?: Player[]
+  winningHand?: string
 }
 
 export interface HandEvaluation {
@@ -93,7 +70,7 @@ export interface GameResult {
     amount: number
     reason: string
   }>
-  handHistory: GameHistoryEntry[]
+  handHistory: any[]
 }
 
 // Socket.IO event types for your friend's integration
@@ -112,7 +89,7 @@ export interface SocketEvents {
   'call': { playerId: string; amount: number }
   'bet': { playerId: string; amount: number }
   'raise': { playerId: string; amount: number }
-  'all-in': { playerId: string; amount: number }
+  'allIn': { playerId: string; amount: number }
   
   // Chat and social
   'chat-message': { playerId: string; message: string; timestamp: number }

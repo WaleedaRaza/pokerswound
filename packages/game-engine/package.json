@@ -1,24 +1,32 @@
 {
-  "name": "@entropoker/game-engine",
-  "version": "0.1.0",
-  "description": "Pure TypeScript poker engine with entropy-secure shuffling",
+  "name": "@pokerswound/game-engine",
+  "version": "1.0.0",
+  "description": "Texas Hold'em poker game engine with entropy-based shuffling",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
     "test": "jest",
-    "lint": "eslint src --ext .ts",
-    "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit"
+    "test:watch": "jest --watch",
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "@entropoker/entropy-core": "file:../entropy-core"
   },
   "devDependencies": {
-    "@types/jest": "^29.0.0",
-    "jest": "^29.0.0",
-    "ts-jest": "^29.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": ["**/*.test.ts"],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.test.ts"
+    ]
   }
 } 
