@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Poker Test</title>
+</head>
+<body>
+    <h1>Simple Poker Game Test</h1>
+    
+    <div>
+        <h3>Create Game</h3>
+        <input type="number" id="smallBlind" value="1" placeholder="Small Blind">
+        <input type="number" id="bigBlind" value="2" placeholder="Big Blind">
+        <input type="number" id="maxPlayers" value="6" placeholder="Max Players">
+        <button onclick="createGame()">Create Game</button>
+    </div>
+    
+    <div id="status">Ready to test...</div>
+    <div id="gameInfo"></div>
+
+    <script>
+        async function createGame() {
+            const smallBlind = document.getElementById('smallBlind').value;
+            const bigBlind = document.getElementById('bigBlind').value;
+            const maxPlayers = document.getElementById('maxPlayers').value;
+            
+            document.getElementById('status').innerText = 'Creating game...';
+            
+            try {
+                console.log('Sending request to create game...');
+                
+                const response = await fetch('http://localhost:3000/api/games', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        small_blind: parseInt(smallBlind),
+                        big_blind: parseInt(bigBlind),
+                        max_players: parseInt(maxPlayers)
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                document.getElementById('status').innerText = 'Game created successfully!';
+                document.getElementById('gameInfo').innerHTML = `
+                    <h4>Game Created:</h4>
+                    <p>Game ID: ${data.gameId}</p>
+                    <p>Status: ${data.status}</p>
+                    <p>Players: ${data.playerCount}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('status').innerText = `Error: ${error.message}`;
+            }
+        }
+        
+        // Test if server is reachable
+        fetch('http://localhost:3000/')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server test:', data);
+                document.getElementById('status').innerText = 'Server is reachable!';
+            })
+            .catch(error => {
+                console.error('Server test failed:', error);
+                document.getElementById('status').innerText = 'Cannot reach server!';
+            });
+    </script>
+</body>
+</html>
