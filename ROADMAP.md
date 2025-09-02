@@ -374,31 +374,248 @@
 
 ---
 
-## 🎯 **NEXT IMMEDIATE STEPS**
+## 🚀 **ACTIONABLE IMPLEMENTATION PLAN**
 
-### **Week 1-2: Authentication Foundation**
-1. Set up Supabase project and authentication
-2. Create user registration and login flows
-3. Implement JWT token management
-4. Replace test dropdown with real auth
+### **🎯 PHASE 1: AUTHENTICATION & REAL USERS (Weeks 1-2)**
 
-### **Week 3-4: Room System**
-1. Design room creation interface
-2. Implement room persistence and management
-3. Create shareable room links
-4. Add basic social features
+#### **Day 1-2: Foundation Setup**
+```bash
+# 1. Create Supabase project
+npx supabase init
+# Go to supabase.com → New Project → Get credentials
 
-### **Week 5-6: Production Ready**
-1. Set up Vercel deployment pipeline
-2. Implement real-time WebSocket connections
-3. Optimize performance for scale
-4. Add monitoring and error tracking
+# 2. Create Next.js frontend  
+npx create-next-app@latest poker-frontend --typescript --tailwind --app
+cd poker-frontend
+npm install @supabase/supabase-js @supabase/auth-ui-react socket.io-client zustand
 
-### **Week 7-8: Polish & Launch**
-1. Comprehensive testing and bug fixes
-2. Security audit and hardening
-3. Performance optimization
-4. Public beta launch
+# 3. Create game server
+mkdir ../game-server && cd ../game-server
+npm init -y
+npm install socket.io @supabase/supabase-js express cors helmet
+npm install -D @types/node typescript ts-node nodemon
+```
+
+#### **Day 3-4: Database Schema**
+**Files to create:**
+- `supabase/migrations/001_core_schema.sql` - Users, rooms, hands tables
+- `supabase/migrations/002_rls_policies.sql` - Row Level Security
+- `lib/supabase.ts` - Supabase client configuration
+- `lib/database.types.ts` - TypeScript types from schema
+
+#### **Day 5-7: Authentication System**
+**Files to create:**
+- `components/auth/LoginForm.tsx` - Login component
+- `components/auth/SignupForm.tsx` - Registration component  
+- `components/auth/AuthProvider.tsx` - Auth context
+- `middleware/auth.ts` - Route protection
+- `pages/login.tsx` - Login page
+- `pages/signup.tsx` - Registration page
+
+#### **Day 8-10: Replace Test Mode**
+**Files to modify:**
+- Migrate `poker-engine/poker-test.html` → `components/poker/PokerTable.tsx`
+- Replace dropdown selection with real user authentication
+- Connect authenticated users to existing game engine
+- Test end-to-end authenticated gameplay
+
+#### **Day 11-14: User Profiles & Friends**
+**Files to create:**
+- `components/user/UserProfile.tsx` - Profile management
+- `components/friends/FriendsList.tsx` - Friends system
+- `pages/profile.tsx` - Profile page
+- `api/users/[id].ts` - User API endpoints
+- `api/friends/index.ts` - Friends API
+
+---
+
+### **🎯 PHASE 2: ROOMS & REAL-TIME (Weeks 3-4)**
+
+#### **Week 3: Room Management System**
+**Files to create:**
+- `components/rooms/CreateRoomModal.tsx` - Room creation
+- `components/rooms/RoomLobby.tsx` - Room lobby interface
+- `components/rooms/JoinRoomForm.tsx` - Join by invite code
+- `pages/rooms/index.tsx` - Rooms list page
+- `pages/t/[invite_code].tsx` - Join via invite link
+- `api/rooms/index.ts` - Room CRUD operations
+
+#### **Week 4: WebSocket Real-Time**
+**Files to create:**
+- `game-server/src/GameServer.ts` - Main WebSocket server
+- `game-server/src/GameRoom.ts` - Individual room management
+- `game-server/src/AuthService.ts` - JWT verification
+- `types/websocket.ts` - Message type definitions
+- `hooks/useRealtimeGame.ts` - Real-time game hook
+- `lib/websocket.ts` - WebSocket client
+
+---
+
+### **🎯 PHASE 3: PRODUCTION DEPLOYMENT (Weeks 5-6)**
+
+#### **Week 5: Infrastructure Setup**
+```bash
+# 1. Deploy to Vercel
+npm install -g vercel
+vercel --prod
+
+# 2. Deploy game server to Railway/Fly.io
+# 3. Set up Redis for presence
+# 4. Configure custom domain
+```
+
+**Files to create:**
+- `vercel.json` - Deployment configuration
+- `.github/workflows/deploy.yml` - CI/CD pipeline
+- `docker/Dockerfile` - Game server containerization
+- `monitoring/sentry.ts` - Error tracking setup
+
+#### **Week 6: Performance & Monitoring**
+**Files to create:**
+- `lib/performance.ts` - Performance optimization
+- `middleware/rateLimit.ts` - Rate limiting
+- `lib/monitoring.ts` - Analytics and monitoring
+- `components/ErrorBoundary.tsx` - Error handling
+
+---
+
+### **🎯 PHASE 4: ENTROPY SHUFFLING (Weeks 7-12)**
+
+#### **Weeks 7-8: Entropy Collection**
+**Files to create:**
+- `services/entropyService.ts` - Main entropy coordinator
+- `services/youtubeService.ts` - YouTube Data API integration
+- `services/audioService.ts` - Audio analysis
+- `utils/videoProcessor.ts` - Frame extraction
+- `lib/cryptoShuffle.ts` - HMAC-DRBG implementation
+
+#### **Weeks 9-10: Cryptographic Shuffle**
+**Files to create:**
+- `lib/commitReveal.ts` - Commit-reveal protocol
+- `utils/fisherYates.ts` - Deterministic shuffle
+- `services/verificationService.ts` - Proof generation
+- `components/ShuffleVerification.tsx` - Verification UI
+
+#### **Weeks 11-12: Verification & Audit**
+**Files to create:**
+- `components/ProofPanel.tsx` - Shuffle proof display
+- `utils/shuffleVerifier.ts` - Client-side verification
+- `cli/verify-shuffle.ts` - CLI verifier tool
+- `pages/audit/[hand_id].tsx` - Public audit page
+
+---
+
+## 📋 **IMMEDIATE TODO CHECKLIST**
+
+### **✅ Setup Phase (This Week)**
+- [ ] Create Supabase project and get credentials
+- [ ] Run database migrations (users, rooms, hands tables)
+- [ ] Set up Next.js frontend project
+- [ ] Create game server project structure
+- [ ] Configure environment variables
+- [ ] Test basic Supabase connection
+
+### **✅ Authentication Phase (Next Week)**  
+- [ ] Build login/signup components
+- [ ] Implement JWT authentication flow
+- [ ] Create user profile system
+- [ ] Replace test dropdown with real auth
+- [ ] Test authenticated game session
+- [ ] Add friend system basics
+
+### **✅ Real-Time Phase (Week 3-4)**
+- [ ] Create room management system
+- [ ] Implement shareable invite links
+- [ ] Build WebSocket game server
+- [ ] Replace HTTP polling with real-time
+- [ ] Test concurrent multiplayer games
+- [ ] Add presence and online status
+
+### **✅ Production Phase (Week 5-6)**
+- [ ] Deploy frontend to Vercel
+- [ ] Deploy game server to cloud
+- [ ] Set up monitoring and alerts
+- [ ] Configure custom domain
+- [ ] Performance optimization
+- [ ] Security hardening
+
+### **✅ Innovation Phase (Week 7+)**
+- [ ] YouTube Data API integration
+- [ ] Entropy collection system
+- [ ] Cryptographic shuffle implementation
+- [ ] Verification UI and tools
+- [ ] Public audit system
+- [ ] CLI verifier tool
+
+---
+
+## 🛠️ **DEVELOPMENT ENVIRONMENT SETUP**
+
+### **Required Tools**
+```bash
+# Core requirements
+Node.js 18+
+npm or yarn
+Git
+VS Code (recommended)
+
+# Recommended VS Code Extensions
+- TypeScript
+- Prettier  
+- ESLint
+- Tailwind CSS IntelliSense
+- Supabase
+```
+
+### **Project Structure**
+```
+pokeher/
+├── poker-frontend/          # Next.js frontend
+│   ├── components/         # React components
+│   ├── pages/             # Next.js pages
+│   ├── lib/               # Utilities and config
+│   ├── hooks/             # Custom React hooks
+│   └── types/             # TypeScript definitions
+├── game-server/            # WebSocket game server
+│   ├── src/               # Server source code
+│   ├── types/             # Shared type definitions
+│   └── utils/             # Server utilities
+├── poker-engine/           # Existing game engine (keep)
+└── supabase/              # Database migrations
+    └── migrations/        # SQL migration files
+```
+
+---
+
+## 🎯 **SUCCESS CRITERIA BY PHASE**
+
+### **Phase 1 Success Metrics**
+- [ ] Users can register/login with email + OAuth
+- [ ] Real players join games (no test dropdown)
+- [ ] User profiles with avatars working
+- [ ] Basic friend system operational
+- [ ] Authenticated game sessions stable
+
+### **Phase 2 Success Metrics**  
+- [ ] Room creation with invite links working
+- [ ] Real-time game sync <100ms latency
+- [ ] 10+ concurrent players per room
+- [ ] Friends can invite each other
+- [ ] Spectator mode functional
+
+### **Phase 3 Success Metrics**
+- [ ] Live at custom domain
+- [ ] 99.9% uptime achieved
+- [ ] <2s page load times
+- [ ] 100+ concurrent users supported
+- [ ] Monitoring and alerts active
+
+### **Phase 4 Success Metrics**
+- [ ] Provably random shuffling operational
+- [ ] Players can verify every shuffle
+- [ ] Audit trail system working
+- [ ] CLI verifier tool available
+- [ ] Unique market positioning achieved
 
 ---
 
