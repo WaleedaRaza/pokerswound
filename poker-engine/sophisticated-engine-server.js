@@ -802,11 +802,18 @@ app.post('/api/games/:id/actions', (req, res) => {
     
     console.log(`✅ Processed sophisticated action: ${player_id} ${action} ${amount || ''}`);
     
+    // Preserve roomId from old state (it's not part of GameStateModel, so we need to manually preserve it)
+    const oldState = games.get(gameId);
+    const roomId = oldState ? oldState.roomId : null;
+    
+    // Store roomId in new state
+    if (roomId) {
+      result.newState.roomId = roomId;
+    }
+    
     // Update stored state
     games.set(gameId, result.newState);
     
-    // Broadcast game state update to all players in the room
-    const roomId = result.newState.roomId;
     console.log(`🔍 Broadcasting update - roomId: ${roomId}, io exists: ${!!io}`);
     
     if (io && roomId) {

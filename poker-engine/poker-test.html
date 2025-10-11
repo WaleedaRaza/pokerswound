@@ -2456,16 +2456,29 @@
         }
 
         function connectSocket() {
-            if (!room) return;
+            if (!room) {
+                console.error('❌ connectSocket called but room is null!');
+                return;
+            }
+            
+            console.log('🔌 Connecting socket for room:', room.id);
+            
             try {
                 if (socket && socket.connected) {
+                    console.log('🔌 Disconnecting old socket');
                     socket.disconnect();
                 }
+                
                 socket = io(WS_BASE, { transports: ['websocket'] });
+                
                 socket.on('connect', () => {
+                    console.log('✅ Socket connected! ID:', socket.id);
+                    console.log('📤 Emitting join_room for:', room.id);
                     socket.emit('join_room', room.id);
                 });
-                socket.on('joined_room', () => {
+                
+                socket.on('joined_room', (data) => {
+                    console.log('✅ Joined room confirmation:', data);
                     // Initial seat fetch
                     loadSeats();
                 });
