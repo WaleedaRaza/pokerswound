@@ -951,6 +951,27 @@ app.post('/api/games/:id/actions', (req, res) => {
           }))
         });
         console.log(`📡 Broadcasted hand completion to room:${roomId}`);
+        
+        // 💾 UPDATE DATABASE: Persist player stacks after hand completion
+        if (userIdMap) {
+          console.log('💾 Updating player stacks in database after hand completion...');
+          for (const player of result.newState.players.values()) {
+            const userId = userIdMap.get(player.uuid);
+            if (userId) {
+              try {
+                await db.query(
+                  `UPDATE room_seats 
+                   SET chips_in_play = $1 
+                   WHERE room_id = $2 AND user_id = $3`,
+                  [player.stack, roomId, userId]
+                );
+                console.log(`  ✅ Updated ${player.name}: stack=${player.stack}`);
+              } catch (dbErr) {
+                console.error(`  ❌ Failed to update ${player.name} stack:`, dbErr.message);
+              }
+            }
+          }
+        }
       }
       
       res.json({
@@ -1012,6 +1033,27 @@ app.post('/api/games/:id/actions', (req, res) => {
               }))
             });
             console.log(`📡 Broadcasted hand completion after street advancement`);
+            
+            // 💾 UPDATE DATABASE: Persist player stacks after hand completion
+            if (userIdMap) {
+              console.log('💾 Updating player stacks in database after street advancement hand completion...');
+              for (const player of streetResult.newState.players.values()) {
+                const userId = userIdMap.get(player.uuid);
+                if (userId) {
+                  try {
+                    await db.query(
+                      `UPDATE room_seats 
+                       SET chips_in_play = $1 
+                       WHERE room_id = $2 AND user_id = $3`,
+                      [player.stack, roomId, userId]
+                    );
+                    console.log(`  ✅ Updated ${player.name}: stack=${player.stack}`);
+                  } catch (dbErr) {
+                    console.error(`  ❌ Failed to update ${player.name} stack:`, dbErr.message);
+                  }
+                }
+              }
+            }
           }
           
           res.json({
