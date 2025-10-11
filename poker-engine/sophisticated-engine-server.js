@@ -837,8 +837,26 @@ app.post('/api/games/:id/actions', (req, res) => {
     }
     
     // Check if betting round is complete using sophisticated logic
-    const isBettingComplete = result.newState.isBettingRoundComplete();
+    let isBettingComplete = result.newState.isBettingRoundComplete();
     const isHandComplete = result.newState.isHandComplete();
+    
+    // EDGE CASE FIX: If one player is all-in and another has chips, 
+    // the round is NOT complete until the non-all-in player acts
+    const activePlayers = Array.from(result.newState.players.values()).filter(p => !p.hasFolded);
+    const allInPlayers = activePlayers.filter(p => p.isAllIn);
+    const nonAllInPlayers = activePlayers.filter(p => !p.isAllIn);
+    
+    if (allInPlayers.length > 0 && nonAllInPlayers.length === 1) {
+      const nonAllInPlayer = nonAllInPlayers[0];
+      const currentBetNum = result.newState.bettingRound.currentBet;
+      const playerBetNum = nonAllInPlayer.betThisStreet;
+      
+      // If the non-all-in player hasn't matched the bet yet, round is NOT complete
+      if (playerBetNum < currentBetNum) {
+        console.log(`🔧 All-in scenario: ${nonAllInPlayer.name} must act before street advances`);
+        isBettingComplete = false;
+      }
+    }
     
     // Handle hand completion (showdown) - extract winners from action events
     if (isHandComplete) {
@@ -900,6 +918,11 @@ app.post('/api/games/:id/actions', (req, res) => {
       });
       
       if (streetResult.success) {
+        // Preserve roomId in new state after street advancement
+        if (roomId) {
+          streetResult.newState.roomId = roomId;
+        }
+        
         games.set(gameId, streetResult.newState);
         
         // Check again if hand is complete after street advancement (e.g., all folded or showdown reached)
