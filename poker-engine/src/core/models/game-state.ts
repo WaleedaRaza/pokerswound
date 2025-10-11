@@ -207,34 +207,52 @@ export class GameStateModel {
    * Check if betting round is complete
    */
   public isBettingRoundComplete(): boolean {
+    const activePlayers = this.getActivePlayers();
     const eligiblePlayers = this.getPlayersEligibleToAct();
     
-    if (eligiblePlayers.length <= 1) {
-      return true; // Only one player can act
+    // Only one active player left (others folded)
+    if (activePlayers.length <= 1) {
+      return true;
+    }
+    
+    // Separate all-in and non-all-in players
+    const allInPlayers = activePlayers.filter(p => p.isAllIn);
+    const nonAllInPlayers = activePlayers.filter(p => !p.isAllIn);
+    
+    // If ALL players are all-in, betting round is complete
+    if (nonAllInPlayers.length === 0) {
+      console.log(`🎯 All players all-in (${allInPlayers.length}), round complete`);
+      return true;
     }
 
     const currentBet = this.bettingRound.currentBet as unknown as number;
-    const activePlayers = this.getActivePlayers(); // Include all active players, not just eligible
     
-    // Count how many players have acted this street
-    let playersWhoActed = 0;
-    let playersWithMatchingBets = 0;
-    
-    for (const player of activePlayers) {
-      if (player.hasFolded) {
-        playersWhoActed++; // Folded players have acted
-        continue;
-      }
-      
-      if (player.isAllIn) {
-        playersWhoActed++; // All-in players have acted
-        playersWithMatchingBets++; // All-in players don't need to match current bet
-        continue;
-      }
-      
+    // Check if all non-all-in players have matched the current bet
+    for (const player of nonAllInPlayers) {
       const playerBet = player.betThisStreet as unknown as number;
       
-      // Check if player has acted this street (has some bet or has acted based on action history)
+      // If any non-all-in player hasn't matched the bet, round is NOT complete
+      if (playerBet < currentBet) {
+        console.log(`🎯 ${player.name} hasn't matched bet (${playerBet} < ${currentBet}), round NOT complete`);
+        return false;
+      }
+    }
+    
+    // Special case: If there are all-in players and only 1 non-all-in player
+    // and that player has matched the bet, round is complete
+    if (allInPlayers.length > 0 && nonAllInPlayers.length === 1) {
+      console.log(`🎯 1 non-all-in player matched bet vs ${allInPlayers.length} all-in, round complete`);
+      return true;
+    }
+    
+    // For multiple non-all-in players, check action history
+    let playersWhoActed = allInPlayers.length; // All-in players have acted
+    let playersWithMatchingBets = allInPlayers.length; // All-in players count as matched
+    
+    for (const player of nonAllInPlayers) {
+      const playerBet = player.betThisStreet as unknown as number;
+      
+      // Check if player has acted this street
       const hasActedThisStreet = this.actionHistory.some(action => 
         action.player === player.uuid && 
         action.street === this.currentStreet && 
@@ -249,18 +267,17 @@ export class GameStateModel {
           playersWithMatchingBets++;
         } else {
           // Player acted but hasn't matched the bet - round not complete
+          console.log(`🎯 ${player.name} acted but hasn't matched (${playerBet} < ${currentBet}), round NOT complete`);
           return false;
         }
       }
     }
     
-    // Betting round is complete only if:
-    // 1. All active players have acted this street AND
-    // 2. All non-folded, non-all-in players have matching bets
+    // Betting round is complete only if all players have acted and matched bets
     const allPlayersActed = playersWhoActed >= activePlayers.length;
-    const allBetsMatched = playersWithMatchingBets >= eligiblePlayers.length;
+    const allBetsMatched = playersWithMatchingBets >= activePlayers.length;
     
-    console.log(`🎯 Betting round check: ${playersWhoActed}/${activePlayers.length} acted, ${playersWithMatchingBets}/${eligiblePlayers.length} matched bets`);
+    console.log(`🎯 Betting round check: ${playersWhoActed}/${activePlayers.length} acted, ${playersWithMatchingBets}/${activePlayers.length} matched bets → ${allPlayersActed && allBetsMatched}`);
     
     return allPlayersActed && allBetsMatched;
   }
