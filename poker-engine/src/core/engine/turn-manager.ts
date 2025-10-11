@@ -126,29 +126,27 @@ export class TurnManager {
       return true;
     }
 
-    // All players are all-in except at most one
+    // Separate all-in and non-all-in players
     const nonAllInPlayers = activePlayers.filter(p => !p.isAllIn);
-    if (nonAllInPlayers.length <= 1) {
+    const allInPlayers = activePlayers.filter(p => p.isAllIn);
+    
+    // If all players are all-in, betting round is complete
+    if (nonAllInPlayers.length === 0) {
       return true;
     }
-
-    // Check if all active players have acted and matched the current bet
+    
+    // Get current bet to check if non-all-in players have matched
     const currentBet = this.getCurrentBet(gameState);
-    let allPlayersActed = true;
+    const currentBetNum = currentBet as unknown as number;
+
+    // Check if all non-all-in players have matched the current bet
     let allBetsMatched = true;
-
-    for (const player of activePlayers) {
-      if (player.isAllIn) {
-        continue; // All-in players don't need to act further
-      }
-
+    for (const player of nonAllInPlayers) {
       const playerBet = player.betThisStreet as unknown as number;
-      const currentBetNum = currentBet as unknown as number;
-
-      // Player hasn't matched the current bet
+      
+      // Player hasn't matched the current bet - round NOT complete
       if (playerBet < currentBetNum) {
         allBetsMatched = false;
-        allPlayersActed = false;
         break;
       }
     }
@@ -156,14 +154,19 @@ export class TurnManager {
     if (!allBetsMatched) {
       return false;
     }
+    
+    // Special case: If there are all-in players and only 1 non-all-in player
+    // and that player has matched the bet, round is complete
+    if (allInPlayers.length > 0 && nonAllInPlayers.length === 1) {
+      return true;
+    }
 
     // If there was an aggressor, ensure action has come back to them
-    if (lastAggressor && allPlayersActed) {
+    if (lastAggressor && allBetsMatched) {
       const aggressor = gameState.getPlayer(lastAggressor);
       if (aggressor && !aggressor.isAllIn && !aggressor.hasFolded) {
         // Check if aggressor's bet is still the highest
         const aggressorBet = aggressor.betThisStreet as unknown as number;
-        const currentBetNum = currentBet as unknown as number;
         
         if (aggressorBet === currentBetNum) {
           return true; // Action completed back to aggressor
@@ -171,7 +174,8 @@ export class TurnManager {
       }
     }
 
-    return allPlayersActed;
+    // All non-all-in players have matched the bet
+    return allBetsMatched;
   }
 
   /**

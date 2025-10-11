@@ -224,18 +224,31 @@ export class GameStateMachine {
     });
 
     // Check if betting round is complete
-    if (state.isBettingRoundComplete()) {
+    const bettingComplete = state.isBettingRoundComplete();
+    console.log(`🎯 Betting round complete check: ${bettingComplete}`);
+    
+    if (bettingComplete) {
       // Check if hand is over (only one active player)
-      if (state.getActivePlayers().length <= 1) {
+      const activePlayers = state.getActivePlayers();
+      console.log(`  Active players: ${activePlayers.length}`);
+      
+      if (activePlayers.length <= 1) {
+        console.log(`🏆 Only ${activePlayers.length} active player(s), ending hand`);
         return this.handleEndHand(state, events);
       }
 
+      // Check if all players are all-in
+      const allInCount = activePlayers.filter(p => p.isAllIn).length;
+      console.log(`  All-in players: ${allInCount}/${activePlayers.length}`);
+      
       // Advance to next street
+      console.log(`✅ Advancing to next street from ${state.currentStreet}`);
       return this.handleAdvanceStreet(state, events);
     } else {
       // Set next player to act
       state.toAct = state.getNextPlayerToAct(playerId);
       state.timing.actionStartTime = Date.now();
+      console.log(`  Next to act: ${state.toAct}`);
     }
 
     state.updateTimestamp();
@@ -251,8 +264,18 @@ export class GameStateMachine {
    * Advance to next street
    */
   private handleAdvanceStreet(state: GameStateModel, events: GameEvent[]): StateTransitionResult {
+    console.log('🔄 ADVANCING STREET:');
+    console.log(`  From: ${state.currentStreet}`);
+    console.log(`  Current bet BEFORE reset: ${state.bettingRound.currentBet}`);
+    console.log('  Player states BEFORE reset:');
+    for (const player of state.players.values()) {
+      console.log(`    ${player.name}: bet=${player.betThisStreet}, stack=${player.stack}, allIn=${player.isAllIn}`);
+    }
+    
     // Reset betting round
     this.resetBettingRound(state);
+    
+    console.log('  ✅ Betting round reset complete');
 
     // Deal community cards and advance street
     switch (state.currentStreet) {
@@ -313,11 +336,27 @@ export class GameStateMachine {
    * End the current hand
    */
   private handleEndHand(state: GameStateModel, events: GameEvent[]): StateTransitionResult {
+    console.log('🏆 ENDING HAND:');
+    console.log(`  Total pot: ${state.pot.totalPot}`);
+    console.log('  Player states before showdown:');
+    for (const player of state.players.values()) {
+      console.log(`    ${player.name}: stack=${player.stack}, bet=${player.betThisStreet}, allIn=${player.isAllIn}, folded=${player.hasFolded}`);
+    }
+    
     // Determine winners and distribute pot
     const results = this.determineWinners(state);
+    console.log('  Winners determined:', results.length);
+    for (const result of results) {
+      console.log(`    Winner: playerId=${result.playerId}, amount=${result.amount}, rank=${result.handRank}`);
+    }
 
     // Update player stacks
     this.distributePot(state, results);
+    
+    console.log('  Player stacks AFTER distribution:');
+    for (const player of state.players.values()) {
+      console.log(`    ${player.name}: stack=${player.stack}`);
+    }
 
     // Clean up hand state
     this.cleanupHand(state);
