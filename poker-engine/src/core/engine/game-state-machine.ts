@@ -241,7 +241,13 @@ export class GameStateMachine {
       const allInCount = activePlayers.filter(p => p.isAllIn).length;
       console.log(`  All-in players: ${allInCount}/${activePlayers.length}`);
       
-      // Advance to next street
+      // If ALL players are all-in, run out all remaining streets to showdown
+      if (allInCount === activePlayers.length) {
+        console.log(`🃏 ALL PLAYERS ALL-IN - Running out remaining streets to showdown`);
+        return this.handleRunOutAllStreets(state, events);
+      }
+      
+      // Advance to next street normally
       console.log(`✅ Advancing to next street from ${state.currentStreet}`);
       return this.handleAdvanceStreet(state, events);
     } else {
@@ -258,6 +264,96 @@ export class GameStateMachine {
       newState: state,
       events
     };
+  }
+
+  /**
+   * Run out all remaining streets when all players are all-in
+   */
+  private handleRunOutAllStreets(state: GameStateModel, events: GameEvent[]): StateTransitionResult {
+    console.log('🃏 RUNNING OUT ALL STREETS (all players all-in)');
+    
+    // Deal all remaining streets based on current street
+    switch (state.currentStreet) {
+      case Street.Preflop:
+        console.log('  Dealing: Flop, Turn, River');
+        this.resetBettingRound(state);
+        this.dealFlop(state);
+        state.currentStreet = Street.Flop;
+        events.push({
+          type: 'STREET_ADVANCED',
+          data: { street: Street.Flop, communityCards: state.handState.communityCards.map(c => c.toString()) },
+          timestamp: Date.now()
+        });
+        
+        this.resetBettingRound(state);
+        this.dealTurn(state);
+        state.currentStreet = Street.Turn;
+        events.push({
+          type: 'STREET_ADVANCED',
+          data: { street: Street.Turn, communityCards: state.handState.communityCards.map(c => c.toString()) },
+          timestamp: Date.now()
+        });
+        
+        this.resetBettingRound(state);
+        this.dealRiver(state);
+        state.currentStreet = Street.River;
+        events.push({
+          type: 'STREET_ADVANCED',
+          data: { street: Street.River, communityCards: state.handState.communityCards.map(c => c.toString()) },
+          timestamp: Date.now()
+        });
+        break;
+        
+      case Street.Flop:
+        console.log('  Dealing: Turn, River');
+        this.resetBettingRound(state);
+        this.dealTurn(state);
+        state.currentStreet = Street.Turn;
+        events.push({
+          type: 'STREET_ADVANCED',
+          data: { street: Street.Turn, communityCards: state.handState.communityCards.map(c => c.toString()) },
+          timestamp: Date.now()
+        });
+        
+        this.resetBettingRound(state);
+        this.dealRiver(state);
+        state.currentStreet = Street.River;
+        events.push({
+          type: 'STREET_ADVANCED',
+          data: { street: Street.River, communityCards: state.handState.communityCards.map(c => c.toString()) },
+          timestamp: Date.now()
+        });
+        break;
+        
+      case Street.Turn:
+        console.log('  Dealing: River');
+        this.resetBettingRound(state);
+        this.dealRiver(state);
+        state.currentStreet = Street.River;
+        events.push({
+          type: 'STREET_ADVANCED',
+          data: { street: Street.River, communityCards: state.handState.communityCards.map(c => c.toString()) },
+          timestamp: Date.now()
+        });
+        break;
+        
+      case Street.River:
+        // Already on river, just go to showdown
+        console.log('  Already on river, going to showdown');
+        break;
+        
+      default:
+        throw new Error(`Cannot run out streets from: ${state.currentStreet}`);
+    }
+    
+    // All cards dealt, go to showdown
+    console.log(`  Final board: ${state.handState.communityCards.map(c => c.toString()).join(', ')}`);
+    state.currentStreet = Street.Showdown;
+    state.status = GameStatus.SHOWDOWN;
+    state.toAct = null;
+    
+    // Determine winner and distribute pot
+    return this.handleEndHand(state, events);
   }
 
   /**
