@@ -348,6 +348,15 @@ export class GameStateMachine {
     
     // All cards dealt, go to showdown
     console.log(`  Final board: ${state.handState.communityCards.map(c => c.toString()).join(', ')}`);
+    console.log(`  Total community cards: ${state.handState.communityCards.length}`);
+    console.log(`  Total pot before showdown: ${state.pot.totalPot}`);
+    console.log('  Player hole cards:');
+    for (const player of state.players.values()) {
+      if (!player.hasFolded) {
+        console.log(`    ${player.name}: ${player.hole ? player.hole.map(c => c.toString()).join(', ') : 'NO CARDS'}`);
+      }
+    }
+    
     state.currentStreet = Street.Showdown;
     state.status = GameStatus.SHOWDOWN;
     state.toAct = null;
