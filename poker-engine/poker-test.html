@@ -2987,7 +2987,16 @@
         }
 
         // Update legal actions for authenticated user (auto-detect turn)
+        let isUpdatingActions = false; // Prevent duplicate calls
         async function updateLegalActions(gameState) {
+            // Prevent duplicate simultaneous calls
+            if (isUpdatingActions) {
+                console.log('⚠️ Already updating actions, skipping...');
+                return;
+            }
+            
+            isUpdatingActions = true;
+            
             const turnIndicator = document.getElementById('turnIndicator');
             const actionsStatus = document.getElementById('actionsStatus');
             const actionsPanel = document.getElementById('actionsPanel');
@@ -3000,6 +3009,7 @@
             if (!currentUser || !currentGame || !gameState) {
                 actionsStatus.textContent = 'Game not started';
                 actionsStatus.className = 'status-message';
+                isUpdatingActions = false;
                 return;
             }
             
@@ -3020,6 +3030,7 @@
             if (!myPlayer) {
                 actionsStatus.textContent = 'You are not in this game. Claim a seat to play!';
                 actionsStatus.className = 'status-message status-warning';
+                isUpdatingActions = false;
                 return;
             }
             
@@ -3032,6 +3043,7 @@
                     `Waiting for ${currentPlayer.name} to act...` : 
                     'Waiting for other players...';
                 actionsStatus.className = 'status-message';
+                isUpdatingActions = false;
                 return;
             }
             
@@ -3051,6 +3063,7 @@
                 if (actions.length === 0) {
                     actionsStatus.textContent = 'No actions available';
                     actionsStatus.className = 'status-message';
+                    isUpdatingActions = false;
                     return;
                 }
                 
@@ -3078,6 +3091,9 @@
             } catch (error) {
                 actionsStatus.textContent = `Error: ${error.message}`;
                 actionsStatus.className = 'status-message status-error';
+            } finally {
+                // Reset flag after update completes
+                isUpdatingActions = false;
             }
         }
 

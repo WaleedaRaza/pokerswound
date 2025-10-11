@@ -1081,12 +1081,37 @@ app.get('/api/games/:id/legal-actions', (req, res) => {
     }
     
     // Use sophisticated BettingEngine to get legal actions
-    const legalActions = bettingEngine.getLegalActions(
+    let legalActions = bettingEngine.getLegalActions(
       playerId,
       gameState,
       gameState.bettingRound.currentBet,
       gameState.bettingRound.minRaise
     );
+    
+    // EDGE CASE FIX: If CALL is available, CHECK should NOT be available
+    // CHECK means "no bet to call", CALL means "there's a bet to call"
+    // The engine incorrectly allows both when player has matched the bet
+    if (legalActions.includes('CALL') && legalActions.includes('CHECK')) {
+      console.log('🔧 Filtering out CHECK (CALL is required)');
+      legalActions = legalActions.filter(a => a !== 'CHECK');
+    }
+    
+    // EDGE CASE FIX: If player can't afford to CALL but CALL is in the list, remove it and ensure ALL_IN is present
+    const player = gameState.getPlayer(playerId);
+    if (player) {
+      const currentBetNum = gameState.bettingRound.currentBet;
+      const playerBetNum = player.betThisStreet;
+      const callAmount = currentBetNum - playerBetNum;
+      const playerStack = player.stack;
+      
+      if (callAmount > playerStack && legalActions.includes('CALL')) {
+        console.log('🔧 Player cannot afford CALL, removing and ensuring ALL_IN');
+        legalActions = legalActions.filter(a => a !== 'CALL');
+        if (!legalActions.includes('ALL_IN')) {
+          legalActions.push('ALL_IN');
+        }
+      }
+    }
     
     res.json({
       gameId,
