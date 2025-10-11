@@ -840,62 +840,54 @@ app.post('/api/games/:id/actions', (req, res) => {
     const isBettingComplete = result.newState.isBettingRoundComplete();
     const isHandComplete = result.newState.isHandComplete();
     
-    // Handle hand completion (showdown)
+    // Handle hand completion (showdown) - extract winners from action events
     if (isHandComplete) {
-      console.log('🏆 Hand is complete! Determining winners...');
+      console.log('🏆 Hand is complete! Action already processed winners.');
       
-      // End hand and determine winners
-      const endResult = stateMachine.processAction(result.newState, {
-        type: 'END_HAND'
-      });
+      // The GameStateMachine already handled END_HAND during the action
+      // Extract winner info from the action's events
+      const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
+      const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
       
-      if (endResult.success) {
-        games.set(gameId, endResult.newState);
-        
-        // Extract winner info from events
-        const handCompletedEvent = endResult.events.find(e => e.type === 'HAND_COMPLETED');
-        const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
-        
-        console.log('🏆 Winners:', winners);
-        
-        // Broadcast hand completion to all players
-        if (io && roomId) {
-          const userIdMap = playerUserIds.get(gameId);
-          io.to(`room:${roomId}`).emit('hand_complete', {
-            gameId,
-            winners: winners.map(w => ({
-              playerId: w.playerId,
-              amount: w.amount,
-              handRank: w.handRank
-            })),
-            players: Array.from(endResult.newState.players.values()).map(p => ({
-              id: p.uuid,
-              name: p.name,
-              stack: p.stack,
-              userId: userIdMap ? userIdMap.get(p.uuid) : null
-            }))
-          });
-          console.log(`📡 Broadcasted hand completion to room:${roomId}`);
-        }
-        
-        res.json({
+      console.log('🏆 Winners from action events:', winners);
+      
+      // Broadcast hand completion to all players with CURRENT stacks (after distribution)
+      if (io && roomId) {
+        const userIdMap = playerUserIds.get(gameId);
+        io.to(`room:${roomId}`).emit('hand_complete', {
           gameId,
-          action,
-          amount: amount || 0,
-          street: endResult.newState.currentStreet,
-          pot: endResult.newState.pot.totalPot,
-          isHandComplete: true,
-          winners,
-          players: Array.from(endResult.newState.players.values()).map(p => ({
+          winners: winners.map(w => ({
+            playerId: w.playerId,
+            amount: w.amount,
+            handRank: w.handRank
+          })),
+          players: Array.from(result.newState.players.values()).map(p => ({
             id: p.uuid,
             name: p.name,
-            stack: p.stack
-          })),
-          engine: 'SOPHISTICATED_TYPESCRIPT',
-          events: endResult.events
+            stack: p.stack,
+            userId: userIdMap ? userIdMap.get(p.uuid) : null
+          }))
         });
-        return;
+        console.log(`📡 Broadcasted hand completion to room:${roomId}`);
       }
+      
+      res.json({
+        gameId,
+        action,
+        amount: amount || 0,
+        street: result.newState.currentStreet,
+        pot: result.newState.pot.totalPot,
+        isHandComplete: true,
+        winners,
+        players: Array.from(result.newState.players.values()).map(p => ({
+          id: p.uuid,
+          name: p.name,
+          stack: p.stack
+        })),
+        engine: 'SOPHISTICATED_TYPESCRIPT',
+        events: result.events
+      });
+      return;
     }
     
     // Handle street advancement if betting complete but hand not done
@@ -914,48 +906,44 @@ app.post('/api/games/:id/actions', (req, res) => {
         if (streetResult.newState.isHandComplete()) {
           console.log('🏆 Hand completed after street advancement!');
           
-          const endResult = stateMachine.processAction(streetResult.newState, {
-            type: 'END_HAND'
-          });
+          // Extract winners from street advancement events
+          const handCompletedEvent = streetResult.events.find(e => e.type === 'HAND_COMPLETED');
+          const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
           
-          if (endResult.success) {
-            games.set(gameId, endResult.newState);
-            
-            const handCompletedEvent = endResult.events.find(e => e.type === 'HAND_COMPLETED');
-            const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
-            
-            if (io && roomId) {
-              const userIdMap = playerUserIds.get(gameId);
-              io.to(`room:${roomId}`).emit('hand_complete', {
-                gameId,
-                winners,
-                players: Array.from(endResult.newState.players.values()).map(p => ({
-                  id: p.uuid,
-                  name: p.name,
-                  stack: p.stack,
-                  userId: userIdMap ? userIdMap.get(p.uuid) : null
-                }))
-              });
-            }
-            
-            res.json({
+          console.log('🏆 Winners from street advancement:', winners);
+          
+          if (io && roomId) {
+            const userIdMap = playerUserIds.get(gameId);
+            io.to(`room:${roomId}`).emit('hand_complete', {
               gameId,
-              action,
-              amount: amount || 0,
-              street: endResult.newState.currentStreet,
-              pot: endResult.newState.pot.totalPot,
-              isHandComplete: true,
               winners,
-              players: Array.from(endResult.newState.players.values()).map(p => ({
+              players: Array.from(streetResult.newState.players.values()).map(p => ({
                 id: p.uuid,
                 name: p.name,
-                stack: p.stack
-              })),
-              engine: 'SOPHISTICATED_TYPESCRIPT',
-              events: endResult.events
+                stack: p.stack,
+                userId: userIdMap ? userIdMap.get(p.uuid) : null
+              }))
             });
-            return;
+            console.log(`📡 Broadcasted hand completion after street advancement`);
           }
+          
+          res.json({
+            gameId,
+            action,
+            amount: amount || 0,
+            street: streetResult.newState.currentStreet,
+            pot: streetResult.newState.pot.totalPot,
+            isHandComplete: true,
+            winners,
+            players: Array.from(streetResult.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack
+            })),
+            engine: 'SOPHISTICATED_TYPESCRIPT',
+            events: streetResult.events
+          });
+          return;
         }
         
         // Just street advancement, not complete yet

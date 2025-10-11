@@ -2539,11 +2539,25 @@
                     
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
-                    // Show winner announcement
-                    showHandCompleteModal(payload.winners, payload.players);
+                    // Show winner announcement as toast notification (no modal blocking)
+                    if (payload.winners && payload.winners.length > 0) {
+                        const winnerNames = payload.winners.map(w => {
+                            const player = payload.players.find(p => p.id === w.playerId);
+                            return player ? `${player.name} wins $${w.amount}` : 'Player wins';
+                        }).join(', ');
+                        showStatus(`🏆 ${winnerNames}`, 'success');
+                    }
                     
                     // Refresh game state to show updated stacks
                     await fetchGameState();
+                    
+                    // Auto-start next hand after 3 seconds (host only)
+                    if (isHost) {
+                        setTimeout(() => {
+                            console.log('⏰ Auto-starting next hand...');
+                            startNewHand();
+                        }, 3000);
+                    }
                 });
                 
                 socket.on('disconnect', () => {
