@@ -788,6 +788,20 @@ app.post('/api/games/:id/actions', (req, res) => {
       return res.status(404).json({ error: 'Game not found' });
     }
     
+    // 🔍 CAPTURE STATE BEFORE ACTION (for edge case detection)
+    // We need this because the engine may reset betThisStreet values after processing
+    const preActionBetState = {
+      currentBet: gameState.bettingRound.currentBet,
+      players: Array.from(gameState.players.values()).map(p => ({
+        uuid: p.uuid,
+        name: p.name,
+        betThisStreet: p.betThisStreet,
+        stack: p.stack,
+        isAllIn: p.isAllIn,
+        hasFolded: p.hasFolded
+      }))
+    };
+    
     // Use sophisticated GameStateMachine to process action
     const result = stateMachine.processAction(gameState, {
       type: 'PLAYER_ACTION',
@@ -854,22 +868,26 @@ app.post('/api/games/:id/actions', (req, res) => {
     let isBettingComplete = result.newState.isBettingRoundComplete();
     const isHandComplete = result.newState.isHandComplete();
     
-    // EDGE CASE FIX: If one player is all-in and another has chips, 
+    // EDGE CASE FIX: If one player went all-in and another has chips, 
     // the round is NOT complete until the non-all-in player acts
-    const activePlayers = Array.from(result.newState.players.values()).filter(p => !p.hasFolded);
-    const allInPlayers = activePlayers.filter(p => p.isAllIn);
-    const nonAllInPlayers = activePlayers.filter(p => !p.isAllIn);
+    // We use PRE-ACTION state because engine resets betThisStreet after processing
+    const preActivePlayers = preActionBetState.players.filter(p => !p.hasFolded);
+    const postActivePlayers = Array.from(result.newState.players.values()).filter(p => !p.hasFolded);
+    const postAllInPlayers = postActivePlayers.filter(p => p.isAllIn);
+    const postNonAllInPlayers = postActivePlayers.filter(p => !p.isAllIn);
     
-    if (allInPlayers.length > 0 && nonAllInPlayers.length === 1) {
-      const nonAllInPlayer = nonAllInPlayers[0];
-      const currentBetNum = result.newState.bettingRound.currentBet;
-      const playerBetNum = nonAllInPlayer.betThisStreet;
+    if (postAllInPlayers.length > 0 && postNonAllInPlayers.length === 1) {
+      const nonAllInPlayer = postNonAllInPlayers[0];
+      // Get this player's bet from PRE-ACTION state
+      const preActionPlayer = preActionBetState.players.find(p => p.uuid === nonAllInPlayer.uuid);
+      const currentBetNum = preActionBetState.currentBet;
+      const playerBetNum = preActionPlayer ? preActionPlayer.betThisStreet : 0;
       
       console.log('🔍 ALL-IN EDGE CASE DETECTED:');
-      console.log('  All-in players:', allInPlayers.map(p => p.name));
+      console.log('  All-in players:', postAllInPlayers.map(p => p.name));
       console.log('  Non-all-in player:', nonAllInPlayer.name);
-      console.log('  Current bet:', currentBetNum);
-      console.log('  Player bet this street:', playerBetNum);
+      console.log('  Current bet (PRE-ACTION):', currentBetNum);
+      console.log('  Player bet this street (PRE-ACTION):', playerBetNum);
       console.log('  Needs to act?', playerBetNum < currentBetNum);
       
       // If the non-all-in player hasn't matched the bet yet, round is NOT complete
