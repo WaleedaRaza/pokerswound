@@ -802,6 +802,20 @@ app.post('/api/games/:id/actions', (req, res) => {
     
     console.log(`✅ Processed sophisticated action: ${player_id} ${action} ${amount || ''}`);
     
+    // 🔍 DIAGNOSTIC: Post-action state
+    console.log('🔍 POST-ACTION STATE:');
+    console.log('  Current bet:', result.newState.bettingRound.currentBet);
+    console.log('  Players:');
+    for (const player of result.newState.players.values()) {
+      console.log(`    ${player.name}:`, {
+        betThisStreet: player.betThisStreet,
+        stack: player.stack,
+        isAllIn: player.isAllIn,
+        hasFolded: player.hasFolded
+      });
+    }
+    console.log('  isBettingComplete (raw from engine):', result.newState.isBettingRoundComplete());
+    
     // Preserve roomId from old state (it's not part of GameStateModel, so we need to manually preserve it)
     const oldState = games.get(gameId);
     const roomId = oldState ? oldState.roomId : null;
@@ -851,10 +865,20 @@ app.post('/api/games/:id/actions', (req, res) => {
       const currentBetNum = result.newState.bettingRound.currentBet;
       const playerBetNum = nonAllInPlayer.betThisStreet;
       
+      console.log('🔍 ALL-IN EDGE CASE DETECTED:');
+      console.log('  All-in players:', allInPlayers.map(p => p.name));
+      console.log('  Non-all-in player:', nonAllInPlayer.name);
+      console.log('  Current bet:', currentBetNum);
+      console.log('  Player bet this street:', playerBetNum);
+      console.log('  Needs to act?', playerBetNum < currentBetNum);
+      
       // If the non-all-in player hasn't matched the bet yet, round is NOT complete
       if (playerBetNum < currentBetNum) {
-        console.log(`🔧 All-in scenario: ${nonAllInPlayer.name} must act before street advances`);
+        console.log(`🔧 OVERRIDING: ${nonAllInPlayer.name} must act before street advances`);
+        console.log(`   isBettingComplete changed from TRUE to FALSE`);
         isBettingComplete = false;
+      } else {
+        console.log(`✅ Player has matched bet - round can complete`);
       }
     }
     
@@ -1111,6 +1135,16 @@ app.get('/api/games/:id/legal-actions', (req, res) => {
       gameState.bettingRound.minRaise
     );
     
+    // 🔍 DIAGNOSTIC: Legal actions request
+    const player = gameState.getPlayer(playerId);
+    console.log('🔍 LEGAL ACTIONS REQUEST:');
+    console.log('  Player:', player ? player.name : 'NOT FOUND');
+    console.log('  Current bet:', gameState.bettingRound.currentBet);
+    console.log('  Player bet this street:', player ? player.betThisStreet : 'N/A');
+    console.log('  Player stack:', player ? player.stack : 'N/A');
+    console.log('  Player isAllIn:', player ? player.isAllIn : 'N/A');
+    console.log('  Raw actions from engine:', legalActions);
+    
     // EDGE CASE FIX: If CALL is available, CHECK should NOT be available
     // CHECK means "no bet to call", CALL means "there's a bet to call"
     // The engine incorrectly allows both when player has matched the bet
@@ -1120,7 +1154,6 @@ app.get('/api/games/:id/legal-actions', (req, res) => {
     }
     
     // EDGE CASE FIX: If player can't afford to CALL but CALL is in the list, remove it and ensure ALL_IN is present
-    const player = gameState.getPlayer(playerId);
     if (player) {
       const currentBetNum = gameState.bettingRound.currentBet;
       const playerBetNum = player.betThisStreet;
@@ -1135,6 +1168,8 @@ app.get('/api/games/:id/legal-actions', (req, res) => {
         }
       }
     }
+    
+    console.log('  ✅ Final legal actions returned:', legalActions);
     
     res.json({
       gameId,
