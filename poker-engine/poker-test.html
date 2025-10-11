@@ -1944,16 +1944,22 @@
                 // 2) Connect WS and subscribe to room
                 connectSocket();
                 
-                // 3) Create game via existing endpoint
+                // 3) Create game via existing endpoint (link to room)
                 const response = await apiCall('/games', {
                     method: 'POST',
-                    body: JSON.stringify({ small_blind: smallBlind, big_blind: bigBlind, max_players: maxPlayers })
+                    body: JSON.stringify({ 
+                        small_blind: smallBlind, 
+                        big_blind: bigBlind, 
+                        max_players: maxPlayers,
+                        roomId: room.id  // Link game to room
+                    })
                 });
                 if (!response.ok) {
                     const error = await response.json();
                     throw new Error(error.error || 'Failed to create game');
                 }
                 currentGame = await response.json();
+                console.log('✅ Host created game and set currentGame:', currentGame);
                 
                 // 4) Join lobby as host (auto-approved)
                 hideLandingPage();
@@ -2296,6 +2302,20 @@
                     statusEl.textContent = '✅ You\'ve been approved!';
                     messageEl.textContent = 'Loading game...';
                     
+                    // Fetch the game for this room (guests need to know gameId for WebSocket sync)
+                    try {
+                        const gamesRes = await apiCall(`/games?roomId=${room.id}`);
+                        if (gamesRes.ok) {
+                            const gamesData = await gamesRes.json();
+                            if (gamesData.games && gamesData.games.length > 0) {
+                                currentGame = { gameId: gamesData.games[0].gameId };
+                                console.log('✅ Guest found and set currentGame:', currentGame);
+                            }
+                        }
+                    } catch (gameError) {
+                        console.error('Error fetching game for guest:', gameError);
+                    }
+                    
                     // Transition to game
                     setTimeout(async () => {
                         hideLobby();
@@ -2497,6 +2517,19 @@
                     
                     console.log('✅ Fetching updated game state...');
                     // Fetch updated game state
+                    await fetchGameState();
+                });
+                
+                // Listen for hand completion
+                socket.on('hand_complete', async (payload) => {
+                    console.log('🏆 Hand complete event received:', payload);
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    // Show winner announcement
+                    showHandCompleteModal(payload.winners, payload.players);
+                    
+                    // Refresh game state to show updated stacks
                     await fetchGameState();
                 });
                 
@@ -3224,6 +3257,114 @@
             } catch (error) {
                 console.error('❌ Auto-join error:', error);
                 showStatus(`❌ Failed to join room: ${error.message}`, 'error');
+            }
+        }
+        // Show hand complete modal with winners and new hand button
+        function showHandCompleteModal(winners, players) {
+            console.log('🏆 Showing hand complete modal:', {winners, players});
+            
+            const modal = document.createElement('div');
+            modal.id = 'handCompleteModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            let winnerHTML = '';
+            if (winners && winners.length > 0) {
+                winnerHTML = winners.map(w => {
+                    const player = players.find(p => p.id === w.playerId);
+                    return `
+                        <div style="font-size: 2rem; color: #ffd700; margin: 1rem 0;">
+                            🏆 ${player ? player.name : 'Player'} wins $${w.amount}!
+                            <div style="font-size: 1rem; color: #aaa; margin-top: 0.5rem;">
+                                ${w.handRank || 'Best hand'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                winnerHTML = '<div style="font-size: 2rem; color: #ffd700;">🏆 Hand Complete!</div>';
+            }
+            
+            let stacksHTML = '<div style="margin-top: 2rem; font-size: 1.2rem; color: #fff;">';
+            stacksHTML += '<h3>Updated Stacks:</h3>';
+            players.forEach(p => {
+                const isBust = p.stack <= 0;
+                stacksHTML += `<div style="margin: 0.5rem 0; color: ${isBust ? '#ff4444' : '#4CAF50'};">
+                    ${p.name}: $${p.stack} ${isBust ? '(BUST!)' : ''}
+                </div>`;
+            });
+            stacksHTML += '</div>';
+            
+            modal.innerHTML = `
+                <div style="background: #1a1a2e; padding: 3rem; border-radius: 15px; text-align: center; max-width: 600px;">
+                    ${winnerHTML}
+                    ${stacksHTML}
+                    <div style="margin-top: 2rem;">
+                        ${isHost ? '<button class="btn btn-primary" onclick="startNewHand()" style="font-size: 1.5rem; padding: 1rem 2rem;">🎲 Start New Hand</button>' : '<div style="color: #aaa;">Waiting for host to start new hand...</div>'}
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button class="btn btn-secondary" onclick="closeHandCompleteModal()" style="padding: 0.75rem 1.5rem;">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeHandCompleteModal() {
+            const modal = document.getElementById('handCompleteModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        async function startNewHand() {
+            if (!isHost) {
+                showStatus('❌ Only the host can start a new hand', 'error');
+                return;
+            }
+            
+            if (!currentGame || !room) {
+                showStatus('❌ Game not found', 'error');
+                return;
+            }
+            
+            try {
+                console.log('🎲 Starting new hand...');
+                
+                const response = await apiCall(`/games/${currentGame.gameId}/start-hand`, {
+                    method: 'POST',
+                    body: JSON.stringify({ roomId: room.id })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to start hand');
+                }
+                
+                const result = await response.json();
+                console.log('✅ New hand started:', result);
+                
+                closeHandCompleteModal();
+                showStatus(`🃏 Hand ${result.handNumber} started!`, 'success');
+                
+                // Refresh game state
+                setTimeout(refreshGameState, 200);
+                
+            } catch (error) {
+                console.error('❌ Start new hand error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
             }
         }
     </script>

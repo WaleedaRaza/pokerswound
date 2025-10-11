@@ -177,9 +177,9 @@ app.get('/poker', (req, res) => {
 });
 
 // Create game with sophisticated engine
-app.post('/api/games', (req, res) => {
+app.post('/api/games', async (req, res) => {
   try {
-    const { small_blind, big_blind, max_players } = req.body;
+    const { small_blind, big_blind, max_players, roomId } = req.body;
     
     const gameId = generateGameId();
     
@@ -199,8 +199,29 @@ app.post('/api/games', (req, res) => {
       }
     });
     
+    // Store roomId in game state for WebSocket broadcasts
+    if (roomId) {
+      gameState.roomId = roomId;
+    }
+    
     // Store in memory
     games.set(gameId, gameState);
+    
+    // Store game_id in room table for guest lookup
+    if (roomId) {
+      const db = getDb();
+      if (db) {
+        try {
+          await db.query(
+            'UPDATE rooms SET game_id = $1 WHERE id = $2',
+            [gameId, roomId]
+          );
+          console.log(`✅ Linked game ${gameId} to room ${roomId}`);
+        } catch (dbError) {
+          console.error('Error linking game to room:', dbError.message);
+        }
+      }
+    }
     
     console.log(`✅ Created sophisticated game: ${gameId}`);
     
@@ -812,6 +833,65 @@ app.post('/api/games/:id/actions', (req, res) => {
     const isBettingComplete = result.newState.isBettingRoundComplete();
     const isHandComplete = result.newState.isHandComplete();
     
+    // Handle hand completion (showdown)
+    if (isHandComplete) {
+      console.log('🏆 Hand is complete! Determining winners...');
+      
+      // End hand and determine winners
+      const endResult = stateMachine.processAction(result.newState, {
+        type: 'END_HAND'
+      });
+      
+      if (endResult.success) {
+        games.set(gameId, endResult.newState);
+        
+        // Extract winner info from events
+        const handCompletedEvent = endResult.events.find(e => e.type === 'HAND_COMPLETED');
+        const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
+        
+        console.log('🏆 Winners:', winners);
+        
+        // Broadcast hand completion to all players
+        if (io && roomId) {
+          const userIdMap = playerUserIds.get(gameId);
+          io.to(`room:${roomId}`).emit('hand_complete', {
+            gameId,
+            winners: winners.map(w => ({
+              playerId: w.playerId,
+              amount: w.amount,
+              handRank: w.handRank
+            })),
+            players: Array.from(endResult.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack,
+              userId: userIdMap ? userIdMap.get(p.uuid) : null
+            }))
+          });
+          console.log(`📡 Broadcasted hand completion to room:${roomId}`);
+        }
+        
+        res.json({
+          gameId,
+          action,
+          amount: amount || 0,
+          street: endResult.newState.currentStreet,
+          pot: endResult.newState.pot.totalPot,
+          isHandComplete: true,
+          winners,
+          players: Array.from(endResult.newState.players.values()).map(p => ({
+            id: p.uuid,
+            name: p.name,
+            stack: p.stack
+          })),
+          engine: 'SOPHISTICATED_TYPESCRIPT',
+          events: endResult.events
+        });
+        return;
+      }
+    }
+    
+    // Handle street advancement if betting complete but hand not done
     if (isBettingComplete && !isHandComplete) {
       console.log('✅ Sophisticated betting round complete - advancing street');
       
@@ -823,7 +903,55 @@ app.post('/api/games/:id/actions', (req, res) => {
       if (streetResult.success) {
         games.set(gameId, streetResult.newState);
         
-        // Broadcast street advancement to all players
+        // Check again if hand is complete after street advancement (e.g., all folded or showdown reached)
+        if (streetResult.newState.isHandComplete()) {
+          console.log('🏆 Hand completed after street advancement!');
+          
+          const endResult = stateMachine.processAction(streetResult.newState, {
+            type: 'END_HAND'
+          });
+          
+          if (endResult.success) {
+            games.set(gameId, endResult.newState);
+            
+            const handCompletedEvent = endResult.events.find(e => e.type === 'HAND_COMPLETED');
+            const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
+            
+            if (io && roomId) {
+              const userIdMap = playerUserIds.get(gameId);
+              io.to(`room:${roomId}`).emit('hand_complete', {
+                gameId,
+                winners,
+                players: Array.from(endResult.newState.players.values()).map(p => ({
+                  id: p.uuid,
+                  name: p.name,
+                  stack: p.stack,
+                  userId: userIdMap ? userIdMap.get(p.uuid) : null
+                }))
+              });
+            }
+            
+            res.json({
+              gameId,
+              action,
+              amount: amount || 0,
+              street: endResult.newState.currentStreet,
+              pot: endResult.newState.pot.totalPot,
+              isHandComplete: true,
+              winners,
+              players: Array.from(endResult.newState.players.values()).map(p => ({
+                id: p.uuid,
+                name: p.name,
+                stack: p.stack
+              })),
+              engine: 'SOPHISTICATED_TYPESCRIPT',
+              events: endResult.events
+            });
+            return;
+          }
+        }
+        
+        // Just street advancement, not complete yet
         if (io && roomId) {
           io.to(`room:${roomId}`).emit('game_state_update', {
             gameId,
@@ -866,6 +994,40 @@ app.post('/api/games/:id/actions', (req, res) => {
     
   } catch (error) {
     console.error('Process action error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get games by roomId (for guests to find the game)
+app.get('/api/games', async (req, res) => {
+  try {
+    const { roomId } = req.query;
+    
+    if (!roomId) {
+      return res.status(400).json({ error: 'roomId query parameter required' });
+    }
+    
+    console.log(`🔍 Finding games for roomId: ${roomId}`);
+    
+    // Find games for this room in memory
+    const matchingGames = [];
+    for (const [gameId, gameState] of games.entries()) {
+      if (gameState.roomId === roomId) {
+        matchingGames.push({ 
+          gameId, 
+          roomId: gameState.roomId,
+          status: gameState.status,
+          handNumber: gameState.handState.handNumber
+        });
+      }
+    }
+    
+    console.log(`✅ Found ${matchingGames.length} games for room ${roomId}`);
+    
+    res.json({ games: matchingGames });
+    
+  } catch (error) {
+    console.error('Get games by room error:', error);
     res.status(500).json({ error: error.message });
   }
 });
