@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { Pool } = require('pg');
+const { Server } = require('socket.io');
 
 // Import our SOPHISTICATED compiled engine components
 const { GameStateModel } = require('./dist/core/models/game-state');
@@ -15,9 +17,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (card images)
+app.use('/cards', express.static(path.join(__dirname, 'cards')));
+
 // In-memory storage for demo (normally would use database)
 const games = new Map();
 let gameCounter = 1;
+
+// Store userId mappings separately (since PlayerModel doesn't have userId property)
+const playerUserIds = new Map(); // gameId -> Map(playerId -> userId)
 
 // Engine instances
 const stateMachine = new GameStateMachine();
@@ -32,6 +40,128 @@ function generateGameId() {
 
 function generatePlayerId() {
   return `player_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+}
+
+// ---- Database (PostgreSQL via DATABASE_URL) ---------------------------------
+let dbPool = null;
+function getDb() {
+  if (dbPool) return dbPool;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    console.warn('⚠️  No DATABASE_URL found. Room persistence will be disabled.');
+    return null;
+  }
+  dbPool = new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+    application_name: 'sophisticated-engine-server'
+  });
+  return dbPool;
+}
+
+async function createRoom({
+  name,
+  small_blind,
+  big_blind,
+  min_buy_in,
+  max_buy_in,
+  max_players,
+  is_private = false,
+  host_user_id = null
+}) {
+  const db = getDb();
+  if (!db) throw new Error('Database not configured');
+  const invite = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const res = await db.query(
+    `INSERT INTO rooms (name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, invite_code, host_user_id, lobby_status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'lobby')
+     RETURNING id, invite_code, max_players, host_user_id`,
+    [name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, invite, host_user_id]
+  );
+  return res.rows[0];
+}
+
+async function getRoomByInvite(inviteCode) {
+  const db = getDb();
+  if (!db) throw new Error('Database not configured');
+  const roomRes = await db.query(
+    `SELECT id, name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, status
+     FROM rooms WHERE invite_code = $1 LIMIT 1`,
+    [inviteCode]
+  );
+  if (roomRes.rowCount === 0) return null;
+  const room = roomRes.rows[0];
+  const seatsRes = await db.query(
+    `SELECT seat_index, user_id, status, chips_in_play
+     FROM room_seats WHERE room_id = $1 ORDER BY seat_index ASC`,
+    [room.id]
+  );
+  return { room, seats: seatsRes.rows };
+}
+
+async function claimSeat({ roomId, userId, seatIndex, buyInAmount }) {
+  const db = getDb();
+  if (!db) throw new Error('Database not configured');
+  // Use unique constraints to ensure seat locking
+  const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    // Ensure user exists (auto-provision guest if missing)
+    const userExists = await client.query(`SELECT 1 FROM users WHERE id=$1`, [userId]);
+    if (userExists.rowCount === 0) {
+      const email = `guest-${userId}@poker.local`;
+      const username = `guest_${userId.substring(0, 8)}`;
+      // Dev-only bcrypt for placeholder password: 'guest'
+      const placeholderHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewngHTNk.5gZLWhy';
+      await client.query(
+        `INSERT INTO users (id, email, username, password_hash, display_name, is_verified)
+         VALUES ($1,$2,$3,$4,$5,true)`,
+        [userId, email, username, placeholderHash, username]
+      );
+    }
+    // Ensure seat is free
+    const exists = await client.query(
+      `SELECT 1 FROM room_seats WHERE room_id=$1 AND seat_index=$2 AND left_at IS NULL`,
+      [roomId, seatIndex]
+    );
+    if (exists.rowCount > 0) {
+      throw new Error('Seat already taken');
+    }
+    // Ensure user not already seated
+    const seated = await client.query(
+      `SELECT 1 FROM room_seats WHERE room_id=$1 AND user_id=$2 AND left_at IS NULL`,
+      [roomId, userId]
+    );
+    if (seated.rowCount > 0) {
+      throw new Error('User already seated');
+    }
+    // Insert seat
+    await client.query(
+      `INSERT INTO room_seats (room_id, user_id, seat_index, status, chips_in_play)
+       VALUES ($1,$2,$3,'SEATED',$4)`,
+      [roomId, userId, seatIndex, buyInAmount]
+    );
+    await client.query('COMMIT');
+    // broadcast
+    broadcastSeats(roomId).catch(()=>{});
+    return { ok: true };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+async function releaseSeat({ roomId, userId }) {
+  const db = getDb();
+  if (!db) throw new Error('Database not configured');
+  await db.query(
+    `UPDATE room_seats SET left_at = NOW(), status='SITTING_OUT' WHERE room_id=$1 AND user_id=$2 AND left_at IS NULL`,
+    [roomId, userId]
+  );
+  broadcastSeats(roomId).catch(()=>{});
+  return { ok: true };
 }
 
 // Routes
@@ -87,6 +217,377 @@ app.post('/api/games', (req, res) => {
   }
 });
 
+// ============================================
+// AUTH ENDPOINTS (Simple version for demo)
+// ============================================
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'poker-secret-change-in-production';
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email, and password required' });
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Check if user exists
+    const existingUser = await db.query(
+      'SELECT id FROM users WHERE username = $1 OR email = $2',
+      [username, email]
+    );
+    
+    if (existingUser.rowCount > 0) {
+      return res.status(400).json({ error: 'Username or email already exists' });
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create user
+    const result = await db.query(
+      `INSERT INTO users (username, email, password_hash, total_chips, created_at)
+       VALUES ($1, $2, $3, 1000, NOW())
+       RETURNING id, username, email, total_chips, created_at`,
+      [username, email, hashedPassword]
+    );
+    
+    const user = result.rows[0];
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        chips_total: user.total_chips
+      }
+    });
+    
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Find user
+    const result = await db.query(
+      'SELECT id, username, email, password_hash, total_chips FROM users WHERE username = $1 OR email = $1',
+      [username]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const user = result.rows[0];
+    
+    // Verify password
+    const validPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        chips_total: user.total_chips
+      }
+    });
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// ============================================
+// LOBBY SYSTEM ENDPOINTS
+// ============================================
+
+// Join room lobby (request to join)
+app.post('/api/rooms/:roomId/lobby/join', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error: 'Missing user_id' });
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Check if room exists
+    const roomCheck = await db.query('SELECT id, host_user_id FROM rooms WHERE id = $1', [req.params.roomId]);
+    if (roomCheck.rowCount === 0) return res.status(404).json({ error: 'Room not found' });
+    
+    const isHost = roomCheck.rows[0].host_user_id === user_id;
+    
+    // Auto-provision user if they don't exist (temporary fix for JWT users not in DB)
+    const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [user_id]);
+    if (userCheck.rowCount === 0) {
+      console.log(`⚠️ User ${user_id} not in DB, auto-provisioning...`);
+      await db.query(
+        `INSERT INTO users (id, username, email, password_hash)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (id) DO NOTHING`,
+        [user_id, `Guest_${user_id.substring(0, 6)}`, `${user_id}@temp.local`, 'temp']
+      );
+    }
+    
+    // Add player to lobby (auto-approve if host, otherwise pending)
+    const status = isHost ? 'approved' : 'pending';
+    const result = await db.query(
+      `INSERT INTO room_players (room_id, user_id, status, approved_at)
+       VALUES ($1, $2, $3, ${status === 'approved' ? 'NOW()' : 'NULL'})
+       ON CONFLICT (room_id, user_id) 
+       DO UPDATE SET status = $3, joined_at = NOW()
+       RETURNING id, status`,
+      [req.params.roomId, user_id, status]
+    );
+    
+    console.log(`👋 Player ${user_id} ${status === 'approved' ? 'joined' : 'requesting to join'} room lobby`);
+    res.json({ success: true, status: result.rows[0].status });
+  } catch (e) {
+    console.error('Lobby join error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get lobby players (for host to see pending requests)
+app.get('/api/rooms/:roomId/lobby/players', async (req, res) => {
+  try {
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    const result = await db.query(
+      `SELECT rp.id, rp.user_id, rp.status, rp.joined_at, rp.approved_at,
+              u.username, u.email
+       FROM room_players rp
+       JOIN users u ON rp.user_id = u.id
+       WHERE rp.room_id = $1
+       ORDER BY rp.joined_at ASC`,
+      [req.params.roomId]
+    );
+    
+    res.json({ players: result.rows });
+  } catch (e) {
+    console.error('Get lobby players error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Approve player (host only)
+app.post('/api/rooms/:roomId/lobby/approve', async (req, res) => {
+  try {
+    const { user_id, target_user_id } = req.body;
+    if (!user_id || !target_user_id) return res.status(400).json({ error: 'Missing user_id or target_user_id' });
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify requester is host
+    const roomCheck = await db.query('SELECT host_user_id FROM rooms WHERE id = $1', [req.params.roomId]);
+    if (roomCheck.rowCount === 0) return res.status(404).json({ error: 'Room not found' });
+    if (roomCheck.rows[0].host_user_id !== user_id) {
+      return res.status(403).json({ error: 'Only the host can approve players' });
+    }
+    
+    // Approve the player
+    await db.query(
+      `UPDATE room_players SET status = 'approved', approved_at = NOW()
+       WHERE room_id = $1 AND user_id = $2`,
+      [req.params.roomId, target_user_id]
+    );
+    
+    console.log(`✅ Host approved player ${target_user_id}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Approve player error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Reject player (host only)
+app.post('/api/rooms/:roomId/lobby/reject', async (req, res) => {
+  try {
+    const { user_id, target_user_id } = req.body;
+    if (!user_id || !target_user_id) return res.status(400).json({ error: 'Missing user_id or target_user_id' });
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify requester is host
+    const roomCheck = await db.query('SELECT host_user_id FROM rooms WHERE id = $1', [req.params.roomId]);
+    if (roomCheck.rowCount === 0) return res.status(404).json({ error: 'Room not found' });
+    if (roomCheck.rows[0].host_user_id !== user_id) {
+      return res.status(403).json({ error: 'Only the host can reject players' });
+    }
+    
+    // Reject the player
+    await db.query(
+      `UPDATE room_players SET status = 'rejected'
+       WHERE room_id = $1 AND user_id = $2`,
+      [req.params.roomId, target_user_id]
+    );
+    
+    console.log(`❌ Host rejected player ${target_user_id}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Reject player error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Check my lobby status
+app.get('/api/rooms/:roomId/lobby/my-status', async (req, res) => {
+  try {
+    const userId = req.query.user_id;
+    if (!userId) return res.status(400).json({ error: 'Missing user_id' });
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    const result = await db.query(
+      `SELECT status, joined_at, approved_at FROM room_players
+       WHERE room_id = $1 AND user_id = $2`,
+      [req.params.roomId, userId]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.json({ status: 'not_joined' });
+    }
+    
+    res.json({ status: result.rows[0].status, joined_at: result.rows[0].joined_at, approved_at: result.rows[0].approved_at });
+  } catch (e) {
+    console.error('Check lobby status error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ----- Rooms & Seats (Multi-player support, DB-backed) -----------------------
+app.post('/api/rooms', async (req, res) => {
+  try {
+    const { name, small_blind, big_blind, min_buy_in, max_buy_in, max_players = 9, is_private, host_user_id } = req.body || {};
+    if (!name || !small_blind || !big_blind || !min_buy_in || !max_buy_in) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const room = await createRoom({ name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, host_user_id });
+    
+    // Auto-join host to lobby if host_user_id provided
+    if (host_user_id) {
+      const db = getDb();
+      if (db) {
+        await db.query(
+          `INSERT INTO room_players (room_id, user_id, status, approved_at)
+           VALUES ($1, $2, 'approved', NOW())`,
+          [room.id, host_user_id]
+        );
+        console.log(`👑 Host ${host_user_id} auto-joined room ${room.id}`);
+      }
+    }
+    
+    res.status(201).json({ roomId: room.id, inviteCode: room.invite_code, maxPlayers: room.max_players, hostUserId: room.host_user_id });
+  } catch (e) {
+    console.error('Create room error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/rooms/invite/:code', async (req, res) => {
+  try {
+    const data = await getRoomByInvite(req.params.code);
+    if (!data) return res.status(404).json({ error: 'Room not found' });
+    res.json(data);
+  } catch (e) {
+    console.error('Get room by invite error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/rooms/:roomId/seats', async (req, res) => {
+  try {
+    const db = getDb();
+    if (!db) throw new Error('Database not configured');
+    const { rows } = await db.query(
+      `SELECT seat_index, user_id, status, chips_in_play FROM room_seats WHERE room_id=$1 ORDER BY seat_index ASC`,
+      [req.params.roomId]
+    );
+    res.json({ seats: rows });
+  } catch (e) {
+    console.error('List seats error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/rooms/:roomId/join', async (req, res) => {
+  try {
+    console.log('🎯 Claim seat request:', {
+      roomId: req.params.roomId,
+      body: req.body
+    });
+    
+    const { user_id, seat_index, buy_in_amount } = req.body || {};
+    if (!user_id || seat_index === undefined || buy_in_amount === undefined) {
+      console.error('❌ Missing fields:', { user_id, seat_index, buy_in_amount });
+      return res.status(400).json({ error: 'Missing required fields: user_id, seat_index, buy_in_amount' });
+    }
+    
+    await claimSeat({ roomId: req.params.roomId, userId: user_id, seatIndex: seat_index, buyInAmount: buy_in_amount });
+    console.log('✅ Seat claimed successfully');
+    res.status(201).json({ ok: true, seatIndex: seat_index });
+  } catch (e) {
+    console.error('❌ Join room error:', e.message);
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/rooms/:roomId/leave', async (req, res) => {
+  try {
+    const { user_id } = req.body || {};
+    if (!user_id) return res.status(400).json({ error: 'Missing user_id' });
+    await releaseSeat({ roomId: req.params.roomId, userId: user_id });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Leave room error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Join game with sophisticated PlayerModel
 app.post('/api/games/:id/join', (req, res) => {
   try {
@@ -129,14 +630,73 @@ app.post('/api/games/:id/join', (req, res) => {
   }
 });
 
-// Start hand with sophisticated GameStateMachine
-app.post('/api/games/:id/start-hand', (req, res) => {
+// Start hand with sophisticated GameStateMachine (BRIDGED with room_seats)
+app.post('/api/games/:id/start-hand', async (req, res) => {
   try {
     const gameId = req.params.id;
-    const gameState = games.get(gameId);
+    const { roomId } = req.body; // UI should pass the roomId
+    
+    let gameState = games.get(gameId);
     
     if (!gameState) {
       return res.status(404).json({ error: 'Game not found' });
+    }
+    
+    // ============================================
+    // BIG EDIT 3: BRIDGE ROOM SEATS TO GAME
+    // ============================================
+    
+    // If roomId provided, sync players from room_seats table
+    if (roomId) {
+      const db = getDb();
+      if (db) {
+        const seatsRes = await db.query(
+          `SELECT rs.seat_index, rs.user_id, rs.chips_in_play, u.username
+           FROM room_seats rs
+           JOIN users u ON rs.user_id = u.id
+           WHERE rs.room_id = $1 AND rs.status = 'SEATED' AND rs.left_at IS NULL
+           ORDER BY rs.seat_index ASC`,
+          [roomId]
+        );
+        
+        if (seatsRes.rowCount < 2) {
+          return res.status(400).json({ error: 'Need at least 2 seated players to start' });
+        }
+        
+        // Clear existing players and repopulate from seats
+        gameState.players.clear();
+        
+        // Initialize userId mapping for this game
+        if (!playerUserIds.has(gameId)) {
+          playerUserIds.set(gameId, new Map());
+        }
+        const userIdMap = playerUserIds.get(gameId);
+        userIdMap.clear();
+        
+        console.log(`🔗 Bridging ${seatsRes.rowCount} seated players to game engine...`);
+        
+        for (const seat of seatsRes.rows) {
+          const playerId = `player_${seat.user_id}_${seat.seat_index}`;
+          
+          const player = new PlayerModel({
+            uuid: playerId,
+            name: seat.username,
+            stack: seat.chips_in_play,
+            seatIndex: seat.seat_index
+          });
+          
+          // Store userId mapping separately
+          userIdMap.set(playerId, seat.user_id);
+          
+          gameState.addPlayer(player);
+          console.log(`  ✅ Added ${seat.username} (seat ${seat.seat_index}, chips: ${seat.chips_in_play}, userId: ${seat.user_id})`);
+        }
+      }
+    }
+    
+    // Validate we have enough players
+    if (gameState.players.size < 2) {
+      return res.status(400).json({ error: 'Need at least 2 players to start hand' });
     }
     
     // Use sophisticated GameStateMachine to start hand
@@ -150,9 +710,29 @@ app.post('/api/games/:id/start-hand', (req, res) => {
     
     console.log(`✅ Started sophisticated hand ${result.newState.handState.handNumber}`);
     
+    // Store roomId in game state for later WebSocket broadcasts
+    result.newState.roomId = roomId;
+    
     // Update stored state
     games.set(gameId, result.newState);
     
+    // Broadcast hand start via WebSocket
+    if (io) {
+      const userIdMap = playerUserIds.get(gameId);
+      io.to(`room:${roomId}`).emit('hand_started', {
+        gameId,
+        handNumber: result.newState.handState.handNumber,
+        players: Array.from(result.newState.players.values()).map(p => ({
+          id: p.uuid,
+          name: p.name,
+          stack: p.stack,
+          seatIndex: p.seatIndex,
+          userId: userIdMap ? userIdMap.get(p.uuid) : null
+        }))
+      });
+    }
+    
+    const userIdMap = playerUserIds.get(gameId);
     res.json({
       gameId,
       handNumber: result.newState.handState.handNumber,
@@ -160,6 +740,12 @@ app.post('/api/games/:id/start-hand', (req, res) => {
       pot: result.newState.pot.totalPot,
       toAct: result.newState.toAct,
       street: result.newState.currentStreet,
+      players: Array.from(result.newState.players.values()).map(p => ({
+        id: p.uuid,
+        name: p.name,
+        stack: p.stack,
+        userId: userIdMap ? userIdMap.get(p.uuid) : null
+      })),
       engine: 'SOPHISTICATED_TYPESCRIPT',
       events: result.events
     });
@@ -198,6 +784,30 @@ app.post('/api/games/:id/actions', (req, res) => {
     // Update stored state
     games.set(gameId, result.newState);
     
+    // Broadcast game state update to all players in the room
+    const roomId = result.newState.roomId;
+    console.log(`🔍 Broadcasting update - roomId: ${roomId}, io exists: ${!!io}`);
+    
+    if (io && roomId) {
+      const updatePayload = {
+        gameId,
+        action,
+        playerId: player_id,
+        street: result.newState.currentStreet,
+        pot: result.newState.pot.totalPot,
+        toAct: result.newState.toAct
+      };
+      
+      console.log(`📡 Broadcasting to room:${roomId}:`, updatePayload);
+      io.to(`room:${roomId}`).emit('game_state_update', updatePayload);
+      
+      // Log how many sockets are in the room
+      const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
+      console.log(`   Sockets in room:${roomId}: ${roomSockets ? roomSockets.size : 0}`);
+    } else {
+      console.log(`❌ Cannot broadcast - io: ${!!io}, roomId: ${roomId}`);
+    }
+    
     // Check if betting round is complete using sophisticated logic
     const isBettingComplete = result.newState.isBettingRoundComplete();
     const isHandComplete = result.newState.isHandComplete();
@@ -212,6 +822,18 @@ app.post('/api/games/:id/actions', (req, res) => {
       
       if (streetResult.success) {
         games.set(gameId, streetResult.newState);
+        
+        // Broadcast street advancement to all players
+        if (io && roomId) {
+          io.to(`room:${roomId}`).emit('game_state_update', {
+            gameId,
+            street: streetResult.newState.currentStreet,
+            pot: streetResult.newState.pot.totalPot,
+            toAct: streetResult.newState.toAct,
+            message: `Street advanced to ${streetResult.newState.currentStreet}`
+          });
+          console.log(`📡 Broadcasted street advancement to ${streetResult.newState.currentStreet}`);
+        }
         
         res.json({
           gameId,
@@ -258,6 +880,8 @@ app.get('/api/games/:id', (req, res) => {
       return res.status(404).json({ error: 'Game not found' });
     }
     
+    const userIdMap = playerUserIds.get(gameId);
+    
     res.json({
       gameId,
       status: gameState.status,
@@ -272,6 +896,7 @@ app.get('/api/games/:id', (req, res) => {
         name: p.name,
         stack: p.stack,
         seatIndex: p.seatIndex,
+        userId: userIdMap ? userIdMap.get(p.uuid) : null,  // Get userId from mapping
         isActive: p.isActive,
         hasFolded: p.hasFolded,
         isAllIn: p.isAllIn,
@@ -325,10 +950,39 @@ app.get('/api/games/:id/legal-actions', (req, res) => {
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 3000;
+const httpServer = app.listen(PORT, () => {
   console.log(`🚀 SOPHISTICATED POKER ENGINE running on port ${PORT}`);
   console.log(`🎯 Using: GameStateMachine, BettingEngine, RoundManager, TurnManager`);
   console.log(`🎰 Test at: http://localhost:${PORT}/poker`);
   console.log(`✅ REAL poker rules with sophisticated betting round completion!`);
 });
+
+// Socket.IO setup
+const io = new Server(httpServer, {
+  cors: { origin: '*', credentials: false },
+});
+
+io.on('connection', (socket) => {
+  socket.on('join_room', (roomId) => {
+    if (!roomId) return;
+    console.log(`🔌 Socket ${socket.id} joining room:${roomId}`);
+    socket.join(`room:${roomId}`);
+    socket.emit('joined_room', { roomId });
+    console.log(`✅ Socket ${socket.id} joined room:${roomId}`);
+  });
+});
+
+async function broadcastSeats(roomId) {
+  try {
+    const db = getDb();
+    if (!db) return;
+    const { rows } = await db.query(
+      `SELECT seat_index, user_id, status, chips_in_play FROM room_seats WHERE room_id=$1 ORDER BY seat_index ASC`,
+      [roomId]
+    );
+    io.to(`room:${roomId}`).emit('seat_update', { roomId, seats: rows });
+  } catch (e) {
+    console.warn('Seat broadcast failed:', e.message);
+  }
+}

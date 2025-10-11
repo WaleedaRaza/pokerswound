@@ -50,6 +50,596 @@
         .header-controls {
             display: flex;
             gap: 1rem;
+            align-items: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Modal System */
+        .modal-overlay,
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            position: relative;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Landing Page */
+        .landing-page {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .landing-content {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .landing-hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .landing-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #10b981, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(20deg); }
+        }
+
+        .landing-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .landing-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .landing-card {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .landing-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
+        }
+
+        .landing-card-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .landing-card h3 {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            color: #f1f5f9;
+        }
+
+        .landing-card p {
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .modal-medium {
+            max-width: 700px;
+            width: 95%;
+            padding: 3rem;
+        }
+
+        .modal-small {
+            max-width: 650px;
+            width: 95%;
+            padding: 3rem;
+        }
+
+        .modal-body {
+            margin: 2rem 0;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #94a3b8;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .form-hint {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-section h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+        }
+
+        .player-buyin-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-buyin-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.5rem;
+        }
+
+        .player-buyin-name {
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .form-input-inline {
+            width: 120px;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-title h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #f1f5f9;
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .btn-icon {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #60a5fa;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .admin-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .admin-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .admin-info-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .admin-info-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-info-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-huge {
+            padding: 1.25rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-huge:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .admin-hint {
+            display: block;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        /* Player Panel (Non-Host) */
+        .player-panel {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .player-panel-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .player-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-info-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .player-info-value {
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        /* Lobby Panel */
+        .lobby-panel {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .lobby-content {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lobby-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .lobby-header h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lobby-room-code {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffc107;
+            letter-spacing: 0.1em;
+        }
+
+        .lobby-players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .lobby-player-card {
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .lobby-player-card:hover {
+            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateX(4px);
+        }
+
+        .lobby-player-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .lobby-player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        .lobby-player-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .lobby-player-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .lobby-player-status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .lobby-player-status.approved {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .lobby-player-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lobby-waiting {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 2rem;
+            border: 4px solid rgba(148, 163, 184, 0.2);
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Main Layout */
@@ -521,6 +1111,8 @@
         }
     </style>
     
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
 
     
     <!-- BULLETPROOF CARD MAPPING SYSTEM -->
@@ -679,41 +1271,272 @@
     </style>
 </head>
 <body>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">🎰 Poker Login</div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                <input type="text" class="form-input" id="loginUsername" placeholder="Username" required>
+                <input type="password" class="form-input" id="loginPassword" placeholder="Password" required>
+                <button type="submit" class="btn btn-success">🎮 Login</button>
+                <div id="loginError" class="status-message status-error hidden"></div>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+                <input type="text" class="form-input" id="registerUsername" placeholder="Username" required minlength="3">
+                <input type="email" class="form-input" id="registerEmail" placeholder="Email" required>
+                <input type="password" class="form-input" id="registerPassword" placeholder="Password" required minlength="6">
+                <input type="password" class="form-input" id="registerConfirmPassword" placeholder="Confirm Password" required>
+                <button type="submit" class="btn btn-success">🎯 Create Account</button>
+                <div id="registerError" class="status-message status-error hidden"></div>
+            </form>
+            
+            <button class="btn" onclick="playAsGuest()" style="margin-top: 1rem;">👤 Continue as Guest</button>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="header">
         <div class="header-content">
             <div class="logo">🎰 Modern Poker Lounge</div>
             <div class="header-controls">
+                <!-- User Profile (shown when logged in) -->
+                <div id="userProfile" class="user-profile hidden">
+                    <div class="user-avatar-small" id="userAvatar">?</div>
+                    <div>
+                        <div id="userName" style="font-weight: 600; font-size: 0.875rem;"></div>
+                        <div id="userChips" style="font-size: 0.75rem; color: #10b981;"></div>
+                    </div>
+                </div>
+                
+                <!-- Login Button (shown when not logged in) -->
+                <button id="loginBtn" class="btn btn-primary" onclick="showAuthModal()">🎮 Login</button>
+                
                 <button class="btn btn-primary" onclick="checkServerHealth()">🏥 Health</button>
-                <button class="btn" onclick="resetGame()">🔄 Reset</button>
+                <button class="btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landing Page (shown when no game) -->
+    <div id="landingPage" class="landing-page">
+        <div class="landing-content">
+            <div class="landing-hero">
+                <h1 class="landing-title">🎰 Poker Lounge</h1>
+                <p class="landing-subtitle">Play Texas Hold'em with friends in real-time</p>
+            </div>
+            
+            <div class="landing-actions">
+                <div class="landing-card">
+                    <div class="landing-card-icon">🎮</div>
+                    <h3>Create Game</h3>
+                    <p>Start a new poker table and invite your friends</p>
+                    <button class="btn btn-primary btn-large" onclick="showCreateGameModal()">
+                        Create New Game
+                    </button>
+                </div>
+                
+                <div class="landing-card">
+                    <div class="landing-card-icon">🎲</div>
+                    <h3>Join Game</h3>
+                    <p>Enter a room code to join an existing game</p>
+                    <button class="btn btn-secondary btn-large" onclick="showJoinGameModal()">
+                        Join with Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Game Modal -->
+    <div id="createGameModal" class="modal hidden">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2>🎮 Create New Game</h2>
+                <button class="modal-close" onclick="hideCreateGameModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Small Blind</label>
+                    <input type="number" id="createSmallBlind" value="1" min="1" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Big Blind</label>
+                    <input type="number" id="createBigBlind" value="2" min="2" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Max Players</label>
+                    <input type="number" id="createMaxPlayers" value="9" min="2" max="9" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideCreateGameModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createGameFromModal()">Create Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Game Modal -->
+    <div id="joinGameModal" class="modal hidden">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>🎲 Join Game</h2>
+                <button class="modal-close" onclick="hideJoinGameModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Enter Room Code</label>
+                    <input type="text" id="joinRoomCode" placeholder="e.g. ABCDEF" class="form-input" style="text-transform: uppercase;">
+                </div>
+                <p class="form-hint">Ask your friend for the 6-character room code</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideJoinGameModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="joinGameFromModal()">Join Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Settings Modal (Admin Only) -->
+    <div id="gameSettingsModal" class="modal hidden">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2>⚙️ Game Settings</h2>
+                <button class="modal-close" onclick="hideGameSettingsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>💰 Blinds Configuration</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Small Blind</label>
+                            <input type="number" id="settingsSmallBlind" value="1" min="1" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Big Blind</label>
+                            <input type="number" id="settingsBigBlind" value="2" min="2" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>🎰 Buy-In Limits</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Buy-In</label>
+                            <input type="number" id="settingsMinBuyIn" value="100" min="10" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Maximum Buy-In</label>
+                            <input type="number" id="settingsMaxBuyIn" value="2000" min="100" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>👥 Player Buy-Ins (Override)</h3>
+                    <p class="form-hint">Set custom starting chips for each seated player</p>
+                    <div id="playerBuyInList" class="player-buyin-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideGameSettingsModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveGameSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lobby Panel (shown when in lobby) -->
+    <div id="lobbyPanel" class="lobby-panel hidden">
+        <div class="lobby-content">
+            <div class="lobby-header">
+                <h2>🎰 Game Lobby</h2>
+                <div id="lobbyRoomCode" class="lobby-room-code"></div>
+            </div>
+            
+            <!-- Host View: Manage Players -->
+            <div id="hostLobbyView" class="hidden">
+                <h3>👑 Host Controls</h3>
+                <p>Approve players to let them join the game:</p>
+                <div id="lobbyPlayersList" class="lobby-players-list"></div>
+                <button class="btn btn-success" onclick="startGameFromLobby()" id="startGameBtn" disabled>
+                    🎮 Start Game (need 2+ approved players)
+                </button>
+            </div>
+            
+            <!-- Guest View: Waiting -->
+            <div id="guestLobbyView" class="hidden">
+                <div class="lobby-waiting">
+                    <div class="spinner"></div>
+                    <h3 id="lobbyStatus">⏳ Waiting for host approval...</h3>
+                    <p id="lobbyMessage">The host will approve you shortly</p>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Main Container -->
-    <div class="main-container">
-        <!-- Game Setup Panel -->
-        <div class="setup-panel">
-            <div class="setup-grid">
-                <div class="setup-section">
-                    <h3>🎮 Create Game</h3>
-                    <input type="number" class="form-input" id="smallBlind" placeholder="Small Blind" value="1">
-                    <input type="number" class="form-input" id="bigBlind" placeholder="Big Blind" value="2">
-                    <input type="number" class="form-input" id="maxPlayers" placeholder="Max Players" value="10" max="10">
-                    <button class="btn btn-success" onclick="createGame()">Create Game</button>
+    <div class="main-container hidden">
+        <!-- Admin Control Panel (Host Only) -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <div class="admin-header">
+                <div class="admin-title">
+                    <span class="admin-badge">👑 HOST</span>
+                    <h3>Game Controls</h3>
+                </div>
+                <button class="btn-icon" onclick="showGameSettingsModal()" title="Game Settings">
+                    ⚙️
+                </button>
                 </div>
                 
-                <div class="setup-section">
-                    <h3>👤 Add Player</h3>
-                    <input type="text" class="form-input" id="playerName" placeholder="Player Name">
-                    <input type="number" class="form-input" id="buyInAmount" placeholder="Buy-in Amount" value="100">
-                    <button class="btn btn-primary" onclick="addPlayer()" id="addPlayerBtn" disabled>Join Game</button>
+            <div class="admin-content">
+                <div class="admin-info-grid">
+                    <div class="admin-info-card">
+                        <div class="admin-info-label">Room Code</div>
+                        <div class="admin-info-value" id="adminRoomCode">---</div>
+                        <button class="btn btn-sm btn-secondary" onclick="copyInviteLink()">
+                            📋 Copy Link
+                        </button>
                 </div>
                 
-                <div class="setup-section">
-                    <h3>🎲 Game Status</h3>
-                    <div id="gameStatus" class="status-message">Ready to create a game!</div>
-                    <button class="btn btn-warning" onclick="startHand()" id="startHandBtn" disabled>🃏 Start Hand</button>
+                    <div class="admin-info-card">
+                        <div class="admin-info-label">Seated Players</div>
+                        <div class="admin-info-value" id="adminSeatedCount">0 / 9</div>
+                    </div>
+                    
+                    <div class="admin-info-card">
+                        <div class="admin-info-label">Blinds</div>
+                        <div class="admin-info-value" id="adminBlinds">$1 / $2</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success btn-huge" onclick="adminStartGame()" id="adminStartBtn" disabled>
+                    🎮 Start Game
+                </button>
+                <small class="admin-hint">Need at least 2 seated players to start</small>
+            </div>
+        </div>
+
+        <!-- Player Info Panel (Non-Host) -->
+        <div id="playerPanel" class="player-panel hidden">
+            <div class="player-panel-content">
+                <div class="player-info-item">
+                    <span class="player-info-label">Room Code:</span>
+                    <span class="player-info-value" id="playerRoomCode">---</span>
+                </div>
+                <div class="player-info-item">
+                    <span class="player-info-label">Your Buy-In:</span>
+                    <input type="number" class="form-input-inline" id="buyInAmount" value="500" min="100" max="10000">
                 </div>
             </div>
         </div>
@@ -752,21 +1575,17 @@
         <!-- Modern Controls -->
         <div class="controls-panel">
             <div class="controls-grid">
-                <div class="control-section">
-                    <h3>🎯 Player Actions</h3>
-                    <select class="form-input" id="actingPlayer">
-                        <option value="">Select player...</option>
-                    </select>
-                    <div id="actionsStatus" class="status-message">Select a player to see available actions</div>
+                <div class="control-section" style="grid-column: span 2;">
+                    <h3>🎯 Your Actions</h3>
+                    <div id="turnIndicator" class="status-message status-warning" style="display: none; font-size: 1.1rem; font-weight: 700;">
+                        ⏰ YOUR TURN - Make your move!
                 </div>
-                
-                <div class="control-section" id="actionButtons">
-                    <h3>🎲 Actions</h3>
-                    <div id="actionsPanel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.5rem;">
+                    <div id="actionsStatus" class="status-message">Waiting for your turn...</div>
+                    <div id="actionsPanel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
                         <!-- Action buttons will be dynamically added here -->
                     </div>
                     <div id="betInput" style="display: none; margin-top: 1rem;">
-                        <input type="number" class="form-input" id="betAmount" min="1" placeholder="Enter amount">
+                        <input type="number" class="form-input" id="betAmount" min="1" placeholder="Enter bet amount">
                         <button class="btn btn-warning" onclick="placeBet()">💰 Place Bet</button>
                     </div>
                 </div>
@@ -781,115 +1600,943 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api';
+        const API_BASE = 'http://localhost:3002/api';
+        const WS_BASE = 'http://localhost:3002';
+        let room = null;
+        let seats = [];
+        let socket = null; // socket.io client
         let currentGame = null;
         let currentPlayers = [];
         let playerCount = 0;
 
-        // Preserve all existing JavaScript functionality
-        // (I'll keep the exact same JavaScript from the original file to ensure nothing breaks)
-        
-        // Create a new game
-        async function createGame() {
-            const smallBlind = parseInt(document.getElementById('smallBlind').value);
-            const bigBlind = parseInt(document.getElementById('bigBlind').value);
-            const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+        // ============================================
+        // AUTH SYSTEM - JWT Storage & Management
+        // ============================================
+        let currentUser = null;
+        let authToken = null;
+
+        // Initialize auth on page load
+        function initAuth() {
+            const stored = localStorage.getItem('poker_auth');
+            if (stored) {
+                try {
+                    const auth = JSON.parse(stored);
+                    authToken = auth.token;
+                    currentUser = auth.user;
+                    updateAuthUI();
+                    return true;
+                } catch (e) {
+                    localStorage.removeItem('poker_auth');
+                }
+            }
+            // If not logged in, show auth modal
+            showAuthModal();
+            return false;
+        }
+
+        // API Helper with JWT
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers
+            });
+            
+            if (response.status === 401) {
+                // Token expired, clear auth
+                logout();
+                throw new Error('Session expired, please login again');
+            }
+            
+            return response;
+        }
+
+        // Auth Modal Controls
+        function showAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function hideAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            const tabs = document.querySelectorAll('.auth-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+            }
+        }
+
+        // Handle Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            // Clear previous errors
+            errorDiv.classList.add('hidden');
             
             try {
-                const response = await fetch(`${API_BASE}/games`, {
+                const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        small_blind: smallBlind,
-                        big_blind: bigBlind,
-                        max_players: maxPlayers
-                    })
+                    body: JSON.stringify({ username, password })
                 });
                 
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Login failed');
+                }
+                
+                const data = await response.json();
+                authToken = data.token;
+                currentUser = data.user;
+                
+                // Store in localStorage
+                localStorage.setItem('poker_auth', JSON.stringify({ token: authToken, user: currentUser }));
+                
+                updateAuthUI();
+                hideAuthModal();
+                showStatus(`🎮 Welcome back, ${currentUser.username}!`, 'success');
+                
+                // Check for pending invite
+                const pendingInvite = sessionStorage.getItem('pending_invite');
+                if (pendingInvite) {
+                    sessionStorage.removeItem('pending_invite');
+                    setTimeout(() => autoJoinRoom(pendingInvite), 500);
+                }
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Handle Register
+        async function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const errorDiv = document.getElementById('registerError');
+            
+            // Clear previous errors
+            errorDiv.classList.add('hidden');
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorDiv.textContent = '❌ Please enter a valid email address (e.g., user@example.com)';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = '❌ Passwords do not match';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorDiv.textContent = '❌ Password must be at least 6 characters';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Registration failed');
+                }
+                
+                const data = await response.json();
+                authToken = data.token;
+                currentUser = data.user;
+                
+                // Store in localStorage
+                localStorage.setItem('poker_auth', JSON.stringify({ token: authToken, user: currentUser }));
+                
+                updateAuthUI();
+                hideAuthModal();
+                showStatus(`🎯 Account created! Welcome, ${currentUser.username}!`, 'success');
+                
+                // Check for pending invite
+                const pendingInvite = sessionStorage.getItem('pending_invite');
+                if (pendingInvite) {
+                    sessionStorage.removeItem('pending_invite');
+                    setTimeout(() => autoJoinRoom(pendingInvite), 500);
+                }
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Play as Guest (temp user)
+        function playAsGuest() {
+            currentUser = {
+                id: crypto.randomUUID(),
+                username: `Guest_${Math.floor(Math.random() * 9999)}`,
+                is_guest: true
+            };
+            updateAuthUI();
+            hideAuthModal();
+            showStatus('👤 Playing as guest (progress won\'t be saved)', 'warning');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('poker_auth');
+            authToken = null;
+            currentUser = null;
+            updateAuthUI();
+            showStatus('👋 Logged out', 'success');
+            // Optionally show auth modal again
+            setTimeout(() => showAuthModal(), 1000);
+        }
+
+        // Update UI based on auth state
+        function updateAuthUI() {
+            const userProfile = document.getElementById('userProfile');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (currentUser) {
+                // Show user profile
+                userProfile.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                
+                document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+                document.getElementById('userName').textContent = currentUser.username;
+                document.getElementById('userChips').textContent = currentUser.is_guest ? 'Guest Mode' : `💰 ${currentUser.chips_total || 1000}`;
+            } else {
+                // Show login button
+                userProfile.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+            }
+        }
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        let gameSettings = {
+            smallBlind: 1,
+            bigBlind: 2,
+            minBuyIn: 100,
+            maxBuyIn: 2000,
+            playerBuyIns: {} // { user_id: amount }
+        };
+
+        // ============================================
+        // LANDING PAGE & MODAL FUNCTIONS
+        // ============================================
+        function showLandingPage() {
+            document.getElementById('landingPage').classList.remove('hidden');
+            document.getElementById('lobbyPanel').classList.add('hidden');
+            document.querySelector('.main-container').classList.add('hidden');
+        }
+
+        function hideLandingPage() {
+            document.getElementById('landingPage').classList.add('hidden');
+        }
+
+        function updateRoomInfoDisplay() {
+            if (room && room.inviteCode) {
+                document.getElementById('roomCodeDisplay').textContent = `Room Code: ${room.inviteCode}`;
+                document.getElementById('copyLinkBtn').style.display = 'inline-block';
+            }
+        }
+
+        function copyInviteLink() {
+            if (!room || !room.inviteCode) return;
+            const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${room.inviteCode}`;
+            navigator.clipboard.writeText(inviteLink).then(() => {
+                showStatus('✅ Invite link copied to clipboard!', 'success');
+            }).catch(err => {
+                showStatus('❌ Failed to copy link', 'error');
+            });
+        }
+
+        function showCreateGameModal() {
+            if (!currentUser) {
+                showStatus('🔒 Please login to create a game', 'error');
+                showAuthModal();
+                return;
+            }
+            document.getElementById('createGameModal').classList.remove('hidden');
+        }
+
+        function hideCreateGameModal() {
+            document.getElementById('createGameModal').classList.add('hidden');
+        }
+
+        function showJoinGameModal() {
+            if (!currentUser) {
+                showStatus('🔒 Please login to join a game', 'error');
+                showAuthModal();
+                return;
+            }
+            document.getElementById('joinGameModal').classList.remove('hidden');
+        }
+
+        function hideJoinGameModal() {
+            document.getElementById('joinGameModal').classList.add('hidden');
+        }
+
+        async function createGameFromModal() {
+            const smallBlind = parseInt(document.getElementById('createSmallBlind').value);
+            const bigBlind = parseInt(document.getElementById('createBigBlind').value);
+            const maxPlayers = parseInt(document.getElementById('createMaxPlayers').value);
+            
+            // Initialize game settings
+            gameSettings.smallBlind = smallBlind;
+            gameSettings.bigBlind = bigBlind;
+            gameSettings.minBuyIn = smallBlind * 100;
+            gameSettings.maxBuyIn = bigBlind * 1000;
+            
+            hideCreateGameModal();
+            
+            try {
+                // 1) Create room with host
+                const roomRes = await apiCall('/rooms', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: `${currentUser.username}'s Game`, 
+                        small_blind: smallBlind,
+                        big_blind: bigBlind,
+                        min_buy_in: gameSettings.minBuyIn, 
+                        max_buy_in: gameSettings.maxBuyIn, 
+                        max_players: Math.min(maxPlayers, 9),
+                        host_user_id: currentUser.id
+                    })
+                });
+                if (!roomRes.ok) {
+                    const error = await roomRes.json();
+                    throw new Error(error.error || 'Failed to create room');
+                }
+                const roomData = await roomRes.json();
+                room = { id: roomData.roomId, inviteCode: roomData.inviteCode, hostUserId: roomData.hostUserId };
+                isHost = true;
+                
+                // 2) Connect WS and subscribe to room
+                connectSocket();
+                
+                // 3) Create game via existing endpoint
+                const response = await apiCall('/games', {
+                    method: 'POST',
+                    body: JSON.stringify({ small_blind: smallBlind, big_blind: bigBlind, max_players: maxPlayers })
+                });
                 if (!response.ok) {
                     const error = await response.json();
                     throw new Error(error.error || 'Failed to create game');
                 }
-                
                 currentGame = await response.json();
-                document.getElementById('addPlayerBtn').disabled = false;
                 
-                showStatus('🎉 Game created successfully!', 'success');
+                // 4) Join lobby as host (auto-approved)
+                hideLandingPage();
+                await joinLobby(room.id);
+                
+                showStatus(`✅ Game created! Room Code: ${room.inviteCode}`, 'success');
                 
             } catch (error) {
-                showStatus(`❌ Error: ${error.message}`, 'error');
+                console.error('❌ Create game error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
             }
         }
 
-        // Add a player to the game
-        async function addPlayer() {
-            const playerName = document.getElementById('playerName').value.trim();
-            const buyInAmount = parseInt(document.getElementById('buyInAmount').value);
+        async function joinGameFromModal() {
+            const inviteCode = document.getElementById('joinRoomCode').value.trim().toUpperCase();
             
-            if (!playerName) {
-                showStatus('❌ Please enter a player name', 'error');
+            if (!inviteCode || inviteCode.length !== 6) {
+                showStatus('❌ Please enter a valid 6-character room code', 'error');
                 return;
             }
             
-            if (!currentGame) {
-                showStatus('❌ Please create a game first', 'error');
-                return;
-            }
+            hideJoinGameModal();
             
             try {
-                const response = await fetch(`${API_BASE}/games/${currentGame.gameId}/join`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        player_name: playerName,
-                        buy_in_amount: buyInAmount
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to join game');
-                }
-                
-                const result = await response.json();
-                playerCount++;
-                
-                // Add to player selector
-                const select = document.getElementById('actingPlayer');
-                const option = document.createElement('option');
-                option.value = result.playerId;
-                option.textContent = playerName;
-                select.appendChild(option);
-                
-                // Clear input
-                document.getElementById('playerName').value = '';
-                
-                // Enable start hand button if enough players
-                if (playerCount >= 2) {
-                    document.getElementById('startHandBtn').disabled = false;
-                }
-                
-                document.getElementById('refreshBtn').disabled = false;
-                
-                showStatus(`🎉 ${playerName} joined the game!`, 'success');
-                refreshGameState();
-                
+                await autoJoinRoom(inviteCode);
             } catch (error) {
-                showStatus(`❌ Error: ${error.message}`, 'error');
+                showStatus(`❌ ${error.message}`, 'error');
             }
         }
 
-        // Start a new hand
-        async function startHand() {
+        // ============================================
+        // ADMIN PANEL FUNCTIONS
+        // ============================================
+        function showAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('playerPanel').classList.add('hidden');
+            updateAdminPanel();
+        }
+
+        function showPlayerPanel() {
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('playerPanel').classList.remove('hidden');
+            updatePlayerPanel();
+        }
+
+        function updateAdminPanel() {
+            if (!room) return;
+            
+            document.getElementById('adminRoomCode').textContent = room.inviteCode || '---';
+            document.getElementById('adminBlinds').textContent = `$${gameSettings.smallBlind} / $${gameSettings.bigBlind}`;
+            
+            // Count seated players - seats array only contains occupied seats from DB
+            console.log('🔍 Seats data:', seats);
+            const seatedCount = seats.length; // All rows returned are occupied seats
+            console.log('👥 Seated count:', seatedCount);
+            document.getElementById('adminSeatedCount').textContent = `${seatedCount} / 9`;
+            
+            // Enable/disable start button
+            const startBtn = document.getElementById('adminStartBtn');
+            if (seatedCount >= 2) {
+                startBtn.disabled = false;
+                startBtn.textContent = `🎮 Start Game (${seatedCount} players)`;
+            } else {
+                startBtn.disabled = true;
+                startBtn.textContent = `🎮 Start Game (need ${2 - seatedCount} more)`;
+            }
+        }
+
+        function updatePlayerPanel() {
+            if (!room) return;
+            document.getElementById('playerRoomCode').textContent = room.inviteCode || '---';
+        }
+
+        function showGameSettingsModal() {
+            // Populate current settings
+            document.getElementById('settingsSmallBlind').value = gameSettings.smallBlind;
+            document.getElementById('settingsBigBlind').value = gameSettings.bigBlind;
+            document.getElementById('settingsMinBuyIn').value = gameSettings.minBuyIn;
+            document.getElementById('settingsMaxBuyIn').value = gameSettings.maxBuyIn;
+            
+            // Populate player buy-ins
+            const playerList = document.getElementById('playerBuyInList');
+            playerList.innerHTML = '';
+            
+            // All seats in the array are occupied
+            seats.forEach(seat => {
+                const userId = seat.user_id;
+                const username = seat.username || `Player ${seat.seat_index + 1}`;
+                const seatNum = seat.seat_index + 1;
+                const defaultBuyIn = gameSettings.playerBuyIns[userId] || seat.chips_in_play || 500;
+                const item = document.createElement('div');
+                item.className = 'player-buyin-item';
+                item.innerHTML = `
+                    <span class="player-buyin-name">Seat ${seatNum}: ${username}</span>
+                    <input type="number" 
+                           class="form-input-inline" 
+                           value="${defaultBuyIn}" 
+                           min="${gameSettings.minBuyIn}" 
+                           max="${gameSettings.maxBuyIn}"
+                           data-user-id="${userId}">
+                `;
+                playerList.appendChild(item);
+            });
+            
+            document.getElementById('gameSettingsModal').classList.remove('hidden');
+        }
+
+        function hideGameSettingsModal() {
+            document.getElementById('gameSettingsModal').classList.add('hidden');
+        }
+
+        function saveGameSettings() {
+            // Save blinds
+            gameSettings.smallBlind = parseInt(document.getElementById('settingsSmallBlind').value);
+            gameSettings.bigBlind = parseInt(document.getElementById('settingsBigBlind').value);
+            gameSettings.minBuyIn = parseInt(document.getElementById('settingsMinBuyIn').value);
+            gameSettings.maxBuyIn = parseInt(document.getElementById('settingsMaxBuyIn').value);
+            
+            // Save player buy-ins
+            const inputs = document.querySelectorAll('#playerBuyInList input[data-user-id]');
+            inputs.forEach(input => {
+                const userId = input.getAttribute('data-user-id');
+                const amount = parseInt(input.value);
+                gameSettings.playerBuyIns[userId] = amount;
+            });
+            
+            hideGameSettingsModal();
+            updateAdminPanel();
+            showStatus('✅ Settings saved!', 'success');
+        }
+
+        async function adminStartGame() {
+            console.log('🎮 Admin Start Game clicked');
+            console.log('Current user:', currentUser);
+            console.log('Current room:', room);
+            console.log('Current game:', currentGame);
+            console.log('Seats:', seats);
+            
+            if (!currentUser) {
+                showStatus('❌ Please login first', 'error');
+                return;
+            }
+            
+            if (!room) {
+                showStatus('❌ No room found', 'error');
+                return;
+            }
+            
             if (!currentGame) {
                 showStatus('❌ No game found', 'error');
                 return;
             }
             
+            const seatedCount = seats.length;
+            if (seatedCount < 2) {
+                showStatus('❌ Need at least 2 seated players', 'error');
+                return;
+            }
+            
             try {
-                const response = await fetch(`${API_BASE}/games/${currentGame.gameId}/start-hand`, {
+                showStatus('🎲 Starting hand...', 'info');
+                // Call the existing startHand function
+                await startHand();
+            } catch (error) {
+                console.error('Start game error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        // ============================================
+        // LOBBY SYSTEM FUNCTIONS
+        // ============================================
+        let isHost = false;
+        let lobbyPollInterval = null;
+
+        async function joinLobby(roomId) {
+            if (!currentUser) return;
+            
+            try {
+                const res = await apiCall(`/rooms/${roomId}/lobby/join`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    body: JSON.stringify({ user_id: currentUser.id })
+                });
+                
+                if (!res.ok) throw new Error('Failed to join lobby');
+                
+                const data = await res.json();
+                console.log('✅ Joined lobby, status:', data.status);
+                
+                // Check if we're the host
+                isHost = data.status === 'approved';
+                
+                // Show lobby UI
+                showLobby();
+                
+                // Start polling for updates
+                startLobbyPolling();
+                
+                return data.status;
+            } catch (error) {
+                console.error('❌ Join lobby error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function showLobby() {
+            // Hide main game UI
+            document.querySelector('.main-container').classList.add('hidden');
+            
+            // Show lobby
+            document.getElementById('lobbyPanel').classList.remove('hidden');
+            document.getElementById('lobbyRoomCode').textContent = `Room Code: ${room.inviteCode}`;
+            
+            if (isHost) {
+                document.getElementById('hostLobbyView').classList.remove('hidden');
+                document.getElementById('guestLobbyView').classList.add('hidden');
+                loadLobbyPlayers();
+            } else {
+                document.getElementById('hostLobbyView').classList.add('hidden');
+                document.getElementById('guestLobbyView').classList.remove('hidden');
+                checkMyLobbyStatus();
+            }
+        }
+
+        function hideLobby() {
+            document.getElementById('lobbyPanel').classList.add('hidden');
+            document.querySelector('.main-container').classList.remove('hidden');
+            stopLobbyPolling();
+        }
+
+        async function loadLobbyPlayers() {
+            if (!room) return;
+            
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/players`);
+                if (!res.ok) return;
+                
+                const data = await res.json();
+                const players = data.players || [];
+                
+                const listDiv = document.getElementById('lobbyPlayersList');
+                listDiv.innerHTML = '';
+                
+                let approvedCount = 0;
+                
+                players.forEach(player => {
+                    if (player.status === 'approved') approvedCount++;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'lobby-player-card';
+                    
+                    const isCurrentHost = player.user_id === room.hostUserId || player.user_id === currentUser.id;
+                    
+                    card.innerHTML = `
+                        <div class="lobby-player-info">
+                            <div class="lobby-player-avatar">${player.username.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div class="lobby-player-name">${player.username} ${isCurrentHost ? '👑' : ''}</div>
+                                <div class="lobby-player-status ${player.status}">${player.status}</div>
+                            </div>
+                        </div>
+                        ${player.status === 'pending' && isHost ? `
+                            <div class="lobby-player-actions">
+                                <button class="btn btn-success" onclick="approvePlayer('${player.user_id}')">✅ Approve</button>
+                                <button class="btn btn-danger" onclick="rejectPlayer('${player.user_id}')">❌ Reject</button>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    listDiv.appendChild(card);
+                });
+                
+                // Update start game button
+                const startBtn = document.getElementById('startGameBtn');
+                if (approvedCount >= 2) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = `🎮 Start Game (${approvedCount} players ready)`;
+                } else {
+                    startBtn.disabled = true;
+                    startBtn.textContent = `🎮 Start Game (need ${2 - approvedCount} more)`;
+                }
+                
+            } catch (error) {
+                console.error('❌ Load lobby players error:', error);
+            }
+        }
+
+        async function approvePlayer(targetUserId) {
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id, target_user_id: targetUserId })
+                });
+                
+                if (!res.ok) throw new Error('Failed to approve player');
+                
+                showStatus('✅ Player approved!', 'success');
+                loadLobbyPlayers();
+                
+                // Broadcast via WebSocket
+                if (socket) {
+                    socket.emit('lobby_update', { roomId: room.id });
+                }
+                
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function rejectPlayer(targetUserId) {
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/reject`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id, target_user_id: targetUserId })
+                });
+                
+                if (!res.ok) throw new Error('Failed to reject player');
+                
+                showStatus('❌ Player rejected', 'warning');
+                loadLobbyPlayers();
+                
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function checkMyLobbyStatus() {
+            if (!room || !currentUser) return;
+            
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/my-status?user_id=${currentUser.id}`);
+                if (!res.ok) return;
+                
+                const data = await res.json();
+                
+                const statusEl = document.getElementById('lobbyStatus');
+                const messageEl = document.getElementById('lobbyMessage');
+                
+                if (data.status === 'approved') {
+                    statusEl.textContent = '✅ You\'ve been approved!';
+                    messageEl.textContent = 'Loading game...';
+                    
+                    // Transition to game
+                    setTimeout(async () => {
+                        hideLobby();
+                        document.querySelector('.main-container').classList.remove('hidden');
+                        showPlayerPanel();
+                        await loadSeats();
+                        renderSeatGrid();
+                        showStatus('✅ Welcome to the game! Claim your seat.', 'success');
+                    }, 1500);
+                } else if (data.status === 'rejected') {
+                    statusEl.textContent = '❌ Access Denied';
+                    messageEl.textContent = 'The host rejected your request';
+                    stopLobbyPolling();
+                } else {
+                    statusEl.textContent = '⏳ Waiting for host approval...';
+                    messageEl.textContent = 'The host will approve you shortly';
+                }
+                
+            } catch (error) {
+                console.error('❌ Check lobby status error:', error);
+            }
+        }
+
+        function startLobbyPolling() {
+            stopLobbyPolling();
+            lobbyPollInterval = setInterval(() => {
+                if (isHost) {
+                    loadLobbyPlayers();
+                } else {
+                    checkMyLobbyStatus();
+                }
+            }, 2000);
+        }
+
+        function stopLobbyPolling() {
+            if (lobbyPollInterval) {
+                clearInterval(lobbyPollInterval);
+                lobbyPollInterval = null;
+            }
+        }
+
+        async function startGameFromLobby() {
+            hideLobby();
+            document.querySelector('.main-container').classList.remove('hidden');
+            
+            // Show admin or player panel based on host status
+            if (isHost) {
+                showAdminPanel();
+            } else {
+                showPlayerPanel();
+            }
+            
+            await loadSeats();
+            renderSeatGrid();
+            showStatus('🎮 Game starting! Players can now claim seats.', 'success');
+        }
+
+        // Preserve all existing JavaScript functionality
+        // (I'll keep the exact same JavaScript from the original file to ensure nothing breaks)
+        
+        // Old createGame function removed - now using createGameFromModal() from landing page
+
+        async function loadSeats() {
+            if (!room) return;
+            const res = await fetch(`${API_BASE}/rooms/${room.id}/seats`);
+            if (res.ok) {
+                const data = await res.json();
+                seats = data.seats || [];
+                renderSeatGrid();
+                
+                // Update start hand button state
+                const startBtn = document.getElementById('startHandBtn');
+                const seatedCount = seats.filter(s => s.status === 'occupied').length;
+                if (startBtn) {
+                    if (seatedCount >= 2) {
+                        startBtn.disabled = false;
+                        startBtn.innerHTML = `🃏 Start Hand (${seatedCount} players)`;
+                    } else {
+                        startBtn.disabled = true;
+                        startBtn.innerHTML = `🃏 Start Hand (need ${2 - seatedCount} more)`;
+                    }
+                }
+            }
+        }
+
+        function renderSeatGrid() {
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = '';
+            const taken = new Set(seats.map(s => s.seat_index));
+            const max = 9;
+            for (let i = 0; i < max; i++) {
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'player-seat';
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                const found = seats.find(s => s.seat_index === i);
+                if (found) {
+                    card.innerHTML = `<div class="player-name">Seat ${i+1}</div><div class="player-status">Taken</div>`;
+                } else {
+                    card.innerHTML = `<div class="player-name">Seat ${i+1}</div><button class="btn btn-success" onclick="claimSeat(${i})">Claim</button>`;
+                }
+                seatDiv.appendChild(card);
+                playersGrid.appendChild(seatDiv);
+            }
+            
+            // Update admin panel if host
+            if (isHost) {
+                updateAdminPanel();
+            }
+        }
+
+        async function claimSeat(seatIndex) {
+            if (!room) return;
+            if (!currentUser) {
+                showStatus('🔒 Please login to claim a seat', 'error');
+                showAuthModal();
+                return;
+            }
+            
+            const buyIn = parseInt(document.getElementById('buyInAmount').value)||500;
+            
+            try {
+                const res = await apiCall(`/rooms/${room.id}/join`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id, seat_index: seatIndex, buy_in_amount: buyIn })
+                });
+                
+                if (!res.ok) {
+                    const e = await res.json();
+                    throw new Error(e.error || 'Failed to claim seat');
+                }
+                
+                showStatus(`✅ Seat ${seatIndex + 1} claimed!`, 'success');
+                await loadSeats();
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function connectSocket() {
+            if (!room) return;
+            try {
+                if (socket && socket.connected) {
+                    socket.disconnect();
+                }
+                socket = io(WS_BASE, { transports: ['websocket'] });
+                socket.on('connect', () => {
+                    socket.emit('join_room', room.id);
+                });
+                socket.on('joined_room', () => {
+                    // Initial seat fetch
+                    loadSeats();
+                });
+                socket.on('seat_update', (payload) => {
+                    if (!room || payload.roomId !== room.id) return;
+                    seats = payload.seats || [];
+                    renderSeatGrid();
+                });
+                
+                socket.on('lobby_update', (payload) => {
+                    if (!room || payload.roomId !== room.id) return;
+                    console.log('🔔 Lobby update received');
+                    if (isHost) {
+                        loadLobbyPlayers();
+                    } else {
+                        checkMyLobbyStatus();
+                    }
+                });
+                
+                // Listen for hand started
+                socket.on('hand_started', async (payload) => {
+                    console.log('🎲 Hand started event received:', payload);
+                    
+                    // SET currentGame for ALL players (not just host) - FIX FOR GUESTS
+                    if (!currentGame && payload.gameId) {
+                        currentGame = { gameId: payload.gameId };
+                        console.log('✅ Current game set from WebSocket for guest:', currentGame);
+                    }
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    showStatus('🎲 Hand started! Cards dealt.', 'success');
+                    
+                    // Fetch updated game state
+                    await fetchGameState();
+                });
+                
+                // Listen for game state updates
+                socket.on('game_state_update', async (payload) => {
+                    console.log('🔄 Game state update received:', payload);
+                    console.log('  currentGame:', currentGame);
+                    console.log('  payload.gameId:', payload.gameId);
+                    console.log('  Match?', currentGame && payload.gameId === currentGame.gameId);
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) {
+                        console.log('❌ Ignoring update - game ID mismatch or no current game');
+                        return;
+                    }
+                    
+                    console.log('✅ Fetching updated game state...');
+                    // Fetch updated game state
+                    await fetchGameState();
+                });
+                
+                socket.on('disconnect', () => {
+                    // optional: retry logic
+                });
+            } catch (e) {
+                console.error('Socket connection error:', e);
+                // Fallback to polling if socket fails
+                loadSeats();
+            }
+        }
+
+        // OLD addPlayer function removed - players now come from room seats automatically
+
+        // Start a new hand
+        // Start hand with room-based players (BIG EDIT 3: Bridge systems)
+        async function startHand() {
+            if (!currentUser) {
+                showStatus('🔒 Please login to start a hand', 'error');
+                showAuthModal();
+                return;
+            }
+            
+            if (!currentGame) {
+                showStatus('❌ No game found. Create a game first.', 'error');
+                return;
+            }
+            
+            if (!room) {
+                showStatus('❌ No room found. Create a room first.', 'error');
+                return;
+            }
+            
+            try {
+                console.log('🎲 Starting hand with roomId:', room.id, 'gameId:', currentGame.gameId);
+                
+                const response = await apiCall(`/games/${currentGame.gameId}/start-hand`, {
+                    method: 'POST',
+                    body: JSON.stringify({ roomId: room.id })
                 });
                 
                 if (!response.ok) {
@@ -898,11 +2545,16 @@
                 }
                 
                 const result = await response.json();
-                showStatus('🃏 Hand started!', 'success');
-                refreshGameState();
+                console.log('✅ Hand started:', result);
+                showStatus(`🃏 Hand ${result.handNumber} started with ${result.players.length} players!`, 'success');
+                
+                // Update player count and refresh
+                playerCount = result.players.length;
+                setTimeout(refreshGameState, 200);
                 
             } catch (error) {
-                showStatus(`❌ Error: ${error.message}`, 'error');
+                console.error('❌ Start hand error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
             }
         }
 
@@ -924,6 +2576,11 @@
             } catch (error) {
                 showStatus(`❌ Error: ${error.message}`, 'error');
             }
+        }
+
+        // Fetch game state (alias for refreshGameState, used by WebSocket listeners)
+        async function fetchGameState() {
+            await refreshGameState();
         }
 
         // Update game display with modern UI and CARD IMAGES
@@ -975,22 +2632,36 @@
                         playerCard.classList.add('active');
                     }
                     
-                    // Create hole cards HTML with images - SHOW ALL CARDS FOR TESTING
+                    // Create hole cards HTML - ONLY SHOW CURRENT PLAYER'S CARDS
                     let holeCardsHTML = '';
+                    const isCurrentPlayer = currentUser && player.userId === currentUser.id;
+                    
                     if (player.holeCards && player.holeCards.length > 0) {
+                        if (isCurrentPlayer) {
+                            // Show actual cards for current player
                         holeCardsHTML = `
                             <div class="player-cards">
                                 ${player.holeCards.map(card => {
                                     const imageUrl = getCardImageUrl(card);
                                     return `<div class="player-card-small">
-                                        <img src="${imageUrl}" alt="${card}" class="card-image" 
-                                             onerror="console.error('❌ Failed to load player card: ${card}')" 
-                                             onload="console.log('✅ Loaded player card: ${card}')">
+                                            <img src="${imageUrl}" alt="${card}" class="card-image">
                                     </div>`;
                                 }).join('')}
                             </div>
                             <div class="hand-strength" id="hand-eval-${player.id}"></div>
                         `;
+                        } else {
+                            // Show card backs for other players
+                            holeCardsHTML = `
+                                <div class="player-cards">
+                                    ${player.holeCards.map(() => {
+                                        return `<div class="player-card-small">
+                                            <img src="/cards/back.png" alt="Hidden" class="card-image">
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+                            `;
+                        }
                     }
                     
                     // Get player avatar with unique color
@@ -1033,8 +2704,8 @@
                 document.getElementById('winnerAnnouncement').style.display = 'none';
             }
             
-            // Update legal actions for selected player
-            updateLegalActions();
+            // Update legal actions for authenticated user (auto-detect if it's their turn)
+            updateLegalActions(gameState);
         }
 
         // Keep all existing helper functions (hand evaluation, winner announcement, etc.)
@@ -1042,10 +2713,73 @@
         
         // Show status message with modern styling
         function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('gameStatus');
-            statusDiv.textContent = message;
-            statusDiv.className = `status-message status-${type}`;
+            // Create or get status notification container
+            let statusContainer = document.getElementById('statusNotifications');
+            if (!statusContainer) {
+                statusContainer = document.createElement('div');
+                statusContainer.id = 'statusNotifications';
+                statusContainer.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    z-index: 3000;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    max-width: 400px;
+                `;
+                document.body.appendChild(statusContainer);
+            }
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `status-notification status-${type}`;
+            notification.style.cssText = `
+                background: ${type === 'error' ? 'rgba(239, 68, 68, 0.95)' : type === 'success' ? 'rgba(16, 185, 129, 0.95)' : type === 'warning' ? 'rgba(245, 158, 11, 0.95)' : 'rgba(59, 130, 246, 0.95)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 0.75rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            `;
+            notification.textContent = message;
+            
+            statusContainer.appendChild(notification);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
         }
+        
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(100px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Initialize with modern theme
         showStatus('🚀 Ready to create a modern poker game!', 'success');
@@ -1192,42 +2926,82 @@
             return names[rank] || rank.toString();
         }
 
-        // Update legal actions for selected player
-        async function updateLegalActions() {
-            const selectedPlayer = document.getElementById('actingPlayer').value;
-            if (!selectedPlayer || !currentGame) {
-                document.getElementById('actionsStatus').textContent = 'Select a player to see available actions';
-                document.getElementById('actionsPanel').innerHTML = '';
+        // Update legal actions for authenticated user (auto-detect turn)
+        async function updateLegalActions(gameState) {
+            const turnIndicator = document.getElementById('turnIndicator');
+            const actionsStatus = document.getElementById('actionsStatus');
+            const actionsPanel = document.getElementById('actionsPanel');
+            
+            // Clear previous state
+            actionsPanel.innerHTML = '';
+            turnIndicator.style.display = 'none';
+            document.getElementById('betInput').style.display = 'none';
+            
+            if (!currentUser || !currentGame || !gameState) {
+                actionsStatus.textContent = 'Game not started';
+                actionsStatus.className = 'status-message';
                 return;
             }
             
+            // Find if current user has a player in this game
+            console.log('🔍 Looking for player match:');
+            console.log('  currentUser.id:', currentUser.id);
+            console.log('  currentUser.id TYPE:', typeof currentUser.id);
+            console.log('  gameState.players:', gameState.players);
+            console.log('  Player userIds:', gameState.players.map(p => ({ userId: p.userId, type: typeof p.userId })));
+            
+            // Try both string and direct comparison
+            const myPlayer = gameState.players.find(p => {
+                console.log(`  Comparing: p.userId="${p.userId}" (${typeof p.userId}) vs currentUser.id="${currentUser.id}" (${typeof currentUser.id})`);
+                return p.userId === currentUser.id || String(p.userId) === String(currentUser.id);
+            });
+            console.log('  myPlayer found:', myPlayer);
+            
+            if (!myPlayer) {
+                actionsStatus.textContent = 'You are not in this game. Claim a seat to play!';
+                actionsStatus.className = 'status-message status-warning';
+                return;
+            }
+            
+            // Check if it's my turn
+            const isMyTurn = gameState.toAct === myPlayer.id;
+            
+            if (!isMyTurn) {
+                const currentPlayer = gameState.players.find(p => p.id === gameState.toAct);
+                actionsStatus.textContent = currentPlayer ? 
+                    `Waiting for ${currentPlayer.name} to act...` : 
+                    'Waiting for other players...';
+                actionsStatus.className = 'status-message';
+                return;
+            }
+            
+            // IT'S MY TURN! Show available actions
+            turnIndicator.style.display = 'block';
+            
             try {
-                const response = await fetch(`${API_BASE}/games/${currentGame.gameId}/legal-actions?player_id=${selectedPlayer}`);
+                const response = await apiCall(`/games/${currentGame.gameId}/legal-actions?player_id=${myPlayer.id}`);
                 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to get legal actions');
+                    throw new Error('Failed to get legal actions');
                 }
                 
                 const result = await response.json();
                 const actions = result.legalActions || [];
                 
                 if (actions.length === 0) {
-                    document.getElementById('actionsStatus').textContent = 'No actions available for this player';
-                    document.getElementById('actionsPanel').innerHTML = '';
+                    actionsStatus.textContent = 'No actions available';
+                    actionsStatus.className = 'status-message';
                     return;
                 }
                 
-                document.getElementById('actionsStatus').textContent = `Available actions for ${selectedPlayer}:`;
-                
-                const actionsPanel = document.getElementById('actionsPanel');
-                actionsPanel.innerHTML = '';
+                actionsStatus.textContent = '✅ Choose your action:';
+                actionsStatus.className = 'status-message status-success';
                 
                 actions.forEach(action => {
                     const button = document.createElement('button');
                     button.className = 'btn';
                     button.textContent = action;
-                    button.onclick = () => performAction(action);
+                    button.onclick = () => performAction(action, myPlayer.id);
                     
                     if (action === 'FOLD') button.classList.add('btn-danger');
                     else if (action === 'CHECK' || action === 'CALL') button.classList.add('btn-success');
@@ -1242,14 +3016,19 @@
                 document.getElementById('betInput').style.display = needsBetAmount ? 'block' : 'none';
                 
             } catch (error) {
-                document.getElementById('actionsStatus').textContent = `Error: ${error.message}`;
+                actionsStatus.textContent = `Error: ${error.message}`;
+                actionsStatus.className = 'status-message status-error';
             }
         }
 
-        // Perform player action
-        async function performAction(action) {
-            const selectedPlayer = document.getElementById('actingPlayer').value;
-            if (!selectedPlayer || !currentGame) return;
+        // Perform player action (auth-gated)
+        async function performAction(action, playerId) {
+            console.log(`🎯 performAction called: action="${action}", playerId="${playerId}"`);
+            
+            if (!playerId || !currentGame) {
+                console.log('❌ No playerId or currentGame');
+                return;
+            }
             
             let amount = null;
             if (['BET', 'RAISE'].includes(action)) {
@@ -1262,7 +3041,7 @@
             
             try {
                 const body = {
-                    player_id: selectedPlayer,
+                    player_id: playerId,
                     action: action
                 };
                 
@@ -1270,9 +3049,10 @@
                     body.amount = amount;
                 }
                 
-                const response = await fetch(`${API_BASE}/games/${currentGame.gameId}/actions`, {
+                console.log('📤 Sending action to server:', body);
+                
+                const response = await apiCall(`/games/${currentGame.gameId}/actions`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 
@@ -1282,15 +3062,18 @@
                 }
                 
                 const result = await response.json();
-                showStatus(`✅ Action performed: ${action}`, 'success');
+                console.log('✅ Action result:', result);
+                showStatus(`✅ ${action} successful!`, 'success');
                 
                 // Clear bet amount
                 document.getElementById('betAmount').value = '';
                 
-                // Refresh after a short delay to see the update
+                // Refresh game state immediately for this player
+                console.log('🔄 Refreshing game state after action...');
                 setTimeout(refreshGameState, 100);
                 
             } catch (error) {
+                console.error('❌ Action error:', error);
                 showStatus(`❌ Error: ${error.message}`, 'error');
             }
         }
@@ -1358,12 +3141,91 @@
             
             showStatus('🔄 Game reset - ready to create a new game!', 'success');
         }
-
-        // Event listeners
-        document.getElementById('actingPlayer').addEventListener('change', updateLegalActions);
         
         // Keep all other existing JavaScript functions...
         // (I'll preserve all the game logic to ensure nothing breaks)
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎰 Poker Lounge Loading...');
+            
+            // Initialize auth system
+            initAuth();
+            
+            // Check for invite code in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteCode = urlParams.get('invite');
+            if (inviteCode) {
+                // If there's an invite code, auto-join
+                autoJoinRoom(inviteCode);
+            } else {
+                // Otherwise, show landing page
+                showLandingPage();
+            }
+            
+            console.log('✅ Poker Lounge Ready!');
+        });
+
+        // Auto-join room from invite code
+        async function autoJoinRoom(inviteCode) {
+            if (!currentUser) {
+                // Store invite code and show auth modal
+                sessionStorage.setItem('pending_invite', inviteCode);
+                showStatus('🔒 Please login to join the room', 'warning');
+                showAuthModal();
+                return;
+            }
+            
+            try {
+                console.log('🎯 Auto-joining room with invite:', inviteCode);
+                
+                const res = await apiCall(`/rooms/invite/${inviteCode}`);
+                if (!res.ok) {
+                    throw new Error('Invalid invite code');
+                }
+                
+                const data = await res.json();
+                room = { id: data.room.id, inviteCode: data.room.invite_code, hostUserId: data.room.host_user_id };
+                
+                console.log('✅ Room loaded:', room);
+                
+                // Hide landing page
+                hideLandingPage();
+                
+                // Connect to WebSocket
+                connectSocket();
+                
+                // Join the lobby (will show waiting screen if not host)
+                await joinLobby(room.id);
+                
+                // If we're the host, also create the game
+                if (room.hostUserId === currentUser.id) {
+                    const gameRes = await apiCall('/games', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            small_blind: data.room.small_blind || 1,
+                            big_blind: data.room.big_blind || 2,
+                            max_players: data.room.max_players || 9
+                        })
+                    });
+                
+                    if (gameRes.ok) {
+                        currentGame = await gameRes.json();
+                        console.log('✅ Game created/loaded:', currentGame);
+                        await loadSeats();
+                    }
+                }
+                
+                // Note: Lobby UI will be shown by joinLobby()
+                // Guests will see waiting screen, host will see lobby controls
+                
+            } catch (error) {
+                console.error('❌ Auto-join error:', error);
+                showStatus(`❌ Failed to join room: ${error.message}`, 'error');
+            }
+        }
     </script>
 </body>
 </html>

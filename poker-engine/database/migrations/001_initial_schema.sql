@@ -48,12 +48,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   last_used TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  is_revoked BOOLEAN DEFAULT false,
-  
-  -- Indexes
-  INDEX idx_user_sessions_user_id (user_id),
-  INDEX idx_user_sessions_expires_at (expires_at),
-  INDEX idx_user_sessions_token_hash (refresh_token_hash)
+  is_revoked BOOLEAN DEFAULT false
 );
 
 -- Rejoin tokens for mid-game reconnection
@@ -69,12 +64,7 @@ CREATE TABLE IF NOT EXISTS rejoin_tokens (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
   -- Constraints
-  CONSTRAINT unique_user_game_rejoin UNIQUE (user_id, game_id),
-  
-  -- Indexes
-  INDEX idx_rejoin_tokens_user_id (user_id),
-  INDEX idx_rejoin_tokens_game_id (game_id),
-  INDEX idx_rejoin_tokens_expires_at (expires_at)
+  CONSTRAINT unique_user_game_rejoin UNIQUE (user_id, game_id)
 );
 
 -- ================================
@@ -121,11 +111,8 @@ CREATE TABLE IF NOT EXISTS rooms (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   closed_at TIMESTAMP WITH TIME ZONE,
   
-  -- Indexes
-  INDEX idx_rooms_status (status),
-  INDEX idx_rooms_game_type (game_type),
-  INDEX idx_rooms_stakes (small_blind, big_blind),
-  INDEX idx_rooms_created_at (created_at DESC)
+  -- Note: Indexes will be created separately after table creation
+  CONSTRAINT valid_room_name CHECK (LENGTH(name) >= 3)
 );
 
 -- Room memberships and seat assignments
@@ -146,12 +133,7 @@ CREATE TABLE IF NOT EXISTS room_seats (
   
   -- Constraints
   CONSTRAINT unique_room_seat UNIQUE (room_id, seat_index),
-  CONSTRAINT unique_user_room UNIQUE (room_id, user_id), -- one seat per user per room
-  
-  -- Indexes
-  INDEX idx_room_seats_room_id (room_id),
-  INDEX idx_room_seats_user_id (user_id),
-  INDEX idx_room_seats_status (status)
+  CONSTRAINT unique_user_room UNIQUE (room_id, user_id) -- one seat per user per room
 );
 
 -- Spectators (non-playing observers)
@@ -163,11 +145,7 @@ CREATE TABLE IF NOT EXISTS room_spectators (
   left_at TIMESTAMP WITH TIME ZONE,
   
   -- Constraints
-  CONSTRAINT unique_spectator_room UNIQUE (room_id, user_id),
-  
-  -- Indexes
-  INDEX idx_room_spectators_room_id (room_id),
-  INDEX idx_room_spectators_user_id (user_id)
+  CONSTRAINT unique_spectator_room UNIQUE (room_id, user_id)
 );
 
 -- ================================
@@ -201,14 +179,7 @@ CREATE TABLE IF NOT EXISTS chips_transactions (
   created_by UUID REFERENCES users(id), -- for admin adjustments
   ip_address INET,
   user_agent TEXT,
-  processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  -- Indexes
-  INDEX idx_chips_transactions_user_id (user_id),
-  INDEX idx_chips_transactions_type (transaction_type),
-  INDEX idx_chips_transactions_processed_at (processed_at DESC),
-  INDEX idx_chips_transactions_room_id (room_id),
-  INDEX idx_chips_transactions_game_id (game_id)
+  processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Table stakes tracking (chips currently in play)
@@ -221,11 +192,7 @@ CREATE TABLE IF NOT EXISTS table_stakes (
   unlocked_at TIMESTAMP WITH TIME ZONE,
   
   -- Constraints
-  CONSTRAINT unique_user_room_stakes UNIQUE (user_id, room_id),
-  
-  -- Indexes
-  INDEX idx_table_stakes_user_id (user_id),
-  INDEX idx_table_stakes_room_id (room_id)
+  CONSTRAINT unique_user_room_stakes UNIQUE (user_id, room_id)
 );
 
 -- Pending transactions (for async processing)
@@ -244,12 +211,7 @@ CREATE TABLE IF NOT EXISTS chips_pending (
   -- Timing
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  processed_at TIMESTAMP WITH TIME ZONE,
-  
-  -- Indexes
-  INDEX idx_chips_pending_user_id (user_id),
-  INDEX idx_chips_pending_status (status),
-  INDEX idx_chips_pending_expires_at (expires_at)
+  processed_at TIMESTAMP WITH TIME ZONE
 );
 
 -- ================================
@@ -274,13 +236,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
   error_message TEXT,
   
   -- Timestamp
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  -- Indexes
-  INDEX idx_audit_log_user_id (user_id),
-  INDEX idx_audit_log_action (action),
-  INDEX idx_audit_log_created_at (created_at DESC),
-  INDEX idx_audit_log_resource (resource_type, resource_id)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ================================
@@ -357,6 +313,32 @@ ON CONFLICT DO NOTHING;
 -- ================================
 -- INDEXES FOR PERFORMANCE
 -- ================================
+
+-- Core table indexes
+CREATE INDEX IF NOT EXISTS idx_room_seats_room_id ON room_seats(room_id);
+CREATE INDEX IF NOT EXISTS idx_room_seats_user_id ON room_seats(user_id);
+CREATE INDEX IF NOT EXISTS idx_room_seats_status ON room_seats(status);
+
+CREATE INDEX IF NOT EXISTS idx_room_spectators_room_id ON room_spectators(room_id);
+CREATE INDEX IF NOT EXISTS idx_room_spectators_user_id ON room_spectators(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_chips_transactions_user_id ON chips_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_chips_transactions_type ON chips_transactions(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_chips_transactions_processed_at ON chips_transactions(processed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_chips_transactions_room_id ON chips_transactions(room_id);
+CREATE INDEX IF NOT EXISTS idx_chips_transactions_game_id ON chips_transactions(game_id);
+
+CREATE INDEX IF NOT EXISTS idx_table_stakes_user_id ON table_stakes(user_id);
+CREATE INDEX IF NOT EXISTS idx_table_stakes_room_id ON table_stakes(room_id);
+
+CREATE INDEX IF NOT EXISTS idx_chips_pending_user_id ON chips_pending(user_id);
+CREATE INDEX IF NOT EXISTS idx_chips_pending_status ON chips_pending(status);
+CREATE INDEX IF NOT EXISTS idx_chips_pending_expires_at ON chips_pending(expires_at);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_resource ON audit_log(resource_type, resource_id);
 
 -- Additional composite indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_users_active_email ON users (email) WHERE is_active = true;
