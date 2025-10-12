@@ -1083,7 +1083,8 @@ app.post('/api/games/:id/actions', async (req, res) => {
         });
         
         // NOW broadcast hand_complete AFTER all streets revealed to players
-        const finalDelay = (streetEvents.length + 1) * 1000;
+        // Add extra 2 seconds after last card so players can see it
+        const finalDelay = (streetEvents.length + 2) * 1000;
         console.log(`⏰ Winner will be announced in ${finalDelay}ms (after all cards shown to players)`);
         
         setTimeout(async () => {
