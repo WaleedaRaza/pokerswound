@@ -1014,18 +1014,26 @@ app.post('/api/games/:id/actions', async (req, res) => {
     
     if (io && roomId) {
       if (willBeAllInRunout) {
-        // All-in runout detected - send pot update with player stacks (no winner info yet)
+        // All-in runout detected - send pot update with player stacks BEFORE winner distribution
         const userIdMap = playerUserIds.get(gameId);
-        const currentPlayers = Array.from(result.newState.players.values()).map(p => ({
-          id: p.uuid,
-          name: p.name,
-          stack: p.stack,
-          betThisStreet: p.betThisStreet,
-          isAllIn: p.isAllIn,
-          userId: userIdMap ? userIdMap.get(p.uuid) : null
-        }));
         
-        console.log(`💰 All-in runout - broadcasting pot and stacks update: $${potAmount}`);
+        // Use PRE-ACTION player states (before winner was determined and pot distributed)
+        const currentPlayers = preActionPlayers.map(p => {
+          // Find the post-action player to get updated betThisStreet and isAllIn
+          const postPlayer = Array.from(result.newState.players.values()).find(pp => pp.uuid === p.uuid);
+          return {
+            id: p.uuid,
+            name: p.name,
+            stack: p.stack, // Use PRE-distribution stack (shows 0 for all-in players)
+            betThisStreet: postPlayer ? postPlayer.betThisStreet : p.betThisStreet,
+            isAllIn: postPlayer ? postPlayer.isAllIn : p.isAllIn,
+            userId: userIdMap ? userIdMap.get(p.uuid) : null
+          };
+        });
+        
+        console.log(`💰 All-in runout - broadcasting pot and PRE-DISTRIBUTION stacks: $${potAmount}`);
+        currentPlayers.forEach(p => console.log(`  ${p.name}: stack=$${p.stack}, allIn=${p.isAllIn}`));
+        
         io.to(`room:${roomId}`).emit('pot_update', {
           gameId,
           pot: potAmount,
