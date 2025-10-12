@@ -2537,11 +2537,17 @@
                 socket.on('pot_update', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
-                    console.log(`💰 Pot update: ${payload.pot}`, payload.message);
+                    console.log(`💰 Pot update received: ${payload.pot}`, payload.message);
                     
                     // Update pot display immediately
                     const potEl = document.getElementById('potAmount');
-                    if (potEl) potEl.textContent = payload.pot;
+                    if (potEl) {
+                        const oldValue = potEl.textContent;
+                        potEl.textContent = payload.pot;
+                        console.log(`💰 Pot display updated: ${oldValue} → ${payload.pot}`);
+                    } else {
+                        console.error('❌ potAmount element not found!');
+                    }
                     
                     // Show notification
                     if (payload.message) {
