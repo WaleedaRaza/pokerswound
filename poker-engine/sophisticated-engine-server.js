@@ -939,7 +939,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
     console.log('  Current bet:', gameState.bettingRound.currentBet);
     console.log('  Projected bet after action:', projectedTotalBet);
     
-    // Capture pre-action player states
+    // Capture pre-action player states (for all-in edge case detection)
     const preActionPlayers = Array.from(gameState.players.values()).map(p => ({
       uuid: p.uuid,
       name: p.name,
@@ -956,6 +956,17 @@ app.post('/api/games/:id/actions', async (req, res) => {
       actionType: action,
       amount: amount
     });
+    
+    // Capture post-action, pre-showdown state (chips collected, but winner not yet determined)
+    // This is the state we want to show during card reveals
+    const postActionPreShowdownPlayers = Array.from(result.newState.players.values()).map(p => ({
+      uuid: p.uuid,
+      name: p.name,
+      betThisStreet: p.betThisStreet,
+      stack: p.stack,
+      isAllIn: p.isAllIn,
+      hasFolded: p.hasFolded
+    }));
     
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -1015,24 +1026,28 @@ app.post('/api/games/:id/actions', async (req, res) => {
     
     if (io && roomId) {
       if (willBeAllInRunout) {
-        // All-in runout detected - send pot update with player stacks BEFORE winner distribution
+        // All-in runout detected - send pot update with CORRECT stacks
         const userIdMap = playerUserIds.get(gameId);
         
-        // Use PRE-ACTION player states (before winner was determined and pot distributed)
-        const currentPlayers = preActionPlayers.map(p => {
-          // Find the post-action player to get updated betThisStreet and isAllIn
-          const postPlayer = Array.from(result.newState.players.values()).find(pp => pp.uuid === p.uuid);
-          return {
-            id: p.uuid,
-            name: p.name,
-            stack: p.stack, // Use PRE-distribution stack (shows 0 for all-in players)
-            betThisStreet: postPlayer ? postPlayer.betThisStreet : p.betThisStreet,
-            isAllIn: postPlayer ? postPlayer.isAllIn : p.isAllIn,
-            userId: userIdMap ? userIdMap.get(p.uuid) : null
-          };
-        });
+        // CRITICAL: Engine has already distributed pot in handleEndHand
+        // We need to RECONSTRUCT pre-distribution state manually
+        // All all-in players should show stack=0 (chips in pot)
+        const currentPlayers = postActionPreShowdownPlayers
+          .filter(p => !p.hasFolded) // Only active players
+          .map(p => {
+            // Force stack to 0 for all-in players (chips are in the pot)
+            const displayStack = p.isAllIn ? 0 : p.stack;
+            return {
+              id: p.uuid,
+              name: p.name,
+              stack: displayStack, // Force 0 for all-in players
+              betThisStreet: 0, // Bets collected to pot
+              isAllIn: p.isAllIn,
+              userId: userIdMap ? userIdMap.get(p.uuid) : null
+            };
+          });
         
-        console.log(`💰 All-in runout - broadcasting pot and PRE-DISTRIBUTION stacks: $${potAmount}`);
+        console.log(`💰 All-in runout - broadcasting pot and RECONSTRUCTED pre-distribution stacks: $${potAmount}`);
         currentPlayers.forEach(p => console.log(`  ${p.name}: stack=$${p.stack}, allIn=${p.isAllIn}`));
         
         io.to(`room:${roomId}`).emit('pot_update', {
