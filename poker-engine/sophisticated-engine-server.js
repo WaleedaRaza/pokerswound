@@ -997,15 +997,16 @@ app.post('/api/games/:id/actions', async (req, res) => {
     
     // Capture pot amount from HAND_COMPLETED event (before engine resets it)
     let potAmount = result.newState.pot.totalPot;
+    const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
+    
     if (willBeAllInRunout) {
-      const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
-      if (handCompletedEvent && handCompletedEvent.data.pot) {
+      if (handCompletedEvent && handCompletedEvent.data && handCompletedEvent.data.pot) {
         potAmount = handCompletedEvent.data.pot;
         console.log(`💰 Captured pot from HAND_COMPLETED event: $${potAmount}`);
       } else {
         // Fallback: calculate from winners
-        const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
-        if (winners.length > 0) {
+        const winners = (handCompletedEvent && handCompletedEvent.data) ? handCompletedEvent.data.winners : [];
+        if (winners && winners.length > 0) {
           potAmount = winners.reduce((sum, w) => sum + (w.amount || 0), 0);
           console.log(`💰 Calculated pot from winners: $${potAmount}`);
         }
@@ -1112,9 +1113,10 @@ app.post('/api/games/:id/actions', async (req, res) => {
       console.log('🏆 Hand is complete! Action already processed winners.');
       
       // The GameStateMachine already handled END_HAND during the action
-      // Extract winner info from the action's events
-      const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
-      const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
+      // Extract winner info from the action's events (with safe null checks)
+      const winners = (handCompletedEvent && handCompletedEvent.data && handCompletedEvent.data.winners) 
+        ? handCompletedEvent.data.winners 
+        : [];
       
       console.log('🏆 Winners from action events:', winners);
       
