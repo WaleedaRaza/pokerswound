@@ -1153,7 +1153,29 @@ app.post('/api/games/:id/actions', async (req, res) => {
               console.error('❌ Failed to save hand history:', historyErr.message);
             }
           }
+          
+          // IMPORTANT: Send response AFTER animation completes
+          res.json({
+            gameId,
+            action,
+            amount: amount || 0,
+            street: result.newState.currentStreet,
+            pot: result.newState.pot.totalPot,
+            isHandComplete: true,
+            winners,
+            players: Array.from(result.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack
+            })),
+            engine: 'SOPHISTICATED_TYPESCRIPT',
+            events: result.events,
+            message: 'All-in runout - cards being revealed progressively'
+          });
         }, finalDelay);
+        
+        // Early return - response will be sent after animation
+        return;
       } else {
         // Normal showdown (no all-in runout) - immediate broadcast
         if (io && roomId) {
