@@ -1014,16 +1014,27 @@ app.post('/api/games/:id/actions', async (req, res) => {
     
     if (io && roomId) {
       if (willBeAllInRunout) {
-        // All-in runout detected - send pot update ONLY (no winner info yet)
-        console.log(`💰 All-in runout - broadcasting pot update: $${potAmount}`);
+        // All-in runout detected - send pot update with player stacks (no winner info yet)
+        const userIdMap = playerUserIds.get(gameId);
+        const currentPlayers = Array.from(result.newState.players.values()).map(p => ({
+          id: p.uuid,
+          name: p.name,
+          stack: p.stack,
+          betThisStreet: p.betThisStreet,
+          isAllIn: p.isAllIn,
+          userId: userIdMap ? userIdMap.get(p.uuid) : null
+        }));
+        
+        console.log(`💰 All-in runout - broadcasting pot and stacks update: $${potAmount}`);
         io.to(`room:${roomId}`).emit('pot_update', {
           gameId,
           pot: potAmount,
           action: action,
           playerId: player_id,
+          players: currentPlayers,
           message: 'All players all-in - dealing remaining cards...'
         });
-        console.log(`📡 Emitted pot_update to room:${roomId} with pot=$${potAmount}`);
+        console.log(`📡 Emitted pot_update to room:${roomId} with pot=$${potAmount}, ${currentPlayers.length} players`);
         
         // Log sockets in room
         const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);

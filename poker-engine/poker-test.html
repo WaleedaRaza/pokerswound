@@ -2549,6 +2549,28 @@
                         console.error('❌ potAmount element not found!');
                     }
                     
+                    // Update player stacks (show chips committed to pot)
+                    if (payload.players && payload.players.length > 0) {
+                        const playersGrid = document.getElementById('playersGrid');
+                        if (playersGrid) {
+                            payload.players.forEach(player => {
+                                // Find player's stack display and update it
+                                const playerCards = playersGrid.querySelectorAll('.player-card');
+                                playerCards.forEach(card => {
+                                    const nameEl = card.querySelector('.player-name');
+                                    if (nameEl && nameEl.textContent === player.name) {
+                                        const stackEl = card.querySelector('.player-stack');
+                                        if (stackEl) {
+                                            const oldStack = stackEl.textContent;
+                                            stackEl.textContent = `$${player.stack}`;
+                                            console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    
                     // Show notification
                     if (payload.message) {
                         showStatus(payload.message, 'info');
