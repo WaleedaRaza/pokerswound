@@ -28,6 +28,27 @@ let gameCounter = 1;
 // Store userId mappings separately (since PlayerModel doesn't have userId property)
 const playerUserIds = new Map(); // gameId -> Map(playerId -> userId)
 
+// Track animation state per game (for display vs logical state separation)
+const gameAnimations = new Map(); // gameId -> AnimationContext
+// AnimationContext structure:
+// {
+//   isAnimating: boolean,
+//   animationType: 'allInRunout' | 'potTransfer' | null,
+//   displaySnapshot: {
+//     players: [...],  // Pre-distribution state (what UI should show)
+//     pot: number,
+//     street: string,
+//     communityCards: string[],
+//     toAct: null
+//   },
+//   logicalState: {
+//     players: [...],  // Post-distribution state (truth)
+//     pot: number
+//   },
+//   startTime: timestamp,
+//   endTime: timestamp
+// }
+
 // Engine instances
 const stateMachine = new GameStateMachine();
 const bettingEngine = new BettingEngine();
@@ -1168,6 +1189,44 @@ app.post('/api/games/:id/actions', async (req, res) => {
         console.log(`🎬 All-in runout detected: ${streetEvents.length} streets to reveal`);
         console.log(`⏸️  SUSPENDING winner announcement until cards are revealed to players...`);
         
+        // ✅ ANIMATION CONTEXT: Store display vs logical state
+        const animationDuration = (streetEvents.length + 2) * 1000; // Match hand_complete delay
+        const userIdMap = playerUserIds.get(gameId);
+        
+        gameAnimations.set(gameId, {
+          isAnimating: true,
+          animationType: 'allInRunout',
+          displaySnapshot: {
+            players: result.newState.preDistributionStacks ? 
+              Array.from(result.newState.preDistributionStacks.values()) : [],
+            pot: potAmount,
+            street: result.newState.currentStreet,
+            communityCards: result.newState.handState.communityCards.map(c => c.toString()),
+            toAct: null
+          },
+          logicalState: {
+            players: Array.from(result.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack,  // Post-distribution (winner has pot)
+              seatIndex: p.seatIndex,
+              betThisStreet: p.betThisStreet,
+              isAllIn: p.isAllIn,
+              hasFolded: p.hasFolded,
+              isActive: p.isActive,
+              userId: userIdMap ? userIdMap.get(p.uuid) : null,
+              holeCards: p.holeCards ? p.holeCards.map(c => c.toString()) : []
+            })),
+            pot: result.newState.pot.totalPot
+          },
+          startTime: Date.now(),
+          endTime: Date.now() + animationDuration
+        });
+        
+        console.log(`🎬 Animation context stored - HTTP GET will return display snapshot for ${animationDuration}ms`);
+        console.log(`   Display: pot=$${potAmount}, players with stack=0 for all-in`);
+        console.log(`   Logical: pot=$${result.newState.pot.totalPot}, winner has chips`);
+        
         // Broadcast each street with 1-second delays
         streetEvents.forEach((streetEvent, index) => {
           setTimeout(() => {
@@ -1219,6 +1278,10 @@ app.post('/api/games/:id/actions', async (req, res) => {
             previousPot: potAmount // Pot before transfer (for animation)
           });
           console.log(`📡 Broadcasted hand completion to room:${roomId} (after animation)`);
+          
+          // ✅ Clear animation context - HTTP GET can now return logical state (truth)
+          gameAnimations.delete(gameId);
+          console.log(`🎬 Animation complete - HTTP GET will now return post-distribution state`);
           
           // 💾 UPDATE DATABASE: Persist player stacks after hand completion
           if (userIdMap) {
@@ -1545,6 +1608,7 @@ app.get('/api/games', async (req, res) => {
 });
 
 // Get game state using sophisticated GameStateModel
+// ✅ ANIMATION-AWARE: Returns display snapshot during animations, logical state otherwise
 app.get('/api/games/:id', (req, res) => {
   try {
     const gameId = req.params.id;
@@ -1555,6 +1619,33 @@ app.get('/api/games/:id', (req, res) => {
     }
     
     const userIdMap = playerUserIds.get(gameId);
+    
+    // ✅ CRITICAL: Check animation context
+    const animationContext = gameAnimations.get(gameId);
+    
+    if (animationContext && animationContext.isAnimating && Date.now() < animationContext.endTime) {
+      // During animation: return display snapshot (frozen UI state)
+      const timeRemaining = Math.round((animationContext.endTime - Date.now()) / 1000);
+      console.log(`🎬 HTTP GET during animation - returning display snapshot (${timeRemaining}s remaining)`);
+      
+      return res.json({
+        gameId,
+        status: gameState.status,
+        handNumber: gameState.handState.handNumber,
+        street: animationContext.displaySnapshot.street,
+        communityCards: animationContext.displaySnapshot.communityCards,
+        pot: animationContext.displaySnapshot.pot,
+        currentBet: gameState.bettingRound.currentBet,
+        toAct: animationContext.displaySnapshot.toAct,
+        players: animationContext.displaySnapshot.players,
+        isAnimating: true,  // Signal to frontend
+        animationType: animationContext.animationType,
+        engine: 'SOPHISTICATED_TYPESCRIPT'
+      });
+    }
+    
+    // After animation (or no animation): return logical state (truth)
+    console.log(`📊 HTTP GET - returning logical state (post-distribution)`);
     
     res.json({
       gameId,
@@ -1568,15 +1659,16 @@ app.get('/api/games/:id', (req, res) => {
       players: Array.from(gameState.players.values()).map(p => ({
         id: p.uuid,
         name: p.name,
-        stack: p.stack,
+        stack: p.stack,  // Post-distribution (truth)
         seatIndex: p.seatIndex,
-        userId: userIdMap ? userIdMap.get(p.uuid) : null,  // Get userId from mapping
+        userId: userIdMap ? userIdMap.get(p.uuid) : null,
         isActive: p.isActive,
         hasFolded: p.hasFolded,
         isAllIn: p.isAllIn,
         betThisStreet: p.betThisStreet,
         holeCards: p.holeCards ? p.holeCards.map(c => c.toString()) : []
       })),
+      isAnimating: false,
       engine: 'SOPHISTICATED_TYPESCRIPT'
     });
     

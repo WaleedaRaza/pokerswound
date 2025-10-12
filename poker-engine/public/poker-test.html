@@ -2573,9 +2573,8 @@
                         `${payload.action} $${payload.amount}` : payload.action;
                     showStatus(`🎲 Player action: ${actionText}`, 'info');
                     
-                    // ✅ Don't fetch during active hand - WebSocket has all the data
-                    // Only fetch when needed (game over, connection issues, etc.)
-                    console.log('✅ UI updated from WebSocket - no HTTP fetch needed');
+                    // Still fetch full state to sync everything (but UI already updated)
+                    await fetchGameState();
                 });
                 
                 // Listen for pot updates (all-in scenarios)
@@ -2822,6 +2821,14 @@
                 }
                 
                 const gameState = await response.json();
+                
+                // Show animation indicator if backend is in animation mode
+                if (gameState.isAnimating) {
+                    console.log(`🎬 Backend is animating (${gameState.animationType}) - display state frozen`);
+                } else {
+                    console.log(`📊 Backend returning logical state (post-distribution)`);
+                }
+                
                 updateGameDisplay(gameState);
                 
             } catch (error) {
@@ -3335,9 +3342,9 @@
                 // Clear bet amount
                 document.getElementById('betAmount').value = '';
                 
-                // ✅ DON'T refresh via HTTP - WebSocket events handle all updates
-                // The game_state_update/pot_update/hand_complete events will update UI
-                console.log('✅ Action complete - WebSocket will broadcast updates');
+                // Refresh game state immediately for this player
+                console.log('🔄 Refreshing game state after action...');
+                setTimeout(refreshGameState, 100);
                 
             } catch (error) {
                 console.error('❌ Action error:', error);
