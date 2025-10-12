@@ -1275,6 +1275,10 @@
             font-size: 14px;
         }
     </style>
+    
+    <!-- Event system scripts -->
+    <script src="/public/js/game-events.js"></script>
+    <script src="/public/js/display-state.js"></script>
 </head>
 <body>
     <!-- Auth Modal -->
@@ -2476,6 +2480,37 @@
                 }
                 
                 socket = io(WS_BASE, { transports: ['websocket'] });
+                
+                // ✅ Initialize display state manager (event-based system)
+                const displayState = new PokerDisplayState();
+                
+                // Wait for DOM, then set element references
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        displayState.setElements(
+                            document.getElementById('potAmount'),
+                            document.getElementById('communityCards'),
+                            document.getElementById('playersGrid'),
+                            null // status element (optional)
+                        );
+                        console.log('✅ DisplayState initialized with DOM elements');
+                    });
+                } else {
+                    // DOM already loaded
+                    displayState.setElements(
+                        document.getElementById('potAmount'),
+                        document.getElementById('communityCards'),
+                        document.getElementById('playersGrid'),
+                        null
+                    );
+                    console.log('✅ DisplayState initialized with DOM elements');
+                }
+                
+                // Listen for game events (new event-based system)
+                socket.on('game_event', (event) => {
+                    console.log(`🎮 Game event received: ${event.type}`);
+                    displayState.receiveEvent(event);
+                });
                 
                 socket.on('connect', () => {
                     console.log('✅ Socket connected! ID:', socket.id);
