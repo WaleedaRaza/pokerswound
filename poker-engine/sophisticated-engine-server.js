@@ -1073,6 +1073,47 @@ app.post('/api/games/:id/actions', async (req, res) => {
             return playerData;
           });
         
+        // ✅ Store pre-distribution stacks for later use in hand_complete
+        result.newState.preDistributionStacks = preDistributionStacks;
+        
+        // 🎬 CRITICAL FIX: Store animation context BEFORE broadcasting
+        // This prevents race condition where frontend fetches game state before context exists
+        const streetEvents = result.events.filter(e => e.type === 'STREET_ADVANCED');
+        const animationDuration = (streetEvents.length + 2) * 1000;
+        
+        gameAnimations.set(gameId, {
+          isAnimating: true,
+          animationType: 'allInRunout',
+          displaySnapshot: {
+            players: currentPlayers, // Pre-distribution state (stack=0 for all-in)
+            pot: potAmount,
+            street: result.newState.currentStreet,
+            communityCards: result.newState.handState.communityCards.map(c => c.toString()),
+            toAct: null
+          },
+          logicalState: {
+            players: Array.from(result.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack,  // Post-distribution (winner has pot)
+              seatIndex: p.seatIndex,
+              betThisStreet: p.betThisStreet,
+              isAllIn: p.isAllIn,
+              hasFolded: p.hasFolded,
+              isActive: p.isActive,
+              userId: userIdMap ? userIdMap.get(p.uuid) : null,
+              holeCards: p.holeCards ? p.holeCards.map(c => c.toString()) : []
+            })),
+            pot: result.newState.pot.totalPot
+          },
+          startTime: Date.now(),
+          endTime: Date.now() + animationDuration
+        });
+        
+        console.log(`🎬 Animation context stored BEFORE broadcast - duration: ${animationDuration}ms`);
+        console.log(`   Display snapshot: pot=$${potAmount}, winner stack=0`);
+        console.log(`   Logical state: pot=$${result.newState.pot.totalPot}, winner has chips`);
+        
         console.log(`💰 All-in runout - broadcasting pot and pre-distribution stacks: $${potAmount}`);
         currentPlayers.forEach(p => console.log(`  ${p.name}: stack=$${p.stack}, allIn=${p.isAllIn}`));
         
@@ -1085,9 +1126,6 @@ app.post('/api/games/:id/actions', async (req, res) => {
           message: 'All players all-in - dealing remaining cards...'
         });
         console.log(`📡 Emitted pot_update to room:${roomId} with pot=$${potAmount}, ${currentPlayers.length} players`);
-        
-        // ✅ Store pre-distribution stacks for later use in hand_complete
-        result.newState.preDistributionStacks = preDistributionStacks;
         
         // Log sockets in room
         const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
@@ -1188,44 +1226,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
         // Multiple streets were dealt at once (all-in scenario)
         console.log(`🎬 All-in runout detected: ${streetEvents.length} streets to reveal`);
         console.log(`⏸️  SUSPENDING winner announcement until cards are revealed to players...`);
-        
-        // ✅ ANIMATION CONTEXT: Store display vs logical state
-        const animationDuration = (streetEvents.length + 2) * 1000; // Match hand_complete delay
-        const userIdMap = playerUserIds.get(gameId);
-        
-        gameAnimations.set(gameId, {
-          isAnimating: true,
-          animationType: 'allInRunout',
-          displaySnapshot: {
-            players: result.newState.preDistributionStacks ? 
-              Array.from(result.newState.preDistributionStacks.values()) : [],
-            pot: potAmount,
-            street: result.newState.currentStreet,
-            communityCards: result.newState.handState.communityCards.map(c => c.toString()),
-            toAct: null
-          },
-          logicalState: {
-            players: Array.from(result.newState.players.values()).map(p => ({
-              id: p.uuid,
-              name: p.name,
-              stack: p.stack,  // Post-distribution (winner has pot)
-              seatIndex: p.seatIndex,
-              betThisStreet: p.betThisStreet,
-              isAllIn: p.isAllIn,
-              hasFolded: p.hasFolded,
-              isActive: p.isActive,
-              userId: userIdMap ? userIdMap.get(p.uuid) : null,
-              holeCards: p.holeCards ? p.holeCards.map(c => c.toString()) : []
-            })),
-            pot: result.newState.pot.totalPot
-          },
-          startTime: Date.now(),
-          endTime: Date.now() + animationDuration
-        });
-        
-        console.log(`🎬 Animation context stored - HTTP GET will return display snapshot for ${animationDuration}ms`);
-        console.log(`   Display: pot=$${potAmount}, players with stack=0 for all-in`);
-        console.log(`   Logical: pot=$${result.newState.pot.totalPot}, winner has chips`);
+        console.log(`   Animation context was already stored before pot_update broadcast`);
         
         // Broadcast each street with 1-second delays
         streetEvents.forEach((streetEvent, index) => {
