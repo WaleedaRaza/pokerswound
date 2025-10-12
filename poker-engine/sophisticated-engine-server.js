@@ -965,7 +965,8 @@ app.post('/api/games/:id/actions', async (req, res) => {
     console.log('  Current bet:', gameState.bettingRound.currentBet);
     console.log('  Projected bet after action:', projectedTotalBet);
     
-    // Capture pre-action player states (for all-in edge case detection)
+    // ✅ CRITICAL: Capture ALL player states BEFORE processing action
+    // This is the ONLY way to get pre-distribution stacks
     const preActionPlayers = Array.from(gameState.players.values()).map(p => ({
       uuid: p.uuid,
       name: p.name,
@@ -975,6 +976,27 @@ app.post('/api/games/:id/actions', async (req, res) => {
       hasFolded: p.hasFolded
     }));
     
+    // Also capture what the state will be BEFORE showdown (for all-in scenarios)
+    // After this action, if all-in, what should stacks be BEFORE pot distribution?
+    const preShowdownPlayers = Array.from(gameState.players.values()).map(p => {
+      let projectedStack = p.stack;
+      let projectedAllIn = p.isAllIn;
+      
+      // If this is the acting player and they're going all-in
+      if (p.uuid === player_id && (action === 'ALL_IN' || (action === 'CALL' && amount >= p.stack))) {
+        projectedStack = 0;
+        projectedAllIn = true;
+      }
+      
+      return {
+        uuid: p.uuid,
+        name: p.name,
+        stack: projectedStack, // Stack BEFORE pot distribution
+        isAllIn: projectedAllIn,
+        hasFolded: p.hasFolded
+      };
+    });
+    
     // Use sophisticated GameStateMachine to process action
     const result = stateMachine.processAction(gameState, {
       type: 'PLAYER_ACTION',
@@ -982,17 +1004,6 @@ app.post('/api/games/:id/actions', async (req, res) => {
       actionType: action,
       amount: amount
     });
-    
-    // Capture post-action, pre-showdown state (chips collected, but winner not yet determined)
-    // This is the state we want to show during card reveals
-    const postActionPreShowdownPlayers = Array.from(result.newState.players.values()).map(p => ({
-      uuid: p.uuid,
-      name: p.name,
-      betThisStreet: p.betThisStreet,
-      stack: p.stack,
-      isAllIn: p.isAllIn,
-      hasFolded: p.hasFolded
-    }));
     
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -1055,19 +1066,16 @@ app.post('/api/games/:id/actions', async (req, res) => {
         // All-in runout detected - send pot update with CORRECT stacks
         const userIdMap = playerUserIds.get(gameId);
         
-        // ✅ CRITICAL FIX: Store pre-distribution stacks for UI animation
-        // Engine has already distributed pot in handleEndHand
-        // We need to preserve pre-distribution state for progressive UI updates
+        // ✅ CRITICAL FIX: Use pre-showdown stacks (captured BEFORE processAction)
+        // These are the correct stacks to show during animation
         const preDistributionStacks = new Map();
-        const currentPlayers = postActionPreShowdownPlayers
+        const currentPlayers = preShowdownPlayers
           .filter(p => !p.hasFolded) // Only active players
           .map(p => {
-            // Force stack to 0 for all-in players (chips are in the pot)
-            const displayStack = p.isAllIn ? 0 : p.stack;
             const playerData = {
               id: p.uuid,
               name: p.name,
-              stack: displayStack, // Force 0 for all-in players
+              stack: p.stack, // Correct pre-distribution stack
               betThisStreet: 0, // Bets collected to pot
               isAllIn: p.isAllIn,
               userId: userIdMap ? userIdMap.get(p.uuid) : null
@@ -1245,9 +1253,10 @@ app.post('/api/games/:id/actions', async (req, res) => {
         });
         
         // Prepare all-in players (stack = 0 during animation)
-        const allInPlayers = postActionPreShowdownPlayers
-          .filter(p => !p.hasFolded && p.isAllIn)
-          .map(p => ({ id: p.uuid, name: p.name, stack: 0 }));
+        // Use preShowdownPlayers which has stacks BEFORE pot distribution
+        const allInPlayers = preShowdownPlayers
+          .filter(p => !p.hasFolded)
+          .map(p => ({ id: p.uuid, name: p.name, stack: p.stack }));
         
         // Broadcast event sequence (frontend controls timing)
         eventBroadcaster.broadcastAllInRunout(

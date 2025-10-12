@@ -14,6 +14,24 @@
  */
 class PokerDisplayState {
   constructor() {
+    // Card image mapping (server format -> image file)
+    this.CARD_MAPPING = {
+      'SA': 'spades_A.png', 'S2': 'spades_2.png', 'S3': 'spades_3.png', 'S4': 'spades_4.png',
+      'S5': 'spades_5.png', 'S6': 'spades_6.png', 'S7': 'spades_7.png', 'S8': 'spades_8.png',
+      'S9': 'spades_9.png', 'ST': 'spades_10.png', 'SJ': 'spades_J.png', 'SQ': 'spades_Q.png', 'SK': 'spades_K.png',
+      'HA': 'hearts_A.png', 'H2': 'hearts_2.png', 'H3': 'hearts_3.png', 'H4': 'hearts_4.png',
+      'H5': 'hearts_5.png', 'H6': 'hearts_6.png', 'H7': 'hearts_7.png', 'H8': 'hearts_8.png',
+      'H9': 'hearts_9.png', 'HT': 'hearts_10.png', 'HJ': 'hearts_J.png', 'HQ': 'hearts_Q.png', 'HK': 'hearts_K.png',
+      'DA': 'diamonds_A.png', 'D2': 'diamonds_2.png', 'D3': 'diamonds_3.png', 'D4': 'diamonds_4.png',
+      'D5': 'diamonds_5.png', 'D6': 'diamonds_6.png', 'D7': 'diamonds_7.png', 'D8': 'diamonds_8.png',
+      'D9': 'diamonds_9.png', 'DT': 'diamonds_10.png', 'DJ': 'diamonds_J.png', 'DQ': 'diamonds_Q.png', 'DK': 'diamonds_K.png',
+      'CA': 'clubs_A.png', 'C2': 'clubs_2.png', 'C3': 'clubs_3.png', 'C4': 'clubs_4.png',
+      'C5': 'clubs_5.png', 'C6': 'clubs_6.png', 'C7': 'clubs_7.png', 'C8': 'clubs_8.png',
+      'C9': 'clubs_9.png', 'CT': 'clubs_10.png', 'CJ': 'clubs_J.png', 'CQ': 'clubs_Q.png', 'CK': 'clubs_K.png'
+    };
+    
+    this.CACHE_BUSTER = `?v=${Date.now()}&cb=${Math.random()}`;
+    
     // Display state
     this.players = new Map(); // playerId -> {name, stack, betThisStreet, ...}
     this.pot = 0;
@@ -323,11 +341,19 @@ class PokerDisplayState {
     this.communityCardsElement.innerHTML = '';
     
     this.communityCards.forEach(card => {
+      const imageName = this.CARD_MAPPING[card];
+      if (!imageName) {
+        console.warn(`⚠️ No mapping for card: ${card}`);
+        return;
+      }
+      
       const cardEl = document.createElement('img');
-      cardEl.src = `/cards/${card}.png`;
+      cardEl.src = `/cards/${imageName}${this.CACHE_BUSTER}`;
       cardEl.className = 'card';
       cardEl.style.cssText = 'width: 60px; height: 84px; margin: 2px; border-radius: 4px;';
       this.communityCardsElement.appendChild(cardEl);
+      
+      console.log(`🃏 Rendered card: ${card} -> ${imageName}`);
     });
   }
 
