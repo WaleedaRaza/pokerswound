@@ -991,7 +991,12 @@ app.post('/api/games/:id/actions', async (req, res) => {
     
     console.log(`🔍 Broadcasting update - roomId: ${roomId}, io exists: ${!!io}`);
     
-    if (io && roomId) {
+    // Check if this will be an all-in runout (cards dealt progressively)
+    const isHandComplete = result.newState.isHandComplete();
+    const willBeAllInRunout = isHandComplete && result.events.filter(e => e.type === 'STREET_ADVANCED').length > 1;
+    
+    // SKIP immediate broadcast if we're about to show cards progressively
+    if (io && roomId && !willBeAllInRunout) {
       const updatePayload = {
         gameId,
         action,
@@ -1007,13 +1012,14 @@ app.post('/api/games/:id/actions', async (req, res) => {
       // Log how many sockets are in the room
       const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
       console.log(`   Sockets in room:${roomId}: ${roomSockets ? roomSockets.size : 0}`);
+    } else if (willBeAllInRunout) {
+      console.log(`⏸️  SKIPPING immediate game_state_update - will reveal cards progressively first`);
     } else {
       console.log(`❌ Cannot broadcast - io: ${!!io}, roomId: ${roomId}`);
     }
     
     // Check if betting round is complete using sophisticated logic
     let isBettingComplete = result.newState.isBettingRoundComplete();
-    const isHandComplete = result.newState.isHandComplete();
     
     // EDGE CASE FIX: If someone just went all-in and raised, other players must respond
     // We use PROJECTED bet because engine may have already reset betThisStreet
