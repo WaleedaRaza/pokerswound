@@ -2620,6 +2620,18 @@
                     
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
+                    // If this is a pot transfer (all-in scenario), animate pot → winner
+                    if (payload.potTransfer && payload.previousPot) {
+                        console.log(`💸 Pot transfer animation: $${payload.previousPot} → winner's stack`);
+                        
+                        // First: Set pot to 0 (money leaving pot)
+                        const potEl = document.getElementById('potAmount');
+                        if (potEl) {
+                            potEl.textContent = '0';
+                            console.log(`  💰 Pot: $${payload.previousPot} → $0`);
+                        }
+                    }
+                    
                     // Show winner announcement as toast notification (no modal blocking)
                     if (payload.winners && payload.winners.length > 0) {
                         const winnerNames = payload.winners.map(w => {
@@ -2629,7 +2641,28 @@
                         showStatus(`🏆 ${winnerNames}`, 'success');
                     }
                     
-                    // Refresh game state to show updated stacks
+                    // Update player stacks to show winner getting the money
+                    if (payload.players && payload.players.length > 0) {
+                        const playersGrid = document.getElementById('playersGrid');
+                        if (playersGrid) {
+                            payload.players.forEach(player => {
+                                const playerCards = playersGrid.querySelectorAll('.player-card');
+                                playerCards.forEach(card => {
+                                    const nameEl = card.querySelector('.player-name');
+                                    if (nameEl && nameEl.textContent === player.name) {
+                                        const stackEl = card.querySelector('.player-stack');
+                                        if (stackEl) {
+                                            const oldStack = stackEl.textContent;
+                                            stackEl.textContent = `$${player.stack}`;
+                                            console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    
+                    // Refresh game state to sync everything
                     await fetchGameState();
                     
                     // Auto-start next hand after 3 seconds (host only)

@@ -1150,7 +1150,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
               gameId,
               street: streetEvent.data.street,
               communityCards: streetEvent.data.communityCards,
-              pot: result.newState.pot.totalPot,
+              pot: potAmount, // Use captured pot (not reset value)
               message: `Dealing ${streetEvent.data.street}...`
             });
           }, (index + 1) * 1000);
@@ -1163,6 +1163,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
         
         setTimeout(async () => {
           console.log(`🎉 ALL CARDS REVEALED - Now announcing winner!`);
+          console.log(`💸 Transferring pot ($${potAmount}) to winner's stack`);
           const userIdMap = playerUserIds.get(gameId);
           io.to(`room:${roomId}`).emit('hand_complete', {
             gameId,
@@ -1176,7 +1177,9 @@ app.post('/api/games/:id/actions', async (req, res) => {
               name: p.name,
               stack: p.stack,
               userId: userIdMap ? userIdMap.get(p.uuid) : null
-            }))
+            })),
+            potTransfer: true, // Signal that pot is being transferred to winner
+            previousPot: potAmount // Pot before transfer (for animation)
           });
           console.log(`📡 Broadcasted hand completion to room:${roomId} (after animation)`);
           
