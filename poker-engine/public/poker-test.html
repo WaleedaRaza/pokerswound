@@ -2512,9 +2512,15 @@
                 }
                 
                 // Listen for game events (new event-based system)
-                socket.on('game_event', (event) => {
+                socket.on('game_event', async (event) => {
                     console.log(`🎮 Game event received: ${event.type}`);
                     displayState.receiveEvent(event);
+                    
+                    // ✅ CRITICAL: After HAND_STARTED, fetch full state to get hole cards
+                    if (event.type === 'HAND_STARTED') {
+                        console.log('🎴 HAND_STARTED received, fetching full game state for hole cards...');
+                        await fetchGameState();
+                    }
                 });
                 
                 socket.on('connect', () => {
