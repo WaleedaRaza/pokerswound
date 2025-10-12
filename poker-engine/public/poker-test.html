@@ -2612,7 +2612,9 @@
                     await fetchGameState();
                 });
                 
+                // ⚠️ OLD SYSTEM - Disabled in favor of event system
                 // Listen for pot updates (all-in scenarios)
+                /*
                 socket.on('pot_update', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
@@ -2655,8 +2657,10 @@
                         showStatus(payload.message, 'info');
                     }
                 });
+                */
                 
-                // Listen for progressive street reveals (all-in scenarios)
+                // ⚠️ OLD SYSTEM - Disabled (street_reveal handled by event system)
+                /*
                 socket.on('street_reveal', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
@@ -2692,8 +2696,10 @@
                     // Show visual notification
                     showStatus(`🃏 ${payload.street} revealed! ${payload.message || ''}`, 'info');
                 });
+                */
                 
-                // Listen for hand completion
+                // ⚠️ OLD SYSTEM - Disabled (hand_complete handled by event system)
+                /*
                 socket.on('hand_complete', async (payload) => {
                     console.log('🏆 Hand complete event received:', payload);
                     
@@ -2765,6 +2771,7 @@
                         }, 3000);
                     }
                 });
+                */
                 
                 // Listen for game over (tournament complete)
                 socket.on('game_over', (payload) => {
