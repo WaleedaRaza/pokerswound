@@ -1066,6 +1066,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
       if (streetEvents.length > 1 && io && roomId) {
         // Multiple streets were dealt at once (all-in scenario)
         console.log(`🎬 All-in runout detected: ${streetEvents.length} streets to reveal`);
+        console.log(`⏸️  SUSPENDING winner announcement until cards are revealed to players...`);
         
         // Broadcast each street with 1-second delays
         streetEvents.forEach((streetEvent, index) => {
@@ -1075,14 +1076,18 @@ app.post('/api/games/:id/actions', async (req, res) => {
               gameId,
               street: streetEvent.data.street,
               communityCards: streetEvent.data.communityCards,
-              pot: result.newState.pot.totalPot
+              pot: result.newState.pot.totalPot,
+              message: `Dealing ${streetEvent.data.street}...`
             });
           }, (index + 1) * 1000);
         });
         
-        // Broadcast hand_complete AFTER all streets revealed
+        // NOW broadcast hand_complete AFTER all streets revealed to players
         const finalDelay = (streetEvents.length + 1) * 1000;
+        console.log(`⏰ Winner will be announced in ${finalDelay}ms (after all cards shown to players)`);
+        
         setTimeout(async () => {
+          console.log(`🎉 ALL CARDS REVEALED - Now announcing winner!`);
           const userIdMap = playerUserIds.get(gameId);
           io.to(`room:${roomId}`).emit('hand_complete', {
             gameId,

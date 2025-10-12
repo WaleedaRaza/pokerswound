@@ -2538,6 +2538,7 @@
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
                     console.log(`🃏 Street reveal: ${payload.street}`, payload.communityCards);
+                    console.log(`   ⏸️  Winner not yet announced - showing cards first`);
                     
                     // Update ONLY the community cards display (don't fetch full state yet)
                     const communityCardsDiv = document.getElementById('communityCards');
@@ -2559,8 +2560,14 @@
                         }
                     }
                     
+                    // Update pot display
+                    if (payload.pot) {
+                        const potEl = document.getElementById('potAmount');
+                        if (potEl) potEl.textContent = payload.pot;
+                    }
+                    
                     // Show visual notification
-                    showStatus(`🃏 ${payload.street} revealed!`, 'info');
+                    showStatus(`🃏 ${payload.street} revealed! ${payload.message || ''}`, 'info');
                 });
                 
                 // Listen for hand completion
