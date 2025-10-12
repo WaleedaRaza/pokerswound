@@ -2642,28 +2642,31 @@
                     }
                     
                     // Update player stacks to show winner getting the money
-                    if (payload.players && payload.players.length > 0) {
-                        const playersGrid = document.getElementById('playersGrid');
-                        if (playersGrid) {
-                            payload.players.forEach(player => {
-                                const playerCards = playersGrid.querySelectorAll('.player-card');
-                                playerCards.forEach(card => {
-                                    const nameEl = card.querySelector('.player-name');
-                                    if (nameEl && nameEl.textContent === player.name) {
-                                        const stackEl = card.querySelector('.player-stack');
-                                        if (stackEl) {
-                                            const oldStack = stackEl.textContent;
-                                            stackEl.textContent = `$${player.stack}`;
-                                            console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
+                    // Wait a tiny bit so pot → 0 animation is visible first
+                    setTimeout(() => {
+                        if (payload.players && payload.players.length > 0) {
+                            const playersGrid = document.getElementById('playersGrid');
+                            if (playersGrid) {
+                                payload.players.forEach(player => {
+                                    const playerCards = playersGrid.querySelectorAll('.player-card');
+                                    playerCards.forEach(card => {
+                                        const nameEl = card.querySelector('.player-name');
+                                        if (nameEl && nameEl.textContent === player.name) {
+                                            const stackEl = card.querySelector('.player-stack');
+                                            if (stackEl) {
+                                                const oldStack = stackEl.textContent;
+                                                stackEl.textContent = `$${player.stack}`;
+                                                console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
+                                            }
                                         }
-                                    }
+                                    });
                                 });
-                            });
+                            }
                         }
-                    }
+                    }, 200); // 200ms delay so pot goes to 0 first
                     
-                    // Refresh game state to sync everything
-                    await fetchGameState();
+                    // DON'T fetch game state - we already have the correct values from the event
+                    // Fetching would be redundant and might cause flicker
                     
                     // Auto-start next hand after 3 seconds (host only)
                     if (isHost) {
