@@ -1102,6 +1102,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
           
           // 💾 UPDATE DATABASE: Persist player stacks after hand completion
           if (userIdMap) {
+            const db = getDb(); // Get db instance inside setTimeout callback
             console.log('💾 Updating player stacks in database after hand completion...');
             for (const player of result.newState.players.values()) {
               const userId = userIdMap.get(player.uuid);
@@ -1122,7 +1123,6 @@ app.post('/api/games/:id/actions', async (req, res) => {
             
             // 📝 LOG HAND HISTORY for audit trail
             try {
-              const db = getDb();
               const finalStacks = {};
               Array.from(result.newState.players.values()).forEach(p => {
                 finalStacks[p.uuid] = p.stack;
@@ -1171,6 +1171,7 @@ app.post('/api/games/:id/actions', async (req, res) => {
           
           // 💾 UPDATE DATABASE: Persist player stacks after hand completion
           if (userIdMap) {
+            const db = getDb(); // Get db instance
             console.log('💾 Updating player stacks in database after hand completion...');
             for (const player of result.newState.players.values()) {
               const userId = userIdMap.get(player.uuid);
@@ -1191,7 +1192,6 @@ app.post('/api/games/:id/actions', async (req, res) => {
             
             // 📝 LOG HAND HISTORY for audit trail
             try {
-              const db = getDb();
               const finalStacks = {};
               Array.from(result.newState.players.values()).forEach(p => {
                 finalStacks[p.uuid] = p.stack;
