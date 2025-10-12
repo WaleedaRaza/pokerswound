@@ -2642,33 +2642,28 @@
                     }
                     
                     // Update player stacks to show winner getting the money
-                    // Wait 500ms so pot → 0 animation is visible first
-                    setTimeout(() => {
-                        // Use finalStacks (POST-distribution) instead of players (PRE-distribution)
-                        const stacksToShow = payload.finalStacks || payload.players;
-                        if (stacksToShow && stacksToShow.length > 0) {
-                            const playersGrid = document.getElementById('playersGrid');
-                            if (playersGrid) {
-                                stacksToShow.forEach(player => {
-                                    const playerCards = playersGrid.querySelectorAll('.player-card');
-                                    playerCards.forEach(card => {
-                                        const nameEl = card.querySelector('.player-name');
-                                        if (nameEl && nameEl.textContent === player.name) {
-                                            const stackEl = card.querySelector('.player-stack');
-                                            if (stackEl) {
-                                                const oldStack = stackEl.textContent;
-                                                stackEl.textContent = `$${player.stack}`;
-                                                console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
-                                            }
+                    if (payload.players && payload.players.length > 0) {
+                        const playersGrid = document.getElementById('playersGrid');
+                        if (playersGrid) {
+                            payload.players.forEach(player => {
+                                const playerCards = playersGrid.querySelectorAll('.player-card');
+                                playerCards.forEach(card => {
+                                    const nameEl = card.querySelector('.player-name');
+                                    if (nameEl && nameEl.textContent === player.name) {
+                                        const stackEl = card.querySelector('.player-stack');
+                                        if (stackEl) {
+                                            const oldStack = stackEl.textContent;
+                                            stackEl.textContent = `$${player.stack}`;
+                                            console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
                                         }
-                                    });
+                                    }
                                 });
-                            }
+                            });
                         }
-                    }, 500); // 500ms delay so pot → 0 is clearly visible first
+                    }
                     
-                    // DON'T fetch game state - we already have the correct values from the event
-                    // Fetching would be redundant and might cause flicker
+                    // Refresh game state to sync everything
+                    await fetchGameState();
                     
                     // Auto-start next hand after 3 seconds (host only)
                     if (isHost) {
