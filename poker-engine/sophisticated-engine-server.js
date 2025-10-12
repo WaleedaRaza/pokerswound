@@ -1163,8 +1163,28 @@ app.post('/api/games/:id/actions', async (req, res) => {
         
         setTimeout(async () => {
           console.log(`🎉 ALL CARDS REVEALED - Now announcing winner!`);
-          console.log(`💸 Transferring pot ($${potAmount}) to winner's stack`);
+          console.log(`💸 Will transfer pot ($${potAmount}) to winner's stack`);
           const userIdMap = playerUserIds.get(gameId);
+          
+          // Send PRE-distribution stacks (all at 0 for all-in players)
+          // Frontend will animate the pot transfer
+          const preDistributionPlayers = postActionPreShowdownPlayers
+            .filter(p => !p.hasFolded)
+            .map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.isAllIn ? 0 : p.stack, // Force 0 for all-in players
+              userId: userIdMap ? userIdMap.get(p.uuid) : null
+            }));
+          
+          // Also send the FINAL stacks for frontend to animate to
+          const finalStacks = Array.from(result.newState.players.values()).map(p => ({
+            id: p.uuid,
+            name: p.name,
+            stack: p.stack,
+            userId: userIdMap ? userIdMap.get(p.uuid) : null
+          }));
+          
           io.to(`room:${roomId}`).emit('hand_complete', {
             gameId,
             winners: winners.map(w => ({
@@ -1172,14 +1192,10 @@ app.post('/api/games/:id/actions', async (req, res) => {
               amount: w.amount,
               handRank: w.handRank
             })),
-            players: Array.from(result.newState.players.values()).map(p => ({
-              id: p.uuid,
-              name: p.name,
-              stack: p.stack,
-              userId: userIdMap ? userIdMap.get(p.uuid) : null
-            })),
-            potTransfer: true, // Signal that pot is being transferred to winner
-            previousPot: potAmount // Pot before transfer (for animation)
+            players: preDistributionPlayers, // PRE-distribution (all at 0)
+            finalStacks: finalStacks, // POST-distribution (winner has money)
+            potTransfer: true,
+            previousPot: potAmount
           });
           console.log(`📡 Broadcasted hand completion to room:${roomId} (after animation)`);
           

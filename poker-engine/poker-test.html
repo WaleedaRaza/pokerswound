@@ -2642,12 +2642,14 @@
                     }
                     
                     // Update player stacks to show winner getting the money
-                    // Wait a tiny bit so pot → 0 animation is visible first
+                    // Wait 500ms so pot → 0 animation is visible first
                     setTimeout(() => {
-                        if (payload.players && payload.players.length > 0) {
+                        // Use finalStacks (POST-distribution) instead of players (PRE-distribution)
+                        const stacksToShow = payload.finalStacks || payload.players;
+                        if (stacksToShow && stacksToShow.length > 0) {
                             const playersGrid = document.getElementById('playersGrid');
                             if (playersGrid) {
-                                payload.players.forEach(player => {
+                                stacksToShow.forEach(player => {
                                     const playerCards = playersGrid.querySelectorAll('.player-card');
                                     playerCards.forEach(card => {
                                         const nameEl = card.querySelector('.player-name');
@@ -2663,7 +2665,7 @@
                                 });
                             }
                         }
-                    }, 200); // 200ms delay so pot goes to 0 first
+                    }, 500); // 500ms delay so pot → 0 is clearly visible first
                     
                     // DON'T fetch game state - we already have the correct values from the event
                     // Fetching would be redundant and might cause flicker
