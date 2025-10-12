@@ -2533,6 +2533,22 @@
                     await fetchGameState();
                 });
                 
+                // Listen for pot updates (all-in scenarios)
+                socket.on('pot_update', (payload) => {
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    console.log(`💰 Pot update: ${payload.pot}`, payload.message);
+                    
+                    // Update pot display immediately
+                    const potEl = document.getElementById('potAmount');
+                    if (potEl) potEl.textContent = payload.pot;
+                    
+                    // Show notification
+                    if (payload.message) {
+                        showStatus(payload.message, 'info');
+                    }
+                });
+                
                 // Listen for progressive street reveals (all-in scenarios)
                 socket.on('street_reveal', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
@@ -2560,7 +2576,7 @@
                         }
                     }
                     
-                    // Update pot display
+                    // Update pot display (in case it changed)
                     if (payload.pot) {
                         const potEl = document.getElementById('potAmount');
                         if (potEl) potEl.textContent = payload.pot;

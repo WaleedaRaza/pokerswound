@@ -995,25 +995,35 @@ app.post('/api/games/:id/actions', async (req, res) => {
     const isHandComplete = result.newState.isHandComplete();
     const willBeAllInRunout = isHandComplete && result.events.filter(e => e.type === 'STREET_ADVANCED').length > 1;
     
-    // SKIP immediate broadcast if we're about to show cards progressively
-    if (io && roomId && !willBeAllInRunout) {
-      const updatePayload = {
-        gameId,
-        action,
-        playerId: player_id,
-        street: result.newState.currentStreet,
-        pot: result.newState.pot.totalPot,
-        toAct: result.newState.toAct
-      };
-      
-      console.log(`📡 Broadcasting to room:${roomId}:`, updatePayload);
-      io.to(`room:${roomId}`).emit('game_state_update', updatePayload);
-      
-      // Log how many sockets are in the room
-      const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
-      console.log(`   Sockets in room:${roomId}: ${roomSockets ? roomSockets.size : 0}`);
-    } else if (willBeAllInRunout) {
-      console.log(`⏸️  SKIPPING immediate game_state_update - will reveal cards progressively first`);
+    if (io && roomId) {
+      if (willBeAllInRunout) {
+        // All-in runout detected - send pot update ONLY (no winner info yet)
+        console.log(`💰 All-in runout - broadcasting pot update only (${result.newState.pot.totalPot})`);
+        io.to(`room:${roomId}`).emit('pot_update', {
+          gameId,
+          pot: result.newState.pot.totalPot,
+          action: action,
+          playerId: player_id,
+          message: 'All players all-in - dealing remaining cards...'
+        });
+      } else {
+        // Normal action - full game state update
+        const updatePayload = {
+          gameId,
+          action,
+          playerId: player_id,
+          street: result.newState.currentStreet,
+          pot: result.newState.pot.totalPot,
+          toAct: result.newState.toAct
+        };
+        
+        console.log(`📡 Broadcasting to room:${roomId}:`, updatePayload);
+        io.to(`room:${roomId}`).emit('game_state_update', updatePayload);
+        
+        // Log how many sockets are in the room
+        const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
+        console.log(`   Sockets in room:${roomId}: ${roomSockets ? roomSockets.size : 0}`);
+      }
     } else {
       console.log(`❌ Cannot broadcast - io: ${!!io}, roomId: ${roomId}`);
     }
