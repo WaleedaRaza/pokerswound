@@ -1156,7 +1156,7 @@
             const imageName = CARD_MAPPING[cardCode];
             if (!imageName) {
                 console.warn(`No mapping for card: ${cardCode} - using card back`);
-                return `cards/back_dark.png${CACHE_BUSTER}`;
+                return `cards/back.png${CACHE_BUSTER}`;
             }
             
             const imageUrl = `cards/${imageName}${CACHE_BUSTER}`;
@@ -1170,7 +1170,7 @@
             cardDiv.className = 'card';
             
             if (isHidden) {
-                cardDiv.innerHTML = `<img src="cards/back_dark.png${CACHE_BUSTER}" alt="Card Back" class="card-image" onerror="console.error('❌ Failed to load card back')">`;
+                cardDiv.innerHTML = `<img src="cards/back.png${CACHE_BUSTER}" alt="Card Back" class="card-image" onerror="console.error('❌ Failed to load card back')">`;
             } else {
                 const imageUrl = getCardImageUrl(cardCode);
                 cardDiv.innerHTML = `<img src="${imageUrl}" alt="${cardCode}" class="card-image" onerror="console.error('❌ Failed to load card: ${cardCode} from ${imageUrl}')" onload="console.log('✅ Loaded card: ${cardCode}')">`;
@@ -1209,7 +1209,7 @@
             });
             
             // Also preload card backs
-            ['back_dark.png', 'back_light.png'].forEach(imageName => {
+            ['back.png'].forEach(imageName => {
                 const img = new Image();
                 const promise = new Promise((resolve, reject) => {
                     img.onload = resolve;
@@ -2162,6 +2162,23 @@
                 // Check if we're the host
                 isHost = data.status === 'approved';
                 
+                // ✅ CRITICAL FIX: Fetch gameId immediately (not after approval)
+                // This prevents race condition where host starts game before guest gets gameId
+                if (!currentGame) {
+                    try {
+                        const gamesRes = await apiCall(`/games?roomId=${roomId}`);
+                        if (gamesRes.ok) {
+                            const gamesData = await gamesRes.json();
+                            if (gamesData.games && gamesData.games.length > 0) {
+                                currentGame = { gameId: gamesData.games[0].gameId };
+                                console.log('✅ Guest fetched gameId immediately:', currentGame);
+                            }
+                        }
+                    } catch (gameError) {
+                        console.warn('⚠️ Could not fetch gameId yet (game may not exist):', gameError.message);
+                    }
+                }
+                
                 // Show lobby UI
                 showLobby();
                 
@@ -2312,19 +2329,7 @@
                     statusEl.textContent = '✅ You\'ve been approved!';
                     messageEl.textContent = 'Loading game...';
                     
-                    // Fetch the game for this room (guests need to know gameId for WebSocket sync)
-                    try {
-                        const gamesRes = await apiCall(`/games?roomId=${room.id}`);
-                        if (gamesRes.ok) {
-                            const gamesData = await gamesRes.json();
-                            if (gamesData.games && gamesData.games.length > 0) {
-                                currentGame = { gameId: gamesData.games[0].gameId };
-                                console.log('✅ Guest found and set currentGame:', currentGame);
-                            }
-                        }
-                    } catch (gameError) {
-                        console.error('Error fetching game for guest:', gameError);
-                    }
+                    // GameId already fetched in joinLobby() - no need to fetch again
                     
                     // Transition to game
                     setTimeout(async () => {
@@ -2540,22 +2545,7 @@
                 });
                 
                 // Listen for hand started
-                socket.on('hand_started', async (payload) => {
-                    console.log('🎲 Hand started event received:', payload);
-                    
-                    // SET currentGame for ALL players (not just host) - FIX FOR GUESTS
-                    if (!currentGame && payload.gameId) {
-                        currentGame = { gameId: payload.gameId };
-                        console.log('✅ Current game set from WebSocket for guest:', currentGame);
-                    }
-                    
-                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
-                    
-                    showStatus('🎲 Hand started! Cards dealt.', 'success');
-                    
-                    // Fetch updated game state
-                    await fetchGameState();
-                });
+                // Legacy hand_started socket event disabled in favor of event system
                 
                 // Listen for game state updates
                 socket.on('game_state_update', async (payload) => {
@@ -2608,8 +2598,7 @@
                         `${payload.action} $${payload.amount}` : payload.action;
                     showStatus(`🎲 Player action: ${actionText}`, 'info');
                     
-                    // Still fetch full state to sync everything (but UI already updated)
-                    await fetchGameState();
+                    // Do not fetch during event flow; rely on events
                 });
                 
                 // ⚠️ OLD SYSTEM - Disabled in favor of event system
