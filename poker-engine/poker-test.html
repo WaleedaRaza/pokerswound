@@ -2534,13 +2534,30 @@
                 });
                 
                 // Listen for progressive street reveals (all-in scenarios)
-                socket.on('street_reveal', async (payload) => {
+                socket.on('street_reveal', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
                     console.log(`🃏 Street reveal: ${payload.street}`, payload.communityCards);
                     
-                    // Fetch updated game state to show new cards
-                    await fetchGameState();
+                    // Update ONLY the community cards display (don't fetch full state yet)
+                    const communityCardsDiv = document.getElementById('communityCards');
+                    if (communityCardsDiv) {
+                        communityCardsDiv.innerHTML = '';
+                        
+                        // Show cards progressively based on street
+                        payload.communityCards.forEach((cardStr, index) => {
+                            const cardElement = createCardElement(cardStr, false);
+                            communityCardsDiv.appendChild(cardElement);
+                        });
+                        
+                        // Fill remaining slots with placeholders
+                        for (let i = payload.communityCards.length; i < 5; i++) {
+                            const cardDiv = document.createElement('div');
+                            cardDiv.className = 'card placeholder';
+                            cardDiv.textContent = '?';
+                            communityCardsDiv.appendChild(cardDiv);
+                        }
+                    }
                     
                     // Show visual notification
                     showStatus(`🃏 ${payload.street} revealed!`, 'info');
