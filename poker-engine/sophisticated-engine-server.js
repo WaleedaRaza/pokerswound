@@ -1072,17 +1072,35 @@ app.post('/api/games/:id/actions', async (req, res) => {
         const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
         console.log(`   Sockets in room: ${roomSockets ? roomSockets.size : 0}`);
       } else {
-        // Normal action - full game state update
+        // Normal action - full game state update with player stacks
+        const userIdMap = playerUserIds.get(gameId);
+        
+        // ✅ CRITICAL FIX: Include player data so UI can update immediately
+        const players = Array.from(result.newState.players.values()).map(p => ({
+          id: p.uuid,
+          name: p.name,
+          stack: p.stack,
+          betThisStreet: p.betThisStreet,
+          isAllIn: p.isAllIn,
+          hasFolded: p.hasFolded,
+          userId: userIdMap ? userIdMap.get(p.uuid) : null
+        }));
+        
         const updatePayload = {
           gameId,
           action,
           playerId: player_id,
+          amount: amount || 0,  // Include bet/call amount
           street: result.newState.currentStreet,
           pot: result.newState.pot.totalPot,
-          toAct: result.newState.toAct
+          toAct: result.newState.toAct,
+          players: players  // ✅ Include all player data
         };
         
         console.log(`📡 Broadcasting to room:${roomId}:`, updatePayload);
+        console.log(`  Player stacks after action:`);
+        players.forEach(p => console.log(`    ${p.name}: $${p.stack} (bet: $${p.betThisStreet})`));
+        
         io.to(`room:${roomId}`).emit('game_state_update', updatePayload);
         
         // Log how many sockets are in the room

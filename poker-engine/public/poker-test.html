@@ -2525,17 +2525,55 @@
                 // Listen for game state updates
                 socket.on('game_state_update', async (payload) => {
                     console.log('🔄 Game state update received:', payload);
-                    console.log('  currentGame:', currentGame);
-                    console.log('  payload.gameId:', payload.gameId);
-                    console.log('  Match?', currentGame && payload.gameId === currentGame.gameId);
                     
                     if (!currentGame || payload.gameId !== currentGame.gameId) {
-                        console.log('❌ Ignoring update - game ID mismatch or no current game');
+                        console.log('❌ Ignoring update - game ID mismatch');
                         return;
                     }
                     
-                    console.log('✅ Fetching updated game state...');
-                    // Fetch updated game state
+                    // ✅ Update UI immediately from payload (no HTTP fetch needed!)
+                    console.log(`  Action: ${payload.action} by player ${payload.playerId}`);
+                    console.log(`  Amount: $${payload.amount}`);
+                    console.log(`  New pot: $${payload.pot}`);
+                    
+                    // Update pot display
+                    const potEl = document.getElementById('potAmount');
+                    if (potEl) {
+                        potEl.textContent = payload.pot;
+                        console.log(`  💰 Pot updated: $${payload.pot}`);
+                    }
+                    
+                    // Update player stacks and bets immediately
+                    if (payload.players && payload.players.length > 0) {
+                        const playersGrid = document.getElementById('playersGrid');
+                        if (playersGrid) {
+                            payload.players.forEach(player => {
+                                const playerCards = playersGrid.querySelectorAll('.player-card');
+                                playerCards.forEach(card => {
+                                    const nameEl = card.querySelector('.player-name');
+                                    if (nameEl && nameEl.textContent === player.name) {
+                                        // Update stack
+                                        const stackEl = card.querySelector('.player-stack');
+                                        if (stackEl) {
+                                            stackEl.textContent = `$${player.stack}`;
+                                        }
+                                        
+                                        // Show current bet amount if betting
+                                        if (player.betThisStreet > 0) {
+                                            console.log(`    ${player.name}: stack=$${player.stack}, bet=$${player.betThisStreet}`);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    
+                    // Show action notification
+                    const actionText = payload.amount > 0 ? 
+                        `${payload.action} $${payload.amount}` : payload.action;
+                    showStatus(`🎲 Player action: ${actionText}`, 'info');
+                    
+                    // Still fetch full state to sync everything (but UI already updated)
                     await fetchGameState();
                 });
                 
