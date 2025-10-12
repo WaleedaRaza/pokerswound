@@ -478,3 +478,56 @@ Or if you want to adjust the plan, tell me what to change.
 **Commit:** `f4aaa63`
 
 **Status:** ✅ Fixed - Animation context now stored before broadcasting, preventing race condition
+
+---
+
+## 🏗️ NEW ARCHITECTURE: Event-Based System (Oct 12, 2025)
+
+### Problem: Brittle State-Based Broadcasting
+
+The sophisticated-engine-server.js was using a state-based approach:
+- Backend mutates game state immediately (pot distributed to winner)
+- Backend broadcasts state snapshots via WebSocket
+- Frontend also fetches state via HTTP GET
+- **Race condition**: HTTP GET could return post-distribution state before animation completed
+- **Brittle**: Every new animation feature required complex timing logic in backend
+
+### Solution: Event-Based Architecture
+
+**Core Principle**: Backend emits events (facts), Frontend controls display timing.
+
+**Backend Changes:**
+- `src/events/game-events.js` - Event type definitions
+- `src/events/event-broadcaster.js` - Event broadcasting class
+- Backend emits atomic events: `CHIPS_COMMITTED`, `STREET_REVEALED`, `CHIPS_TRANSFERRED`, etc.
+- Backend no longer manages animation timing
+
+**Frontend Changes:**
+- `public/js/game-events.js` - Event types (frontend copy)
+- `public/js/display-state.js` - Display state manager with event queue
+- Frontend maintains its own display state
+- Frontend queues events when animating
+- Frontend processes events when ready
+
+**Key Benefits:**
+1. **No more race conditions** - Events processed in order
+2. **Frontend controls timing** - Backend doesn't know about animations
+3. **Scalable** - Adding features = adding events
+4. **Debuggable** - Event log shows exactly what happened
+5. **Replayable** - Can replay events for spectators/debugging
+6. **Testable** - Record events, replay in tests
+
+**Files Created:**
+- `poker-engine/src/events/game-events.js`
+- `poker-engine/src/events/event-broadcaster.js`
+- `poker-engine/public/js/game-events.js`
+- `poker-engine/public/js/display-state.js`
+- `poker-engine/EVENT_SYSTEM_IMPLEMENTATION.md`
+- `poker-engine/QUICK_START_EVENT_SYSTEM.md`
+
+**Integration Required:**
+- See `QUICK_START_EVENT_SYSTEM.md` for 3 backend + 2 frontend changes
+- Minimal changes to existing code
+- Old system can remain for backward compatibility
+
+**This solves the fundamental brittleness issue** - the pattern will no longer persist because the architecture now aligns with the requirement (animated, timed UI updates).

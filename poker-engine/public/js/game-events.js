@@ -1,0 +1,42 @@
+/**
+ * Frontend copy of game event types
+ * Keep in sync with backend poker-engine/src/events/game-events.js
+ */
+
+const GameEventType = {
+  // Hand lifecycle
+  HAND_STARTED: 'HAND_STARTED',
+  HAND_ENDED: 'HAND_ENDED',
+  
+  // Player actions
+  PLAYER_FOLDED: 'PLAYER_FOLDED',
+  PLAYER_CHECKED: 'PLAYER_CHECKED',
+  PLAYER_CALLED: 'PLAYER_CALLED',
+  PLAYER_RAISED: 'PLAYER_RAISED',
+  PLAYER_BET: 'PLAYER_BET',
+  PLAYER_WENT_ALL_IN: 'PLAYER_WENT_ALL_IN',
+  
+  // Chips movement
+  CHIPS_COMMITTED_TO_POT: 'CHIPS_COMMITTED_TO_POT',
+  CHIPS_TRANSFERRED_TO_WINNER: 'CHIPS_TRANSFERRED_TO_WINNER',
+  
+  // Street progression
+  FLOP_REVEALED: 'FLOP_REVEALED',
+  TURN_REVEALED: 'TURN_REVEALED',
+  RIVER_REVEALED: 'RIVER_REVEALED',
+  
+  // Showdown
+  WINNER_DETERMINED: 'WINNER_DETERMINED',
+  POT_AWARDED: 'POT_AWARDED',
+  
+  // Turn management
+  TURN_STARTED: 'TURN_STARTED',
+  
+  // Special scenarios
+  ALL_IN_RUNOUT_STARTED: 'ALL_IN_RUNOUT_STARTED',
+  
+  // System
+  PLAYER_JOINED: 'PLAYER_JOINED',
+  PLAYER_LEFT: 'PLAYER_LEFT'
+};
+
