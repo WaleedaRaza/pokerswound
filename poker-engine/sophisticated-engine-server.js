@@ -1030,15 +1030,16 @@ app.post('/api/games/:id/actions', async (req, res) => {
         // All-in runout detected - send pot update with CORRECT stacks
         const userIdMap = playerUserIds.get(gameId);
         
-        // CRITICAL: Engine has already distributed pot in handleEndHand
-        // We need to RECONSTRUCT pre-distribution state manually
-        // All all-in players should show stack=0 (chips in pot)
+        // ✅ CRITICAL FIX: Store pre-distribution stacks for UI animation
+        // Engine has already distributed pot in handleEndHand
+        // We need to preserve pre-distribution state for progressive UI updates
+        const preDistributionStacks = new Map();
         const currentPlayers = postActionPreShowdownPlayers
           .filter(p => !p.hasFolded) // Only active players
           .map(p => {
             // Force stack to 0 for all-in players (chips are in the pot)
             const displayStack = p.isAllIn ? 0 : p.stack;
-            return {
+            const playerData = {
               id: p.uuid,
               name: p.name,
               stack: displayStack, // Force 0 for all-in players
@@ -1046,9 +1047,12 @@ app.post('/api/games/:id/actions', async (req, res) => {
               isAllIn: p.isAllIn,
               userId: userIdMap ? userIdMap.get(p.uuid) : null
             };
+            // Store for later use in hand_complete
+            preDistributionStacks.set(p.uuid, playerData);
+            return playerData;
           });
         
-        console.log(`💰 All-in runout - broadcasting pot and RECONSTRUCTED pre-distribution stacks: $${potAmount}`);
+        console.log(`💰 All-in runout - broadcasting pot and pre-distribution stacks: $${potAmount}`);
         currentPlayers.forEach(p => console.log(`  ${p.name}: stack=$${p.stack}, allIn=${p.isAllIn}`));
         
         io.to(`room:${roomId}`).emit('pot_update', {
@@ -1060,6 +1064,9 @@ app.post('/api/games/:id/actions', async (req, res) => {
           message: 'All players all-in - dealing remaining cards...'
         });
         console.log(`📡 Emitted pot_update to room:${roomId} with pot=$${potAmount}, ${currentPlayers.length} players`);
+        
+        // ✅ Store pre-distribution stacks for later use in hand_complete
+        result.newState.preDistributionStacks = preDistributionStacks;
         
         // Log sockets in room
         const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
@@ -1166,6 +1173,19 @@ app.post('/api/games/:id/actions', async (req, res) => {
           console.log(`🎉 ALL CARDS REVEALED - Now announcing winner!`);
           console.log(`💸 Transferring pot ($${potAmount}) to winner's stack`);
           const userIdMap = playerUserIds.get(gameId);
+          
+          // ✅ FIXED: Now send post-distribution stacks (with winnings)
+          // This happens AFTER the card reveal animation completes
+          const postDistributionPlayers = Array.from(result.newState.players.values()).map(p => ({
+            id: p.uuid,
+            name: p.name,
+            stack: p.stack,  // Post-distribution (winner has the pot now)
+            userId: userIdMap ? userIdMap.get(p.uuid) : null
+          }));
+          
+          console.log(`  Post-distribution stacks (winner gets pot):`);
+          postDistributionPlayers.forEach(p => console.log(`    ${p.name}: $${p.stack}`));
+          
           io.to(`room:${roomId}`).emit('hand_complete', {
             gameId,
             winners: winners.map(w => ({
@@ -1173,12 +1193,10 @@ app.post('/api/games/:id/actions', async (req, res) => {
               amount: w.amount,
               handRank: w.handRank
             })),
-            players: Array.from(result.newState.players.values()).map(p => ({
-              id: p.uuid,
-              name: p.name,
-              stack: p.stack,
-              userId: userIdMap ? userIdMap.get(p.uuid) : null
-            })),
+            players: postDistributionPlayers,
+            // ✅ Include pre-distribution stacks for reference (if needed by UI)
+            preDistributionStacks: result.newState.preDistributionStacks ? 
+              Array.from(result.newState.preDistributionStacks.values()) : null,
             potTransfer: true, // Signal that pot is being transferred to winner
             previousPot: potAmount // Pot before transfer (for animation)
           });

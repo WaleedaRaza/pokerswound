@@ -1,0 +1,3567 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎰 Modern Poker Lounge</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Modal System */
+        .modal-overlay,
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            position: relative;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Landing Page */
+        .landing-page {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .landing-content {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .landing-hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .landing-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #10b981, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(20deg); }
+        }
+
+        .landing-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .landing-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .landing-card {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .landing-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
+        }
+
+        .landing-card-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .landing-card h3 {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            color: #f1f5f9;
+        }
+
+        .landing-card p {
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .modal-medium {
+            max-width: 700px;
+            width: 95%;
+            padding: 3rem;
+        }
+
+        .modal-small {
+            max-width: 650px;
+            width: 95%;
+            padding: 3rem;
+        }
+
+        .modal-body {
+            margin: 2rem 0;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #94a3b8;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .form-hint {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-section h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+        }
+
+        .player-buyin-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-buyin-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.5rem;
+        }
+
+        .player-buyin-name {
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .form-input-inline {
+            width: 120px;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-title h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #f1f5f9;
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .btn-icon {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #60a5fa;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .admin-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .admin-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .admin-info-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .admin-info-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-info-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-huge {
+            padding: 1.25rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-huge:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .admin-hint {
+            display: block;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        /* Player Panel (Non-Host) */
+        .player-panel {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .player-panel-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .player-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-info-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .player-info-value {
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        /* Lobby Panel */
+        .lobby-panel {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .lobby-content {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lobby-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .lobby-header h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lobby-room-code {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffc107;
+            letter-spacing: 0.1em;
+        }
+
+        .lobby-players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .lobby-player-card {
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .lobby-player-card:hover {
+            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateX(4px);
+        }
+
+        .lobby-player-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .lobby-player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        .lobby-player-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .lobby-player-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .lobby-player-status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .lobby-player-status.approved {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .lobby-player-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lobby-waiting {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 2rem;
+            border: 4px solid rgba(148, 163, 184, 0.2);
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-height: calc(100vh - 80px);
+            gap: 1rem;
+        }
+
+        /* Game Setup Panel - Compact */
+        .setup-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .setup-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #10b981;
+        }
+
+        /* MASSIVE Poker Table - Main Focus */
+        .poker-table-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 75vh;
+            padding: 1rem;
+        }
+
+        .poker-table {
+            width: 100%;
+            max-width: 1600px;
+            aspect-ratio: 16/10;
+            background: linear-gradient(135deg, #0f5132 0%, #198754 50%, #20c997 100%);
+            border-radius: 3rem;
+            position: relative;
+            box-shadow: 
+                0 0 0 12px rgba(30, 41, 59, 0.9),
+                0 0 0 16px rgba(148, 163, 184, 0.2),
+                0 30px 80px rgba(0, 0, 0, 0.5),
+                inset 0 2px 0 rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            min-height: 900px;
+        }
+
+        .poker-table::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.1) 70%),
+                linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Table Center */
+        .table-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .pot-display {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255, 193, 7, 0.6);
+            border-radius: 1.5rem;
+            padding: 1.5rem 3rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 6px 30px rgba(255, 193, 7, 0.3);
+        }
+
+        .pot-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffc107;
+            text-shadow: 0 3px 15px rgba(255, 193, 7, 0.6);
+        }
+
+        .pot-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Community Cards */
+        .community-cards {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .card {
+            width: 100px;
+            height: 140px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #1e293b;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(148, 163, 184, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card.placeholder {
+            background: rgba(51, 65, 85, 0.6);
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+            color: #64748b;
+        }
+
+        /* Player Seats */
+        .player-seats {
+            position: absolute;
+            inset: 0;
+        }
+
+        .player-seat {
+            position: absolute;
+            width: 220px;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Seat Positions for 10-Player Rounded Square Table */
+        .player-seat:nth-child(1) { top: 8%; left: 50%; } /* Top Center */
+        .player-seat:nth-child(2) { top: 12%; right: 20%; transform: translate(50%, -50%); } /* Top Right */
+        .player-seat:nth-child(3) { top: 30%; right: 3%; transform: translate(50%, -50%); } /* Middle Right */
+        .player-seat:nth-child(4) { top: 55%; right: 3%; transform: translate(50%, -50%); } /* Lower Right */
+        .player-seat:nth-child(5) { bottom: 12%; right: 20%; transform: translate(50%, 50%); } /* Bottom Right */
+        .player-seat:nth-child(6) { bottom: 8%; left: 50%; transform: translate(-50%, 50%); } /* Bottom Center */
+        .player-seat:nth-child(7) { bottom: 12%; left: 20%; transform: translate(-50%, 50%); } /* Bottom Left */
+        .player-seat:nth-child(8) { top: 55%; left: 3%; transform: translate(-50%, -50%); } /* Lower Left */
+        .player-seat:nth-child(9) { top: 30%; left: 3%; transform: translate(-50%, -50%); } /* Middle Left */
+        .player-seat:nth-child(10) { top: 12%; left: 20%; transform: translate(-50%, -50%); } /* Top Left */
+
+        .player-card {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(148, 163, 184, 0.3);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 1rem;
+            min-height: 140px;
+        }
+
+        .player-card.active {
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .player-card.to-act {
+            border-color: #ffc107;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(255, 193, 7, 0.8); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); color: #10b981; }
+            50% { transform: scale(1.15); color: #34d399; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+            100% { transform: scale(1); color: #10b981; }
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #f1f5f9;
+        }
+
+        .player-stack {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
+
+        .player-status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .player-cards {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 0.5rem;
+        }
+
+        .player-card-small {
+            width: 55px;
+            height: 77px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: bold;
+            color: #1e293b;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .hand-strength {
+            font-size: 0.75rem;
+            color: #10b981;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Beautiful Player Avatars */
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem auto;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: avatar-shine 3s ease-in-out infinite;
+        }
+
+        @keyframes avatar-shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(0%) translateY(0%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        /* Avatar Colors for Different Players */
+        .player-avatar.avatar-1 { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .player-avatar.avatar-2 { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .player-avatar.avatar-3 { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+        .player-avatar.avatar-4 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+        .player-avatar.avatar-5 { background: linear-gradient(135deg, #ec4899, #db2777); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
+        .player-avatar.avatar-6 { background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3); }
+        .player-avatar.avatar-7 { background: linear-gradient(135deg, #84cc16, #65a30d); box-shadow: 0 4px 15px rgba(132, 204, 22, 0.3); }
+        .player-avatar.avatar-8 { background: linear-gradient(135deg, #f97316, #ea580c); box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); }
+        .player-avatar.avatar-9 { background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+        .player-avatar.avatar-10 { background: linear-gradient(135deg, #14b8a6, #0d9488); box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3); }
+
+        /* Modern Controls - Compact */
+        .controls-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .control-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #10b981;
+        }
+
+        /* Modern Buttons */
+        .btn {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #f1f5f9;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-color: #3b82f6;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: #ef4444;
+        }
+
+        /* Modern Inputs */
+        .form-input {
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: #f1f5f9;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #64748b;
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+                grid-template-rows: auto auto 1fr auto;
+            }
+            
+            .poker-table {
+                max-width: 100%;
+                aspect-ratio: 4/3;
+            }
+            
+            .player-seat {
+                width: 120px;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Winner Announcement */
+        .winner-announcement {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffc107, #ff8f00);
+            color: #000;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(255, 193, 7, 0.4);
+            z-index: 100;
+            animation: winner-bounce 0.6s ease-out;
+        }
+
+        @keyframes winner-bounce {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+    </style>
+    
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+
+    
+    <!-- BULLETPROOF CARD MAPPING SYSTEM -->
+    <script>
+        // 🎴 COMPREHENSIVE CARD MAPPING SYSTEM - FIXED FOR SERVER FORMAT (Suit + Rank)
+        const CARD_MAPPING = {
+            // Spades (S) - Server sends: S5, S3, SK, S9
+            'SA': 'spades_A.png', 'S2': 'spades_2.png', 'S3': 'spades_3.png', 'S4': 'spades_4.png',
+            'S5': 'spades_5.png', 'S6': 'spades_6.png', 'S7': 'spades_7.png', 'S8': 'spades_8.png',
+            'S9': 'spades_9.png', 'ST': 'spades_10.png', 'SJ': 'spades_J.png', 'SQ': 'spades_Q.png', 'SK': 'spades_K.png',
+            
+            // Hearts (H) - Server sends: H2, H3, etc.
+            'HA': 'hearts_A.png', 'H2': 'hearts_2.png', 'H3': 'hearts_3.png', 'H4': 'hearts_4.png',
+            'H5': 'hearts_5.png', 'H6': 'hearts_6.png', 'H7': 'hearts_7.png', 'H8': 'hearts_8.png',
+            'H9': 'hearts_9.png', 'HT': 'hearts_10.png', 'HJ': 'hearts_J.png', 'HQ': 'hearts_Q.png', 'HK': 'hearts_K.png',
+            
+            // Diamonds (D) - Server sends: DK, D2, etc.
+            'DA': 'diamonds_A.png', 'D2': 'diamonds_2.png', 'D3': 'diamonds_3.png', 'D4': 'diamonds_4.png',
+            'D5': 'diamonds_5.png', 'D6': 'diamonds_6.png', 'D7': 'diamonds_7.png', 'D8': 'diamonds_8.png',
+            'D9': 'diamonds_9.png', 'DT': 'diamonds_10.png', 'DJ': 'diamonds_J.png', 'DQ': 'diamonds_Q.png', 'DK': 'diamonds_K.png',
+            
+            // Clubs (C) - Server sends: CQ, C2, etc.
+            'CA': 'clubs_A.png', 'C2': 'clubs_2.png', 'C3': 'clubs_3.png', 'C4': 'clubs_4.png',
+            'C5': 'clubs_5.png', 'C6': 'clubs_6.png', 'C7': 'clubs_7.png', 'C8': 'clubs_8.png',
+            'C9': 'clubs_9.png', 'CT': 'clubs_10.png', 'CJ': 'clubs_J.png', 'CQ': 'clubs_Q.png', 'CK': 'clubs_K.png'
+        };
+        
+        // AGGRESSIVE CACHE BUSTER - Force image reload
+        const CACHE_BUSTER = '?v=' + Date.now() + '&cb=' + Math.random();
+        
+        // Get card image URL with cache busting and DEBUGGING
+        function getCardImageUrl(cardCode) {
+            if (!cardCode) return '';
+            
+            const imageName = CARD_MAPPING[cardCode];
+            if (!imageName) {
+                console.warn(`No mapping for card: ${cardCode} - using card back`);
+                return `cards/back_dark.png${CACHE_BUSTER}`;
+            }
+            
+            const imageUrl = `cards/${imageName}${CACHE_BUSTER}`;
+            console.log(`🎴 Loading card: ${cardCode} -> ${imageUrl}`);
+            return imageUrl;
+        }
+        
+        // Create card element with image and ERROR HANDLING
+        function createCardElement(cardCode, isHidden = false) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            
+            if (isHidden) {
+                cardDiv.innerHTML = `<img src="cards/back_dark.png${CACHE_BUSTER}" alt="Card Back" class="card-image" onerror="console.error('❌ Failed to load card back')">`;
+            } else {
+                const imageUrl = getCardImageUrl(cardCode);
+                cardDiv.innerHTML = `<img src="${imageUrl}" alt="${cardCode}" class="card-image" onerror="console.error('❌ Failed to load card: ${cardCode} from ${imageUrl}')" onload="console.log('✅ Loaded card: ${cardCode}')">`;
+            }
+            
+            return cardDiv;
+        }
+        
+        // Display cards with images
+        function displayCardsWithImages(container, cards, isHidden = false) {
+            container.innerHTML = '';
+            
+            if (!cards || cards.length === 0) {
+                container.innerHTML = '<div class="card placeholder">?</div>';
+                return;
+            }
+            
+            cards.forEach(cardCode => {
+                const cardElement = createCardElement(cardCode, isHidden);
+                container.appendChild(cardElement);
+            });
+        }
+        
+        // Preload all card images
+        function preloadCardImages() {
+            const imagePromises = [];
+            
+            Object.values(CARD_MAPPING).forEach(imageName => {
+                const img = new Image();
+                const promise = new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+                img.src = `cards/${imageName}${CACHE_BUSTER}`;
+                imagePromises.push(promise);
+            });
+            
+            // Also preload card backs
+            ['back_dark.png', 'back_light.png'].forEach(imageName => {
+                const img = new Image();
+                const promise = new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+                img.src = `cards/${imageName}${CACHE_BUSTER}`;
+                imagePromises.push(promise);
+            });
+            
+            return Promise.allSettled(imagePromises);
+        }
+        
+        // Initialize card system
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎴 Initializing Card System...');
+            
+            // Test card parsing
+            console.log('🧪 Testing card parsing:');
+            ['CQ', 'S5', 'DK', 'H2', 'ST'].forEach(card => {
+                const parsed = parseCard(card);
+                console.log(`  ${card} -> ${parsed ? `${parsed.rank}${parsed.suit}` : 'FAILED'}`);
+            });
+            
+            preloadCardImages().then(results => {
+                const loaded = results.filter(r => r.status === 'fulfilled').length;
+                const failed = results.filter(r => r.status === 'rejected').length;
+                console.log(`🎴 Card Images: ${loaded} loaded, ${failed} failed`);
+            });
+        });
+    </script>
+    
+    <style>
+        /* Card Image Styles */
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+        
+        .card-image:hover {
+            transform: scale(1.05);
+        }
+        
+        .player-cards {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+        
+        .player-cards .card {
+            width: 55px;
+            height: 77px;
+            font-size: 14px;
+        }
+        
+        .player-card-small {
+            width: 55px;
+            height: 77px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">🎰 Poker Login</div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                <input type="text" class="form-input" id="loginUsername" placeholder="Username" required>
+                <input type="password" class="form-input" id="loginPassword" placeholder="Password" required>
+                <button type="submit" class="btn btn-success">🎮 Login</button>
+                <div id="loginError" class="status-message status-error hidden"></div>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+                <input type="text" class="form-input" id="registerUsername" placeholder="Username" required minlength="3">
+                <input type="email" class="form-input" id="registerEmail" placeholder="Email" required>
+                <input type="password" class="form-input" id="registerPassword" placeholder="Password" required minlength="6">
+                <input type="password" class="form-input" id="registerConfirmPassword" placeholder="Confirm Password" required>
+                <button type="submit" class="btn btn-success">🎯 Create Account</button>
+                <div id="registerError" class="status-message status-error hidden"></div>
+            </form>
+            
+            <button class="btn" onclick="playAsGuest()" style="margin-top: 1rem;">👤 Continue as Guest</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🎰 Modern Poker Lounge</div>
+            <div class="header-controls">
+                <!-- User Profile (shown when logged in) -->
+                <div id="userProfile" class="user-profile hidden">
+                    <div class="user-avatar-small" id="userAvatar">?</div>
+                    <div>
+                        <div id="userName" style="font-weight: 600; font-size: 0.875rem;"></div>
+                        <div id="userChips" style="font-size: 0.75rem; color: #10b981;"></div>
+                    </div>
+                </div>
+                
+                <!-- Login Button (shown when not logged in) -->
+                <button id="loginBtn" class="btn btn-primary" onclick="showAuthModal()">🎮 Login</button>
+                
+                <button class="btn btn-primary" onclick="checkServerHealth()">🏥 Health</button>
+                <button class="btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landing Page (shown when no game) -->
+    <div id="landingPage" class="landing-page">
+        <div class="landing-content">
+            <div class="landing-hero">
+                <h1 class="landing-title">🎰 Poker Lounge</h1>
+                <p class="landing-subtitle">Play Texas Hold'em with friends in real-time</p>
+            </div>
+            
+            <div class="landing-actions">
+                <div class="landing-card">
+                    <div class="landing-card-icon">🎮</div>
+                    <h3>Create Game</h3>
+                    <p>Start a new poker table and invite your friends</p>
+                    <button class="btn btn-primary btn-large" onclick="showCreateGameModal()">
+                        Create New Game
+                    </button>
+                </div>
+                
+                <div class="landing-card">
+                    <div class="landing-card-icon">🎲</div>
+                    <h3>Join Game</h3>
+                    <p>Enter a room code to join an existing game</p>
+                    <button class="btn btn-secondary btn-large" onclick="showJoinGameModal()">
+                        Join with Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Game Modal -->
+    <div id="createGameModal" class="modal hidden">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2>🎮 Create New Game</h2>
+                <button class="modal-close" onclick="hideCreateGameModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Small Blind</label>
+                    <input type="number" id="createSmallBlind" value="1" min="1" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Big Blind</label>
+                    <input type="number" id="createBigBlind" value="2" min="2" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Max Players</label>
+                    <input type="number" id="createMaxPlayers" value="9" min="2" max="9" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideCreateGameModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createGameFromModal()">Create Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Game Modal -->
+    <div id="joinGameModal" class="modal hidden">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>🎲 Join Game</h2>
+                <button class="modal-close" onclick="hideJoinGameModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Enter Room Code</label>
+                    <input type="text" id="joinRoomCode" placeholder="e.g. ABCDEF" class="form-input" style="text-transform: uppercase;">
+                </div>
+                <p class="form-hint">Ask your friend for the 6-character room code</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideJoinGameModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="joinGameFromModal()">Join Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Settings Modal (Admin Only) -->
+    <div id="gameSettingsModal" class="modal hidden">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2>⚙️ Game Settings</h2>
+                <button class="modal-close" onclick="hideGameSettingsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>💰 Blinds Configuration</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Small Blind</label>
+                            <input type="number" id="settingsSmallBlind" value="1" min="1" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Big Blind</label>
+                            <input type="number" id="settingsBigBlind" value="2" min="2" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>🎰 Buy-In Limits</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Buy-In</label>
+                            <input type="number" id="settingsMinBuyIn" value="100" min="10" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Maximum Buy-In</label>
+                            <input type="number" id="settingsMaxBuyIn" value="2000" min="100" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>👥 Player Buy-Ins (Override)</h3>
+                    <p class="form-hint">Set custom starting chips for each seated player</p>
+                    <div id="playerBuyInList" class="player-buyin-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideGameSettingsModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveGameSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lobby Panel (shown when in lobby) -->
+    <div id="lobbyPanel" class="lobby-panel hidden">
+        <div class="lobby-content">
+            <div class="lobby-header">
+                <h2>🎰 Game Lobby</h2>
+                <div id="lobbyRoomCode" class="lobby-room-code"></div>
+            </div>
+            
+            <!-- Host View: Manage Players -->
+            <div id="hostLobbyView" class="hidden">
+                <h3>👑 Host Controls</h3>
+                <p>Approve players to let them join the game:</p>
+                <div id="lobbyPlayersList" class="lobby-players-list"></div>
+                <button class="btn btn-success" onclick="startGameFromLobby()" id="startGameBtn" disabled>
+                    🎮 Start Game (need 2+ approved players)
+                </button>
+            </div>
+            
+            <!-- Guest View: Waiting -->
+            <div id="guestLobbyView" class="hidden">
+                <div class="lobby-waiting">
+                    <div class="spinner"></div>
+                    <h3 id="lobbyStatus">⏳ Waiting for host approval...</h3>
+                    <p id="lobbyMessage">The host will approve you shortly</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container hidden">
+        <!-- Admin Control Panel (Host Only) -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <div class="admin-header">
+                <div class="admin-title">
+                    <span class="admin-badge">👑 HOST</span>
+                    <h3>Game Controls</h3>
+                </div>
+                <button class="btn-icon" onclick="showGameSettingsModal()" title="Game Settings">
+                    ⚙️
+                </button>
+                </div>
+                
+            <div class="admin-content">
+                <div class="admin-info-grid">
+                    <div class="admin-info-card">
+                        <div class="admin-info-label">Room Code</div>
+                        <div class="admin-info-value" id="adminRoomCode">---</div>
+                        <button class="btn btn-sm btn-secondary" onclick="copyInviteLink()">
+                            📋 Copy Link
+                        </button>
+                </div>
+                
+                    <div class="admin-info-card">
+                        <div class="admin-info-label">Seated Players</div>
+                        <div class="admin-info-value" id="adminSeatedCount">0 / 9</div>
+                    </div>
+                    
+                    <div class="admin-info-card">
+                        <div class="admin-info-label">Blinds</div>
+                        <div class="admin-info-value" id="adminBlinds">$1 / $2</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success btn-huge" onclick="adminStartGame()" id="adminStartBtn" disabled>
+                    🎮 Start Game
+                </button>
+                <small class="admin-hint">Need at least 2 seated players to start</small>
+            </div>
+        </div>
+
+        <!-- Player Info Panel (Non-Host) -->
+        <div id="playerPanel" class="player-panel hidden">
+            <div class="player-panel-content">
+                <div class="player-info-item">
+                    <span class="player-info-label">Room Code:</span>
+                    <span class="player-info-value" id="playerRoomCode">---</span>
+                </div>
+                <div class="player-info-item">
+                    <span class="player-info-label">Your Buy-In:</span>
+                    <input type="number" class="form-input-inline" id="buyInAmount" value="500" min="100" max="10000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Poker Table -->
+        <div class="poker-table-container">
+            <div class="poker-table">
+                <!-- Table Center -->
+                <div class="table-center">
+                    <div class="pot-display">
+                        <div class="pot-label">Total Pot</div>
+                        <div class="pot-amount">$<span id="potAmount">0</span></div>
+                    </div>
+                    
+                    <div class="community-cards" id="communityCards">
+                        <div class="card placeholder">?</div>
+                        <div class="card placeholder">?</div>
+                        <div class="card placeholder">?</div>
+                        <div class="card placeholder">?</div>
+                        <div class="card placeholder">?</div>
+                    </div>
+                </div>
+
+                <!-- Player Seats -->
+                <div class="player-seats" id="playersGrid">
+                    <!-- Player seats will be dynamically added here -->
+                </div>
+
+                <!-- Winner Announcement -->
+                <div id="winnerAnnouncement" class="winner-announcement" style="display: none;">
+                    <div id="winnerText"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Controls -->
+        <div class="controls-panel">
+            <div class="controls-grid">
+                <div class="control-section" style="grid-column: span 2;">
+                    <h3>🎯 Your Actions</h3>
+                    <div id="turnIndicator" class="status-message status-warning" style="display: none; font-size: 1.1rem; font-weight: 700;">
+                        ⏰ YOUR TURN - Make your move!
+                </div>
+                    <div id="actionsStatus" class="status-message">Waiting for your turn...</div>
+                    <div id="actionsPanel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                        <!-- Action buttons will be dynamically added here -->
+                    </div>
+                    <div id="betInput" style="display: none; margin-top: 1rem;">
+                        <input type="number" class="form-input" id="betAmount" min="1" placeholder="Enter bet amount">
+                        <button class="btn btn-warning" onclick="placeBet()">💰 Place Bet</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>🔄 Game Controls</h3>
+                    <button class="btn" onclick="refreshGameState()" id="refreshBtn" disabled>🔄 Refresh State</button>
+                    <div id="actionResults"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3002/api';
+        const WS_BASE = 'http://localhost:3002';
+        let room = null;
+        let seats = [];
+        let socket = null; // socket.io client
+        let currentGame = null;
+        let currentPlayers = [];
+        let playerCount = 0;
+
+        // ============================================
+        // AUTH SYSTEM - JWT Storage & Management
+        // ============================================
+        let currentUser = null;
+        let authToken = null;
+
+        // Initialize auth on page load
+        function initAuth() {
+            const stored = localStorage.getItem('poker_auth');
+            if (stored) {
+                try {
+                    const auth = JSON.parse(stored);
+                    authToken = auth.token;
+                    currentUser = auth.user;
+                    updateAuthUI();
+                    return true;
+                } catch (e) {
+                    localStorage.removeItem('poker_auth');
+                }
+            }
+            // If not logged in, show auth modal
+            showAuthModal();
+            return false;
+        }
+
+        // API Helper with JWT
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers
+            });
+            
+            if (response.status === 401) {
+                // Token expired, clear auth
+                logout();
+                throw new Error('Session expired, please login again');
+            }
+            
+            return response;
+        }
+
+        // Auth Modal Controls
+        function showAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function hideAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            const tabs = document.querySelectorAll('.auth-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+            }
+        }
+
+        // Handle Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            // Clear previous errors
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Login failed');
+                }
+                
+                const data = await response.json();
+                authToken = data.token;
+                currentUser = data.user;
+                
+                // Store in localStorage
+                localStorage.setItem('poker_auth', JSON.stringify({ token: authToken, user: currentUser }));
+                
+                updateAuthUI();
+                hideAuthModal();
+                showStatus(`🎮 Welcome back, ${currentUser.username}!`, 'success');
+                
+                // Check for pending invite
+                const pendingInvite = sessionStorage.getItem('pending_invite');
+                if (pendingInvite) {
+                    sessionStorage.removeItem('pending_invite');
+                    setTimeout(() => autoJoinRoom(pendingInvite), 500);
+                }
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Handle Register
+        async function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const errorDiv = document.getElementById('registerError');
+            
+            // Clear previous errors
+            errorDiv.classList.add('hidden');
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorDiv.textContent = '❌ Please enter a valid email address (e.g., user@example.com)';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = '❌ Passwords do not match';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorDiv.textContent = '❌ Password must be at least 6 characters';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Registration failed');
+                }
+                
+                const data = await response.json();
+                authToken = data.token;
+                currentUser = data.user;
+                
+                // Store in localStorage
+                localStorage.setItem('poker_auth', JSON.stringify({ token: authToken, user: currentUser }));
+                
+                updateAuthUI();
+                hideAuthModal();
+                showStatus(`🎯 Account created! Welcome, ${currentUser.username}!`, 'success');
+                
+                // Check for pending invite
+                const pendingInvite = sessionStorage.getItem('pending_invite');
+                if (pendingInvite) {
+                    sessionStorage.removeItem('pending_invite');
+                    setTimeout(() => autoJoinRoom(pendingInvite), 500);
+                }
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Play as Guest (temp user)
+        function playAsGuest() {
+            currentUser = {
+                id: crypto.randomUUID(),
+                username: `Guest_${Math.floor(Math.random() * 9999)}`,
+                is_guest: true
+            };
+            updateAuthUI();
+            hideAuthModal();
+            showStatus('👤 Playing as guest (progress won\'t be saved)', 'warning');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('poker_auth');
+            authToken = null;
+            currentUser = null;
+            updateAuthUI();
+            showStatus('👋 Logged out', 'success');
+            // Optionally show auth modal again
+            setTimeout(() => showAuthModal(), 1000);
+        }
+
+        // Update UI based on auth state
+        function updateAuthUI() {
+            const userProfile = document.getElementById('userProfile');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (currentUser) {
+                // Show user profile
+                userProfile.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                
+                document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+                document.getElementById('userName').textContent = currentUser.username;
+                document.getElementById('userChips').textContent = currentUser.is_guest ? 'Guest Mode' : `💰 ${currentUser.chips_total || 1000}`;
+            } else {
+                // Show login button
+                userProfile.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+            }
+        }
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        let gameSettings = {
+            smallBlind: 1,
+            bigBlind: 2,
+            minBuyIn: 100,
+            maxBuyIn: 2000,
+            playerBuyIns: {} // { user_id: amount }
+        };
+
+        // ============================================
+        // LANDING PAGE & MODAL FUNCTIONS
+        // ============================================
+        function showLandingPage() {
+            document.getElementById('landingPage').classList.remove('hidden');
+            document.getElementById('lobbyPanel').classList.add('hidden');
+            document.querySelector('.main-container').classList.add('hidden');
+        }
+
+        function hideLandingPage() {
+            document.getElementById('landingPage').classList.add('hidden');
+        }
+
+        function updateRoomInfoDisplay() {
+            if (room && room.inviteCode) {
+                document.getElementById('roomCodeDisplay').textContent = `Room Code: ${room.inviteCode}`;
+                document.getElementById('copyLinkBtn').style.display = 'inline-block';
+            }
+        }
+
+        function copyInviteLink() {
+            if (!room || !room.inviteCode) return;
+            const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${room.inviteCode}`;
+            navigator.clipboard.writeText(inviteLink).then(() => {
+                showStatus('✅ Invite link copied to clipboard!', 'success');
+            }).catch(err => {
+                showStatus('❌ Failed to copy link', 'error');
+            });
+        }
+
+        function showCreateGameModal() {
+            if (!currentUser) {
+                showStatus('🔒 Please login to create a game', 'error');
+                showAuthModal();
+                return;
+            }
+            document.getElementById('createGameModal').classList.remove('hidden');
+        }
+
+        function hideCreateGameModal() {
+            document.getElementById('createGameModal').classList.add('hidden');
+        }
+
+        function showJoinGameModal() {
+            if (!currentUser) {
+                showStatus('🔒 Please login to join a game', 'error');
+                showAuthModal();
+                return;
+            }
+            document.getElementById('joinGameModal').classList.remove('hidden');
+        }
+
+        function hideJoinGameModal() {
+            document.getElementById('joinGameModal').classList.add('hidden');
+        }
+
+        async function createGameFromModal() {
+            const smallBlind = parseInt(document.getElementById('createSmallBlind').value);
+            const bigBlind = parseInt(document.getElementById('createBigBlind').value);
+            const maxPlayers = parseInt(document.getElementById('createMaxPlayers').value);
+            
+            // Initialize game settings
+            gameSettings.smallBlind = smallBlind;
+            gameSettings.bigBlind = bigBlind;
+            gameSettings.minBuyIn = smallBlind * 100;
+            gameSettings.maxBuyIn = bigBlind * 1000;
+            
+            hideCreateGameModal();
+            
+            try {
+                // 1) Create room with host
+                const roomRes = await apiCall('/rooms', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: `${currentUser.username}'s Game`, 
+                        small_blind: smallBlind,
+                        big_blind: bigBlind,
+                        min_buy_in: gameSettings.minBuyIn, 
+                        max_buy_in: gameSettings.maxBuyIn, 
+                        max_players: Math.min(maxPlayers, 9),
+                        host_user_id: currentUser.id
+                    })
+                });
+                if (!roomRes.ok) {
+                    const error = await roomRes.json();
+                    throw new Error(error.error || 'Failed to create room');
+                }
+                const roomData = await roomRes.json();
+                room = { id: roomData.roomId, inviteCode: roomData.inviteCode, hostUserId: roomData.hostUserId };
+                isHost = true;
+                
+                // 2) Connect WS and subscribe to room
+                connectSocket();
+                
+                // 3) Create game via existing endpoint (link to room)
+                const response = await apiCall('/games', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        small_blind: smallBlind, 
+                        big_blind: bigBlind, 
+                        max_players: maxPlayers,
+                        roomId: room.id  // Link game to room
+                    })
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create game');
+                }
+                currentGame = await response.json();
+                console.log('✅ Host created game and set currentGame:', currentGame);
+                
+                // 4) Join lobby as host (auto-approved)
+                hideLandingPage();
+                await joinLobby(room.id);
+                
+                showStatus(`✅ Game created! Room Code: ${room.inviteCode}`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Create game error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function joinGameFromModal() {
+            const inviteCode = document.getElementById('joinRoomCode').value.trim().toUpperCase();
+            
+            if (!inviteCode || inviteCode.length !== 6) {
+                showStatus('❌ Please enter a valid 6-character room code', 'error');
+                return;
+            }
+            
+            hideJoinGameModal();
+            
+            try {
+                await autoJoinRoom(inviteCode);
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        // ============================================
+        // ADMIN PANEL FUNCTIONS
+        // ============================================
+        function showAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('playerPanel').classList.add('hidden');
+            updateAdminPanel();
+        }
+
+        function showPlayerPanel() {
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('playerPanel').classList.remove('hidden');
+            updatePlayerPanel();
+        }
+
+        function updateAdminPanel() {
+            if (!room) return;
+            
+            document.getElementById('adminRoomCode').textContent = room.inviteCode || '---';
+            document.getElementById('adminBlinds').textContent = `$${gameSettings.smallBlind} / $${gameSettings.bigBlind}`;
+            
+            // Count seated players - seats array only contains occupied seats from DB
+            console.log('🔍 Seats data:', seats);
+            const seatedCount = seats.length; // All rows returned are occupied seats
+            console.log('👥 Seated count:', seatedCount);
+            document.getElementById('adminSeatedCount').textContent = `${seatedCount} / 9`;
+            
+            // Enable/disable start button
+            const startBtn = document.getElementById('adminStartBtn');
+            if (seatedCount >= 2) {
+                startBtn.disabled = false;
+                startBtn.textContent = `🎮 Start Game (${seatedCount} players)`;
+            } else {
+                startBtn.disabled = true;
+                startBtn.textContent = `🎮 Start Game (need ${2 - seatedCount} more)`;
+            }
+        }
+
+        function updatePlayerPanel() {
+            if (!room) return;
+            document.getElementById('playerRoomCode').textContent = room.inviteCode || '---';
+        }
+
+        function showGameSettingsModal() {
+            // Populate current settings
+            document.getElementById('settingsSmallBlind').value = gameSettings.smallBlind;
+            document.getElementById('settingsBigBlind').value = gameSettings.bigBlind;
+            document.getElementById('settingsMinBuyIn').value = gameSettings.minBuyIn;
+            document.getElementById('settingsMaxBuyIn').value = gameSettings.maxBuyIn;
+            
+            // Populate player buy-ins
+            const playerList = document.getElementById('playerBuyInList');
+            playerList.innerHTML = '';
+            
+            // All seats in the array are occupied
+            seats.forEach(seat => {
+                const userId = seat.user_id;
+                const username = seat.username || `Player ${seat.seat_index + 1}`;
+                const seatNum = seat.seat_index + 1;
+                const defaultBuyIn = gameSettings.playerBuyIns[userId] || seat.chips_in_play || 500;
+                const item = document.createElement('div');
+                item.className = 'player-buyin-item';
+                item.innerHTML = `
+                    <span class="player-buyin-name">Seat ${seatNum}: ${username}</span>
+                    <input type="number" 
+                           class="form-input-inline" 
+                           value="${defaultBuyIn}" 
+                           min="${gameSettings.minBuyIn}" 
+                           max="${gameSettings.maxBuyIn}"
+                           data-user-id="${userId}">
+                `;
+                playerList.appendChild(item);
+            });
+            
+            document.getElementById('gameSettingsModal').classList.remove('hidden');
+        }
+
+        function hideGameSettingsModal() {
+            document.getElementById('gameSettingsModal').classList.add('hidden');
+        }
+
+        function saveGameSettings() {
+            // Save blinds
+            gameSettings.smallBlind = parseInt(document.getElementById('settingsSmallBlind').value);
+            gameSettings.bigBlind = parseInt(document.getElementById('settingsBigBlind').value);
+            gameSettings.minBuyIn = parseInt(document.getElementById('settingsMinBuyIn').value);
+            gameSettings.maxBuyIn = parseInt(document.getElementById('settingsMaxBuyIn').value);
+            
+            // Save player buy-ins
+            const inputs = document.querySelectorAll('#playerBuyInList input[data-user-id]');
+            inputs.forEach(input => {
+                const userId = input.getAttribute('data-user-id');
+                const amount = parseInt(input.value);
+                gameSettings.playerBuyIns[userId] = amount;
+            });
+            
+            hideGameSettingsModal();
+            updateAdminPanel();
+            showStatus('✅ Settings saved!', 'success');
+        }
+
+        async function adminStartGame() {
+            console.log('🎮 Admin Start Game clicked');
+            console.log('Current user:', currentUser);
+            console.log('Current room:', room);
+            console.log('Current game:', currentGame);
+            console.log('Seats:', seats);
+            
+            if (!currentUser) {
+                showStatus('❌ Please login first', 'error');
+                return;
+            }
+            
+            if (!room) {
+                showStatus('❌ No room found', 'error');
+                return;
+            }
+            
+            if (!currentGame) {
+                showStatus('❌ No game found', 'error');
+                return;
+            }
+            
+            const seatedCount = seats.length;
+            if (seatedCount < 2) {
+                showStatus('❌ Need at least 2 seated players', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('🎲 Starting hand...', 'info');
+                // Call the existing startHand function
+                await startHand();
+            } catch (error) {
+                console.error('Start game error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        // ============================================
+        // LOBBY SYSTEM FUNCTIONS
+        // ============================================
+        let isHost = false;
+        let lobbyPollInterval = null;
+
+        async function joinLobby(roomId) {
+            if (!currentUser) return;
+            
+            try {
+                const res = await apiCall(`/rooms/${roomId}/lobby/join`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id })
+                });
+                
+                if (!res.ok) throw new Error('Failed to join lobby');
+                
+                const data = await res.json();
+                console.log('✅ Joined lobby, status:', data.status);
+                
+                // Check if we're the host
+                isHost = data.status === 'approved';
+                
+                // Show lobby UI
+                showLobby();
+                
+                // Start polling for updates
+                startLobbyPolling();
+                
+                return data.status;
+            } catch (error) {
+                console.error('❌ Join lobby error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function showLobby() {
+            // Hide main game UI
+            document.querySelector('.main-container').classList.add('hidden');
+            
+            // Show lobby
+            document.getElementById('lobbyPanel').classList.remove('hidden');
+            document.getElementById('lobbyRoomCode').textContent = `Room Code: ${room.inviteCode}`;
+            
+            if (isHost) {
+                document.getElementById('hostLobbyView').classList.remove('hidden');
+                document.getElementById('guestLobbyView').classList.add('hidden');
+                loadLobbyPlayers();
+            } else {
+                document.getElementById('hostLobbyView').classList.add('hidden');
+                document.getElementById('guestLobbyView').classList.remove('hidden');
+                checkMyLobbyStatus();
+            }
+        }
+
+        function hideLobby() {
+            document.getElementById('lobbyPanel').classList.add('hidden');
+            document.querySelector('.main-container').classList.remove('hidden');
+            stopLobbyPolling();
+        }
+
+        async function loadLobbyPlayers() {
+            if (!room) return;
+            
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/players`);
+                if (!res.ok) return;
+                
+                const data = await res.json();
+                const players = data.players || [];
+                
+                const listDiv = document.getElementById('lobbyPlayersList');
+                listDiv.innerHTML = '';
+                
+                let approvedCount = 0;
+                
+                players.forEach(player => {
+                    if (player.status === 'approved') approvedCount++;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'lobby-player-card';
+                    
+                    const isCurrentHost = player.user_id === room.hostUserId || player.user_id === currentUser.id;
+                    
+                    card.innerHTML = `
+                        <div class="lobby-player-info">
+                            <div class="lobby-player-avatar">${player.username.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div class="lobby-player-name">${player.username} ${isCurrentHost ? '👑' : ''}</div>
+                                <div class="lobby-player-status ${player.status}">${player.status}</div>
+                            </div>
+                        </div>
+                        ${player.status === 'pending' && isHost ? `
+                            <div class="lobby-player-actions">
+                                <button class="btn btn-success" onclick="approvePlayer('${player.user_id}')">✅ Approve</button>
+                                <button class="btn btn-danger" onclick="rejectPlayer('${player.user_id}')">❌ Reject</button>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    listDiv.appendChild(card);
+                });
+                
+                // Update start game button
+                const startBtn = document.getElementById('startGameBtn');
+                if (approvedCount >= 2) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = `🎮 Start Game (${approvedCount} players ready)`;
+                } else {
+                    startBtn.disabled = true;
+                    startBtn.textContent = `🎮 Start Game (need ${2 - approvedCount} more)`;
+                }
+                
+            } catch (error) {
+                console.error('❌ Load lobby players error:', error);
+            }
+        }
+
+        async function approvePlayer(targetUserId) {
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id, target_user_id: targetUserId })
+                });
+                
+                if (!res.ok) throw new Error('Failed to approve player');
+                
+                showStatus('✅ Player approved!', 'success');
+                loadLobbyPlayers();
+                
+                // Broadcast via WebSocket
+                if (socket) {
+                    socket.emit('lobby_update', { roomId: room.id });
+                }
+                
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function rejectPlayer(targetUserId) {
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/reject`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id, target_user_id: targetUserId })
+                });
+                
+                if (!res.ok) throw new Error('Failed to reject player');
+                
+                showStatus('❌ Player rejected', 'warning');
+                loadLobbyPlayers();
+                
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function checkMyLobbyStatus() {
+            if (!room || !currentUser) return;
+            
+            try {
+                const res = await apiCall(`/rooms/${room.id}/lobby/my-status?user_id=${currentUser.id}`);
+                if (!res.ok) return;
+                
+                const data = await res.json();
+                
+                const statusEl = document.getElementById('lobbyStatus');
+                const messageEl = document.getElementById('lobbyMessage');
+                
+                if (data.status === 'approved') {
+                    statusEl.textContent = '✅ You\'ve been approved!';
+                    messageEl.textContent = 'Loading game...';
+                    
+                    // Fetch the game for this room (guests need to know gameId for WebSocket sync)
+                    try {
+                        const gamesRes = await apiCall(`/games?roomId=${room.id}`);
+                        if (gamesRes.ok) {
+                            const gamesData = await gamesRes.json();
+                            if (gamesData.games && gamesData.games.length > 0) {
+                                currentGame = { gameId: gamesData.games[0].gameId };
+                                console.log('✅ Guest found and set currentGame:', currentGame);
+                            }
+                        }
+                    } catch (gameError) {
+                        console.error('Error fetching game for guest:', gameError);
+                    }
+                    
+                    // Transition to game
+                    setTimeout(async () => {
+                        hideLobby();
+                        document.querySelector('.main-container').classList.remove('hidden');
+                        showPlayerPanel();
+                        await loadSeats();
+                        renderSeatGrid();
+                        showStatus('✅ Welcome to the game! Claim your seat.', 'success');
+                    }, 1500);
+                } else if (data.status === 'rejected') {
+                    statusEl.textContent = '❌ Access Denied';
+                    messageEl.textContent = 'The host rejected your request';
+                    stopLobbyPolling();
+                } else {
+                    statusEl.textContent = '⏳ Waiting for host approval...';
+                    messageEl.textContent = 'The host will approve you shortly';
+                }
+                
+            } catch (error) {
+                console.error('❌ Check lobby status error:', error);
+            }
+        }
+
+        function startLobbyPolling() {
+            stopLobbyPolling();
+            lobbyPollInterval = setInterval(() => {
+                if (isHost) {
+                    loadLobbyPlayers();
+                } else {
+                    checkMyLobbyStatus();
+                }
+            }, 2000);
+        }
+
+        function stopLobbyPolling() {
+            if (lobbyPollInterval) {
+                clearInterval(lobbyPollInterval);
+                lobbyPollInterval = null;
+            }
+        }
+
+        async function startGameFromLobby() {
+            hideLobby();
+            document.querySelector('.main-container').classList.remove('hidden');
+            
+            // Show admin or player panel based on host status
+            if (isHost) {
+                showAdminPanel();
+            } else {
+                showPlayerPanel();
+            }
+            
+            await loadSeats();
+            renderSeatGrid();
+            showStatus('🎮 Game starting! Players can now claim seats.', 'success');
+        }
+
+        // Preserve all existing JavaScript functionality
+        // (I'll keep the exact same JavaScript from the original file to ensure nothing breaks)
+        
+        // Old createGame function removed - now using createGameFromModal() from landing page
+
+        async function loadSeats() {
+            if (!room) return;
+            const res = await fetch(`${API_BASE}/rooms/${room.id}/seats`);
+            if (res.ok) {
+                const data = await res.json();
+                seats = data.seats || [];
+                renderSeatGrid();
+                
+                // Update start hand button state
+                const startBtn = document.getElementById('startHandBtn');
+                const seatedCount = seats.filter(s => s.status === 'occupied').length;
+                if (startBtn) {
+                    if (seatedCount >= 2) {
+                        startBtn.disabled = false;
+                        startBtn.innerHTML = `🃏 Start Hand (${seatedCount} players)`;
+                    } else {
+                        startBtn.disabled = true;
+                        startBtn.innerHTML = `🃏 Start Hand (need ${2 - seatedCount} more)`;
+                    }
+                }
+            }
+        }
+
+        function renderSeatGrid() {
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = '';
+            const taken = new Set(seats.map(s => s.seat_index));
+            const max = 9;
+            for (let i = 0; i < max; i++) {
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'player-seat';
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                const found = seats.find(s => s.seat_index === i);
+                if (found) {
+                    card.innerHTML = `<div class="player-name">Seat ${i+1}</div><div class="player-status">Taken</div>`;
+                } else {
+                    card.innerHTML = `<div class="player-name">Seat ${i+1}</div><button class="btn btn-success" onclick="claimSeat(${i})">Claim</button>`;
+                }
+                seatDiv.appendChild(card);
+                playersGrid.appendChild(seatDiv);
+            }
+            
+            // Update admin panel if host
+            if (isHost) {
+                updateAdminPanel();
+            }
+        }
+
+        async function claimSeat(seatIndex) {
+            if (!room) return;
+            if (!currentUser) {
+                showStatus('🔒 Please login to claim a seat', 'error');
+                showAuthModal();
+                return;
+            }
+            
+            const buyIn = parseInt(document.getElementById('buyInAmount').value)||500;
+            
+            try {
+                const res = await apiCall(`/rooms/${room.id}/join`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id, seat_index: seatIndex, buy_in_amount: buyIn })
+                });
+                
+                if (!res.ok) {
+                    const e = await res.json();
+                    throw new Error(e.error || 'Failed to claim seat');
+                }
+                
+                showStatus(`✅ Seat ${seatIndex + 1} claimed!`, 'success');
+                await loadSeats();
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function connectSocket() {
+            if (!room) {
+                console.error('❌ connectSocket called but room is null!');
+                return;
+            }
+            
+            console.log('🔌 Connecting socket for room:', room.id);
+            
+            try {
+                if (socket && socket.connected) {
+                    console.log('🔌 Disconnecting old socket');
+                    socket.disconnect();
+                }
+                
+                socket = io(WS_BASE, { transports: ['websocket'] });
+                
+                socket.on('connect', () => {
+                    console.log('✅ Socket connected! ID:', socket.id);
+                    console.log('📤 Emitting join_room for:', room.id);
+                    socket.emit('join_room', room.id);
+                });
+                
+                socket.on('joined_room', (data) => {
+                    console.log('✅ Joined room confirmation:', data);
+                    // Initial seat fetch
+                    loadSeats();
+                });
+                socket.on('seat_update', (payload) => {
+                    if (!room || payload.roomId !== room.id) return;
+                    seats = payload.seats || [];
+                    renderSeatGrid();
+                });
+                
+                socket.on('lobby_update', (payload) => {
+                    if (!room || payload.roomId !== room.id) return;
+                    console.log('🔔 Lobby update received');
+                    if (isHost) {
+                        loadLobbyPlayers();
+                    } else {
+                        checkMyLobbyStatus();
+                    }
+                });
+                
+                // Listen for hand started
+                socket.on('hand_started', async (payload) => {
+                    console.log('🎲 Hand started event received:', payload);
+                    
+                    // SET currentGame for ALL players (not just host) - FIX FOR GUESTS
+                    if (!currentGame && payload.gameId) {
+                        currentGame = { gameId: payload.gameId };
+                        console.log('✅ Current game set from WebSocket for guest:', currentGame);
+                    }
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    showStatus('🎲 Hand started! Cards dealt.', 'success');
+                    
+                    // Fetch updated game state
+                    await fetchGameState();
+                });
+                
+                // Listen for game state updates
+                socket.on('game_state_update', async (payload) => {
+                    console.log('🔄 Game state update received:', payload);
+                    console.log('  currentGame:', currentGame);
+                    console.log('  payload.gameId:', payload.gameId);
+                    console.log('  Match?', currentGame && payload.gameId === currentGame.gameId);
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) {
+                        console.log('❌ Ignoring update - game ID mismatch or no current game');
+                        return;
+                    }
+                    
+                    console.log('✅ Fetching updated game state...');
+                    // Fetch updated game state
+                    await fetchGameState();
+                });
+                
+                // Listen for pot updates (all-in scenarios)
+                socket.on('pot_update', (payload) => {
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    console.log(`💰 Pot update received: ${payload.pot}`, payload.message);
+                    
+                    // Update pot display immediately
+                    const potEl = document.getElementById('potAmount');
+                    if (potEl) {
+                        const oldValue = potEl.textContent;
+                        potEl.textContent = payload.pot;
+                        console.log(`💰 Pot display updated: ${oldValue} → ${payload.pot}`);
+                    } else {
+                        console.error('❌ potAmount element not found!');
+                    }
+                    
+                    // Update player stacks (show chips committed to pot)
+                    if (payload.players && payload.players.length > 0) {
+                        const playersGrid = document.getElementById('playersGrid');
+                        if (playersGrid) {
+                            payload.players.forEach(player => {
+                                // Find player's stack display and update it
+                                const playerCards = playersGrid.querySelectorAll('.player-card');
+                                playerCards.forEach(card => {
+                                    const nameEl = card.querySelector('.player-name');
+                                    if (nameEl && nameEl.textContent === player.name) {
+                                        const stackEl = card.querySelector('.player-stack');
+                                        if (stackEl) {
+                                            const oldStack = stackEl.textContent;
+                                            stackEl.textContent = `$${player.stack}`;
+                                            console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    
+                    // Show notification
+                    if (payload.message) {
+                        showStatus(payload.message, 'info');
+                    }
+                });
+                
+                // Listen for progressive street reveals (all-in scenarios)
+                socket.on('street_reveal', (payload) => {
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    console.log(`🃏 Street reveal: ${payload.street}`, payload.communityCards);
+                    console.log(`   ⏸️  Winner not yet announced - showing cards first`);
+                    
+                    // Update ONLY the community cards display (don't fetch full state yet)
+                    const communityCardsDiv = document.getElementById('communityCards');
+                    if (communityCardsDiv) {
+                        communityCardsDiv.innerHTML = '';
+                        
+                        // Show cards progressively based on street
+                        payload.communityCards.forEach((cardStr, index) => {
+                            const cardElement = createCardElement(cardStr, false);
+                            communityCardsDiv.appendChild(cardElement);
+                        });
+                        
+                        // Fill remaining slots with placeholders
+                        for (let i = payload.communityCards.length; i < 5; i++) {
+                            const cardDiv = document.createElement('div');
+                            cardDiv.className = 'card placeholder';
+                            cardDiv.textContent = '?';
+                            communityCardsDiv.appendChild(cardDiv);
+                        }
+                    }
+                    
+                    // Update pot display (in case it changed)
+                    if (payload.pot) {
+                        const potEl = document.getElementById('potAmount');
+                        if (potEl) potEl.textContent = payload.pot;
+                    }
+                    
+                    // Show visual notification
+                    showStatus(`🃏 ${payload.street} revealed! ${payload.message || ''}`, 'info');
+                });
+                
+                // Listen for hand completion
+                socket.on('hand_complete', async (payload) => {
+                    console.log('🏆 Hand complete event received:', payload);
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    // If this is a pot transfer (all-in scenario), animate pot → winner
+                    if (payload.potTransfer && payload.previousPot) {
+                        console.log(`💸 Pot transfer animation: $${payload.previousPot} → winner's stack`);
+                        
+                        // First: Set pot to 0 (money leaving pot)
+                        const potEl = document.getElementById('potAmount');
+                        if (potEl) {
+                            potEl.textContent = '0';
+                            console.log(`  💰 Pot: $${payload.previousPot} → $0`);
+                        }
+                    }
+                    
+                    // Show winner announcement as toast notification (no modal blocking)
+                    if (payload.winners && payload.winners.length > 0) {
+                        const winnerNames = payload.winners.map(w => {
+                            const player = payload.players.find(p => p.id === w.playerId);
+                            return player ? `${player.name} wins $${w.amount}` : 'Player wins';
+                        }).join(', ');
+                        showStatus(`🏆 ${winnerNames}`, 'success');
+                    }
+                    
+                    // ✅ Update player stacks to show winner getting the money
+                    // Backend now sends correct post-distribution stacks at the right time
+                    if (payload.players && payload.players.length > 0) {
+                        const playersGrid = document.getElementById('playersGrid');
+                        if (playersGrid) {
+                            // Add a small delay for pot transfer animation effect
+                            setTimeout(() => {
+                                payload.players.forEach(player => {
+                                    const playerCards = playersGrid.querySelectorAll('.player-card');
+                                    playerCards.forEach(card => {
+                                        const nameEl = card.querySelector('.player-name');
+                                        if (nameEl && nameEl.textContent === player.name) {
+                                            const stackEl = card.querySelector('.player-stack');
+                                            if (stackEl) {
+                                                const oldStack = stackEl.textContent;
+                                                stackEl.textContent = `$${player.stack}`;
+                                                
+                                                // Add visual highlight for winner getting pot
+                                                if (payload.potTransfer && player.stack > 0) {
+                                                    stackEl.style.animation = 'pulse 0.5s ease-in-out';
+                                                    setTimeout(() => {
+                                                        stackEl.style.animation = '';
+                                                    }, 500);
+                                                }
+                                                
+                                                console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
+                                            }
+                                        }
+                                    });
+                                });
+                            }, 300); // Small delay for pot → stack animation
+                        }
+                    }
+                    
+                    // Refresh game state to sync everything
+                    await fetchGameState();
+                    
+                    // Auto-start next hand after 3 seconds (host only)
+                    if (isHost) {
+                        setTimeout(() => {
+                            console.log('⏰ Auto-starting next hand...');
+                            startNewHand();
+                        }, 3000);
+                    }
+                });
+                
+                // Listen for game over (tournament complete)
+                socket.on('game_over', (payload) => {
+                    console.log('🏆 GAME OVER:', payload);
+                    showStatus(`🏆 ${payload.winner.name} wins the tournament with $${payload.winner.stack}!`, 'success');
+                    
+                    // Hide action buttons and show game over screen
+                    const actionsContainer = document.getElementById('actionsContainer');
+                    if (actionsContainer) {
+                        actionsContainer.innerHTML = '<div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; font-size: 1.5rem; font-weight: bold;">🏆 Game Over! Winner Takes All! 🏆</div>';
+                    }
+                    
+                    // Disable start hand button
+                    const startBtn = document.getElementById('adminStartHandBtn');
+                    if (startBtn) {
+                        startBtn.disabled = true;
+                        startBtn.textContent = 'Tournament Complete';
+                    }
+                });
+                
+                socket.on('disconnect', () => {
+                    // optional: retry logic
+                });
+            } catch (e) {
+                console.error('Socket connection error:', e);
+                // Fallback to polling if socket fails
+                loadSeats();
+            }
+        }
+
+        // OLD addPlayer function removed - players now come from room seats automatically
+
+        // Start a new hand
+        // Start hand with room-based players (BIG EDIT 3: Bridge systems)
+        async function startHand() {
+            if (!currentUser) {
+                showStatus('🔒 Please login to start a hand', 'error');
+                showAuthModal();
+                return;
+            }
+            
+            if (!currentGame) {
+                showStatus('❌ No game found. Create a game first.', 'error');
+                return;
+            }
+            
+            if (!room) {
+                showStatus('❌ No room found. Create a room first.', 'error');
+                return;
+            }
+            
+            try {
+                console.log('🎲 Starting hand with roomId:', room.id, 'gameId:', currentGame.gameId);
+                
+                const response = await apiCall(`/games/${currentGame.gameId}/start-hand`, {
+                    method: 'POST',
+                    body: JSON.stringify({ roomId: room.id })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to start hand');
+                }
+                
+                const result = await response.json();
+                console.log('✅ Hand started:', result);
+                showStatus(`🃏 Hand ${result.handNumber} started with ${result.players.length} players!`, 'success');
+                
+                // Update player count and refresh
+                playerCount = result.players.length;
+                setTimeout(refreshGameState, 200);
+                
+            } catch (error) {
+                console.error('❌ Start hand error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        // Refresh game state
+        async function refreshGameState() {
+            if (!currentGame) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/games/${currentGame.gameId}`);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to get game state');
+                }
+                
+                const gameState = await response.json();
+                updateGameDisplay(gameState);
+                
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Fetch game state (alias for refreshGameState, used by WebSocket listeners)
+        async function fetchGameState() {
+            await refreshGameState();
+        }
+
+        // Update game display with modern UI and CARD IMAGES
+        function updateGameDisplay(gameState) {
+            // Update pot
+            document.getElementById('potAmount').textContent = gameState.pot || 0;
+            
+            // Update community cards WITH IMAGES - REVEAL BASED ON STREET
+            const communityCardsDiv = document.getElementById('communityCards');
+            communityCardsDiv.innerHTML = '';
+            
+            // Determine how many cards to reveal based on current street
+            let cardsToReveal = 0;
+            if (gameState.street === 'FLOP') cardsToReveal = 3;
+            else if (gameState.street === 'TURN') cardsToReveal = 4;
+            else if (gameState.street === 'RIVER' || gameState.street === 'SHOWDOWN') cardsToReveal = 5;
+            
+            for (let i = 0; i < 5; i++) {
+                if (gameState.communityCards && gameState.communityCards[i]) {
+                    // Show card back if not yet revealed for this street
+                    const isRevealed = i < cardsToReveal;
+                    const cardElement = createCardElement(gameState.communityCards[i], !isRevealed);
+                    communityCardsDiv.appendChild(cardElement);
+                } else {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card placeholder';
+                    cardDiv.textContent = '?';
+                    communityCardsDiv.appendChild(cardDiv);
+                }
+            }
+            
+            // Update players in modern seats WITH CARD IMAGES
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = '';
+            
+            if (gameState.players) {
+                gameState.players.forEach((player, index) => {
+                    const seatDiv = document.createElement('div');
+                    seatDiv.className = 'player-seat';
+                    
+                    const playerCard = document.createElement('div');
+                    playerCard.className = 'player-card';
+                    
+                    if (player.id === gameState.toAct) {
+                        playerCard.classList.add('to-act');
+                    }
+                    
+                    if (player.isActive && !player.hasFolded) {
+                        playerCard.classList.add('active');
+                    }
+                    
+                    // Create hole cards HTML - ONLY SHOW CURRENT PLAYER'S CARDS
+                    let holeCardsHTML = '';
+                    const isCurrentPlayer = currentUser && player.userId === currentUser.id;
+                    
+                    if (player.holeCards && player.holeCards.length > 0) {
+                        if (isCurrentPlayer) {
+                            // Show actual cards for current player
+                        holeCardsHTML = `
+                            <div class="player-cards">
+                                ${player.holeCards.map(card => {
+                                    const imageUrl = getCardImageUrl(card);
+                                    return `<div class="player-card-small">
+                                            <img src="${imageUrl}" alt="${card}" class="card-image">
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                            <div class="hand-strength" id="hand-eval-${player.id}"></div>
+                        `;
+                        } else {
+                            // Show card backs for other players
+                            holeCardsHTML = `
+                                <div class="player-cards">
+                                    ${player.holeCards.map(() => {
+                                        return `<div class="player-card-small">
+                                            <img src="/cards/back.png" alt="Hidden" class="card-image">
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    // Get player avatar with unique color
+                    const avatarClass = `avatar-${(index % 10) + 1}`;
+                    const playerInitial = player.name.charAt(0).toUpperCase();
+                    
+                    playerCard.innerHTML = `
+                        <div class="player-avatar ${avatarClass}">${playerInitial}</div>
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-stack">$${player.stack}</div>
+                        <div class="player-status">
+                            ${player.hasFolded ? 'FOLDED' : 
+                              player.isAllIn ? 'ALL-IN' : 
+                              player.isActive ? 'ACTIVE' : 'SITTING OUT'}
+                        </div>
+                        ${player.betThisStreet ? `<div style="color: #ffc107; font-size: 0.875rem;">Bet: $${player.betThisStreet}</div>` : ''}
+                        ${holeCardsHTML}
+                    `;
+                    
+                    seatDiv.appendChild(playerCard);
+                    playersGrid.appendChild(seatDiv);
+                    
+                    // Evaluate and display hand strength if player has cards and community cards
+                    if (player.holeCards && player.holeCards.length === 2 && gameState.communityCards && gameState.communityCards.length >= 3) {
+                        const handEval = evaluatePlayerHand(player.holeCards, gameState.communityCards);
+                        setTimeout(() => {
+                            const evalDiv = document.getElementById(`hand-eval-${player.id}`);
+                            if (evalDiv) {
+                                evalDiv.textContent = `🎯 ${handEval}`;
+                            }
+                        }, 100);
+                    }
+                });
+            }
+            
+            // Show winner if hand is complete
+            if (gameState.status === 'COMPLETED' || gameState.street === 'SHOWDOWN') {
+                showWinnerAnnouncement(gameState);
+            } else {
+                document.getElementById('winnerAnnouncement').style.display = 'none';
+            }
+            
+            // Update legal actions for authenticated user (auto-detect if it's their turn)
+            updateLegalActions(gameState);
+        }
+
+        // Keep all existing helper functions (hand evaluation, winner announcement, etc.)
+        // [Previous JavaScript functions remain exactly the same]
+        
+        // Show status message with modern styling
+        function showStatus(message, type = 'info') {
+            // Create or get status notification container
+            let statusContainer = document.getElementById('statusNotifications');
+            if (!statusContainer) {
+                statusContainer = document.createElement('div');
+                statusContainer.id = 'statusNotifications';
+                statusContainer.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    z-index: 3000;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    max-width: 400px;
+                `;
+                document.body.appendChild(statusContainer);
+            }
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `status-notification status-${type}`;
+            notification.style.cssText = `
+                background: ${type === 'error' ? 'rgba(239, 68, 68, 0.95)' : type === 'success' ? 'rgba(16, 185, 129, 0.95)' : type === 'warning' ? 'rgba(245, 158, 11, 0.95)' : 'rgba(59, 130, 246, 0.95)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 0.75rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            `;
+            notification.textContent = message;
+            
+            statusContainer.appendChild(notification);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+        
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(100px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize with modern theme
+        showStatus('🚀 Ready to create a modern poker game!', 'success');
+
+        // Add all the remaining JavaScript functions from the working version
+
+        // Hand evaluation function with DEBUGGING
+        function evaluatePlayerHand(holeCards, communityCards) {
+            if (holeCards.length !== 2) return 'Need 2 hole cards';
+            if (communityCards.length < 3) return 'Need community cards';
+            
+            // Combine hole and community cards
+            const allCards = [...holeCards, ...communityCards];
+            console.log(`🎯 Evaluating hand: ${allCards.join(', ')}`);
+            
+            const cards = allCards.map(cardStr => parseCard(cardStr)).filter(c => c !== null);
+            console.log(`🎯 Parsed cards:`, cards.map(c => `${c.original}(${c.rank}${c.suit})`));
+            
+            if (cards.length < 5) return 'Need at least 5 cards';
+            
+            // Find the best 5-card hand
+            const bestHand = findBestHand(cards);
+            console.log(`🎯 Best hand: ${bestHand}`);
+            return bestHand;
+        }
+        
+        // Parse card string like "SA" (Spade Ace) into rank and suit - FIXED FOR SERVER FORMAT
+        function parseCard(cardStr) {
+            if (!cardStr || cardStr.length < 2) return null;
+            
+            const suit = cardStr.slice(0, 1);   // First character (Suit)
+            const rank = cardStr.slice(1);      // Everything after first character (Rank)
+            
+            const rankValues = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14};
+            const suitSymbols = {'S': '♠', 'H': '♥', 'D': '♦', 'C': '♣'};
+            
+            const rankValue = rankValues[rank];
+            if (!rankValue) {
+                console.warn(`Invalid rank in card: ${cardStr}`);
+                return null;
+            }
+            
+            return {
+                rank: rankValue,
+                suit: suit,
+                suitSymbol: suitSymbols[suit] || suit,
+                original: cardStr
+            };
+        }
+        
+        // Find best poker hand from 5+ cards
+        function findBestHand(cards) {
+            if (cards.length < 5) return 'Not enough cards';
+            
+            // Sort cards by rank (high to low)
+            cards.sort((a, b) => b.rank - a.rank);
+            
+            // Check for different hand types
+            const ranks = cards.map(c => c.rank);
+            const suits = cards.map(c => c.suit);
+            
+            // Count rank frequencies
+            const rankCounts = {};
+            ranks.forEach(rank => {
+                rankCounts[rank] = (rankCounts[rank] || 0) + 1;
+            });
+            
+            const counts = Object.values(rankCounts).sort((a, b) => b - a);
+            const pairs = Object.entries(rankCounts).filter(([rank, count]) => count >= 2);
+            
+            // Check for flush
+            const suitCounts = {};
+            suits.forEach(suit => {
+                suitCounts[suit] = (suitCounts[suit] || 0) + 1;
+            });
+            const isFlush = Object.values(suitCounts).some(count => count >= 5);
+            
+            // Check for straight
+            const uniqueRanks = [...new Set(ranks)].sort((a, b) => b - a);
+            const isStraight = checkStraight(uniqueRanks);
+            
+            // Determine hand type
+            if (isFlush && isStraight) {
+                return isStraight.high === 14 ? 'Royal Flush' : `Straight Flush (${getRankName(isStraight.high)} high)`;
+            }
+            
+            if (counts[0] === 4) {
+                const quadRank = Object.entries(rankCounts).find(([rank, count]) => count === 4)[0];
+                return `Four of a Kind (${getRankName(parseInt(quadRank))}s)`;
+            }
+            
+            if (counts[0] === 3 && counts[1] === 2) {
+                const trips = Object.entries(rankCounts).find(([rank, count]) => count === 3)[0];
+                const pair = Object.entries(rankCounts).find(([rank, count]) => count === 2)[0];
+                return `Full House (${getRankName(parseInt(trips))}s over ${getRankName(parseInt(pair))}s)`;
+            }
+            
+            if (isFlush) {
+                return `Flush (${getRankName(Math.max(...ranks))} high)`;
+            }
+            
+            if (isStraight) {
+                return `Straight (${getRankName(isStraight.high)} high)`;
+            }
+            
+            if (counts[0] === 3) {
+                const trips = Object.entries(rankCounts).find(([rank, count]) => count === 3)[0];
+                return `Three of a Kind (${getRankName(parseInt(trips))}s)`;
+            }
+            
+            if (pairs.length === 2) {
+                const pairRanks = pairs.map(([rank, count]) => parseInt(rank)).sort((a, b) => b - a);
+                return `Two Pair (${getRankName(pairRanks[0])}s and ${getRankName(pairRanks[1])}s)`;
+            }
+            
+            if (pairs.length === 1) {
+                const pairRank = parseInt(pairs[0][0]);
+                return `Pair of ${getRankName(pairRank)}s`;
+            }
+            
+            return `High Card (${getRankName(Math.max(...ranks))})`;
+        }
+        
+        // Check for straight
+        function checkStraight(ranks) {
+            // Check for regular straight
+            for (let i = 0; i <= ranks.length - 5; i++) {
+                if (ranks[i] - ranks[i + 4] === 4) {
+                    return { high: ranks[i], low: ranks[i + 4] };
+                }
+            }
+            
+            // Check for A-2-3-4-5 straight (wheel)
+            if (ranks.includes(14) && ranks.includes(5) && ranks.includes(4) && ranks.includes(3) && ranks.includes(2)) {
+                return { high: 5, low: 1 };
+            }
+            
+            return false;
+        }
+        
+        // Get readable rank name
+        function getRankName(rank) {
+            const names = {2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five', 6: 'Six', 7: 'Seven', 8: 'Eight', 9: 'Nine', 10: 'Ten', 11: 'Jack', 12: 'Queen', 13: 'King', 14: 'Ace'};
+            return names[rank] || rank.toString();
+        }
+
+        // Update legal actions for authenticated user (auto-detect turn)
+        let isUpdatingActions = false; // Prevent duplicate calls
+        async function updateLegalActions(gameState) {
+            // Prevent duplicate simultaneous calls
+            if (isUpdatingActions) {
+                console.log('⚠️ Already updating actions, skipping...');
+                return;
+            }
+            
+            isUpdatingActions = true;
+            
+            const turnIndicator = document.getElementById('turnIndicator');
+            const actionsStatus = document.getElementById('actionsStatus');
+            const actionsPanel = document.getElementById('actionsPanel');
+            
+            // Clear previous state
+            actionsPanel.innerHTML = '';
+            turnIndicator.style.display = 'none';
+            document.getElementById('betInput').style.display = 'none';
+            
+            if (!currentUser || !currentGame || !gameState) {
+                actionsStatus.textContent = 'Game not started';
+                actionsStatus.className = 'status-message';
+                isUpdatingActions = false;
+                return;
+            }
+            
+            // Find if current user has a player in this game
+            console.log('🔍 Looking for player match:');
+            console.log('  currentUser.id:', currentUser.id);
+            console.log('  currentUser.id TYPE:', typeof currentUser.id);
+            console.log('  gameState.players:', gameState.players);
+            console.log('  Player userIds:', gameState.players.map(p => ({ userId: p.userId, type: typeof p.userId })));
+            
+            // Try both string and direct comparison
+            const myPlayer = gameState.players.find(p => {
+                console.log(`  Comparing: p.userId="${p.userId}" (${typeof p.userId}) vs currentUser.id="${currentUser.id}" (${typeof currentUser.id})`);
+                return p.userId === currentUser.id || String(p.userId) === String(currentUser.id);
+            });
+            console.log('  myPlayer found:', myPlayer);
+            
+            if (!myPlayer) {
+                actionsStatus.textContent = 'You are not in this game. Claim a seat to play!';
+                actionsStatus.className = 'status-message status-warning';
+                isUpdatingActions = false;
+                return;
+            }
+            
+            // Check if it's my turn
+            const isMyTurn = gameState.toAct === myPlayer.id;
+            
+            if (!isMyTurn) {
+                const currentPlayer = gameState.players.find(p => p.id === gameState.toAct);
+                actionsStatus.textContent = currentPlayer ? 
+                    `Waiting for ${currentPlayer.name} to act...` : 
+                    'Waiting for other players...';
+                actionsStatus.className = 'status-message';
+                isUpdatingActions = false;
+                return;
+            }
+            
+            // IT'S MY TURN! Show available actions
+            turnIndicator.style.display = 'block';
+            
+            try {
+                const response = await apiCall(`/games/${currentGame.gameId}/legal-actions?player_id=${myPlayer.id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get legal actions');
+                }
+                
+                const result = await response.json();
+                const actions = result.legalActions || [];
+                
+                if (actions.length === 0) {
+                    actionsStatus.textContent = 'No actions available';
+                    actionsStatus.className = 'status-message';
+                    isUpdatingActions = false;
+                    return;
+                }
+                
+                actionsStatus.textContent = '✅ Choose your action:';
+                actionsStatus.className = 'status-message status-success';
+                
+                actions.forEach(action => {
+                    const button = document.createElement('button');
+                    button.className = 'btn';
+                    button.textContent = action;
+                    button.onclick = () => performAction(action, myPlayer.id);
+                    
+                    if (action === 'FOLD') button.classList.add('btn-danger');
+                    else if (action === 'CHECK' || action === 'CALL') button.classList.add('btn-success');
+                    else if (action === 'BET' || action === 'RAISE') button.classList.add('btn-warning');
+                    else if (action === 'ALL_IN') button.classList.add('btn-primary');
+                    
+                    actionsPanel.appendChild(button);
+                });
+                
+                // Show bet input for betting actions
+                const needsBetAmount = actions.some(a => ['BET', 'RAISE'].includes(a));
+                document.getElementById('betInput').style.display = needsBetAmount ? 'block' : 'none';
+                
+            } catch (error) {
+                actionsStatus.textContent = `Error: ${error.message}`;
+                actionsStatus.className = 'status-message status-error';
+            } finally {
+                // Reset flag after update completes
+                isUpdatingActions = false;
+            }
+        }
+
+        // Perform player action (auth-gated)
+        async function performAction(action, playerId) {
+            console.log(`🎯 performAction called: action="${action}", playerId="${playerId}"`);
+            
+            if (!playerId || !currentGame) {
+                console.log('❌ No playerId or currentGame');
+                return;
+            }
+            
+            let amount = null;
+            if (['BET', 'RAISE'].includes(action)) {
+                amount = parseInt(document.getElementById('betAmount').value);
+                if (!amount || amount <= 0) {
+                    showStatus('❌ Please enter a valid bet amount', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                const body = {
+                    player_id: playerId,
+                    action: action
+                };
+                
+                if (amount) {
+                    body.amount = amount;
+                }
+                
+                console.log('📤 Sending action to server:', body);
+                
+                const response = await apiCall(`/games/${currentGame.gameId}/actions`, {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to perform action');
+                }
+                
+                const result = await response.json();
+                console.log('✅ Action result:', result);
+                showStatus(`✅ ${action} successful!`, 'success');
+                
+                // Clear bet amount
+                document.getElementById('betAmount').value = '';
+                
+                // Refresh game state immediately for this player
+                console.log('🔄 Refreshing game state after action...');
+                setTimeout(refreshGameState, 100);
+                
+            } catch (error) {
+                console.error('❌ Action error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Show winner announcement
+        function showWinnerAnnouncement(gameState) {
+            if (!gameState.players || gameState.players.length === 0) return;
+            
+            // Find players with highest stack (indicating they won money)
+            const initialStack = 100; // Assume starting stack for comparison
+            const winners = gameState.players.filter(p => p.stack > initialStack);
+            const losers = gameState.players.filter(p => p.stack < initialStack);
+            
+            if (winners.length > 0) {
+                const winnerText = winners.length === 1 ? 
+                    `🏆 ${winners[0].name} wins with $${winners[0].stack}!` :
+                    `🏆 ${winners.map(w => w.name).join(', ')} win the hand!`;
+                
+                const loserText = losers.length > 0 ? 
+                    ` ${losers.map(l => `${l.name}: $${l.stack}`).join(', ')}` : '';
+                
+                document.getElementById('winnerText').innerHTML = winnerText + loserText;
+                document.getElementById('winnerAnnouncement').style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('winnerAnnouncement').style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Health check
+        async function checkServerHealth() {
+            try {
+                const response = await fetch('http://localhost:3000/health');
+                const data = await response.json();
+                showStatus(`✅ Server healthy - ${data.engine}`, 'success');
+            } catch (error) {
+                showStatus(`❌ Server offline: ${error.message}`, 'error');
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            currentGame = null;
+            currentPlayers = [];
+            playerCount = 0;
+            
+            document.getElementById('potAmount').textContent = '0';
+            document.getElementById('communityCards').innerHTML = `
+                <div class="card placeholder">?</div>
+                <div class="card placeholder">?</div>
+                <div class="card placeholder">?</div>
+                <div class="card placeholder">?</div>
+                <div class="card placeholder">?</div>
+            `;
+            document.getElementById('playersGrid').innerHTML = '';
+            
+            document.getElementById('addPlayerBtn').disabled = true;
+            document.getElementById('startHandBtn').disabled = true;
+            document.getElementById('refreshBtn').disabled = true;
+            
+            document.getElementById('actingPlayer').innerHTML = '<option value="">Select player...</option>';
+            document.getElementById('actionsPanel').innerHTML = '';
+            
+            showStatus('🔄 Game reset - ready to create a new game!', 'success');
+        }
+        
+        // Keep all other existing JavaScript functions...
+        // (I'll preserve all the game logic to ensure nothing breaks)
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎰 Poker Lounge Loading...');
+            
+            // Initialize auth system
+            initAuth();
+            
+            // Check for invite code in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteCode = urlParams.get('invite');
+            if (inviteCode) {
+                // If there's an invite code, auto-join
+                autoJoinRoom(inviteCode);
+            } else {
+                // Otherwise, show landing page
+                showLandingPage();
+            }
+            
+            console.log('✅ Poker Lounge Ready!');
+        });
+
+        // Auto-join room from invite code
+        async function autoJoinRoom(inviteCode) {
+            if (!currentUser) {
+                // Store invite code and show auth modal
+                sessionStorage.setItem('pending_invite', inviteCode);
+                showStatus('🔒 Please login to join the room', 'warning');
+                showAuthModal();
+                return;
+            }
+            
+            try {
+                console.log('🎯 Auto-joining room with invite:', inviteCode);
+                
+                const res = await apiCall(`/rooms/invite/${inviteCode}`);
+                if (!res.ok) {
+                    throw new Error('Invalid invite code');
+                }
+                
+                const data = await res.json();
+                room = { id: data.room.id, inviteCode: data.room.invite_code, hostUserId: data.room.host_user_id };
+                
+                console.log('✅ Room loaded:', room);
+                
+                // Hide landing page
+                hideLandingPage();
+                
+                // Connect to WebSocket
+                connectSocket();
+                
+                // Join the lobby (will show waiting screen if not host)
+                await joinLobby(room.id);
+                
+                // If we're the host, also create the game
+                if (room.hostUserId === currentUser.id) {
+                    const gameRes = await apiCall('/games', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            small_blind: data.room.small_blind || 1,
+                            big_blind: data.room.big_blind || 2,
+                            max_players: data.room.max_players || 9
+                        })
+                    });
+                
+                    if (gameRes.ok) {
+                        currentGame = await gameRes.json();
+                        console.log('✅ Game created/loaded:', currentGame);
+                        await loadSeats();
+                    }
+                }
+                
+                // Note: Lobby UI will be shown by joinLobby()
+                // Guests will see waiting screen, host will see lobby controls
+                
+            } catch (error) {
+                console.error('❌ Auto-join error:', error);
+                showStatus(`❌ Failed to join room: ${error.message}`, 'error');
+            }
+        }
+        // Show hand complete modal with winners and new hand button
+        function showHandCompleteModal(winners, players) {
+            console.log('🏆 Showing hand complete modal:', {winners, players});
+            
+            const modal = document.createElement('div');
+            modal.id = 'handCompleteModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            let winnerHTML = '';
+            if (winners && winners.length > 0) {
+                winnerHTML = winners.map(w => {
+                    const player = players.find(p => p.id === w.playerId);
+                    return `
+                        <div style="font-size: 2rem; color: #ffd700; margin: 1rem 0;">
+                            🏆 ${player ? player.name : 'Player'} wins $${w.amount}!
+                            <div style="font-size: 1rem; color: #aaa; margin-top: 0.5rem;">
+                                ${w.handRank || 'Best hand'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                winnerHTML = '<div style="font-size: 2rem; color: #ffd700;">🏆 Hand Complete!</div>';
+            }
+            
+            let stacksHTML = '<div style="margin-top: 2rem; font-size: 1.2rem; color: #fff;">';
+            stacksHTML += '<h3>Updated Stacks:</h3>';
+            players.forEach(p => {
+                const isBust = p.stack <= 0;
+                stacksHTML += `<div style="margin: 0.5rem 0; color: ${isBust ? '#ff4444' : '#4CAF50'};">
+                    ${p.name}: $${p.stack} ${isBust ? '(BUST!)' : ''}
+                </div>`;
+            });
+            stacksHTML += '</div>';
+            
+            modal.innerHTML = `
+                <div style="background: #1a1a2e; padding: 3rem; border-radius: 15px; text-align: center; max-width: 600px;">
+                    ${winnerHTML}
+                    ${stacksHTML}
+                    <div style="margin-top: 2rem;">
+                        ${isHost ? '<button class="btn btn-primary" onclick="startNewHand()" style="font-size: 1.5rem; padding: 1rem 2rem;">🎲 Start New Hand</button>' : '<div style="color: #aaa;">Waiting for host to start new hand...</div>'}
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button class="btn btn-secondary" onclick="closeHandCompleteModal()" style="padding: 0.75rem 1.5rem;">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeHandCompleteModal() {
+            const modal = document.getElementById('handCompleteModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        async function startNewHand() {
+            if (!isHost) {
+                showStatus('❌ Only the host can start a new hand', 'error');
+                return;
+            }
+            
+            if (!currentGame || !room) {
+                showStatus('❌ Game not found', 'error');
+                return;
+            }
+            
+            try {
+                console.log('🎲 Starting new hand...');
+                
+                const response = await apiCall(`/games/${currentGame.gameId}/start-hand`, {
+                    method: 'POST',
+                    body: JSON.stringify({ roomId: room.id })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to start hand');
+                }
+                
+                const result = await response.json();
+                console.log('✅ New hand started:', result);
+                
+                closeHandCompleteModal();
+                showStatus(`🃏 Hand ${result.handNumber} started!`, 'success');
+                
+                // Refresh game state
+                setTimeout(refreshGameState, 200);
+                
+            } catch (error) {
+                console.error('❌ Start new hand error:', error);
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
