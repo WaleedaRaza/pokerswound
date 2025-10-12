@@ -458,3 +458,23 @@ This is the cleanest, most logical path to your goal. No detours, no over-engine
 **Say "EXECUTOR" and I'll start with Task 1.**
 
 Or if you want to adjust the plan, tell me what to change.
+
+---
+
+## 🔧 RECENT FIXES
+
+### Race Condition Fix: Premature Winner Stack Update (Oct 12, 2025)
+
+**Problem:** Winner's stack was updating to final amount prematurely during all-in animations, flickering from $0 → $1000 → $0 → $1000.
+
+**Root Cause:** Animation context was being stored AFTER the `pot_update` WebSocket broadcast, creating a race condition where the frontend's HTTP `fetchGameState()` call would get the post-distribution state before the animation context existed.
+
+**Solution:** Moved `gameAnimations.set()` to execute BEFORE any WebSocket events are emitted. This ensures HTTP GET requests return the display snapshot (stack = 0) during animations, and only return the logical state (stack = 1000) after animation completes.
+
+**Files Modified:**
+- `poker-engine/sophisticated-engine-server.js` - Reordered animation context storage
+- `poker-engine/RACE_CONDITION_FIX.md` - Comprehensive documentation
+
+**Commit:** `f4aaa63`
+
+**Status:** ✅ Fixed - Animation context now stored before broadcasting, preventing race condition
