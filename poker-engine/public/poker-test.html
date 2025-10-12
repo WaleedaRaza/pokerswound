@@ -830,12 +830,6 @@
             0%, 100% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.4); }
             50% { box-shadow: 0 0 30px rgba(255, 193, 7, 0.8); }
         }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); color: #10b981; }
-            50% { transform: scale(1.15); color: #34d399; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-            100% { transform: scale(1); color: #10b981; }
-        }
 
         .player-name {
             font-weight: 600;
@@ -1156,7 +1150,7 @@
             const imageName = CARD_MAPPING[cardCode];
             if (!imageName) {
                 console.warn(`No mapping for card: ${cardCode} - using card back`);
-                return `cards/back.png${CACHE_BUSTER}`;
+                return `cards/back_dark.png${CACHE_BUSTER}`;
             }
             
             const imageUrl = `cards/${imageName}${CACHE_BUSTER}`;
@@ -1170,7 +1164,7 @@
             cardDiv.className = 'card';
             
             if (isHidden) {
-                cardDiv.innerHTML = `<img src="cards/back.png${CACHE_BUSTER}" alt="Card Back" class="card-image" onerror="console.error('❌ Failed to load card back')">`;
+                cardDiv.innerHTML = `<img src="cards/back_dark.png${CACHE_BUSTER}" alt="Card Back" class="card-image" onerror="console.error('❌ Failed to load card back')">`;
             } else {
                 const imageUrl = getCardImageUrl(cardCode);
                 cardDiv.innerHTML = `<img src="${imageUrl}" alt="${cardCode}" class="card-image" onerror="console.error('❌ Failed to load card: ${cardCode} from ${imageUrl}')" onload="console.log('✅ Loaded card: ${cardCode}')">`;
@@ -1209,7 +1203,7 @@
             });
             
             // Also preload card backs
-            ['back.png'].forEach(imageName => {
+            ['back_dark.png', 'back_light.png'].forEach(imageName => {
                 const img = new Image();
                 const promise = new Promise((resolve, reject) => {
                     img.onload = resolve;
@@ -1275,10 +1269,6 @@
             font-size: 14px;
         }
     </style>
-    
-    <!-- Event system scripts -->
-    <script src="/public/js/game-events.js"></script>
-    <script src="/public/js/display-state.js"></script>
 </head>
 <body>
     <!-- Auth Modal -->
@@ -2162,23 +2152,6 @@
                 // Check if we're the host
                 isHost = data.status === 'approved';
                 
-                // ✅ CRITICAL FIX: Fetch gameId immediately (not after approval)
-                // This prevents race condition where host starts game before guest gets gameId
-                if (!currentGame) {
-                    try {
-                        const gamesRes = await apiCall(`/games?roomId=${roomId}`);
-                        if (gamesRes.ok) {
-                            const gamesData = await gamesRes.json();
-                            if (gamesData.games && gamesData.games.length > 0) {
-                                currentGame = { gameId: gamesData.games[0].gameId };
-                                console.log('✅ Guest fetched gameId immediately:', currentGame);
-                            }
-                        }
-                    } catch (gameError) {
-                        console.warn('⚠️ Could not fetch gameId yet (game may not exist):', gameError.message);
-                    }
-                }
-                
                 // Show lobby UI
                 showLobby();
                 
@@ -2329,7 +2302,19 @@
                     statusEl.textContent = '✅ You\'ve been approved!';
                     messageEl.textContent = 'Loading game...';
                     
-                    // GameId already fetched in joinLobby() - no need to fetch again
+                    // Fetch the game for this room (guests need to know gameId for WebSocket sync)
+                    try {
+                        const gamesRes = await apiCall(`/games?roomId=${room.id}`);
+                        if (gamesRes.ok) {
+                            const gamesData = await gamesRes.json();
+                            if (gamesData.games && gamesData.games.length > 0) {
+                                currentGame = { gameId: gamesData.games[0].gameId };
+                                console.log('✅ Guest found and set currentGame:', currentGame);
+                            }
+                        }
+                    } catch (gameError) {
+                        console.error('Error fetching game for guest:', gameError);
+                    }
                     
                     // Transition to game
                     setTimeout(async () => {
@@ -2486,43 +2471,6 @@
                 
                 socket = io(WS_BASE, { transports: ['websocket'] });
                 
-                // ✅ Initialize display state manager (event-based system)
-                const displayState = new PokerDisplayState();
-                
-                // Wait for DOM, then set element references
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', () => {
-                        displayState.setElements(
-                            document.getElementById('potAmount'),
-                            document.getElementById('communityCards'),
-                            document.getElementById('playersGrid'),
-                            null // status element (optional)
-                        );
-                        console.log('✅ DisplayState initialized with DOM elements');
-                    });
-                } else {
-                    // DOM already loaded
-                    displayState.setElements(
-                        document.getElementById('potAmount'),
-                        document.getElementById('communityCards'),
-                        document.getElementById('playersGrid'),
-                        null
-                    );
-                    console.log('✅ DisplayState initialized with DOM elements');
-                }
-                
-                // Listen for game events (new event-based system)
-                socket.on('game_event', async (event) => {
-                    console.log(`🎮 Game event received: ${event.type}`);
-                    displayState.receiveEvent(event);
-                    
-                    // ✅ CRITICAL: After HAND_STARTED, fetch full state to get hole cards
-                    if (event.type === 'HAND_STARTED') {
-                        console.log('🎴 HAND_STARTED received, fetching full game state for hole cards...');
-                        await fetchGameState();
-                    }
-                });
-                
                 socket.on('connect', () => {
                     console.log('✅ Socket connected! ID:', socket.id);
                     console.log('📤 Emitting join_room for:', room.id);
@@ -2551,65 +2499,41 @@
                 });
                 
                 // Listen for hand started
-                // Legacy hand_started socket event disabled in favor of event system
+                socket.on('hand_started', async (payload) => {
+                    console.log('🎲 Hand started event received:', payload);
+                    
+                    // SET currentGame for ALL players (not just host) - FIX FOR GUESTS
+                    if (!currentGame && payload.gameId) {
+                        currentGame = { gameId: payload.gameId };
+                        console.log('✅ Current game set from WebSocket for guest:', currentGame);
+                    }
+                    
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    showStatus('🎲 Hand started! Cards dealt.', 'success');
+                    
+                    // Fetch updated game state
+                    await fetchGameState();
+                });
                 
                 // Listen for game state updates
                 socket.on('game_state_update', async (payload) => {
                     console.log('🔄 Game state update received:', payload);
+                    console.log('  currentGame:', currentGame);
+                    console.log('  payload.gameId:', payload.gameId);
+                    console.log('  Match?', currentGame && payload.gameId === currentGame.gameId);
                     
                     if (!currentGame || payload.gameId !== currentGame.gameId) {
-                        console.log('❌ Ignoring update - game ID mismatch');
+                        console.log('❌ Ignoring update - game ID mismatch or no current game');
                         return;
                     }
                     
-                    // ✅ Update UI immediately from payload (no HTTP fetch needed!)
-                    console.log(`  Action: ${payload.action} by player ${payload.playerId}`);
-                    console.log(`  Amount: $${payload.amount}`);
-                    console.log(`  New pot: $${payload.pot}`);
-                    
-                    // Update pot display
-                    const potEl = document.getElementById('potAmount');
-                    if (potEl) {
-                        potEl.textContent = payload.pot;
-                        console.log(`  💰 Pot updated: $${payload.pot}`);
-                    }
-                    
-                    // Update player stacks and bets immediately
-                    if (payload.players && payload.players.length > 0) {
-                        const playersGrid = document.getElementById('playersGrid');
-                        if (playersGrid) {
-                            payload.players.forEach(player => {
-                                const playerCards = playersGrid.querySelectorAll('.player-card');
-                                playerCards.forEach(card => {
-                                    const nameEl = card.querySelector('.player-name');
-                                    if (nameEl && nameEl.textContent === player.name) {
-                                        // Update stack
-                                        const stackEl = card.querySelector('.player-stack');
-                                        if (stackEl) {
-                                            stackEl.textContent = `$${player.stack}`;
-                                        }
-                                        
-                                        // Show current bet amount if betting
-                                        if (player.betThisStreet > 0) {
-                                            console.log(`    ${player.name}: stack=$${player.stack}, bet=$${player.betThisStreet}`);
-                                        }
-                                    }
-                                });
-                            });
-                        }
-                    }
-                    
-                    // Show action notification
-                    const actionText = payload.amount > 0 ? 
-                        `${payload.action} $${payload.amount}` : payload.action;
-                    showStatus(`🎲 Player action: ${actionText}`, 'info');
-                    
-                    // Do not fetch during event flow; rely on events
+                    console.log('✅ Fetching updated game state...');
+                    // Fetch updated game state
+                    await fetchGameState();
                 });
                 
-                // ⚠️ OLD SYSTEM - Disabled in favor of event system
                 // Listen for pot updates (all-in scenarios)
-                /*
                 socket.on('pot_update', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
@@ -2652,10 +2576,8 @@
                         showStatus(payload.message, 'info');
                     }
                 });
-                */
                 
-                // ⚠️ OLD SYSTEM - Disabled (street_reveal handled by event system)
-                /*
+                // Listen for progressive street reveals (all-in scenarios)
                 socket.on('street_reveal', (payload) => {
                     if (!currentGame || payload.gameId !== currentGame.gameId) return;
                     
@@ -2691,10 +2613,8 @@
                     // Show visual notification
                     showStatus(`🃏 ${payload.street} revealed! ${payload.message || ''}`, 'info');
                 });
-                */
                 
-                // ⚠️ OLD SYSTEM - Disabled (hand_complete handled by event system)
-                /*
+                // Listen for hand completion
                 socket.on('hand_complete', async (payload) => {
                     console.log('🏆 Hand complete event received:', payload);
                     
@@ -2721,37 +2641,24 @@
                         showStatus(`🏆 ${winnerNames}`, 'success');
                     }
                     
-                    // ✅ Update player stacks to show winner getting the money
-                    // Backend now sends correct post-distribution stacks at the right time
+                    // Update player stacks to show winner getting the money
                     if (payload.players && payload.players.length > 0) {
                         const playersGrid = document.getElementById('playersGrid');
                         if (playersGrid) {
-                            // Add a small delay for pot transfer animation effect
-                            setTimeout(() => {
-                                payload.players.forEach(player => {
-                                    const playerCards = playersGrid.querySelectorAll('.player-card');
-                                    playerCards.forEach(card => {
-                                        const nameEl = card.querySelector('.player-name');
-                                        if (nameEl && nameEl.textContent === player.name) {
-                                            const stackEl = card.querySelector('.player-stack');
-                                            if (stackEl) {
-                                                const oldStack = stackEl.textContent;
-                                                stackEl.textContent = `$${player.stack}`;
-                                                
-                                                // Add visual highlight for winner getting pot
-                                                if (payload.potTransfer && player.stack > 0) {
-                                                    stackEl.style.animation = 'pulse 0.5s ease-in-out';
-                                                    setTimeout(() => {
-                                                        stackEl.style.animation = '';
-                                                    }, 500);
-                                                }
-                                                
-                                                console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
-                                            }
+                            payload.players.forEach(player => {
+                                const playerCards = playersGrid.querySelectorAll('.player-card');
+                                playerCards.forEach(card => {
+                                    const nameEl = card.querySelector('.player-name');
+                                    if (nameEl && nameEl.textContent === player.name) {
+                                        const stackEl = card.querySelector('.player-stack');
+                                        if (stackEl) {
+                                            const oldStack = stackEl.textContent;
+                                            stackEl.textContent = `$${player.stack}`;
+                                            console.log(`  💵 ${player.name} stack: ${oldStack} → $${player.stack}`);
                                         }
-                                    });
+                                    }
                                 });
-                            }, 300); // Small delay for pot → stack animation
+                            });
                         }
                     }
                     
@@ -2766,7 +2673,6 @@
                         }, 3000);
                     }
                 });
-                */
                 
                 // Listen for game over (tournament complete)
                 socket.on('game_over', (payload) => {
@@ -2858,14 +2764,6 @@
                 }
                 
                 const gameState = await response.json();
-                
-                // Show animation indicator if backend is in animation mode
-                if (gameState.isAnimating) {
-                    console.log(`🎬 Backend is animating (${gameState.animationType}) - display state frozen`);
-                } else {
-                    console.log(`📊 Backend returning logical state (post-distribution)`);
-                }
-                
                 updateGameDisplay(gameState);
                 
             } catch (error) {

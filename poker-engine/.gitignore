@@ -72,7 +72,7 @@ dist
 
 # Gatsby files
 .cache/
-# public  # Commented out - we need public files for poker game
+public
 
 # Storybook build outputs
 .out
