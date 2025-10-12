@@ -603,6 +603,7 @@ export class GameStateMachine {
   private dealHoleCards(state: GameStateModel): void {
     const activePlayers = state.getActivePlayers();
     console.log(`🃏 Dealing hole cards to ${activePlayers.length} players`);
+    console.log(`   Deck has ${state.handState.deck.length} cards before dealing`);
     
     // Deal 2 cards to each player
     for (let round = 0; round < 2; round++) {
@@ -611,7 +612,19 @@ export class GameStateMachine {
           const card = state.handState.deck.pop()!;
           player.addHoleCard(card);
           console.log(`📤 Dealt ${card.toString()} to ${player.name} (round ${round + 1})`);
+        } else {
+          console.error(`❌ DECK EMPTY! Cannot deal to ${player.name} on round ${round + 1}`);
         }
+      }
+    }
+    
+    // Verify hole cards were actually added
+    console.log('✅ Final verification after dealing:');
+    for (const player of activePlayers) {
+      const cards = player.hole || [];
+      console.log(`   ${player.name}: ${cards.length} cards - ${cards.length > 0 ? cards.map(c => c.toString()).join(', ') : '❌ NO CARDS!'}`);
+      if (cards.length !== 2) {
+        console.error(`   ⚠️  ${player.name} should have 2 cards but has ${cards.length}!`);
       }
     }
     
@@ -813,6 +826,16 @@ export class GameStateMachine {
         handRank: 'Winner by default',
         handDescription: 'Won by elimination'
       }];
+    }
+    
+    // CRITICAL: Validate that all active players have hole cards
+    for (const player of activePlayers) {
+      if (!player.hole || player.hole.length !== 2) {
+        console.error(`❌ CRITICAL: ${player.name} has invalid hole cards:`, player.hole);
+        console.error(`   Stack: ${player.stack}, AllIn: ${player.isAllIn}, Folded: ${player.hasFolded}`);
+        console.error(`   This is a BUG - hole cards should have been dealt in handleStartHand!`);
+        throw new Error(`Player ${player.name} has invalid hole cards (${player.hole?.length || 0}/2). Cannot determine winner!`);
+      }
     }
     
     // Evaluate hands only if we have 5 community cards (river reached)
