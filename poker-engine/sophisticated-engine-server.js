@@ -17,8 +17,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files (card images)
-app.use('/cards', express.static(path.join(__dirname, 'cards')));
+// Serve static files (card images and UI)
+app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // In-memory storage for demo (normally would use database)
 const games = new Map();
@@ -173,7 +174,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/poker', (req, res) => {
-  res.sendFile(__dirname + '/poker-test.html');
+  res.sendFile(__dirname + '/public/poker-test.html');
 });
 
 // Create game with sophisticated engine

@@ -43,9 +43,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from cards directory
-app.use('/cards', express.static(path.join(__dirname, 'cards')));
-app.use('/test', express.static(path.join(__dirname, 'poker-test.html')));
+// Serve static files from public directory
+app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Request logging
 app.use((req, res, next) => {
@@ -143,7 +143,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/test', (req, res) => {
-  res.sendFile(path.join(__dirname, 'poker-test.html'));
+  res.sendFile(path.join(__dirname, 'public/poker-test.html'));
 });
 
 // CREATE GAME - Using Real GameStateModel
