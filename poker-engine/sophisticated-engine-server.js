@@ -463,6 +463,69 @@ app.post('/api/rooms/:roomId/lobby/approve', async (req, res) => {
   }
 });
 
+// Rebuy endpoint for cash game mode
+app.post('/api/rooms/:roomId/rebuy', authenticateToken, async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user.id;
+    const { amount } = req.body; // e.g., 500
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid rebuy amount' });
+    }
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Check if room allows rebuys
+    const roomRes = await db.query(
+      'SELECT allow_rebuys, game_mode FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomRes.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (!roomRes.rows[0].allow_rebuys) {
+      return res.status(400).json({ error: 'Rebuys not allowed in this game (tournament mode)' });
+    }
+    
+    // Update player's chip count
+    const updateRes = await db.query(
+      'UPDATE room_seats SET chips_in_play = chips_in_play + $1 WHERE room_id = $2 AND user_id = $3 RETURNING chips_in_play',
+      [amount, roomId, userId]
+    );
+    
+    if (updateRes.rowCount === 0) {
+      return res.status(404).json({ error: 'Player not seated in this room' });
+    }
+    
+    const newStack = updateRes.rows[0].chips_in_play;
+    
+    // Log rebuy
+    await db.query(
+      'INSERT INTO rebuys (room_id, user_id, amount) VALUES ($1, $2, $3)',
+      [roomId, userId, amount]
+    );
+    
+    console.log(`💰 Player ${userId} rebought for $${amount} (new stack: $${newStack})`);
+    
+    // Broadcast to room
+    io.to(`room:${roomId}`).emit('player_rebuy', {
+      userId,
+      amount,
+      newStack,
+      message: `Player bought in for $${amount}`
+    });
+    
+    res.json({ success: true, newStack });
+  } catch (error) {
+    console.error('Rebuy error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Reject player (host only)
 app.post('/api/rooms/:roomId/lobby/reject', async (req, res) => {
   try {
@@ -517,6 +580,27 @@ app.get('/api/rooms/:roomId/lobby/my-status', async (req, res) => {
   } catch (e) {
     console.error('Check lobby status error:', e);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// Get hand history for a room (audit trail)
+app.get('/api/rooms/:roomId/history', authenticateToken, async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const limit = parseInt(req.query.limit) || 50;
+    
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    const historyRes = await db.query(
+      'SELECT * FROM hand_history WHERE room_id = $1 ORDER BY created_at DESC LIMIT $2',
+      [roomId, limit]
+    );
+    
+    res.json({ hands: historyRes.rows });
+  } catch (error) {
+    console.error('Get hand history error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -671,17 +755,43 @@ app.post('/api/games/:id/start-hand', async (req, res) => {
     if (roomId) {
       const db = getDb();
       if (db) {
+        // 🏆 TOURNAMENT MODE: Exclude players with 0 chips (eliminated)
         const seatsRes = await db.query(
           `SELECT rs.seat_index, rs.user_id, rs.chips_in_play, u.username
            FROM room_seats rs
            JOIN users u ON rs.user_id = u.id
-           WHERE rs.room_id = $1 AND rs.status = 'SEATED' AND rs.left_at IS NULL
+           WHERE rs.room_id = $1 
+             AND rs.status = 'SEATED' 
+             AND rs.left_at IS NULL
+             AND rs.chips_in_play > 0
            ORDER BY rs.seat_index ASC`,
           [roomId]
         );
         
+        console.log(`🎮 Active players with chips: ${seatsRes.rowCount}`);
+        
+        // Check if game is over (only 1 or 0 players left)
+        if (seatsRes.rowCount === 1) {
+          const winner = seatsRes.rows[0];
+          console.log(`🏆 GAME OVER! Winner: ${winner.username} with $${winner.chips_in_play}`);
+          
+          // Broadcast game over
+          io.to(`room:${roomId}`).emit('game_over', {
+            winner: { 
+              name: winner.username, 
+              stack: winner.chips_in_play 
+            }
+          });
+          
+          return res.status(200).json({ 
+            message: 'Game over - tournament complete', 
+            winner: winner.username,
+            stack: winner.chips_in_play
+          });
+        }
+        
         if (seatsRes.rowCount < 2) {
-          return res.status(400).json({ error: 'Need at least 2 seated players to start' });
+          return res.status(400).json({ error: 'Need at least 2 players with chips to start' });
         }
         
         // Clear existing players and repopulate from seats
@@ -933,42 +1043,160 @@ app.post('/api/games/:id/actions', async (req, res) => {
       
       console.log('🏆 Winners from action events:', winners);
       
-      // Broadcast hand completion to all players with CURRENT stacks (after distribution)
-      if (io && roomId) {
-        const userIdMap = playerUserIds.get(gameId);
-        io.to(`room:${roomId}`).emit('hand_complete', {
-          gameId,
-          winners: winners.map(w => ({
-            playerId: w.playerId,
-            amount: w.amount,
-            handRank: w.handRank
-          })),
-          players: Array.from(result.newState.players.values()).map(p => ({
-            id: p.uuid,
-            name: p.name,
-            stack: p.stack,
-            userId: userIdMap ? userIdMap.get(p.uuid) : null
-          }))
-        });
-        console.log(`📡 Broadcasted hand completion to room:${roomId}`);
+      // 🃏 CHECK FOR ALL-IN RUNOUT: Progressive card reveal animation
+      const streetEvents = result.events.filter(e => e.type === 'STREET_ADVANCED');
+      if (streetEvents.length > 1 && io && roomId) {
+        // Multiple streets were dealt at once (all-in scenario)
+        console.log(`🎬 All-in runout detected: ${streetEvents.length} streets to reveal`);
         
-        // 💾 UPDATE DATABASE: Persist player stacks after hand completion
-        if (userIdMap) {
-          console.log('💾 Updating player stacks in database after hand completion...');
-          for (const player of result.newState.players.values()) {
-            const userId = userIdMap.get(player.uuid);
-            if (userId) {
-              try {
-                await db.query(
-                  `UPDATE room_seats 
-                   SET chips_in_play = $1 
-                   WHERE room_id = $2 AND user_id = $3`,
-                  [player.stack, roomId, userId]
-                );
-                console.log(`  ✅ Updated ${player.name}: stack=${player.stack}`);
-              } catch (dbErr) {
-                console.error(`  ❌ Failed to update ${player.name} stack:`, dbErr.message);
+        // Broadcast each street with 1-second delays
+        streetEvents.forEach((streetEvent, index) => {
+          setTimeout(() => {
+            console.log(`  🃏 Revealing ${streetEvent.data.street}: ${streetEvent.data.communityCards.join(', ')}`);
+            io.to(`room:${roomId}`).emit('street_reveal', {
+              gameId,
+              street: streetEvent.data.street,
+              communityCards: streetEvent.data.communityCards,
+              pot: result.newState.pot.totalPot
+            });
+          }, (index + 1) * 1000);
+        });
+        
+        // Broadcast hand_complete AFTER all streets revealed
+        const finalDelay = (streetEvents.length + 1) * 1000;
+        setTimeout(async () => {
+          const userIdMap = playerUserIds.get(gameId);
+          io.to(`room:${roomId}`).emit('hand_complete', {
+            gameId,
+            winners: winners.map(w => ({
+              playerId: w.playerId,
+              amount: w.amount,
+              handRank: w.handRank
+            })),
+            players: Array.from(result.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack,
+              userId: userIdMap ? userIdMap.get(p.uuid) : null
+            }))
+          });
+          console.log(`📡 Broadcasted hand completion to room:${roomId} (after animation)`);
+          
+          // 💾 UPDATE DATABASE: Persist player stacks after hand completion
+          if (userIdMap) {
+            console.log('💾 Updating player stacks in database after hand completion...');
+            for (const player of result.newState.players.values()) {
+              const userId = userIdMap.get(player.uuid);
+              if (userId) {
+                try {
+                  await db.query(
+                    `UPDATE room_seats 
+                     SET chips_in_play = $1 
+                     WHERE room_id = $2 AND user_id = $3`,
+                    [player.stack, roomId, userId]
+                  );
+                  console.log(`  ✅ Updated ${player.name}: stack=${player.stack}`);
+                } catch (dbErr) {
+                  console.error(`  ❌ Failed to update ${player.name} stack:`, dbErr.message);
+                }
               }
+            }
+            
+            // 📝 LOG HAND HISTORY for audit trail
+            try {
+              const db = getDb();
+              const finalStacks = {};
+              Array.from(result.newState.players.values()).forEach(p => {
+                finalStacks[p.uuid] = p.stack;
+              });
+              
+              await db.query(
+                `INSERT INTO hand_history 
+                 (game_id, room_id, hand_number, pot_size, community_cards, winners, player_actions, final_stacks)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                  gameId,
+                  roomId,
+                  result.newState.handState.handNumber,
+                  result.newState.pot.totalPot,
+                  result.newState.handState.communityCards.map(c => c.toString()),
+                  JSON.stringify(winners),
+                  JSON.stringify(result.events.filter(e => e.type === 'PLAYER_ACTION')),
+                  JSON.stringify(finalStacks)
+                ]
+              );
+              console.log('📝 Hand history saved to database');
+            } catch (historyErr) {
+              console.error('❌ Failed to save hand history:', historyErr.message);
+            }
+          }
+        }, finalDelay);
+      } else {
+        // Normal showdown (no all-in runout) - immediate broadcast
+        if (io && roomId) {
+          const userIdMap = playerUserIds.get(gameId);
+          io.to(`room:${roomId}`).emit('hand_complete', {
+            gameId,
+            winners: winners.map(w => ({
+              playerId: w.playerId,
+              amount: w.amount,
+              handRank: w.handRank
+            })),
+            players: Array.from(result.newState.players.values()).map(p => ({
+              id: p.uuid,
+              name: p.name,
+              stack: p.stack,
+              userId: userIdMap ? userIdMap.get(p.uuid) : null
+            }))
+          });
+          console.log(`📡 Broadcasted hand completion to room:${roomId}`);
+          
+          // 💾 UPDATE DATABASE: Persist player stacks after hand completion
+          if (userIdMap) {
+            console.log('💾 Updating player stacks in database after hand completion...');
+            for (const player of result.newState.players.values()) {
+              const userId = userIdMap.get(player.uuid);
+              if (userId) {
+                try {
+                  await db.query(
+                    `UPDATE room_seats 
+                     SET chips_in_play = $1 
+                     WHERE room_id = $2 AND user_id = $3`,
+                    [player.stack, roomId, userId]
+                  );
+                  console.log(`  ✅ Updated ${player.name}: stack=${player.stack}`);
+                } catch (dbErr) {
+                  console.error(`  ❌ Failed to update ${player.name} stack:`, dbErr.message);
+                }
+              }
+            }
+            
+            // 📝 LOG HAND HISTORY for audit trail
+            try {
+              const db = getDb();
+              const finalStacks = {};
+              Array.from(result.newState.players.values()).forEach(p => {
+                finalStacks[p.uuid] = p.stack;
+              });
+              
+              await db.query(
+                `INSERT INTO hand_history 
+                 (game_id, room_id, hand_number, pot_size, community_cards, winners, player_actions, final_stacks)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                  gameId,
+                  roomId,
+                  result.newState.handState.handNumber,
+                  result.newState.pot.totalPot,
+                  result.newState.handState.communityCards.map(c => c.toString()),
+                  JSON.stringify(winners),
+                  JSON.stringify(result.events.filter(e => e.type === 'PLAYER_ACTION')),
+                  JSON.stringify(finalStacks)
+                ]
+              );
+              console.log('📝 Hand history saved to database');
+            } catch (historyErr) {
+              console.error('❌ Failed to save hand history:', historyErr.message);
             }
           }
         }

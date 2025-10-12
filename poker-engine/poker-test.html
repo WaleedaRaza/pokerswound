@@ -2533,6 +2533,19 @@
                     await fetchGameState();
                 });
                 
+                // Listen for progressive street reveals (all-in scenarios)
+                socket.on('street_reveal', async (payload) => {
+                    if (!currentGame || payload.gameId !== currentGame.gameId) return;
+                    
+                    console.log(`🃏 Street reveal: ${payload.street}`, payload.communityCards);
+                    
+                    // Fetch updated game state to show new cards
+                    await fetchGameState();
+                    
+                    // Show visual notification
+                    showStatus(`🃏 ${payload.street} revealed!`, 'info');
+                });
+                
                 // Listen for hand completion
                 socket.on('hand_complete', async (payload) => {
                     console.log('🏆 Hand complete event received:', payload);
@@ -2557,6 +2570,25 @@
                             console.log('⏰ Auto-starting next hand...');
                             startNewHand();
                         }, 3000);
+                    }
+                });
+                
+                // Listen for game over (tournament complete)
+                socket.on('game_over', (payload) => {
+                    console.log('🏆 GAME OVER:', payload);
+                    showStatus(`🏆 ${payload.winner.name} wins the tournament with $${payload.winner.stack}!`, 'success');
+                    
+                    // Hide action buttons and show game over screen
+                    const actionsContainer = document.getElementById('actionsContainer');
+                    if (actionsContainer) {
+                        actionsContainer.innerHTML = '<div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; font-size: 1.5rem; font-weight: bold;">🏆 Game Over! Winner Takes All! 🏆</div>';
+                    }
+                    
+                    // Disable start hand button
+                    const startBtn = document.getElementById('adminStartHandBtn');
+                    if (startBtn) {
+                        startBtn.disabled = true;
+                        startBtn.textContent = 'Tournament Complete';
                     }
                 });
                 
