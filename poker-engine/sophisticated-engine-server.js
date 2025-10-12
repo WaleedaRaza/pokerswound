@@ -778,7 +778,7 @@ app.post('/api/games/:id/start-hand', async (req, res) => {
 });
 
 // Process player action with sophisticated BettingEngine and TurnManager
-app.post('/api/games/:id/actions', (req, res) => {
+app.post('/api/games/:id/actions', async (req, res) => {
   try {
     const gameId = req.params.id;
     const { player_id, action, amount } = req.body;
