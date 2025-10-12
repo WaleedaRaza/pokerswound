@@ -995,11 +995,27 @@ app.post('/api/games/:id/actions', async (req, res) => {
     const isHandComplete = result.newState.isHandComplete();
     const willBeAllInRunout = isHandComplete && result.events.filter(e => e.type === 'STREET_ADVANCED').length > 1;
     
+    // Capture pot amount from HAND_COMPLETED event (before engine resets it)
+    let potAmount = result.newState.pot.totalPot;
+    if (willBeAllInRunout) {
+      const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
+      if (handCompletedEvent && handCompletedEvent.data.pot) {
+        potAmount = handCompletedEvent.data.pot;
+        console.log(`💰 Captured pot from HAND_COMPLETED event: $${potAmount}`);
+      } else {
+        // Fallback: calculate from winners
+        const winners = handCompletedEvent ? handCompletedEvent.data.winners : [];
+        if (winners.length > 0) {
+          potAmount = winners.reduce((sum, w) => sum + (w.amount || 0), 0);
+          console.log(`💰 Calculated pot from winners: $${potAmount}`);
+        }
+      }
+    }
+    
     if (io && roomId) {
       if (willBeAllInRunout) {
         // All-in runout detected - send pot update ONLY (no winner info yet)
-        const potAmount = result.newState.pot.totalPot;
-        console.log(`💰 All-in runout - broadcasting pot update only: $${potAmount}`);
+        console.log(`💰 All-in runout - broadcasting pot update: $${potAmount}`);
         io.to(`room:${roomId}`).emit('pot_update', {
           gameId,
           pot: potAmount,
