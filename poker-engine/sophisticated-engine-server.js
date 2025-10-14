@@ -24,6 +24,8 @@ const { GameEventHandler } = require('./dist/application/events/handlers/GameEve
 const { WebSocketEventHandler } = require('./dist/application/events/handlers/WebSocketEventHandler');
 // ✅ DAY 5: Event Replay + Crash Recovery
 const { EventReplayer } = require('./dist/application/services/EventReplayer');
+// ✅ DAY 5: CQRS - Application Service (CommandBus + QueryBus)
+const { GameApplicationService } = require('./dist/application/services/GameApplicationService');
 
 const app = express();
 app.use(cors());
@@ -52,6 +54,8 @@ const displayStateManager = new DisplayStateManager();
 let eventStore = null;
 let eventBus = null;
 let eventReplayer = null;
+// ✅ DAY 5: CQRS Application Service
+let gameApplicationService = null;
 
 /**
  * Initialize Event Sourcing Infrastructure
@@ -103,6 +107,15 @@ function initializeEventSourcing(io) {
   });
   
   console.log('✅ Event handlers subscribed');
+  
+  // Create GameApplicationService (CQRS)
+  gameApplicationService = new GameApplicationService({
+    stateMachine: stateMachine,
+    gameStateStore: games,
+    playerStatsStore: new Map() // Could be connected to database
+  });
+  console.log('✅ GameApplicationService initialized (CQRS ready)');
+  
   console.log('🎉 Event sourcing infrastructure ready!');
 }
 
@@ -1784,6 +1797,102 @@ const httpServer = app.listen(PORT, () => {
 // Socket.IO setup
 const io = new Server(httpServer, {
   cors: { origin: '*', credentials: false },
+});
+
+// ============================================================================
+// ✅ DAY 5: CQRS ENDPOINTS (Using GameApplicationService)
+// These demonstrate the clean command/query separation pattern
+// ============================================================================
+
+// Query: Get game state (read-only)
+app.get('/api/v2/game/:gameId', async (req, res) => {
+  try {
+    if (!gameApplicationService) {
+      return res.status(503).json({ error: 'Application service not initialized' });
+    }
+
+    const { gameId } = req.params;
+    const gameState = await gameApplicationService.getGameState(gameId);
+
+    if (!gameState) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+
+    res.json({
+      gameId: gameState.id,
+      status: gameState.status,
+      pot: gameState.pot.totalPot,
+      currentStreet: gameState.currentStreet,
+      players: Array.from(gameState.players.values()).map(p => ({
+        id: p.uuid,
+        name: p.name,
+        stack: p.stack,
+        seatIndex: p.seatIndex
+      }))
+    });
+  } catch (error) {
+    console.error('❌ Error fetching game state:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Query: Get room info
+app.get('/api/v2/room/:roomId', async (req, res) => {
+  try {
+    if (!gameApplicationService) {
+      return res.status(503).json({ error: 'Application service not initialized' });
+    }
+
+    const { roomId } = req.params;
+    const roomInfo = await gameApplicationService.getRoomInfo(roomId);
+
+    if (!roomInfo) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    res.json(roomInfo);
+  } catch (error) {
+    console.error('❌ Error fetching room info:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Command: Process player action (CQRS-style, but keeping compatibility with existing system)
+app.post('/api/v2/game/:gameId/action', async (req, res) => {
+  try {
+    if (!gameApplicationService) {
+      return res.status(503).json({ error: 'Application service not initialized' });
+    }
+
+    const { gameId } = req.params;
+    const { playerId, action, amount } = req.body;
+
+    const result = await gameApplicationService.processPlayerAction(
+      gameId,
+      playerId,
+      action,
+      amount
+    );
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    // Update game state in store
+    games.set(gameId, result.newState);
+
+    res.json({
+      success: true,
+      gameId,
+      action,
+      amount: amount || 0,
+      pot: result.newState.pot.totalPot,
+      toAct: result.newState.toAct
+    });
+  } catch (error) {
+    console.error('❌ Error processing action:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ✅ DAY 4-5: Initialize Event Sourcing Infrastructure
