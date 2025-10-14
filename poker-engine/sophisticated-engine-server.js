@@ -12,6 +12,8 @@ const { BettingEngine } = require('./dist/core/engine/betting-engine');
 const { RoundManager } = require('./dist/core/engine/round-manager');
 const { TurnManager } = require('./dist/core/engine/turn-manager');
 const { ActionType, Street } = require('./dist/types/common.types');
+// ✅ NEW: Display State Manager to fix all-in display bug
+const { DisplayStateManager } = require('./dist/application/services/DisplayStateManager');
 
 const app = express();
 app.use(cors());
@@ -33,6 +35,8 @@ const stateMachine = new GameStateMachine();
 const bettingEngine = new BettingEngine();
 const roundManager = new RoundManager();
 const turnManager = new TurnManager();
+// ✅ NEW: Display state manager for correct UI rendering
+const displayStateManager = new DisplayStateManager();
 
 // Helper functions
 function generateGameId() {
@@ -958,17 +962,6 @@ app.post('/api/games/:id/actions', async (req, res) => {
       amount: amount
     });
     
-    // Capture post-action, pre-showdown state (chips collected, but winner not yet determined)
-    // This is the state we want to show during card reveals
-    const postActionPreShowdownPlayers = Array.from(result.newState.players.values()).map(p => ({
-      uuid: p.uuid,
-      name: p.name,
-      betThisStreet: p.betThisStreet,
-      stack: p.stack,
-      isAllIn: p.isAllIn,
-      hasFolded: p.hasFolded
-    }));
-    
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
@@ -1027,39 +1020,58 @@ app.post('/api/games/:id/actions', async (req, res) => {
     
     if (io && roomId) {
       if (willBeAllInRunout) {
-        // All-in runout detected - send pot update with CORRECT stacks
+        // ✅ ALL-IN DISPLAY BUG FIX: Use DisplayStateManager
         const userIdMap = playerUserIds.get(gameId);
         
-        // CRITICAL: Engine has already distributed pot in handleEndHand
-        // We need to RECONSTRUCT pre-distribution state manually
-        // All all-in players should show stack=0 (chips in pot)
-        const currentPlayers = postActionPreShowdownPlayers
-          .filter(p => !p.hasFolded) // Only active players
-          .map(p => {
-            // Force stack to 0 for all-in players (chips are in the pot)
-            const displayStack = p.isAllIn ? 0 : p.stack;
-            return {
-              id: p.uuid,
-              name: p.name,
-              stack: displayStack, // Force 0 for all-in players
-              betThisStreet: 0, // Bets collected to pot
-              isAllIn: p.isAllIn,
-              userId: userIdMap ? userIdMap.get(p.uuid) : null
-            };
+        // Extract pre-distribution snapshot from HAND_COMPLETED event
+        const preDistributionSnapshot = handCompletedEvent?.data?.preDistributionSnapshot;
+        
+        if (!preDistributionSnapshot) {
+          console.error('❌ CRITICAL: No preDistributionSnapshot in HAND_COMPLETED event!');
+          // Fallback to basic behavior
+          io.to(`room:${roomId}`).emit('pot_update', {
+            gameId,
+            pot: potAmount,
+            action: action,
+            playerId: player_id,
+            message: 'All players all-in - dealing remaining cards...'
           });
-        
-        console.log(`💰 All-in runout - broadcasting pot and RECONSTRUCTED pre-distribution stacks: $${potAmount}`);
-        currentPlayers.forEach(p => console.log(`  ${p.name}: stack=$${p.stack}, allIn=${p.isAllIn}`));
-        
-        io.to(`room:${roomId}`).emit('pot_update', {
-          gameId,
-          pot: potAmount,
-          action: action,
-          playerId: player_id,
-          players: currentPlayers,
-          message: 'All players all-in - dealing remaining cards...'
-        });
-        console.log(`📡 Emitted pot_update to room:${roomId} with pot=$${potAmount}, ${currentPlayers.length} players`);
+        } else {
+          // Create domain outcomes from event
+          const outcomes = {
+            type: 'HAND_COMPLETED',
+            wasAllIn: handCompletedEvent.data.wasAllIn || true,
+            potAmount: preDistributionSnapshot.potAmount,
+            winners: handCompletedEvent.data.winners || []
+          };
+          
+          // Calculate correct display state
+          const displayState = displayStateManager.calculateDisplayState(
+            preDistributionSnapshot,
+            outcomes,
+            result.newState
+          );
+          
+          // Map display players to include userId
+          const displayPlayers = displayState.visibleState.players.map(p => ({
+            ...p,
+            userId: userIdMap ? userIdMap.get(p.id) : null
+          }));
+          
+          console.log(`✅ DisplayStateManager calculated all-in display state:`);
+          console.log(`   Pot: $${displayState.visibleState.pot}`);
+          displayPlayers.forEach(p => console.log(`   ${p.name}: stack=$${p.stack}, allIn=${p.isAllIn}`));
+          
+          io.to(`room:${roomId}`).emit('pot_update', {
+            gameId,
+            pot: displayState.visibleState.pot,
+            action: action,
+            playerId: player_id,
+            players: displayPlayers,
+            message: 'All players all-in - dealing remaining cards...'
+          });
+          console.log(`📡 Emitted pot_update with CORRECT display state`);
+        }
         
         // Log sockets in room
         const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);

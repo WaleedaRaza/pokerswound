@@ -448,6 +448,26 @@ export class GameStateMachine {
       console.log(`    ${player.name}: stack=${player.stack}, bet=${player.betThisStreet}, allIn=${player.isAllIn}, folded=${player.hasFolded}`);
     }
     
+    // ✅ CRITICAL FIX: Capture PRE-DISTRIBUTION snapshot
+    // This preserves isAllIn flags and pot amount BEFORE mutations
+    const preDistributionSnapshot = {
+      potAmount: state.pot.totalPot,
+      players: Array.from(state.players.values()).map(p => ({
+        id: p.uuid,
+        name: p.name,
+        stack: p.stack,
+        isAllIn: p.isAllIn,  // ✅ Captured BEFORE cleanup resets it
+        betThisStreet: p.betThisStreet,
+        hasFolded: p.hasFolded,
+        seatIndex: p.seatIndex
+      })),
+      communityCards: state.handState.communityCards.map(c => c.toString()),
+      currentStreet: state.currentStreet
+    };
+    
+    // Check if this was an all-in runout
+    const wasAllIn = Array.from(state.players.values()).some(p => p.isAllIn && !p.hasFolded);
+    
     // Determine winners and distribute pot
     const results = this.determineWinners(state);
     console.log('  Winners determined:', results.length);
@@ -481,7 +501,10 @@ export class GameStateMachine {
           amount: r.amount,
           handRank: r.handRank
         })),
-        totalPot: state.pot.totalPot
+        totalPot: state.pot.totalPot,  // This is 0 after distribution
+        // ✅ NEW: Include pre-distribution snapshot for DisplayStateManager
+        preDistributionSnapshot,
+        wasAllIn
       },
       timestamp: Date.now()
     });
