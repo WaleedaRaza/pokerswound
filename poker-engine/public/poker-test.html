@@ -1600,8 +1600,8 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3002/api';
-        const WS_BASE = 'http://localhost:3002';
+        const API_BASE = 'http://localhost:3000/api';
+        const WS_BASE = 'http://localhost:3000';
         let room = null;
         let seats = [];
         let socket = null; // socket.io client
@@ -1881,10 +1881,16 @@
         }
 
         function showCreateGameModal() {
+            // 🚀 LOCAL TESTING: Bypass auth for quick testing
             if (!currentUser) {
-                showStatus('🔒 Please login to create a game', 'error');
-                showAuthModal();
-                return;
+                // Create temporary guest user
+                currentUser = {
+                    id: 'guest_' + Date.now(),
+                    username: 'Guest_' + Math.floor(Math.random() * 1000),
+                    isGuest: true
+                };
+                console.log('🎮 Created temporary guest user:', currentUser.username);
+                document.getElementById('userDisplay').textContent = currentUser.username;
             }
             document.getElementById('createGameModal').classList.remove('hidden');
         }
