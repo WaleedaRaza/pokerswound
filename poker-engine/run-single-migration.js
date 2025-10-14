@@ -13,9 +13,9 @@ async function runMigration() {
     console.log('🔌 Connecting...');
     const client = await pool.connect();
     
-    const sql = fs.readFileSync('database/migrations/008_fix_room_players_constraint.sql', 'utf8');
+    const sql = fs.readFileSync('database/migrations/009_event_store.sql', 'utf8');
     
-    console.log('📝 Running migration 008...');
+    console.log('📝 Running migration 009 (Event Store)...');
     await client.query(sql);
     
     console.log('✅ Migration complete!');

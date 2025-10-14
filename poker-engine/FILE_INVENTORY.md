@@ -30,7 +30,7 @@
 
 **Used By**: Everything - this is the entry point
 
-**Problems**:
+**Problems**: 
 - ❌ Too many responsibilities (8 different concerns)
 - ❌ Hard to test (mocking nightmare)
 - ❌ Hard to scale (in-memory Map)
