@@ -9,8 +9,11 @@ import type { IEventBus } from '../../common/interfaces/IEventBus';
 import type { DomainEvent } from '../../common/interfaces/IEventStore';
 
 export interface GameAction {
-  type: 'START_GAME' | 'START_HAND' | 'PLAYER_ACTION' | 'ADVANCE_STREET' | 'END_HAND' | 'PAUSE_GAME' | 'RESUME_GAME';
+  type: 'START_GAME' | 'START_HAND' | 'PLAYER_ACTION' | 'ADVANCE_STREET' | 'END_HAND' | 'PAUSE_GAME' | 'RESUME_GAME' | 'PLAYER_JOIN' | 'PLAYER_LEAVE';
   playerId?: UUID;
+  playerName?: string;
+  seatNumber?: number;
+  buyIn?: Chips;
   actionType?: ActionType;
   amount?: Chips;
   metadata?: Record<string, any>;
@@ -88,6 +91,20 @@ export class GameStateMachine {
           
         case 'RESUME_GAME':
           result = this.handleResumeGame(newState, events);
+          break;
+          
+        case 'PLAYER_JOIN':
+          if (!action.playerId || !action.playerName || action.seatNumber === undefined || !action.buyIn) {
+            throw new Error('Player join requires playerId, playerName, seatNumber, and buyIn');
+          }
+          result = this.handlePlayerJoin(newState, action.playerId, action.playerName, action.seatNumber, action.buyIn, events);
+          break;
+          
+        case 'PLAYER_LEAVE':
+          if (!action.playerId) {
+            throw new Error('Player leave requires playerId');
+          }
+          result = this.handlePlayerLeave(newState, action.playerId, events);
           break;
           
         default:
@@ -1081,5 +1098,113 @@ export class GameStateMachine {
     const nextIndex = (currentIndex + 1) % sortedPlayers.length;
     
     return sortedPlayers[nextIndex]?.uuid || null;
+  }
+
+  /**
+   * Handle player joining the game
+   */
+  private handlePlayerJoin(
+    state: GameStateModel,
+    playerId: UUID,
+    playerName: string,
+    seatNumber: number,
+    buyIn: Chips,
+    events: GameEvent[]
+  ): StateTransitionResult {
+    // Check if seat is available
+    const existingPlayers = state.table.seats.filter(s => s !== null);
+    if (existingPlayers.length >= state.configuration.maxPlayers) {
+      return {
+        success: false,
+        newState: state,
+        events,
+        error: 'Table is full'
+      };
+    }
+
+    // Check if seat number is already taken
+    if (state.table.seats[seatNumber] !== null) {
+      return {
+        success: false,
+        newState: state,
+        events,
+        error: 'Seat is already taken'
+      };
+    }
+
+    // Create new player
+    const player = new PlayerModel({
+      uuid: playerId,
+      name: playerName,
+      stack: buyIn,
+      seatIndex: seatNumber
+    });
+
+    // Add player to table
+    state.table.seats[seatNumber] = playerId;
+    state.players.set(playerId, player);
+    state.updateTimestamp();
+
+    events.push({
+      type: 'PLAYER_JOINED',
+      data: { 
+        gameId: state.id,
+        playerId,
+        playerName,
+        seatNumber,
+        buyIn
+      },
+      timestamp: Date.now()
+    });
+
+    return {
+      success: true,
+      newState: state,
+      events
+    };
+  }
+
+  /**
+   * Handle player leaving the game
+   */
+  private handlePlayerLeave(
+    state: GameStateModel,
+    playerId: UUID,
+    events: GameEvent[]
+  ): StateTransitionResult {
+    const player = state.players.get(playerId);
+    
+    if (!player) {
+      return {
+        success: false,
+        newState: state,
+        events,
+        error: 'Player not found'
+      };
+    }
+
+    // Remove player from table
+    if (player.seatIndex !== undefined) {
+      state.table.seats[player.seatIndex] = null;
+    }
+    
+    state.players.delete(playerId);
+    state.updateTimestamp();
+
+    events.push({
+      type: 'PLAYER_LEFT',
+      data: { 
+        gameId: state.id,
+        playerId,
+        stack: player.stack
+      },
+      timestamp: Date.now()
+    });
+
+    return {
+      success: true,
+      newState: state,
+      events
+    };
   }
 }
