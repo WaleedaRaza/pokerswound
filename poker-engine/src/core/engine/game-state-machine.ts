@@ -5,6 +5,8 @@ import { PlayerModel } from '../models/player';
 import { Card } from '../card/card';
 import { Deck } from '../card/deck';
 import { HandEvaluator, HandRanking } from './hand-evaluator';
+import type { IEventBus } from '../../common/interfaces/IEventBus';
+import type { DomainEvent } from '../../common/interfaces/IEventStore';
 
 export interface GameAction {
   type: 'START_GAME' | 'START_HAND' | 'PLAYER_ACTION' | 'ADVANCE_STREET' | 'END_HAND' | 'PAUSE_GAME' | 'RESUME_GAME';
@@ -34,9 +36,12 @@ export interface GameEvent {
  */
 export class GameStateMachine {
   private readonly randomFn: () => number;
+  private readonly eventBus?: IEventBus;
+  private eventVersion: Map<string, number> = new Map(); // Track event version per aggregate
 
-  constructor(randomFn: () => number = Math.random) {
+  constructor(randomFn: () => number = Math.random, eventBus?: IEventBus) {
     this.randomFn = randomFn;
+    this.eventBus = eventBus;
   }
 
   /**
@@ -51,34 +56,52 @@ export class GameStateMachine {
       const newState = this.cloneState(currentState);
       const events: GameEvent[] = [];
 
+      let result: StateTransitionResult;
+
       switch (action.type) {
         case 'START_GAME':
-          return this.handleStartGame(newState, events);
+          result = this.handleStartGame(newState, events);
+          break;
           
         case 'START_HAND':
-          return this.handleStartHand(newState, events);
+          result = this.handleStartHand(newState, events);
+          break;
           
         case 'PLAYER_ACTION':
           if (!action.playerId || !action.actionType) {
             throw new Error('Player action requires playerId and actionType');
           }
-          return this.handlePlayerAction(newState, action.playerId, action.actionType, action.amount, events);
+          result = this.handlePlayerAction(newState, action.playerId, action.actionType, action.amount, events);
+          break;
           
         case 'ADVANCE_STREET':
-          return this.handleAdvanceStreet(newState, events);
+          result = this.handleAdvanceStreet(newState, events);
+          break;
           
         case 'END_HAND':
-          return this.handleEndHand(newState, events);
+          result = this.handleEndHand(newState, events);
+          break;
           
         case 'PAUSE_GAME':
-          return this.handlePauseGame(newState, events);
+          result = this.handlePauseGame(newState, events);
+          break;
           
         case 'RESUME_GAME':
-          return this.handleResumeGame(newState, events);
+          result = this.handleResumeGame(newState, events);
+          break;
           
         default:
           throw new Error(`Unknown action type: ${action.type}`);
       }
+
+      // Publish events through EventBus if configured (fire-and-forget)
+      if (this.eventBus && result.success) {
+        for (const event of result.events) {
+          this.publishEvent(result.newState.id, event);
+        }
+      }
+
+      return result;
     } catch (error) {
     return {
         success: false,
@@ -86,6 +109,43 @@ export class GameStateMachine {
         events: [],
         error: (error as Error).message
       };
+    }
+  }
+
+  /**
+   * Publish an event through EventBus if available
+   * Also tracks version numbers for each aggregate
+   */
+  private async publishEvent(gameId: string, gameEvent: GameEvent): Promise<void> {
+    if (!this.eventBus) {
+      return; // No EventBus configured, skip
+    }
+
+    // Get or initialize version for this aggregate
+    const currentVersion = this.eventVersion.get(gameId) || 0;
+    const newVersion = currentVersion + 1;
+    this.eventVersion.set(gameId, newVersion);
+
+    // Transform GameEvent to DomainEvent
+    const domainEvent: Omit<DomainEvent, 'id' | 'timestamp' | 'sequenceNumber'> = {
+      eventType: `game.${gameEvent.type.toLowerCase()}`,
+      aggregateType: 'Game',
+      aggregateId: gameId,
+      eventData: gameEvent.data,
+      version: newVersion,
+      userId: gameEvent.data.userId,
+      metadata: {
+        gameEventType: gameEvent.type,
+        originalTimestamp: gameEvent.timestamp
+      }
+    };
+
+    // Publish through EventBus (fire-and-forget, errors are handled by EventBus)
+    try {
+      await this.eventBus.publish(domainEvent as DomainEvent);
+    } catch (error) {
+      console.error(`Failed to publish event ${gameEvent.type}:`, error);
+      // Don't throw - we don't want EventBus failures to break game logic
     }
   }
 
