@@ -22,6 +22,8 @@ const { PostgresEventStore } = require('./dist/infrastructure/persistence/EventS
 const { EventBus } = require('./dist/application/events/EventBus');
 const { GameEventHandler } = require('./dist/application/events/handlers/GameEventHandler');
 const { WebSocketEventHandler } = require('./dist/application/events/handlers/WebSocketEventHandler');
+// ✅ DAY 5: Event Replay + Crash Recovery
+const { EventReplayer } = require('./dist/application/services/EventReplayer');
 
 const app = express();
 app.use(cors());
@@ -46,9 +48,10 @@ const turnManager = new TurnManager();
 // ✅ NEW: Display state manager for correct UI rendering
 const displayStateManager = new DisplayStateManager();
 
-// ✅ DAY 2-4: Event Sourcing Infrastructure
+// ✅ DAY 2-5: Event Sourcing Infrastructure
 let eventStore = null;
 let eventBus = null;
+let eventReplayer = null;
 
 /**
  * Initialize Event Sourcing Infrastructure
@@ -75,6 +78,16 @@ function initializeEventSourcing(io) {
   });
   console.log('✅ EventBus initialized');
   
+  // Create GameStateMachine with EventBus
+  stateMachine = new GameStateMachine(Math.random, eventBus);
+  console.log('✅ GameStateMachine initialized with EventBus');
+  
+  // Create EventReplayer for crash recovery
+  if (eventStore && stateMachine) {
+    eventReplayer = new EventReplayer(eventStore, stateMachine);
+    console.log('✅ EventReplayer initialized');
+  }
+  
   // Create and subscribe event handlers
   const gameEventHandler = new GameEventHandler();
   const webSocketEventHandler = new WebSocketEventHandler(io, displayStateManager);
@@ -90,12 +103,59 @@ function initializeEventSourcing(io) {
   });
   
   console.log('✅ Event handlers subscribed');
-  
-  // Create GameStateMachine with EventBus
-  stateMachine = new GameStateMachine(Math.random, eventBus);
-  console.log('✅ GameStateMachine initialized with EventBus');
-  
   console.log('🎉 Event sourcing infrastructure ready!');
+}
+
+/**
+ * Attempt to recover incomplete games from EventStore
+ * Called on server startup after event sourcing is initialized
+ */
+async function recoverIncompleteGames() {
+  if (!eventReplayer || !eventStore) {
+    console.log('⚠️  Crash recovery skipped (EventReplayer not available)');
+    return;
+  }
+  
+  try {
+    console.log('🔄 Checking for incomplete games to recover...');
+    
+    const incompleteGames = await eventReplayer.getIncompleteGames();
+    
+    if (incompleteGames.length === 0) {
+      console.log('✅ No incomplete games to recover');
+      return;
+    }
+    
+    console.log(`📦 Found ${incompleteGames.length} incomplete games`);
+    
+    let recovered = 0;
+    let failed = 0;
+    
+    for (const gameId of incompleteGames) {
+      try {
+        console.log(`  🔄 Recovering game: ${gameId}`);
+        
+        const result = await eventReplayer.rebuildGameState(gameId);
+        
+        if (result.success && result.gameState) {
+          games.set(gameId, result.gameState);
+          recovered++;
+          console.log(`  ✅ Recovered game ${gameId} (${result.eventsReplayed} events)`);
+        } else {
+          failed++;
+          console.error(`  ❌ Failed to recover game ${gameId}: ${result.error}`);
+        }
+      } catch (error) {
+        failed++;
+        console.error(`  ❌ Error recovering game ${gameId}:`, error);
+      }
+    }
+    
+    console.log(`🎉 Crash recovery complete: ${recovered} recovered, ${failed} failed`);
+    
+  } catch (error) {
+    console.error('❌ Crash recovery failed:', error);
+  }
 }
 
 // Helper functions
@@ -1726,8 +1786,13 @@ const io = new Server(httpServer, {
   cors: { origin: '*', credentials: false },
 });
 
-// ✅ DAY 4: Initialize Event Sourcing Infrastructure
+// ✅ DAY 4-5: Initialize Event Sourcing Infrastructure
 initializeEventSourcing(io);
+
+// ✅ DAY 5: Attempt crash recovery (async, don't block server startup)
+recoverIncompleteGames().catch(err => {
+  console.error('❌ Crash recovery error:', err);
+});
 
 io.on('connection', (socket) => {
   socket.on('join_room', (roomId) => {
