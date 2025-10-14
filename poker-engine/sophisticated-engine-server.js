@@ -17,6 +17,11 @@ const { TurnManager } = require('./dist/core/engine/turn-manager');
 const { ActionType, Street } = require('./dist/types/common.types');
 // ✅ NEW: Display State Manager to fix all-in display bug
 const { DisplayStateManager } = require('./dist/application/services/DisplayStateManager');
+// ✅ DAY 2-4: Event Sourcing + EventBus Integration
+const { PostgresEventStore } = require('./dist/infrastructure/persistence/EventStore');
+const { EventBus } = require('./dist/application/events/EventBus');
+const { GameEventHandler } = require('./dist/application/events/handlers/GameEventHandler');
+const { WebSocketEventHandler } = require('./dist/application/events/handlers/WebSocketEventHandler');
 
 const app = express();
 app.use(cors());
@@ -33,13 +38,65 @@ let gameCounter = 1;
 // Store userId mappings separately (since PlayerModel doesn't have userId property)
 const playerUserIds = new Map(); // gameId -> Map(playerId -> userId)
 
-// Engine instances
-const stateMachine = new GameStateMachine();
+// Engine instances (stateMachine will be created after EventBus is initialized)
+let stateMachine = null;
 const bettingEngine = new BettingEngine();
 const roundManager = new RoundManager();
 const turnManager = new TurnManager();
 // ✅ NEW: Display state manager for correct UI rendering
 const displayStateManager = new DisplayStateManager();
+
+// ✅ DAY 2-4: Event Sourcing Infrastructure
+let eventStore = null;
+let eventBus = null;
+
+/**
+ * Initialize Event Sourcing Infrastructure
+ * Called after Socket.io is ready
+ */
+function initializeEventSourcing(io) {
+  console.log('🔄 Initializing event sourcing...');
+  
+  // Create EventStore (requires database)
+  const db = getDb();
+  if (db) {
+    eventStore = new PostgresEventStore(db);
+    console.log('✅ EventStore initialized');
+  } else {
+    console.warn('⚠️  EventStore not initialized (no database)');
+  }
+  
+  // Create EventBus (with optional EventStore)
+  eventBus = new EventBus({
+    eventStore: eventStore,
+    persistEvents: !!eventStore, // Only persist if EventStore available
+    asyncHandlers: true, // Fire-and-forget for performance
+    swallowHandlerErrors: true, // Don't let handler errors break game logic
+  });
+  console.log('✅ EventBus initialized');
+  
+  // Create and subscribe event handlers
+  const gameEventHandler = new GameEventHandler();
+  const webSocketEventHandler = new WebSocketEventHandler(io, displayStateManager);
+  
+  eventBus.subscribe('game.*', gameEventHandler.getHandlerFunction(), {
+    priority: 50,
+    id: 'GameEventHandler'
+  });
+  
+  eventBus.subscribe('game.*', webSocketEventHandler.getHandlerFunction(), {
+    priority: 10, // Higher priority for WebSocket (broadcast first)
+    id: 'WebSocketEventHandler'
+  });
+  
+  console.log('✅ Event handlers subscribed');
+  
+  // Create GameStateMachine with EventBus
+  stateMachine = new GameStateMachine(Math.random, eventBus);
+  console.log('✅ GameStateMachine initialized with EventBus');
+  
+  console.log('🎉 Event sourcing infrastructure ready!');
+}
 
 // Helper functions
 function generateGameId() {
@@ -1668,6 +1725,9 @@ const httpServer = app.listen(PORT, () => {
 const io = new Server(httpServer, {
   cors: { origin: '*', credentials: false },
 });
+
+// ✅ DAY 4: Initialize Event Sourcing Infrastructure
+initializeEventSourcing(io);
 
 io.on('connection', (socket) => {
   socket.on('join_room', (roomId) => {
