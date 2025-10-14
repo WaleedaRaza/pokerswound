@@ -1104,6 +1104,23 @@ app.post('/api/games/:id/actions', async (req, res) => {
     // Check if betting round is complete using sophisticated logic
     let isBettingComplete = result.newState.isBettingRoundComplete();
     
+    // 🔍 DIAGNOSTIC: Betting round completion
+    console.log('🔍 BETTING ROUND COMPLETION CHECK:');
+    console.log('  isBettingComplete (from engine):', isBettingComplete);
+    console.log('  Current bet:', result.newState.bettingRound.currentBet);
+    console.log('  Last aggressor:', result.newState.bettingRound.lastAggressor);
+    console.log('  Current street:', result.newState.currentStreet);
+    console.log('  Action history this street:');
+    result.newState.actionHistory
+      .filter(a => a.street === result.newState.currentStreet && a.handNumber === result.newState.handState.handNumber)
+      .forEach(a => console.log(`    ${a.player}: ${a.action} ${a.amount || ''}`));
+    console.log('  Player states:');
+    for (const player of result.newState.players.values()) {
+      if (!player.hasFolded) {
+        console.log(`    ${player.name}: betThisStreet=${player.betThisStreet}, isAllIn=${player.isAllIn}`);
+      }
+    }
+    
     // EDGE CASE FIX: If someone just went all-in and raised, other players must respond
     // We use PROJECTED bet because engine may have already reset betThisStreet
     const postActivePlayers = Array.from(result.newState.players.values()).filter(p => !p.hasFolded);

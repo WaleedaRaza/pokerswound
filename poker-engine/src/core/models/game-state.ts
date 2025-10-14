@@ -228,14 +228,12 @@ export class GameStateModel {
     const currentBet = this.bettingRound.currentBet as unknown as number;
     
     // Check if all non-all-in players have matched the current bet
-    let allBetsMatched = true;
     for (const player of nonAllInPlayers) {
       const playerBet = player.betThisStreet as unknown as number;
       
       // If any non-all-in player hasn't matched the bet, round is NOT complete
       if (playerBet < currentBet) {
         console.log(`🎯 ${player.name} hasn't matched bet (${playerBet} < ${currentBet}), round NOT complete`);
-        allBetsMatched = false;
         return false;
       }
     }
@@ -247,26 +245,7 @@ export class GameStateModel {
       return true;
     }
     
-    // ✅ FIX: If all bets matched, check if we should continue betting
-    // Key insight: After a CALL that matches the bet, betting round is COMPLETE
-    
-    // Check if there's a last aggressor (raiser/bettor)
-    if (this.bettingRound.lastAggressor && allBetsMatched) {
-      const aggressor = this.getPlayer(this.bettingRound.lastAggressor);
-      
-      // If aggressor is still in and has matched the current bet
-      if (aggressor && !aggressor.isAllIn && !aggressor.hasFolded) {
-        const aggressorBet = aggressor.betThisStreet as unknown as number;
-        
-        // If aggressor's bet is still the highest, action came back to them → complete
-        if (aggressorBet === currentBet) {
-          console.log(`🎯 Action returned to last aggressor (${aggressor.name}) who matched bet → round COMPLETE`);
-          return true;
-        }
-      }
-    }
-    
-    // For cases without clear aggressor, check if everyone acted and matched
+    // For multiple non-all-in players, check action history
     let playersWhoActed = allInPlayers.length; // All-in players have acted
     let playersWithMatchingBets = allInPlayers.length; // All-in players count as matched
     
@@ -294,8 +273,24 @@ export class GameStateModel {
       }
     }
     
+    // ✅ FIX: Check if action has come back to the last aggressor
+    // If there's a last aggressor and everyone has matched their bet, round is complete
+    if (this.bettingRound.lastAggressor) {
+      const aggressor = this.getPlayer(this.bettingRound.lastAggressor);
+      if (aggressor && !aggressor.hasFolded && !aggressor.isAllIn) {
+        const aggressorBet = aggressor.betThisStreet as unknown as number;
+        
+        // If aggressor still has the highest bet and everyone matched, round is complete
+        if (aggressorBet === currentBet && playersWithMatchingBets >= activePlayers.length) {
+          console.log(`🎯 Last aggressor (${aggressor.name}) has highest bet ($${aggressorBet}), all matched → round complete`);
+          return true;
+        }
+      }
+    }
+    
     // Betting round is complete only if all players have acted and matched bets
     const allPlayersActed = playersWhoActed >= activePlayers.length;
+    const allBetsMatched = playersWithMatchingBets >= activePlayers.length;
     
     console.log(`🎯 Betting round check: ${playersWhoActed}/${activePlayers.length} acted, ${playersWithMatchingBets}/${activePlayers.length} matched bets → ${allPlayersActed && allBetsMatched}`);
     

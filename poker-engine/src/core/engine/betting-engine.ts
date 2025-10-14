@@ -157,9 +157,9 @@ export class BettingEngine {
       return bigBlind;
     }
 
-    // ✅ FIX: Minimum raise is ALWAYS big blind (house rules)
-    // Players can raise any amount above current bet, as long as it's >= big blind increment
-    return bigBlind;
+    // Minimum raise is the size of the last raise, or big blind if no raises yet
+    const minRaiseAmount = Math.max(lastRaiseNum, bigBlindNum);
+    return minRaiseAmount as Chips;
   }
 
   /**
@@ -387,8 +387,8 @@ export class BettingEngine {
     // Can always fold
     actions.push(ActionType.Fold);
 
-    // ✅ FIX: Can only check if NO BET to face (not just if you've matched it)
-    if (currentBetNum === 0) {
+    // Check if can check
+    if (currentBetNum === playerBetThisStreet) {
       actions.push(ActionType.Check);
     }
 
