@@ -13,7 +13,7 @@ async function runMigration() {
     console.log('🔌 Connecting...');
     const client = await pool.connect();
     
-    const sql = fs.readFileSync('database/migrations/006_add_missing_columns.sql', 'utf8');
+    const sql = fs.readFileSync('database/migrations/007_create_missing_tables.sql', 'utf8');
     
     console.log('📝 Running migration 006...');
     await client.query(sql);
