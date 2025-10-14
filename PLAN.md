@@ -1,8 +1,32 @@
-# POKEHER - SPRINT TO SHAREABLE GAME
+# POKEHER - ARCHITECTURAL REFACTORING
 
 **Mode**: PLANNER  
-**Goal**: Friends can join via link, pick seats, play poker with persistent profiles  
-**Timeline**: 3-5 days focused sprint
+**Goal**: Fix display state architecture to enable scalable foundation  
+**Status**: Deep analysis complete - ready for implementation  
+**Timeline**: Hybrid approach - Quick fix (2-3 hours) + Proper refactor (1-2 weeks)
+
+---
+
+## 📚 ANALYSIS DOCUMENTS CREATED
+
+### 1. **ARCHITECTURE_FLOW_ANALYSIS.md**
+**Complete architectural flow mapping:**
+- Visual data flow diagrams (5 phases)
+- Line-by-line bug analysis with exact line numbers
+- Coupling problem identification (4 major issues)
+- Proposed module structure
+- Refactoring paths (3 options)
+
+### 2. **FILE_INVENTORY.md**
+**Complete file catalog:**
+- 50+ files organized by layer (Domain, Application, Presentation, Infrastructure)
+- Each file's purpose, dependencies, and problems
+- Relationship maps and dependency graphs
+- 15,500+ lines of code analyzed
+- Priority problem files identified
+
+### 3. **PLAN.md** (this file)
+**Project roadmap and status**
 
 ---
 
