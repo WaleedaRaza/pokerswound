@@ -6,6 +6,8 @@ const cors = require('cors');
 const path = require('path');
 const { Pool } = require('pg');
 const { Server } = require('socket.io');
+// ✅ AUTH: Supabase integration
+const { createClient } = require('@supabase/supabase-js');
 
 // Import our SOPHISTICATED compiled engine components
 const { GameStateModel } = require('./dist/core/models/game-state');
@@ -35,10 +37,6 @@ app.use(express.json());
 app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// ✅ NEW: Import and use auth routes
-const authRoutes = require('./dist/routes/auth').default;
-app.use('/api/auth', authRoutes);
-
 // In-memory storage for demo (normally would use database)
 const games = new Map();
 let gameCounter = 1;
@@ -60,6 +58,58 @@ let eventBus = null;
 let eventReplayer = null;
 // ✅ DAY 5: CQRS Application Service
 let gameApplicationService = null;
+// ✅ AUTH: Supabase client
+let supabase = null;
+
+/**
+ * Initialize Supabase Auth
+ */
+function initializeSupabase() {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.log('⚠️ Supabase credentials not found, auth disabled');
+      return;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase auth initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize Supabase:', error.message);
+  }
+}
+
+/**
+ * Auth middleware for protected routes
+ */
+async function authenticateUser(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No valid token provided' });
+    }
+    
+    const token = authHeader.substring(7);
+    
+    if (!supabase) {
+      return res.status(503).json({ error: 'Auth service not available' });
+    }
+    
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+}
 
 /**
  * Initialize Event Sourcing Infrastructure
@@ -538,17 +588,20 @@ app.post('/api/rooms/:roomId/lobby/join', async (req, res) => {
     
     const isHost = roomCheck.rows[0].host_user_id === user_id;
     
-    // Auto-provision user if they don't exist (temporary fix for JWT users not in DB)
-    const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [user_id]);
+    // Auto-provision user profile if they don't exist
+    const userCheck = await db.query('SELECT id FROM auth.users WHERE id = $1', [user_id]);
     if (userCheck.rowCount === 0) {
-      console.log(`⚠️ User ${user_id} not in DB, auto-provisioning...`);
-      await db.query(
-        `INSERT INTO users (id, username, email, password_hash)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (id) DO NOTHING`,
-        [user_id, `Guest_${user_id.substring(0, 6)}`, `${user_id}@temp.local`, 'temp']
-      );
+      console.log(`❌ User ${user_id} not in auth.users - invalid user ID`);
+      return res.status(400).json({ error: 'Invalid user ID - please authenticate first' });
     }
+    
+    // Create user profile if it doesn't exist
+    await db.query(
+      `INSERT INTO user_profiles (id, username, display_name)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (id) DO NOTHING`,
+      [user_id, `User_${user_id.substring(0, 6)}`, `User_${user_id.substring(0, 6)}`]
+    );
     
     // Add player to lobby (auto-approve if host, otherwise pending)
     const status = isHost ? 'approved' : 'pending';
@@ -577,9 +630,9 @@ app.get('/api/rooms/:roomId/lobby/players', async (req, res) => {
     
     const result = await db.query(
       `SELECT rp.id, rp.user_id, rp.status, rp.joined_at, rp.approved_at,
-              u.username, u.email
+              u.username, u.display_name
        FROM room_players rp
-       JOIN users u ON rp.user_id = u.id
+       LEFT JOIN user_profiles u ON rp.user_id = u.id
        WHERE rp.room_id = $1
        ORDER BY rp.joined_at ASC`,
       [req.params.roomId]
@@ -767,13 +820,16 @@ app.get('/api/rooms/:roomId/history', authenticateToken, async (req, res) => {
 // ----- Rooms & Seats (Multi-player support, DB-backed) -----------------------
 app.post('/api/rooms', async (req, res) => {
   try {
-    const { name, small_blind, big_blind, min_buy_in, max_buy_in, max_players = 9, is_private, host_user_id } = req.body || {};
+    const { name, small_blind, big_blind, min_buy_in, max_buy_in, max_players = 9, is_private } = req.body || {};
     if (!name || !small_blind || !big_blind || !min_buy_in || !max_buy_in) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+    
+    // For now, use a default user ID (we'll fix this with proper auth later)
+    const host_user_id = (await getDb().query('SELECT id FROM auth.users LIMIT 1')).rows[0]?.id;
     const room = await createRoom({ name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, host_user_id });
     
-    // Auto-join host to lobby if host_user_id provided
+    // Auto-join host to lobby if we have a user
     if (host_user_id) {
       const db = getDb();
       if (db) {
@@ -786,7 +842,12 @@ app.post('/api/rooms', async (req, res) => {
       }
     }
     
-    res.status(201).json({ roomId: room.id, inviteCode: room.invite_code, maxPlayers: room.max_players, hostUserId: room.host_user_id });
+    res.status(201).json({ 
+      roomId: room.id, 
+      inviteCode: room.invite_code, 
+      maxPlayers: room.max_players, 
+      hostUserId: room.host_user_id 
+    });
   } catch (e) {
     console.error('Create room error:', e);
     res.status(500).json({ error: e.message });
@@ -1901,6 +1962,9 @@ app.post('/api/v2/game/:gameId/action', async (req, res) => {
 
 // ✅ DAY 4-5: Initialize Event Sourcing Infrastructure
 initializeEventSourcing(io);
+
+// Initialize Supabase Auth
+initializeSupabase();
 
 // ✅ DAY 5: Attempt crash recovery (async, don't block server startup)
 recoverIncompleteGames().catch(err => {

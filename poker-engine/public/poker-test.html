@@ -4,6 +4,8 @@
     <title>🎰 Modern Poker Lounge</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -1386,6 +1388,11 @@
             <div class="landing-hero">
                 <h1 class="landing-title">🎰 Poker Lounge</h1>
                 <p class="landing-subtitle">Play Texas Hold'em with friends in real-time</p>
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-success btn-large" onclick="signInWithGoogle()" id="googleSignInBtn">
+                        🔐 Sign in with Google
+                    </button>
+                </div>
             </div>
             
             <div class="landing-actions">
@@ -1656,6 +1663,12 @@
     <script>
         const API_BASE = 'http://localhost:3000/api';
         const WS_BASE = 'http://localhost:3000';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(
+            'https://curkkakmkiyrimqsafps.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cmtrYWtta2l5cmltcXNhZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDI5NTYsImV4cCI6MjA3NTY3ODk1Nn0.68l4EDYgeK2oWJ_p69MaHkbjn8T52BqetWpcnxCU1gU'
+        );
         let room = null;
         let seats = [];
         let socket = null; // socket.io client
@@ -1664,28 +1677,48 @@
         let playerCount = 0;
 
         // ============================================
-        // AUTH SYSTEM - JWT Storage & Management
+        // AUTH SYSTEM - Supabase Authentication
         // ============================================
         let currentUser = null;
         let authToken = null;
-
-        // Initialize auth on page load
-        function initAuth() {
-            const stored = localStorage.getItem('poker_auth');
-            if (stored) {
-                try {
-                    const auth = JSON.parse(stored);
-                    authToken = auth.token;
-                    currentUser = auth.user;
-                    updateAuthUI();
-                    return true;
-                } catch (e) {
-                    localStorage.removeItem('poker_auth');
+        
+        // Google Sign-In Function
+        async function signInWithGoogle() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/public/poker-test.html'
                 }
+            });
+            if (error) {
+                showStatus('❌ Sign in failed: ' + error.message, 'error');
             }
-            // If not logged in, show auth modal
-            showAuthModal();
-            return false;
+        }
+        
+        // Check for existing session on page load
+        async function checkAuthSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = {
+                    id: session.user.id,
+                    username: session.user.email.split('@')[0],
+                    email: session.user.email
+                };
+                console.log('✅ User authenticated:', currentUser);
+                document.getElementById('userDisplay').textContent = currentUser.username;
+                // Hide sign-in button if it exists
+                const signInBtn = document.getElementById('googleSignInBtn');
+                if (signInBtn) signInBtn.style.display = 'none';
+            } else {
+                console.log('⚠️ No active session - user needs to sign in');
+            }
+        }
+
+        // Initialize auth on page load - use Supabase instead of JWT
+        function initAuth() {
+            // Call Supabase auth check instead
+            checkAuthSession();
+            return true; // Don't show auth modal automatically
         }
 
         // API Helper with JWT
@@ -1934,16 +1967,21 @@
             });
         }
 
-        function showCreateGameModal() {
-            // 🚀 LOCAL TESTING: Bypass auth for quick testing
+        async function showCreateGameModal() {
+            // Check if user is authenticated with Supabase
             if (!currentUser) {
-                // Create temporary guest user
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    showStatus('❌ Please sign in with Google first', 'error');
+                    await signInWithGoogle();
+                    return;
+                }
                 currentUser = {
-                    id: 'guest_' + Date.now(),
-                    username: 'Guest_' + Math.floor(Math.random() * 1000),
-                    isGuest: true
+                    id: session.user.id,
+                    username: session.user.email.split('@')[0],
+                    email: session.user.email
                 };
-                console.log('🎮 Created temporary guest user:', currentUser.username);
+                console.log('✅ User authenticated:', currentUser);
                 document.getElementById('userDisplay').textContent = currentUser.username;
             }
             document.getElementById('createGameModal').classList.remove('hidden');
