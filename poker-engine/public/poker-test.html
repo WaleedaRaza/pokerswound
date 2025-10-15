@@ -243,19 +243,53 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: #10b981;
+            border-color: #059669;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: #059669;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            background: #3b82f6;
+            border-color: #2563eb;
         }
 
         .btn-secondary:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: #2563eb;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            border-color: #059669;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            border-color: #d97706;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            border-color: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
         }
 
         .modal-medium {
@@ -688,18 +722,18 @@
 
         .poker-table {
             width: 100%;
-            max-width: 1600px;
+            max-width: 1200px;
             aspect-ratio: 16/10;
-            background: linear-gradient(135deg, #0f5132 0%, #198754 50%, #20c997 100%);
-            border-radius: 3rem;
+            background: #0d4f3c;
+            border-radius: 50%;
             position: relative;
             box-shadow: 
-                0 0 0 12px rgba(30, 41, 59, 0.9),
-                0 0 0 16px rgba(148, 163, 184, 0.2),
-                0 30px 80px rgba(0, 0, 0, 0.5),
-                inset 0 2px 0 rgba(255, 255, 255, 0.15);
+                0 0 0 8px #1a1a1a,
+                0 0 0 12px rgba(255, 255, 255, 0.1),
+                0 20px 60px rgba(0, 0, 0, 0.8),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1);
             overflow: hidden;
-            min-height: 900px;
+            min-height: 600px;
         }
 
         .poker-table::before {
@@ -755,26 +789,40 @@
         }
 
         .card {
-            width: 100px;
-            height: 140px;
-            background: #fff;
-            border-radius: 12px;
+            width: 60px;
+            height: 84px;
+            background: #ffffff;
+            border-radius: 8px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.2rem;
-            color: #1e293b;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            border: 3px solid rgba(148, 163, 184, 0.4);
+            font-size: 0.9rem;
+            color: #1a1a1a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
         }
 
         .card.placeholder {
-            background: rgba(51, 65, 85, 0.6);
-            border: 2px dashed rgba(148, 163, 184, 0.3);
-            color: #64748b;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .card.red { color: #dc2626; }
+        .card.black { color: #1a1a1a; }
+
+        .card-suit {
+            font-size: 1.2rem;
+            margin-top: 0.25rem;
         }
 
         /* Player Seats */
@@ -802,17 +850,16 @@
         .player-seat:nth-child(10) { top: 12%; left: 20%; transform: translate(-50%, -50%); } /* Top Left */
 
         .player-card {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(148, 163, 184, 0.3);
-            border-radius: 1.5rem;
-            padding: 1.2rem;
+            background: #2a2a2a;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1rem;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
             transition: all 0.3s ease;
             position: relative;
-            font-size: 1rem;
-            min-height: 140px;
+            font-size: 0.9rem;
+            min-height: 120px;
         }
 
         .player-card.active {
@@ -839,11 +886,18 @@
         }
 
         .player-stack {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            color: #10b981;
             margin-bottom: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            display: inline-block;
         }
+
+        .player-stack.low { background: #dc2626; color: #ffffff; }
+        .player-stack.medium { background: #f59e0b; color: #ffffff; }
+        .player-stack.high { background: #10b981; color: #ffffff; }
+        .player-stack.very-high { background: #3b82f6; color: #ffffff; }
 
         .player-status {
             font-size: 0.75rem;
@@ -1581,7 +1635,7 @@
                         ⏰ YOUR TURN - Make your move!
                 </div>
                     <div id="actionsStatus" class="status-message">Waiting for your turn...</div>
-                    <div id="actionsPanel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                    <div id="actionsPanel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.1); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1);">
                         <!-- Action buttons will be dynamically added here -->
                     </div>
                     <div id="betInput" style="display: none; margin-top: 1rem;">
