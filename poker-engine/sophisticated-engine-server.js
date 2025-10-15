@@ -35,6 +35,10 @@ app.use(express.json());
 app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
+// ✅ NEW: Import and use auth routes
+const authRoutes = require('./dist/routes/auth').default;
+app.use('/api/auth', authRoutes);
+
 // In-memory storage for demo (normally would use database)
 const games = new Map();
 let gameCounter = 1;
