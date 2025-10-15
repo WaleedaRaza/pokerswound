@@ -456,6 +456,14 @@ function authenticateToken(req, res, next) {
 }
 
 app.post('/api/auth/register', async (req, res) => {
+  // ⚠️ DEPRECATED: This endpoint is no longer used
+  // Registration is now handled by Supabase Google OAuth
+  return res.status(410).json({ 
+    error: 'This registration method is deprecated. Please use Google Sign-In.',
+    message: 'User registration is now handled via Supabase OAuth. Use the Google Sign-In button on the frontend.'
+  });
+  
+  /* OLD CODE - REMOVED
   try {
     const { username, email, password } = req.body;
     
@@ -514,9 +522,19 @@ app.post('/api/auth/register', async (req, res) => {
     console.error('Register error:', error);
     res.status(500).json({ error: 'Registration failed' });
   }
+  */
 });
 
 app.post('/api/auth/login', async (req, res) => {
+  // ⚠️ DEPRECATED: This endpoint is no longer used
+  // Authentication is now handled by Supabase Google OAuth
+  // See: poker-test.html -> signInWithGoogle()
+  return res.status(410).json({ 
+    error: 'This login method is deprecated. Please use Google Sign-In.',
+    message: 'Authentication is now handled via Supabase OAuth. Use the Google Sign-In button on the frontend.'
+  });
+  
+  /* OLD CODE - REMOVED (kept for reference)
   try {
     const { username, password } = req.body;
     
@@ -527,7 +545,7 @@ app.post('/api/auth/login', async (req, res) => {
     const db = getDb();
     if (!db) return res.status(500).json({ error: 'Database not configured' });
     
-    // Find user
+    // Find user - THIS TABLE NO LONGER EXISTS
     const result = await db.query(
       'SELECT id, username, email, password_hash, total_chips FROM users WHERE username = $1 OR email = $1',
       [username]
@@ -567,6 +585,7 @@ app.post('/api/auth/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
+  */
 });
 
 // ============================================
