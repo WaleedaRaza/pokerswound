@@ -9,327 +9,38 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
-<style>
-
-  .bg-animation{
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    background:var(--bg);
-    z-index:-1;
-  }
-
-  .btn-logout{ background:transparent; color:#ff6b6b; border-color:#ff6b6b; }
-  .btn-logout:hover{ background:#ff6b6b; color:white; }
-
-  .hero{
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-    text-align:center; padding:120px 24px 80px; position:relative;
-  }
-  .hero-content{ max-width:800px; }
-  .hero-title{
-    font-family:"JetBrains Mono", monospace; font-size:clamp(48px,8vw,96px);
-    font-weight:800; line-height:0.9; margin-bottom:24px; color:var(--accent);
-    animation:typewriter 3.2s steps(20) .6s both, blink 1s infinite 4.2s;
-    white-space: nowrap; overflow: hidden; border-right: 2px solid var(--accent);
-    text-shadow:2px 2px 4px rgba(0,0,0,0.8); position: relative;
-  }
-  .suit-symbol{
-    color:var(--teal); text-shadow:0 0 15px rgba(0,212,170,0.7);
-    animation:spinGlow 4s ease-in-out infinite; font-size:0.5em; display:inline-block;
-  }
-  @keyframes spinGlow{
-    0%{ transform: rotate(0deg) scale(1); text-shadow: 0 0 15px rgba(0,212,170,0.7); }
-    25%{ transform: rotate(90deg) scale(1.1); text-shadow: 0 0 25px rgba(0,212,170,1); }
-    50%{ transform: rotate(180deg) scale(1); text-shadow: 0 0 15px rgba(0,212,170,0.7); }
-    75%{ transform: rotate(270deg) scale(1.1); text-shadow: 0 0 25px rgba(0,212,170,1); }
-    100%{ transform: rotate(360deg) scale(1); text-shadow: 0 0 15px rgba(0,212,170,0.7); }
-  }
-  @keyframes typewriter{ 0%{ width: 0; } 100%{ width: 100%; } }
-  @keyframes blink{ 0%, 50%{ border-color: var(--accent); } 51%, 100%{ border-color: transparent; } }
-  .hero-title::after{ content: ''; animation: blink 1s infinite; }
-  .hero-subtitle{
-    font-size:clamp(18px,3vw,24px); color:var(--muted); margin-bottom:24px;
-    font-weight:400; letter-spacing:0.5px; background:rgba(10,8,22,0.8); backdrop-filter:blur(10px);
-    padding:20px 28px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);
-    text-shadow:0 2px 8px rgba(0,0,0,0.5);
-  }
-  .hero-description{
-    font-size:clamp(14px,2vw,18px); color:var(--muted); margin-bottom:32px; line-height:1.7;
-    max-width:600px; margin-left:auto; margin-right:auto; opacity:0.9;
-  }
-
-  .cta-buttons{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
-  .btn{
-    padding:14px 24px; border-radius:12px; font-weight:600; font-size:16px;
-    text-decoration:none; transition:all 0.3s ease; border:2px solid transparent;
-    position:relative; overflow:hidden;
-  }
-  .btn-primary{ background:var(--accent); color:var(--bg); border-color:var(--accent); box-shadow:var(--glow); }
-  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 0 40px rgba(255,81,0,.4); }
-  .btn-secondary{ background:transparent; color:var(--text); border-color:var(--border); }
-  .btn-secondary:hover{ background:var(--card); border-color:var(--accent); color:var(--accent); }
-
-
-  .features{ padding:100px 24px; max-width:1200px; margin:0 auto; }
-  .section-title{
-    font-family:"JetBrains Mono", monospace; font-size:clamp(32px,5vw,48px);
-    font-weight:800; text-align:center; margin-bottom:60px; color:var(--teal);
-  }
-  .features-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:32px; }
-  .feature-card{
-    background:var(--card); border:1px solid var(--border); border-radius:16px;
-    padding:32px; transition:all 0.3s ease; position:relative; overflow:hidden;
-  }
-  .feature-card::before{
-    content:''; position:absolute; top:0; left:0; width:100%; height:2px;
-    background:linear-gradient(90deg, transparent, var(--accent), transparent);
-    transform:translateX(-100%); transition:transform 0.6s ease;
-  }
-  .feature-card:hover::before{ transform:translateX(100%); }
-  .feature-card:hover{ transform:translateY(-8px); box-shadow:var(--shadow); }
-  .feature-icon{
-    width:56px; height:56px; border-radius:12px; background:var(--accent);
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; margin-bottom:18px; color:var(--bg);
-  }
-  .feature-title{ font-size:20px; font-weight:700; margin-bottom:12px; color:var(--text); }
-  .feature-desc{ color:var(--muted); line-height:1.6; }
-
-  .stats{ padding:64px 24px; background:rgba(255,81,0,.04);
-    border-top:1px solid rgba(255,255,255,.05);
-    border-bottom:1px solid rgba(255,255,255,.05); }
-  .stats-grid{
-    max-width:800px; margin:0 auto; display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:32px;
-    text-align:center;
-  }
-  .stat-item{ padding:20px; }
-  .stat-number{
-    font-family:"JetBrains Mono", monospace; font-size:clamp(36px,6vw,48px);
-    font-weight:800; color:var(--accent); margin-bottom:6px; display:block;
-  }
-  .stat-label{ color:var(--muted); font-size:14px; font-weight:500; letter-spacing:1px; }
-
-  /* Why PokerGeek Section */
-  .why-pokergeek{
-    padding:100px 24px; background:rgba(255,81,0,.02);
-    border-top:1px solid rgba(255,255,255,.05);
-    border-bottom:1px solid rgba(255,255,255,.05);
-  }
-  .why-content{
-    max-width:800px; margin:0 auto; text-align:center;
-  }
-  .why-title{
-    font-family:"JetBrains Mono", monospace; font-size:clamp(32px,5vw,48px);
-    font-weight:800; color:var(--accent); margin-bottom:48px;
-    text-shadow:2px 2px 4px rgba(0,0,0,0.8);
-  }
-  .why-story p{
-    font-size:clamp(16px,2.5vw,20px); line-height:1.7; color:var(--text);
-    margin-bottom:24px; text-align:left;
-  }
-  .why-intro{
-    font-weight:600; color:var(--accent);
-  }
-  .why-mission{
-    color:var(--teal); font-weight:500;
-  }
-  .why-story{
-    color:var(--text);
-  }
-  .why-vision{
-    color:var(--teal);
-  }
-  .why-commitment{
-    color:var(--muted); font-style:italic;
-  }
-
-  /* Login Modal */
-  .modal-overlay{
-    position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999;
-    background:rgba(0,0,0,0.8); backdrop-filter:blur(10px);
-    display:flex; align-items:center; justify-content:center; padding:20px;
-    animation:fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn{
-    from{ opacity:0; }
-    to{ opacity:1; }
-  }
-  .modal-box{
-    background:rgba(17,16,24,0.95); backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,0.1); border-radius:20px;
-    max-width:480px; width:100%; max-height:90vh; overflow-y:auto;
-    padding:40px; position:relative;
-    box-shadow:0 20px 60px rgba(0,0,0,0.5); animation:slideUp 0.3s ease;
-  }
-  @keyframes slideUp{
-    from{ opacity:0; transform:translateY(30px); }
-    to{ opacity:1; transform:translateY(0); }
-  }
-  .modal-close{
-    position:absolute; top:20px; right:20px; background:transparent;
-    border:none; color:var(--muted); font-size:32px; cursor:pointer;
-    width:36px; height:36px; display:flex; align-items:center; justify-content:center;
-    border-radius:8px; transition:all 0.3s ease;
-  }
-  .modal-close:hover{
-    background:rgba(255,255,255,0.1); color:var(--text);
-  }
-  .modal-header{
-    text-align:center; margin-bottom:32px;
-  }
-  .modal-title{
-    font-size:28px; font-weight:800; color:var(--text); margin-bottom:8px;
-  }
-  .modal-subtitle{
-    font-size:14px; color:var(--muted); line-height:1.5;
-  }
-  .modal-tabs{
-    display:flex; gap:8px; margin-bottom:32px; padding:4px;
-    background:rgba(255,255,255,0.03); border-radius:12px;
-  }
-  .modal-tab{
-    flex:1; padding:12px; background:transparent; border:none;
-    color:var(--muted); font-family:"Courier New",monospace; font-weight:bold;
-    font-size:14px; cursor:pointer; border-radius:8px; transition:all 0.3s ease;
-    text-transform:uppercase; letter-spacing:0.5px;
-  }
-  .modal-tab:hover{
-    background:rgba(255,255,255,0.05); color:var(--text);
-  }
-  .modal-tab.active{
-    background:var(--teal); color:var(--bg);
-  }
-  .modal-tab-content{
-    display:none;
-  }
-  .modal-tab-content.active{
-    display:block;
-  }
-  .auth-form{
-    display:flex; flex-direction:column; gap:20px;
-  }
-  .form-group{
-    display:flex; flex-direction:column; gap:8px;
-  }
-  .form-group label{
-    font-size:13px; color:var(--text); font-weight:600;
-    text-transform:uppercase; letter-spacing:0.5px;
-  }
-  .form-input{
-    padding:12px 16px; background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.1); border-radius:8px;
-    color:var(--text); font-family:"Courier New",monospace; font-weight:bold;
-    font-size:14px; transition:all 0.3s ease;
-  }
-  .form-input:focus{
-    outline:none; background:rgba(255,255,255,0.08);
-    border-color:var(--teal); box-shadow:0 0 0 2px rgba(0,212,170,0.2);
-  }
-  .form-input::placeholder{
-    color:var(--muted); opacity:0.6;
-  }
-  .form-options{
-    display:flex; justify-content:space-between; align-items:center;
-    font-size:13px; margin-top:-8px;
-  }
-  .checkbox-label{
-    display:flex; align-items:center; gap:8px; color:var(--muted);
-    cursor:pointer;
-  }
-  .checkbox-label input{
-    cursor:pointer;
-  }
-  .link-forgot{
-    color:var(--teal); text-decoration:none; transition:all 0.3s ease;
-  }
-  .link-forgot:hover{
-    color:var(--text); text-decoration:underline;
-  }
-  .link-inline{
-    color:var(--teal); text-decoration:none;
-  }
-  .link-inline:hover{
-    text-decoration:underline;
-  }
-  .btn-modal{
-    padding:14px; border:none; border-radius:8px; font-family:"Courier New",monospace;
-    font-weight:bold; font-size:14px; cursor:pointer; transition:all 0.3s ease;
-    text-transform:uppercase; letter-spacing:0.5px;
-  }
-  .btn-modal-primary{
-    background:var(--teal); color:var(--bg);
-  }
-  .btn-modal-primary:hover{
-    background:#00e6bb; transform:translateY(-2px);
-    box-shadow:0 6px 20px rgba(0,212,170,0.4);
-  }
-  .divider{
-    display:flex; align-items:center; gap:16px; margin:24px 0;
-    color:var(--muted); font-size:13px;
-  }
-  .divider::before,.divider::after{
-    content:''; flex:1; height:1px; background:rgba(255,255,255,0.1);
-  }
-  .social-login{
-    display:flex; flex-direction:column; gap:12px;
-  }
-  .btn-social{
-    padding:12px; border:1px solid rgba(255,255,255,0.1); border-radius:8px;
-    background:rgba(255,255,255,0.05); color:var(--text);
-    font-family:"Courier New",monospace; font-weight:bold; font-size:13px;
-    cursor:pointer; transition:all 0.3s ease; display:flex; align-items:center;
-    justify-content:center; gap:10px;
-  }
-  .btn-social:hover{
-    background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.2);
-    transform:translateY(-2px);
-  }
-  .btn-back{
-    padding:8px 16px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
-    border-radius:8px; color:var(--teal); font-family:"Courier New",monospace;
-    font-weight:bold; font-size:13px; cursor:pointer; transition:all 0.3s ease;
-    margin-bottom:24px;
-  }
-  .btn-back:hover{
-    background:rgba(255,255,255,0.1);
-  }
-  .forgot-title{
-    font-size:24px; font-weight:800; color:var(--text); margin-bottom:12px;
-  }
-  .forgot-subtitle{
-    font-size:14px; color:var(--muted); margin-bottom:24px; line-height:1.6;
-  }
-
-  @media (max-width:768px){
-    .hero{ padding:100px 16px 60px; }
-    .cta-buttons{ flex-direction:column; align-items:center; }
-    .btn{ width:100%; max-width:300px; }
-    .why-pokergeek{ padding:80px 16px; }
-    .features{ padding:80px 16px; }
-    .stats{ padding:60px 16px; }
-    .modal-box{ padding:24px; }
-    .modal-title{ font-size:24px; }
-  }
-</style>
+<!-- All styles moved to global style.css -->
 </head>
 <body>
   <div class="bg-animation"></div>
   <div class="floating-cards" id="floating-cards"></div>
 
-  <nav class="nav">
-    <div class="nav-content">
-      <a href="#" class="logo">PokerGeek.ai<span class="suit-symbol">♠</span></a>
-      <ul class="nav-links">
-        <li><a href="play.html"><b>Play Now</b></a></li>
-        <li><a href="ai-solver.html"><b>AI GTO Solver</b></a></li>
-        <li><a href="analysis.html"><b>Analysis & Data</b></a></li>
-        <li><a href="learning.html"><b>Learning</b></a></li>
-        <li><a href="friends.html"><b>Friends</b></a></li>
-        <li><a href="forum.html"><b>Forum</b></a></li>
+  <!-- CONSOLIDATED NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">PokerGeek.ai</a>
+        <ul class="navbar-links">
+            <li><a href="index_clean.html">Home</a></li>
+            <li><a href="play_clean.html">Play Now</a></li>
+        <li><a href="friends.html">Friends</a></li>
+            <li><a href="ai-solver.html">AI Solver</a></li>
+            <li><a href="analysis.html">Analysis</a></li>
+            <li><a href="learning.html">Learning</a></li>
+            <li><a href="poker-today.html">Poker Today</a></li>
       </ul>
-      <div class="nav-auth">
-        <a href="#" class="btn-auth btn-login">Log In</a>
-        <a href="#" class="btn-auth btn-signup">Sign Up</a>
+        <div class="navbar-auth" id="navbarAuth">
+            <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
+            <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
+        </div>
+        
+        <!-- User Profile Tile (shown when logged in) -->
+        <div class="navbar-user" id="navbarUser" style="display: none;">
+            <div class="user-profile-tile liquid-glass-tile" onclick="openSettingsModal()">
+                <div class="user-avatar" id="userAvatar">👤</div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Username</div>
+                    <div class="user-status">Online</div>
+                </div>
+                <div class="user-menu-icon">⚙️</div>
       </div>
     </div>
   </nav>
@@ -344,7 +55,8 @@
         <br></b>
       </p>
       <p class="hero-description">
-        built for poker players, by poker players
+        Experience the future of online poker with our cutting-edge platform featuring 
+        provably fair shuffling, AI-powered analysis, and transparent gameplay.
       </p>
       <div class="cta-buttons">
         <a href="play.html" class="btn btn-primary">Play Now</a>
@@ -354,310 +66,979 @@
     </div>
   </section>
 
-  <!-- Why PokerGeek Section -->
-  <section class="why-pokergeek">
-    <div class="why-content">
-      <h2 class="why-title">Why PokerGeek?</h2>
-      <div class="why-story">
-        <p class="why-intro">
-          PokerGeek aims to leverage AI, data, and a deep focus on real poker players to deliver a holistic, all-in-one platform built around the full poker world. The platform supports private and public gameplay, comprehensive performance analytics, GTO and AI-driven coaching, social features, and more.
-        </p>
-        <p class="why-mission">
-          Our mission is to focus on the needs of players, and leverage tools across software, data and AI to provide features that unlock a deeper experience. We are committed to avoiding fake shuffles, outdated technology, and weak community involvement. Our mission is to give players and the broader poker community a platform that is transparent, empowering, and focused on more than just dealing cards.
-        </p>
-        <p class="why-story">
-          PokerGeek started as a small project among a group of frustrated poker enthusiasts who wanted something different. What began as a private experiment quickly grew into a larger vision. Today, the platform is designed from the ground up to put control back in the players' hands.
-        </p>
-        <p class="why-vision">
-          Our shuffle system uses real-world entropy and cryptographic randomness to eliminate manipulation. Our analytics and AI tools exist to help players understand and improve their game over time. Our product roadmap is shaped directly by the community, ensuring that our features continue to evolve in collaboration with the people who use them.
-        </p>
-        <p class="why-commitment">
-          PokerGeek is focused on realignment, not reinvention. The goal is simple: make online poker transparent, data-driven, and player-first, so every hand is authentic and every session is about growth. To ensure the best player experience, we seek all kinds of feedback. If you see a problem, or something you feel can be improved, feel free to reach out and a member of our staff will respond!
-        </p>
+  <section class="features">
+    <h2 class="features-title">Why Choose PokerGeek.ai?</h2>
+    <div class="liquid-tiles-container">
+      <div class="liquid-glass-tile">
+        <div class="tile-icon">🔐</div>
+        <h3 class="tile-title">Provably Fair Shuffling</h3>
+        <p class="tile-description">Entropy from real-world sources + crypto randomness. Verify any shuffle independently.</p>
+      </div>
+      <div class="liquid-glass-tile">
+        <div class="tile-icon">⚡</div>
+        <h3 class="tile-title">Real-Time Multiplayer</h3>
+        <p class="tile-description">Sub-100ms WebSockets for private rooms, public games, and tournaments.</p>
+      </div>
+      <div class="liquid-glass-tile">
+        <div class="tile-icon">🤖</div>
+        <h3 class="tile-title">GTO + LLM</h3>
+        <p class="tile-description">GTO solver fused with LLM coaching for strategy and study.</p>
+      </div>
+      <div class="liquid-glass-tile">
+        <div class="tile-icon">📊</div>
+        <h3 class="tile-title">Audit Trail</h3>
+        <p class="tile-description">Every action + shuffle logged and auditable.</p>
+      </div>
+      <div class="liquid-glass-tile">
+        <div class="tile-icon">📈</div>
+        <h3 class="tile-title">Performance</h3>
+        <p class="tile-description">Deep stats after 1000+ hands: VPIP, PFR, AF, position, etc.</p>
+      </div>
+      <div class="liquid-glass-tile">
+        <div class="tile-icon">🛡️</div>
+        <h3 class="tile-title">Anti-Cheat</h3>
+        <p class="tile-description">Timing & behavior analysis, multi-account prevention, collusion monitoring.</p>
       </div>
     </div>
   </section>
 
-  <section class="features" id="features">
-    <h2 class="section-title">TRANSPARENT & TRUSTED</h2>
-    <div class="features-grid">
-      <div class="feature-card"><div class="feature-icon">🔐</div><h3 class="feature-title">Provably Fair Shuffling</h3><p class="feature-desc">Entropy from real-world sources + crypto randomness. Verify any shuffle independently.</p></div>
-      <div class="feature-card"><div class="feature-icon">⚡</div><h3 class="feature-title">Real-Time Multiplayer</h3><p class="feature-desc">Sub-100ms WebSockets for private rooms, public games, and tournaments.</p></div>
-      <div class="feature-card"><div class="feature-icon">🤖</div><h3 class="feature-title">GTO + LLM</h3><p class="feature-desc">GTO solver fused with LLM coaching for strategy and study.</p></div>
-      <div class="feature-card"><div class="feature-icon">📊</div><h3 class="feature-title">Audit Trail</h3><p class="feature-desc">Every action + shuffle logged and auditable.</p></div>
-      <div class="feature-card"><div class="feature-icon">📈</div><h3 class="feature-title">Performance</h3><p class="feature-desc">Deep stats after 1000+ hands: VPIP, PFR, AF, position, etc.</p></div>
-      <div class="feature-card"><div class="feature-icon">🛡️</div><h3 class="feature-title">Anti-Cheat</h3><p class="feature-desc">Timing & behavior analysis, multi-account prevention, collusion monitoring.</p></div>
-    </div>
+  <section class="why-pokergeek">
+    <div class="why-content">
+      <h2 class="why-title">Why PokerGeek?</h2>
+      <div class="why-story">
+          <p class="why-intro">
+            PokerGeek aims to leverage AI, data, and a deep focus on real poker players to deliver a holistic, all-in-one platform built around the full poker world. The platform supports private and public gameplay, comprehensive performance analytics, GTO and AI-driven coaching, social features, and more.
+          </p>
+          <p class="why-mission">
+            Our mission is to focus on the needs of players, and leverage tools across software, data and AI to provide features that unlock a deeper experience. We are committed to avoiding fake shuffles, outdated technology, and weak community involvement. Our mission is to give players and the broader poker community a platform that is transparent, empowering, and focused on more than just dealing cards.
+          </p>
+          <p class="why-story">
+            PokerGeek started as a small project among a group of frustrated poker enthusiasts who wanted something different. What began as a private experiment quickly grew into a larger vision. Today, the platform is designed from the ground up to put control back in the players' hands.
+          </p>
+          <p class="why-vision">
+            Our shuffle system uses real-world entropy and cryptographic randomness to eliminate manipulation. Our analytics and AI tools exist to help players understand and improve their game over time. Our product roadmap is shaped directly by the community, ensuring that our features continue to evolve in collaboration with the people who use them.
+          </p>
+          <p class="why-commitment">
+            PokerGeek is focused on realignment, not reinvention. The goal is simple: make online poker transparent, data-driven, and player-first, so every hand is authentic and every session is about growth. To ensure the best player experience, we seek all kinds of feedback. If you see a problem, or something you feel can be improved, feel free to reach out and a member of our staff will respond!
+          </p>
+        </div>
+      </div>
   </section>
 
-  <section class="stats" id="stats">
+  <section class="stats">
     <div class="stats-grid">
-      <div class="stat-item"><span class="stat-number">100%</span><div class="stat-label">Verifiable Shuffles</div></div>
-      <div class="stat-item"><span class="stat-number">&lt;100ms</span><div class="stat-label">Response Time</div></div>
-      <div class="stat-item"><span class="stat-number">2–10</span><div class="stat-label">Players / Table</div></div>
-      <div class="stat-item"><span class="stat-number">∞</span><div class="stat-label">Entropy Sources</div></div>
+      <div class="stat-item">
+        <div class="stat-number">10,000+</div>
+        <div class="stat-label">Active Players</div>
+         </div>
+      <div class="stat-item">
+        <div class="stat-number">1M+</div>
+        <div class="stat-label">Hands Played</div>
+         </div>
+      <div class="stat-item">
+        <div class="stat-number">99.9%</div>
+        <div class="stat-label">Uptime</div>
+         </div>
+      <div class="stat-item">
+        <div class="stat-number">$0</div>
+        <div class="stat-label">Rake</div>
+       </div>
     </div>
   </section>
 
   <footer class="footer">
     <div class="footer-content">
-      <a href="#" class="footer-logo">PokerGeek.ai</a>
-      <p class="footer-desc">Trust through transparency. Fairness through cryptography.</p>
+      <a href="index.html" class="footer-logo">PokerGeek.ai</a>
+      <p class="footer-desc">Building the world's most transparent poker platform with provably fair shuffling and cryptographic verification.</p>
       <div class="footer-links">
         <a href="#privacy">Privacy Policy</a>
         <a href="#terms">Terms of Service</a>
         <a href="#support">Support</a>
         <a href="#contact">Contact</a>
       </div>
-      <div class="copyright">© 2025 PokerGeek.ai. All rights reserved.</div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 PokerGeek.ai. All rights reserved.</p>
+      </div>
     </div>
   </footer>
 
+  <!-- Liquid Glass Controls -->
+  <div class="glass-controls">
+    <h3>Liquid Glass Controls</h3>
+    <div>
+      <label>Shadow Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="shadow-blur">
+    </div>
+    <div>
+      <label>Tint Opacity:</label>
+      <input type="range" min="0" max="20" value="5" id="tint-opacity">
+    </div>
+    <div>
+      <label>Frost Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="frost-blur">
+    </div>
+    <div>
+      <label>Distortion:</label>
+      <input type="range" min="0" max="100" value="77" id="distortion-strength">
+    </div>
+    <div class="button-group">
+      <button id="lock-values">🔓 Lock</button>
+      <button onclick="toggleControls()">Hide</button>
+    </div>
+  </div>
+
   <!-- Login/Signup Modal -->
-  <div id="loginModal" class="modal-overlay" style="display: none;">
+  <div id="loginModal" class="modal-overlay">
     <div class="modal-box">
       <button class="modal-close" onclick="closeLoginModal()">&times;</button>
       
       <div class="modal-header">
-        <h2 class="modal-title">Welcome to PokerGeek.ai</h2>
-        <p class="modal-subtitle">Join thousands of players in the most transparent poker platform</p>
+        <h2 class="modal-title">Welcome Back</h2>
+        <p class="modal-subtitle">Sign in to your account to continue playing</p>
       </div>
 
-      <!-- Modal Tabs -->
       <div class="modal-tabs">
-        <button class="modal-tab active" onclick="switchModalTab('login')">Log In</button>
+        <button class="modal-tab active" onclick="switchModalTab('login')">Login</button>
         <button class="modal-tab" onclick="switchModalTab('signup')">Sign Up</button>
       </div>
 
-      <!-- Login Tab -->
-      <div id="login-content" class="modal-tab-content active">
-        <form class="auth-form" onsubmit="handleLogin(event)">
-          <div class="form-group">
-            <label for="login-email">Email or Username</label>
-            <input type="text" id="login-email" class="form-input" placeholder="Enter your email or username" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="login-password">Password</label>
-            <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
-          </div>
-
-          <div class="form-options">
-            <label class="checkbox-label">
-              <input type="checkbox" id="remember-me">
-              <span>Remember me</span>
-            </label>
-            <a href="#" class="link-forgot" onclick="showForgotPassword(); return false;">Forgot password?</a>
-          </div>
-
-          <button type="submit" class="btn-modal btn-modal-primary">Log In</button>
-        </form>
-
-        <div class="divider">
-          <span>or continue with</span>
-        </div>
-
-        <div class="social-login">
-          <button class="btn-social btn-google" onclick="loginWithGoogle()">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
-              <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.593.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-          </button>
-        </div>
-      </div>
-
-      <!-- Signup Tab -->
-      <div id="signup-content" class="modal-tab-content">
-        <form class="auth-form" onsubmit="handleSignup(event)">
-          <div class="form-group">
-            <label for="signup-username">Username</label>
-            <input type="text" id="signup-username" class="form-input" placeholder="Choose a username" required>
-          </div>
-
-          <div class="form-group">
-            <label for="signup-email">Email</label>
-            <input type="email" id="signup-email" class="form-input" placeholder="Enter your email" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="signup-password">Password</label>
-            <input type="password" id="signup-password" class="form-input" placeholder="Create a password" required>
-          </div>
-
-          <div class="form-group">
-            <label for="signup-confirm-password">Confirm Password</label>
-            <input type="password" id="signup-confirm-password" class="form-input" placeholder="Confirm your password" required>
-          </div>
-
-          <div class="form-options">
-            <label class="checkbox-label">
-              <input type="checkbox" id="agree-terms" required>
-              <span>I agree to the <a href="#" class="link-inline">Terms of Service</a> and <a href="#" class="link-inline">Privacy Policy</a></span>
-            </label>
-          </div>
-
-          <button type="submit" class="btn-modal btn-modal-primary">Create Account</button>
-        </form>
-
-        <div class="divider">
-          <span>or sign up with</span>
-        </div>
-
-        <div class="social-login">
-          <button class="btn-social btn-google" onclick="signupWithGoogle()">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
-              <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.593.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-            </svg>
-            Sign up with Google
-          </button>
-        </div>
-      </div>
-
-      <!-- Forgot Password View (hidden by default) -->
-      <div id="forgot-password-content" class="modal-tab-content">
-        <button class="btn-back" onclick="showLogin()">← Back to Login</button>
-        <h3 class="forgot-title">Reset Password</h3>
-        <p class="forgot-subtitle">Enter your email and we'll send you a link to reset your password.</p>
+      <!-- Login Form -->
+      <div id="loginForm" class="modal-form active">
+        <!-- Google Auth Button -->
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
         
-        <form class="auth-form" onsubmit="handleForgotPassword(event)">
+        <div class="divider">
+          <span>or</span>
+          </div>
+          
           <div class="form-group">
-            <label for="forgot-email">Email</label>
-            <input type="email" id="forgot-email" class="form-input" placeholder="Enter your email" required>
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="loginEmailError"></div>
+          </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+          </div>
+          <div class="form-error" id="loginPasswordError"></div>
+        </div>
+          <div class="form-options">
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="remember">
+            <label class="checkbox-label" for="remember">Remember me for 30 days</label>
+          </div>
+          <a href="#" class="forgot-link" onclick="showForgotPassword()">Forgot password?</a>
+        </div>
+        <button class="btn-submit" onclick="handleLogin()">Sign In to PokerGeek</button>
+        <div class="form-footer">
+          <p>Don't have an account? <a href="#" onclick="switchModalTab('signup')">Create one here</a></p>
+        </div>
           </div>
 
-          <button type="submit" class="btn-modal btn-modal-primary">Send Reset Link</button>
-        </form>
+      <!-- Signup Form -->
+      <div id="signupForm" class="modal-form">
+        <!-- Google Auth Button -->
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Sign up with Google
+        </button>
+
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-input" id="signupFirstName" placeholder="First name" required>
+            <div class="form-error" id="signupFirstNameError"></div>
+        </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-input" id="signupLastName" placeholder="Last name" required>
+            <div class="form-error" id="signupLastNameError"></div>
+      </div>
+        </div>
+          <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="signupEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="signupEmailError"></div>
+          </div>
+          <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signupUsername" placeholder="Choose a unique username" required>
+          <div class="form-error" id="signupUsernameError"></div>
+          </div>
+          <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="signupPassword" placeholder="Create a strong password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')">👁️</button>
+          </div>
+          <div class="password-strength" id="passwordStrength"></div>
+          <div class="form-error" id="signupPasswordError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="signupConfirmPassword" placeholder="Confirm your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupConfirmPassword')">👁️</button>
+          </div>
+          <div class="form-error" id="signupConfirmPasswordError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input type="date" class="form-input" id="signupBirthDate" required>
+          <div class="form-error" id="signupBirthDateError"></div>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="terms" required>
+          <label class="checkbox-label" for="terms">I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Policy</a></label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="newsletter">
+          <label class="checkbox-label" for="newsletter">Send me updates about new features and promotions</label>
+        </div>
+        <button class="btn-submit" onclick="handleSignup()">Create Account</button>
+        <div class="form-footer">
+          <p>Already have an account? <a href="#" onclick="switchModalTab('login')">Sign in here</a></p>
+        </div>
+      </div>
+    </div>
+          </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeForgotPassword()">&times;</button>
+      <div class="forgot-title">Reset Password</div>
+      <div class="forgot-subtitle">Enter your email address and we'll send you a link to reset your password.</div>
+          <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" placeholder="Enter your email">
+      </div>
+      <button class="btn-submit" onclick="handleForgotPassword()">Send Reset Link</button>
+    </div>
+          </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box settings-modal">
+      <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Account Settings</h2>
+        <p class="modal-subtitle">Manage your profile and preferences</p>
+          </div>
+
+      <div class="settings-tabs">
+        <button class="settings-tab active" onclick="switchSettingsTab('profile')">Profile</button>
+        <button class="settings-tab" onclick="switchSettingsTab('security')">Security</button>
+        <button class="settings-tab" onclick="switchSettingsTab('preferences')">Preferences</button>
+        <button class="settings-tab" onclick="switchSettingsTab('notifications')">Notifications</button>
+      </div>
+      
+      <!-- Profile Tab -->
+      <div id="profileTab" class="settings-content active">
+        <div class="profile-section">
+          <h3 class="section-title">Profile Information</h3>
+          
+          <div class="avatar-section">
+            <div class="current-avatar" id="currentAvatar">👤</div>
+            <div class="avatar-options">
+              <h4>Choose Avatar</h4>
+              <div class="avatar-grid">
+                <div class="avatar-option" onclick="selectAvatar('👤')">👤</div>
+                <div class="avatar-option" onclick="selectAvatar('🎯')">🎯</div>
+                <div class="avatar-option" onclick="selectAvatar('👑')">👑</div>
+                <div class="avatar-option" onclick="selectAvatar('🃏')">🃏</div>
+                <div class="avatar-option" onclick="selectAvatar('💎')">💎</div>
+                <div class="avatar-option" onclick="selectAvatar('⚡')">⚡</div>
+                <div class="avatar-option" onclick="selectAvatar('🎮')">🎮</div>
+                <div class="avatar-option" onclick="selectAvatar('🏆')">🏆</div>
+              </div>
+            </div>
+        </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-input" id="settingsFirstName" placeholder="First name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-input" id="settingsLastName" placeholder="Last name">
+        </div>
+      </div>
+
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" id="settingsUsername" placeholder="Username">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="settingsEmail" placeholder="Email address">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bio</label>
+            <textarea class="form-input" id="settingsBio" placeholder="Tell us about yourself..." rows="3"></textarea>
       </div>
     </div>
   </div>
 
+      <!-- Security Tab -->
+      <div id="securityTab" class="settings-content">
+        <div class="security-section">
+          <h3 class="section-title">Security Settings</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <div class="password-input">
+              <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password">
+              <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">👁️</button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <div class="password-input">
+              <input type="password" class="form-input" id="newPassword" placeholder="Enter new password">
+              <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">👁️</button>
+            </div>
+            <div class="password-strength" id="settingsPasswordStrength"></div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <div class="password-input">
+              <input type="password" class="form-input" id="confirmNewPassword" placeholder="Confirm new password">
+              <button type="button" class="password-toggle" onclick="togglePassword('confirmNewPassword')">👁️</button>
+            </div>
+          </div>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="twoFactor">
+            <label class="checkbox-label" for="twoFactor">Enable Two-Factor Authentication</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Preferences Tab -->
+      <div id="preferencesTab" class="settings-content">
+        <div class="preferences-section">
+          <h3 class="section-title">Game Preferences</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Default Stakes</label>
+            <select class="form-input" id="defaultStakes">
+              <option value="micro">Micro ($0.01/$0.02)</option>
+              <option value="low">Low ($0.05/$0.10)</option>
+              <option value="medium">Medium ($0.25/$0.50)</option>
+              <option value="high">High ($1/$2)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Preferred Game Type</label>
+            <select class="form-input" id="gameType">
+              <option value="holdem">No Limit Hold'em</option>
+              <option value="omaha">Pot Limit Omaha</option>
+              <option value="tournament">Tournament</option>
+            </select>
+          </div>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="autoMuck">
+            <label class="checkbox-label" for="autoMuck">Auto-muck losing hands</label>
+          </div>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="showCards">
+            <label class="checkbox-label" for="showCards">Show cards after hand</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Notifications Tab -->
+      <div id="notificationsTab" class="settings-content">
+        <div class="notifications-section">
+          <h3 class="section-title">Notification Preferences</h3>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="emailNotifications">
+            <label class="checkbox-label" for="emailNotifications">Email notifications</label>
+          </div>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="gameInvites">
+            <label class="checkbox-label" for="gameInvites">Game invitations</label>
+          </div>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="friendRequests">
+            <label class="checkbox-label" for="friendRequests">Friend requests</label>
+          </div>
+          
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="tournamentUpdates">
+            <label class="checkbox-label" for="tournamentUpdates">Tournament updates</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="settings-actions">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="handleLogout()">Logout</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global animations -->
   <script src="global-animations.js"></script>
   <script>
-   // Landing page: Initialize with wave + ongoing
-   document.addEventListener('DOMContentLoaded', () => {
-     initFallingFX(); // Full wave + ongoing
-   });
-
-  // Login Modal Functions
-  function openLoginModal() {
-    document.getElementById('loginModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    // Reset to login tab
-    switchModalTab('login');
-  }
-
-  function closeLoginModal() {
-    document.getElementById('loginModal').style.display = 'none';
-    document.body.style.overflow = '';
-    // Hide forgot password view
-    document.getElementById('forgot-password-content').classList.remove('active');
-  }
-
-  function switchModalTab(tab) {
-    // Remove active from all tabs and content
-    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
-    
-    // Add active to selected tab and content
-    if (tab === 'login') {
-      document.querySelectorAll('.modal-tab')[0].classList.add('active');
-      document.getElementById('login-content').classList.add('active');
-    } else if (tab === 'signup') {
-      document.querySelectorAll('.modal-tab')[1].classList.add('active');
-      document.getElementById('signup-content').classList.add('active');
-    }
-  }
-
-  function showForgotPassword() {
-    document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('forgot-password-content').classList.add('active');
-  }
-
-  function showLogin() {
-    document.getElementById('forgot-password-content').classList.remove('active');
-    document.getElementById('login-content').classList.add('active');
-    document.querySelectorAll('.modal-tab')[0].classList.add('active');
-  }
-
-  function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    const rememberMe = document.getElementById('remember-me').checked;
-    
-    console.log('Login attempt:', { email, password, rememberMe });
-    alert(`Login successful! Welcome back, ${email}`);
-    closeLoginModal();
-  }
-
-  function handleSignup(e) {
-    e.preventDefault();
-    const username = document.getElementById('signup-username').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const confirmPassword = document.getElementById('signup-confirm-password').value;
-    
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
-    
-    console.log('Signup attempt:', { username, email, password });
-    alert(`Account created successfully! Welcome to PokerGeek.ai, ${username}!`);
-    closeLoginModal();
-  }
-
-  function handleForgotPassword(e) {
-    e.preventDefault();
-    const email = document.getElementById('forgot-email').value;
-    
-    console.log('Password reset requested for:', email);
-    alert(`Password reset link sent to ${email}. Please check your inbox.`);
-    showLogin();
-  }
-
-  function loginWithGoogle() {
-    console.log('Google login initiated');
-    alert('Google login coming soon!');
-  }
-
-  function signupWithGoogle() {
-    console.log('Google signup initiated');
-    alert('Google signup coming soon!');
-  }
-
-  // Close modal when clicking outside
-  document.addEventListener('click', (e) => {
-    const modal = document.getElementById('loginModal');
-    if (e.target === modal) {
-      closeLoginModal();
+    // Landing page: Initialize with wave + ongoing
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof initFallingFX === 'function') {
+        initFallingFX(); // Full wave + ongoing
     }
   });
 
-  // Close modal with Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeLoginModal();
+  // Liquid Glass Controls
+    let isLocked = false;
+    
+  function toggleControls() {
+    const controls = document.querySelector('.glass-controls');
+      const button = controls.querySelector('button[onclick="toggleControls()"]');
+    
+    if (controls.style.display === 'none') {
+      controls.style.display = 'block';
+        button.textContent = 'Hide';
+    } else {
+      controls.style.display = 'none';
+        button.textContent = 'Show';
+      }
     }
-  });
+    
+    function toggleLock() {
+      isLocked = !isLocked;
+      const lockButton = document.getElementById('lock-values');
+      const shadowBlur = document.getElementById('shadow-blur');
+      const tintOpacity = document.getElementById('tint-opacity');
+      const frostBlur = document.getElementById('frost-blur');
+      const distortionStrength = document.getElementById('distortion-strength');
+      
+      lockButton.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+      lockButton.style.background = isLocked ? 'var(--warning)' : 'var(--teal)';
+      
+      // Disable/enable sliders
+      [shadowBlur, tintOpacity, frostBlur, distortionStrength].forEach(slider => {
+        slider.disabled = isLocked;
+        slider.style.opacity = isLocked ? '0.5' : '1';
+      });
+    }
+
+  // Initialize liquid glass controls
+  document.addEventListener('DOMContentLoaded', function() {
+    const root = document.documentElement;
+    
+    function updateGlassVar(name, value) {
+        if (isLocked) return;
+      root.style.setProperty(name, value);
+    }
+    
+    function updateSVG() {
+        if (isLocked) return;
+        
+      const distortionStrength = document.getElementById('distortion-strength')?.value || 77;
+      const noiseFrequency = document.getElementById('noise-frequency')?.value || 0.008;
+      
+      const displacementMap = document.querySelector('feDisplacementMap');
+      const turbulence = document.querySelector('feTurbulence');
+      
+      if (displacementMap) displacementMap.setAttribute('scale', distortionStrength);
+      if (turbulence) turbulence.setAttribute('baseFrequency', `${noiseFrequency} ${noiseFrequency}`);
+    }
+    
+    // Control mappings
+    const controls = {
+      'shadow-blur': ['--glass-shadow-blur', v => v + 'px'],
+      'tint-opacity': ['--glass-tint-opacity', v => (v / 100)],
+      'frost-blur': ['--glass-frost-blur', v => v + 'px'],
+      'distortion-strength': ['--glass-distortion-strength', v => v]
+    };
+    
+    // Add event listeners
+    Object.keys(controls).forEach(id => {
+      const input = document.getElementById(id);
+      if (input) {
+        input.addEventListener('input', (e) => {
+          const [cssVar, formatter] = controls[id];
+          updateGlassVar(cssVar, formatter(e.target.value));
+          updateSVG();
+        });
+      }
+    });
+      
+      // Add lock button event listener
+      const lockButton = document.getElementById('lock-values');
+      if (lockButton) {
+        lockButton.addEventListener('click', toggleLock);
+      }
+    });
+
+    // Auth state management
+    let isLoggedIn = false;
+    let currentUser = null;
+
+    // Check if user is logged in on page load
+    function checkAuthState() {
+      const savedUser = localStorage.getItem('pokerUser');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        isLoggedIn = true;
+        updateNavbarForLoggedInUser();
+      }
+    }
+
+    // Update navbar to show user menu instead of login/signup
+    function updateNavbarForLoggedInUser() {
+      document.getElementById('navbarAuth').style.display = 'none';
+      document.getElementById('navbarUser').style.display = 'flex';
+      document.getElementById('userName').textContent = currentUser.username || currentUser.name || 'User';
+      document.getElementById('userAvatar').textContent = currentUser.avatar || '👤';
+    }
+
+    // Update navbar to show login/signup buttons
+    function updateNavbarForLoggedOutUser() {
+      document.getElementById('navbarAuth').style.display = 'flex';
+      document.getElementById('navbarUser').style.display = 'none';
+    }
+
+    // Modal functions
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      switchModalTab('login');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+      document.body.style.overflow = '';
+      clearFormErrors();
+    }
+
+    function switchModalTab(tab) {
+      // Remove active class from all tabs and forms
+      document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.modal-form').forEach(f => f.classList.remove('active'));
+      
+      // Add active class to selected tab and form
+      event.target.classList.add('active');
+      document.getElementById(tab + 'Form').classList.add('active');
+      clearFormErrors();
+    }
+
+    function showForgotPassword() {
+      document.getElementById('loginModal').style.display = 'none';
+      document.getElementById('forgotPasswordModal').style.display = 'flex';
+    }
+
+    function closeForgotPassword() {
+      document.getElementById('forgotPasswordModal').style.display = 'none';
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    // Form validation
+    function clearFormErrors() {
+      document.querySelectorAll('.form-error').forEach(error => {
+        error.textContent = '';
+      });
+    }
+
+    function showError(fieldId, message) {
+      const errorElement = document.getElementById(fieldId + 'Error');
+      if (errorElement) {
+        errorElement.textContent = message;
+      }
+    }
+
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    function validatePassword(password) {
+      return password.length >= 8;
+    }
+
+    function updatePasswordStrength(password) {
+      const strengthElement = document.getElementById('passwordStrength');
+      if (!strengthElement) return;
+
+      strengthElement.className = 'password-strength';
+      
+      if (password.length < 6) {
+        strengthElement.classList.add('weak');
+      } else if (password.length < 8) {
+        strengthElement.classList.add('fair');
+      } else if (password.length < 12) {
+        strengthElement.classList.add('good');
+      } else {
+        strengthElement.classList.add('strong');
+      }
+    }
+
+    // Password toggle functionality
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const button = input.parentNode.querySelector('.password-toggle');
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        button.textContent = '👁️';
+      }
+    }
+
+    // Mock Auth - Instant login for demo purposes
+    function handleGoogleAuth() {
+      // Generate random user data for demo
+      const mockUsers = [
+        { name: 'Alex Johnson', username: 'alexj', email: 'alex@example.com', avatar: '🎯' },
+        { name: 'Sarah Wilson', username: 'sarahw', email: 'sarah@example.com', avatar: '👑' },
+        { name: 'Mike Chen', username: 'mikec', email: 'mike@example.com', avatar: '🃏' },
+        { name: 'Emma Davis', username: 'emmad', email: 'emma@example.com', avatar: '💎' },
+        { name: 'Chris Taylor', username: 'christ', email: 'chris@example.com', avatar: '⚡' }
+      ];
+      
+      const randomUser = mockUsers[Math.floor(Math.random() * mockUsers.length)];
+      randomUser.provider = 'google';
+      
+      currentUser = randomUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(randomUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      // Show success notification
+      showNotification(`Welcome back, ${randomUser.name}!`, 'success');
+    }
+
+    // Mock Login - Instant login with any email/password
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      // Simple validation for demo
+      if (!email || !password) {
+        showNotification('Please enter both email and password', 'error');
+        return;
+      }
+      
+      // Generate user data based on email
+      const username = email.split('@')[0];
+      const name = username.charAt(0).toUpperCase() + username.slice(1) + ' User';
+      
+      const mockUser = {
+        name: name,
+        username: username,
+        email: email,
+        avatar: '👤',
+        provider: 'email'
+      };
+      
+      currentUser = mockUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(mockUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      showNotification(`Welcome back, ${name}!`, 'success');
+    }
+
+    // Mock Signup - Instant signup with any data
+    function handleSignup() {
+      const firstName = document.getElementById('signupFirstName').value;
+      const lastName = document.getElementById('signupLastName').value;
+      const email = document.getElementById('signupEmail').value;
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const birthDate = document.getElementById('signupBirthDate').value;
+      const terms = document.getElementById('terms').checked;
+      
+      // Basic validation for demo
+      if (!firstName || !lastName || !email || !username || !password) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+      }
+      
+      if (!terms) {
+        showNotification('Please agree to the Terms of Service', 'error');
+        return;
+      }
+      
+      // Create user with provided data
+      const mockUser = {
+        name: `${firstName} ${lastName}`,
+        username: username,
+        email: email,
+        avatar: '👤',
+        provider: 'email',
+        birthDate: birthDate
+      };
+      
+      currentUser = mockUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(mockUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      showNotification(`Welcome to PokerGeek, ${firstName}!`, 'success');
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+      // Remove existing notifications
+      const existing = document.querySelector('.notification');
+      if (existing) {
+        existing.remove();
+      }
+      
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.innerHTML = `
+        <div class="notification-content">
+          <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+          <span class="notification-message">${message}</span>
+        </div>
+      `;
+      
+      // Add to page
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    function handleForgotPassword() {
+      const email = document.querySelector('#forgotPasswordModal input[type="email"]').value;
+      if (!email) {
+        alert('Please enter your email address');
+        return;
+      }
+      
+      if (!validateEmail(email)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      
+      alert('Password reset email sent to ' + email);
+      closeForgotPassword();
+    }
+
+    // Settings Modal Functions
+    function openSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      loadUserSettings();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function switchSettingsTab(tab) {
+      // Remove active class from all tabs and content
+      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.settings-content').forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      event.target.classList.add('active');
+      document.getElementById(tab + 'Tab').classList.add('active');
+    }
+
+    function loadUserSettings() {
+      if (!currentUser) return;
+      
+      // Load profile data
+      const nameParts = currentUser.name.split(' ');
+      document.getElementById('settingsFirstName').value = nameParts[0] || '';
+      document.getElementById('settingsLastName').value = nameParts.slice(1).join(' ') || '';
+      document.getElementById('settingsUsername').value = currentUser.username || '';
+      document.getElementById('settingsEmail').value = currentUser.email || '';
+      document.getElementById('settingsBio').value = currentUser.bio || '';
+      document.getElementById('currentAvatar').textContent = currentUser.avatar || '👤';
+      
+      // Load preferences
+      document.getElementById('defaultStakes').value = currentUser.defaultStakes || 'micro';
+      document.getElementById('gameType').value = currentUser.gameType || 'holdem';
+      document.getElementById('autoMuck').checked = currentUser.autoMuck || false;
+      document.getElementById('showCards').checked = currentUser.showCards || false;
+      
+      // Load notification preferences
+      document.getElementById('emailNotifications').checked = currentUser.emailNotifications !== false;
+      document.getElementById('gameInvites').checked = currentUser.gameInvites !== false;
+      document.getElementById('friendRequests').checked = currentUser.friendRequests !== false;
+      document.getElementById('tournamentUpdates').checked = currentUser.tournamentUpdates !== false;
+    }
+
+    function selectAvatar(avatar) {
+      document.getElementById('currentAvatar').textContent = avatar;
+      // Add visual feedback
+      document.querySelectorAll('.avatar-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      event.target.classList.add('selected');
+    }
+
+    function saveSettings() {
+      if (!currentUser) return;
+      
+      // Update profile data
+      const firstName = document.getElementById('settingsFirstName').value;
+      const lastName = document.getElementById('settingsLastName').value;
+      const username = document.getElementById('settingsUsername').value;
+      const email = document.getElementById('settingsEmail').value;
+      const bio = document.getElementById('settingsBio').value;
+      const avatar = document.getElementById('currentAvatar').textContent;
+      
+      // Basic validation
+      if (!firstName || !lastName || !username || !email) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      // Update user object
+      currentUser.name = `${firstName} ${lastName}`;
+      currentUser.username = username;
+      currentUser.email = email;
+      currentUser.bio = bio;
+      currentUser.avatar = avatar;
+      
+      // Update preferences
+      currentUser.defaultStakes = document.getElementById('defaultStakes').value;
+      currentUser.gameType = document.getElementById('gameType').value;
+      currentUser.autoMuck = document.getElementById('autoMuck').checked;
+      currentUser.showCards = document.getElementById('showCards').checked;
+      
+      // Update notification preferences
+      currentUser.emailNotifications = document.getElementById('emailNotifications').checked;
+      currentUser.gameInvites = document.getElementById('gameInvites').checked;
+      currentUser.friendRequests = document.getElementById('friendRequests').checked;
+      currentUser.tournamentUpdates = document.getElementById('tournamentUpdates').checked;
+      
+      // Save to localStorage
+      localStorage.setItem('pokerUser', JSON.stringify(currentUser));
+      
+      // Update navbar
+      updateNavbarForLoggedInUser();
+      
+      // Close modal and show success
+      closeSettingsModal();
+      showNotification('Settings saved successfully!', 'success');
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      isLoggedIn = false;
+      localStorage.removeItem('pokerUser');
+      
+      updateNavbarForLoggedOutUser();
+      showNotification('Successfully logged out!', 'success');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const userMenu = document.querySelector('.user-menu');
+      const dropdown = document.getElementById('userDropdown');
+      
+      if (userMenu && !userMenu.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    // Password strength monitoring
+    document.addEventListener('DOMContentLoaded', function() {
+      const passwordInput = document.getElementById('signupPassword');
+      if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+          updatePasswordStrength(this.value);
+        });
+      }
+      
+      // Check auth state on page load
+      checkAuthState();
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const loginModal = document.getElementById('loginModal');
+      const forgotModal = document.getElementById('forgotPasswordModal');
+      if (event.target === loginModal) {
+        closeLoginModal();
+      }
+      if (event.target === forgotModal) {
+        closeForgotPassword();
+      }
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeLoginModal();
+      }
+    });
+
+    // Liquid Glass Controls (duplicate removed)
 
   document.querySelectorAll('a[href^="#"]').forEach(a=>{
     a.addEventListener('click', e=>{
       const t=document.querySelector(a.getAttribute('href'));
       if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth', block:'start'}); }
     });
-  });
-
-  window.addEventListener('scroll', ()=>{
-    const nav=document.querySelector('.nav');
-    nav.style.background = (window.scrollY>100)?'rgba(10,8,22,.95)':'rgba(10,8,22,.9)';
   });
 
   const observer=new IntersectionObserver((entries)=>{
@@ -675,6 +1056,17 @@
     observer.observe(el);
   });
 
-</script>
+  </script>
+
+  <!-- Liquid Glass SVG Filter -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute; overflow:hidden">
+    <defs>
+      <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+        <feDisplacementMap in="SourceGraphic" in2="blurred" scale="77" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
 </body>
 </html>

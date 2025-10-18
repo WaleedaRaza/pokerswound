@@ -39,21 +39,6 @@ This file contains the textual content and structure from pages that were consol
 - Progress tracking and achievements
 - Personalized learning paths
 
----
-
-## Friends
-**Title:** Friends
-**Subtitle:** Connect with fellow poker players and build your network
-**Features:**
-- Friend management system
-- Add friends by username/email
-- Friend statistics tracking
-- Online/offline status
-- Friend requests and notifications
-- Search and filter functionality
-
----
-
 ## Forum
 **Title:** Forum
 **Subtitle:** Join the community discussion, share strategies, and connect with poker players from around the world

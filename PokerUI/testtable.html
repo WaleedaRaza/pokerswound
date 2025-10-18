@@ -84,30 +84,48 @@
   .emoji{position:absolute;right:-18px;top:-12px;font-size:22px}
   .crown{position:absolute;left:-18px;top:-16px;font-size:22px}
 
-  /* USER TILE (bigger, dark blue, with cards) */
+  /* USER TILE (grid: left money, right cards, bottom money) */
   .tile-user{
     width:300px; height:125px; border-radius:16px;
     background:linear-gradient(180deg, var(--user1), var(--user2));
     border:1px solid var(--userBorder);
     box-shadow:inset 0 2px 0 rgba(255,255,255,.10), 0 14px 34px rgba(0,0,0,.45);
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    font-size:24px;
+    display:grid;
+    grid-template-columns: 1fr 140px;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "stack cards"
+      "bottom bottom";
+    column-gap:12px;
+    align-items:center;
+    padding:12px 14px;
   }
-  .seat.user .name{ margin-top:8px; font-weight:600; }
+  .user-stack{
+    grid-area: stack;
+    font-weight:900;
+    font-size:38px;
+    letter-spacing:.3px;
+  }
+  .user-cards{
+    grid-area: cards;
+    justify-self:end;
+    display:flex; gap:10px;
+    position:relative;
+    top:0; right:0;
+  }
+  .tile-user .card{ width:56px; height:78px; }
+  .user-cards .card{ transform:rotate(-6deg) }
+  .user-cards .card:last-child{ transform:rotate(6deg) }
 
-  .user-hole{
-    position:absolute; right:0px; top:-0px; display:flex; gap:8px;
+  .user-bottom{
+    grid-area: bottom;
+    font-size:13px;
+    color:#dbe2ff;
+    opacity:.9;
+    letter-spacing:.25px;
+    text-align:left;
+    margin-top:2px;
   }
-  .card{
-    width:64px;height:90px;border-radius:12px;background:linear-gradient(#121319,#0a0c11);
-    color:#eaeaf0;display:grid;place-items:center;
-    font-family:"Space Mono",monospace;font-weight:700;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.06), 0 10px 26px rgba(0,0,0,.45);
-    border:1px solid rgba(255,255,255,.06)
-  }
-  .user-hole .card{transform:rotate(-8deg)} .user-hole .card:last-child{transform:rotate(8deg)}
-  .r{font-size:20px;letter-spacing:.4px}
-  .h,.d{color:#ff6b7f}
 
   /* BIG CENTER POT BAR */
   .table-pot{
@@ -214,7 +232,7 @@
       </div>
       
       <!-- BETTING CONTROLS -->
-      <div class="bet-controls" id="bet-controls">
+      <div class="bet-controls" id="bet-controls" style="display:none">
         <div class="bet-amount" id="bet-amount">$25</div>
         <input type="range" class="bet-slider" id="bet-slider" min="25" max="500" value="25">
         <div style="display:flex;gap:10px;margin-top:15px">
@@ -241,19 +259,13 @@ const opponents = [
 
 const user = { name:"Juunebuh", stack:88, color:"user", status:"active", currentBet:0 };
 
-/* === Spread-out anchors (percent of felt) === */
+/* Spread anchors */
 const DEFAULT_ANCHORS_OPP = [
-  {x: 24, y: 86}, // bottom-left near corner
-  {x: 10, y: 66}, // left lower-mid
-  {x: 10, y: 40}, // left upper-mid
-  {x: 24, y: 18}, // top-left
-  {x: 50, y: 12}, // top-center
-  {x: 76, y: 18}, // top-right
-  {x: 90, y: 40}, // right upper-mid
-  {x: 90, y: 66}, // right lower-mid
-  {x: 76, y: 86}, // bottom-right near corner
+  {x: 24, y: 86}, {x: 10, y: 66}, {x: 10, y: 40},
+  {x: 24, y: 18}, {x: 50, y: 12}, {x: 76, y: 18},
+  {x: 90, y: 40}, {x: 90, y: 66}, {x: 76, y: 86},
 ];
-const DEFAULT_ANCHOR_USER = {x:50, y:92}; // true bottom-center
+const DEFAULT_ANCHOR_USER = {x:50, y:92};
 
 function getJSON(k, fallback){ try{ return JSON.parse(localStorage.getItem(k)) || fallback; } catch{ return fallback; } }
 function setJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
@@ -305,8 +317,7 @@ function renderOpponents(W,H){
   });
 
   // Crown on Krishnamoorthy (seat index 7)
-  const seatsEls = seats.children;
-  const target = seatsEls[7];
+  const target = seats.children[7];
   if(target && !target.querySelector(".crown")){
     const c = document.createElement("div");
     c.className = "crown"; c.textContent = "👑";
@@ -325,12 +336,15 @@ function renderUser(W,H){
   el.style.left = x + "px";
   el.style.top  = y + "px";
   el.innerHTML = `
-    <div class="${tileClass(user.color)}">$${user.stack}</div>
-    <div class="name">${user.name}</div>
-    <div class="user-hole">
-      <div class="card"><div class="r">A♠</div></div>
-      <div class="card"><div class="r">K♠</div></div>
+    <div class="${tileClass(user.color)}">
+      <div class="user-stack" id="user-stack">$${user.stack}</div>
+      <div class="user-cards">
+        <div class="card"><div class="r">A♠</div></div>
+        <div class="card"><div class="r">K♠</div></div>
+      </div>
+      <div class="user-bottom" id="user-bottom">Balance: $${user.stack}</div>
     </div>
+    <div class="name">${user.name}</div>
   `;
   seats.appendChild(el);
 }
@@ -370,7 +384,7 @@ function setupEventListeners() {
   });
   
   document.getElementById('bet-raise-btn').addEventListener('click', () => {
-    document.getElementById('bet-controls').classList.add('active');
+    document.getElementById('bet-controls').style.display = 'block';
   });
   
   document.getElementById('fold-btn').addEventListener('click', () => {
@@ -385,12 +399,12 @@ function setupEventListeners() {
     p.currentBet += betAmount;
     currentBet = p.currentBet;
     updatePot(currentPot + betAmount);
-    document.getElementById('bet-controls').classList.remove('active');
+    document.getElementById('bet-controls').style.display = 'none';
     nextPlayer();
   });
   
   document.getElementById('cancel-bet').addEventListener('click', () => {
-    document.getElementById('bet-controls').classList.remove('active');
+    document.getElementById('bet-controls').style.display = 'none';
   });
   
   document.getElementById('bet-slider').addEventListener('input', (e) => {
@@ -518,15 +532,6 @@ document.addEventListener('keydown', (e)=>{
     placeSeats();
   }
 });
-
-/* Demo autoplay */
-setInterval(() => {
-  if (Math.random() > 0.7) {
-    const actions = ['call-check-btn', 'fold-btn'];
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    document.getElementById(action).click();
-  }
-}, 3000);
 </script>
 </body>
 </html>

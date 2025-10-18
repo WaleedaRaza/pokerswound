@@ -1,0 +1,48 @@
+[33mcommit fd4fac801ddd90c737cfe7431f9d45cc50d126f2[m
+Author: Pokeher Dev <dev@pokeher.com>
+Date:   Wed Oct 15 03:06:44 2025 -0400
+
+    feat: Implement Supabase Auth with Google OAuth
+    
+     Proper authentication system with session persistence
+    
+    Features:
+    - Google OAuth sign-in (one-click login)
+    - Email/password authentication
+    - Automatic session persistence across refreshes
+    - User profile management
+    - Row-level security in database
+    
+    Files Added:
+    - src/lib/supabase-client.ts - Supabase client & auth functions
+    - public/supabase-auth.html - Beautiful auth UI with Google sign-in
+    - supabase-schema.sql - Database schema for profiles
+    - FINAL_SETUP_STEPS.md - Complete setup guide
+    - ENV_ADDITIONS.txt - Environment variables
+    
+    Integration:
+    - Uses existing Supabase project
+    - Google OAuth configured and enabled
+    - Automatic profile creation on signup
+    - Token-based authentication
+    
+    Benefits:
+    - No more manual JWT management
+    - Automatic token refresh
+    - Built-in session management
+    - Industry-standard security
+    - OAuth provider support
+    
+    Next Steps:
+    1. Add credentials to .env
+    2. Run SQL schema in Supabase
+    3. Test Google sign-in
+    4. Integrate with game WebSocket
+
+poker-engine/ENV_ADDITIONS.txt
+poker-engine/FINAL_SETUP_STEPS.md
+poker-engine/SUPABASE_AUTH_IMPLEMENTATION.md
+poker-engine/SUPABASE_SETUP_GUIDE.md
+poker-engine/package.json
+poker-engine/src/lib/supabase-client.ts
+poker-engine/supabase-schema.sql

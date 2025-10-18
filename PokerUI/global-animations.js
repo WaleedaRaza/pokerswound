@@ -203,10 +203,16 @@ function initVisibilityHandling() {
 window.pokerFX = {
   startOngoing, 
   stopOngoing,
+  initFallingFX,
+  initOngoingOnly,
   setRange: (min,max)=>{ FX.ongoing.minActive=min; FX.ongoing.maxActive=max; },
   setGap: (mean,jitter)=>{ FX.ongoing.meanGapSec=mean; FX.ongoing.jitterSec=jitter; },
   active: ()=> active
 };
+
+// Make functions globally available
+window.initFallingFX = initFallingFX;
+window.initOngoingOnly = initOngoingOnly;
 
 // ===== Auto-initialize common features =====
 // These run on all pages

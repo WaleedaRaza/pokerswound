@@ -1,5 +1,6 @@
-cd pokeher
-cd pokeher
-cd poker-engine
-Get-Process node | Stop-Process -Force
-node ./soph
+cd pokeher/poker-engine
+node sophisticated-engine-server.js
+
+# Server runs on http://localhost:3000
+# Poker UI: http://localhost:3000/poker
+# To stop: Get-Process node | Stop-Process -Force
