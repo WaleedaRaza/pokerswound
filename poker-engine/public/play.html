@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Play Poker - PokerGeek.ai</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="PokerUI/style.css">
+
+<!-- SVG Filter for Liquid Glass Effect -->
+<svg width="0" height="0" class="svg-filter">
+    <defs>
+        <filter id="glass-distortion" x="-50%" y="-50%" width="200%" height="200%">
+            <feTurbulence baseFrequency="var(--glass-noise-frequency)" numOctaves="4" result="noise" type="fractalNoise"/>
+            <feGaussianBlur in="noise" stdDeviation="2" result="blur"/>
+            <feDisplacementMap in="SourceGraphic" in2="blur" scale="var(--glass-distortion-strength)" result="distorted"/>
+            <feComposite in="distorted" in2="SourceGraphic" operator="over"/>
+        </filter>
+    </defs>
+</svg>
+</head>
+<body>
+  <div class="bg-animation"></div>
+  <div class="floating-cards" id="floating-cards"></div>
+
+  <!-- CONSOLIDATED NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">PokerGeek.ai</a>
+        <ul class="navbar-links">
+            <li><a href="index.html">Home</a></li>
+        <li><a href="play.html">Play Now</a></li>
+        <li><a href="PokerUI/friends.html">Friends</a></li>
+            <li><a href="PokerUI/ai-solver.html">AI Solver</a></li>
+            <li><a href="PokerUI/analysis.html">Analysis</a></li>
+            <li><a href="PokerUI/learning.html">Learning</a></li>
+            <li><a href="PokerUI/poker-today.html">Poker Today</a></li>
+      </ul>
+        <div class="navbar-auth" id="navbarAuth">
+            <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
+            <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
+        </div>
+        
+        <!-- User Profile Tile (shown when logged in) -->
+        <div class="navbar-user" id="navbarUser" style="display: none;">
+            <div class="user-profile-tile liquid-glass-tile" onclick="openSettingsModal()">
+                <div class="user-avatar" id="userAvatar">👤</div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Username</div>
+                    <div class="user-status">Online</div>
+                </div>
+                <div class="user-menu-icon">⚙️</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Choose Your Game</h1>
+      <p class="page-subtitle">Join an existing game or create your own private table</p>
+    </div>
+
+    <!-- Game sections using liquid glass tiles -->
+    <div class="game-sections">
+      <div class="liquid-tiles-container">
+        <!-- Create Room Tile -->
+        <div class="liquid-glass-tile feature-card" onclick="openCreateRoomModal()">
+          <div class="tile-content">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">Create Room</h3>
+            <p class="feature-desc">Start a new private poker room with custom settings</p>
+            <div class="tile-actions">
+              <button class="btn btn-primary">Create Room</button>
+          </div>
+        </div>
+        </div>
+
+        <!-- Join Room Tile -->
+        <div class="liquid-glass-tile feature-card" onclick="openJoinRoomModal()">
+          <div class="tile-content">
+            <div class="feature-icon">🚪</div>
+            <h3 class="feature-title">Join Room</h3>
+            <p class="feature-desc">Enter a room code to join an existing game</p>
+            <div class="tile-actions">
+              <button class="btn btn-secondary">Join Room</button>
+          </div>
+        </div>
+        </div>
+
+        <!-- Quick Play Tile -->
+        <div class="liquid-glass-tile feature-card" onclick="quickPlay()">
+          <div class="tile-content">
+            <div class="feature-icon">⚡</div>
+            <h3 class="feature-title">Quick Play</h3>
+            <p class="feature-desc">Jump into a random available game instantly</p>
+            <div class="tile-actions">
+              <button class="btn btn-success">Quick Play</button>
+          </div>
+        </div>
+        </div>
+
+        <!-- Tournament Tile -->
+        <div class="liquid-glass-tile feature-card">
+          <div class="tile-content">
+            <div class="feature-icon">🏆</div>
+            <h3 class="feature-title">Tournaments</h3>
+            <p class="feature-desc">Join scheduled tournaments and compete for prizes</p>
+            <div class="tile-actions">
+              <button class="btn btn-warning" disabled>Coming Soon</button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create Room Modal -->
+  <div id="createRoomModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeCreateRoomModal()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Create New Room</h2>
+        <p class="modal-subtitle">Set up your private poker table</p>
+        </div>
+        
+      <div class="modal-form">
+          <div class="form-group">
+          <label class="form-label">Room Name</label>
+          <input type="text" class="form-input" id="roomName" placeholder="Enter room name" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Max Players</label>
+            <select class="form-input" id="maxPlayers">
+              <option value="2">2 Players</option>
+              <option value="6" selected>6 Players</option>
+              <option value="9">9 Players</option>
+                </select>
+              </div>
+          <div class="form-group">
+            <label class="form-label">Buy-in</label>
+            <select class="form-input" id="buyIn">
+              <option value="1000">$10</option>
+              <option value="5000" selected>$50</option>
+              <option value="10000">$100</option>
+              <option value="50000">$500</option>
+                </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+          <label class="form-label">Blind Level</label>
+          <select class="form-input" id="blindLevel">
+            <option value="10/20">10/20</option>
+            <option value="25/50" selected>25/50</option>
+            <option value="50/100">50/100</option>
+            <option value="100/200">100/200</option>
+              </select>
+          </div>
+          
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="privateRoom">
+          <label class="checkbox-label" for="privateRoom">Private room (require room code to join)</label>
+            </div>
+            
+        <button class="btn-submit" onclick="createRoom()">Create Room</button>
+                </div>
+              </div>
+            </div>
+            
+  <!-- Join Room Modal -->
+  <div id="joinRoomModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeJoinRoomModal()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Join Room</h2>
+        <p class="modal-subtitle">Enter the room code to join a game</p>
+        </div>
+        
+      <div class="modal-form">
+        <div class="form-group">
+          <label class="form-label">Room Code</label>
+          <input type="text" class="form-input" id="roomCode" placeholder="Enter 6-digit room code" maxlength="6" required>
+        </div>
+        
+        <button class="btn-submit" onclick="joinRoom()">Join Room</button>
+          </div>
+          </div>
+        </div>
+        
+  <!-- Login/Signup Modal -->
+  <div id="loginModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Welcome to PokerGeek</h2>
+        <p class="modal-subtitle">Sign in to your account or create a new one</p>
+        </div>
+        
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchModalTab('login')">Sign In</button>
+        <button class="modal-tab" onclick="switchModalTab('signup')">Sign Up</button>
+            </div>
+            
+      <!-- Login Form -->
+      <div id="loginForm" class="modal-form active">
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div class="divider"><span>or</span></div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="loginEmailError"></div>
+                </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+              </div>
+          <div class="form-error" id="loginPasswordError"></div>
+              </div>
+        <div class="form-options">
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="remember">
+            <label class="checkbox-label" for="remember">Remember me for 30 days</label>
+            </div>
+          <a href="#" class="forgot-link" onclick="showForgotPassword()">Forgot password?</a>
+                </div>
+        <button class="btn-submit" onclick="handleLogin()">Sign In to PokerGeek</button>
+        <div class="form-footer">
+          <p>Don't have an account? <a href="#" onclick="switchModalTab('signup')">Create one here</a></p>
+          </div>
+        </div>
+        
+      <!-- Signup Form -->
+      <div id="signupForm" class="modal-form">
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div class="divider"><span>or</span></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-input" id="signupFirstName" placeholder="First name" required>
+            <div class="form-error" id="signupFirstNameError"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-input" id="signupLastName" placeholder="Last name" required>
+            <div class="form-error" id="signupLastNameError"></div>
+          </div>
+            </div>
+          <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="signupEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="signupEmailError"></div>
+          </div>
+          <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signupUsername" placeholder="Choose a username" required>
+          <div class="form-error" id="signupUsernameError"></div>
+          </div>
+          <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="signupPassword" placeholder="Create a password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')">👁️</button>
+          </div>
+          <div class="password-strength" id="passwordStrength"></div>
+          <div class="form-error" id="signupPasswordError"></div>
+        </div>
+          <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="signupConfirmPassword" placeholder="Confirm your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupConfirmPassword')">👁️</button>
+                </div>
+          <div class="form-error" id="signupConfirmPasswordError"></div>
+                </div>
+          <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input type="date" class="form-input" id="signupBirthDate" required>
+          <div class="form-error" id="signupBirthDateError"></div>
+            </div>
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="terms" required>
+          <label class="checkbox-label" for="terms">I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Policy</a></label>
+          </div>
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="newsletter">
+          <label class="checkbox-label" for="newsletter">Subscribe to our newsletter for updates and promotions</label>
+            </div>
+        <button class="btn-submit" onclick="handleSignup()">Create Account</button>
+        <div class="form-footer">
+          <p>Already have an account? <a href="#" onclick="switchModalTab('login')">Sign in here</a></p>
+          </div>
+        </div>
+              </div>
+            </div>
+            
+  <!-- Liquid Glass Controls -->
+  <div class="glass-controls">
+    <h3>Liquid Glass Controls</h3>
+    <div>
+      <label>Shadow Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="shadow-blur">
+              </div>
+    <div>
+      <label>Tint Opacity:</label>
+      <input type="range" min="0" max="20" value="5" id="tint-opacity">
+            </div>
+    <div>
+      <label>Frost Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="frost-blur">
+              </div>
+    <div>
+      <label>Distortion:</label>
+      <input type="range" min="0" max="100" value="77" id="distortion-strength">
+            </div>
+    <div class="button-group">
+      <button id="lock-values">🔓 Lock</button>
+      <button onclick="toggleControls()">Hide</button>
+          </div>
+        </div>
+        
+  <!-- Global animations -->
+  <script src="PokerUI/global-animations.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth/auth-manager.js"></script>
+  <script type="module">
+    import { gameState } from '/js/game/game-state.js';
+    import { createRoom, joinRoom } from '/js/game/room-manager.js';
+    
+    // Make functions globally available
+    window.gameState = gameState;
+    window.createRoom = createRoom;
+    window.joinRoom = joinRoom;
+  </script>
+  <script>
+    // ===== AUTHENTICATION SYSTEM =====
+    let isLoggedIn = false;
+    let currentUser = null;
+
+    // Check authentication state on page load
+    function checkAuthState() {
+      const savedUser = localStorage.getItem('pokerUser');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        isLoggedIn = true;
+        updateNavbarForLoggedInUser();
+      }
+    }
+
+    // Update navbar to show user menu instead of login/signup
+    function updateNavbarForLoggedInUser() {
+      document.getElementById('navbarAuth').style.display = 'none';
+      document.getElementById('navbarUser').style.display = 'flex';
+      document.getElementById('userName').textContent = currentUser.username || currentUser.name || 'User';
+      document.getElementById('userAvatar').textContent = currentUser.avatar || '👤';
+    }
+
+    // Update navbar to show login/signup buttons
+    function updateNavbarForLoggedOutUser() {
+      document.getElementById('navbarAuth').style.display = 'flex';
+      document.getElementById('navbarUser').style.display = 'none';
+    }
+
+    // Modal functions
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      switchModalTab('login');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function switchModalTab(tab) {
+      // Remove active class from all tabs and forms
+      document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.modal-form').forEach(f => f.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding form
+      event.target.classList.add('active');
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+    
+    function openSettingsModal() {
+      // Redirect to home page for settings
+      window.location.href = 'index.html';
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      isLoggedIn = false;
+      localStorage.removeItem('pokerUser');
+      
+      updateNavbarForLoggedOutUser();
+      showNotification('Successfully logged out!', 'success');
+    }
+
+    // Mock Auth - Instant login for demo purposes
+    function handleGoogleAuth() {
+      // Generate random user data for demo
+      const mockUsers = [
+        { name: 'Alex Johnson', username: 'alexj', email: 'alex@example.com', avatar: '🎯' },
+        { name: 'Sarah Wilson', username: 'sarahw', email: 'sarah@example.com', avatar: '👑' },
+        { name: 'Mike Chen', username: 'mikec', email: 'mike@example.com', avatar: '🃏' },
+        { name: 'Emma Davis', username: 'emmad', email: 'emma@example.com', avatar: '💎' },
+        { name: 'Chris Taylor', username: 'christ', email: 'chris@example.com', avatar: '⚡' }
+      ];
+      
+      const randomUser = mockUsers[Math.floor(Math.random() * mockUsers.length)];
+      randomUser.provider = 'google';
+      
+      currentUser = randomUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(randomUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      // Show success notification
+      showNotification(`Welcome back, ${randomUser.name}!`, 'success');
+    }
+
+    // Mock Login - Instant login with any email/password
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      // Simple validation for demo
+      if (!email || !password) {
+        showNotification('Please enter both email and password', 'error');
+        return;
+      }
+      
+      // Generate user data based on email
+      const username = email.split('@')[0];
+      const name = username.charAt(0).toUpperCase() + username.slice(1) + ' User';
+      
+      const mockUser = {
+        name: name,
+        username: username,
+        email: email,
+        avatar: '👤',
+        provider: 'email'
+      };
+      
+      currentUser = mockUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(mockUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      showNotification(`Welcome back, ${name}!`, 'success');
+    }
+
+    // Mock Signup - Instant signup with any data
+    function handleSignup() {
+      const firstName = document.getElementById('signupFirstName').value;
+      const lastName = document.getElementById('signupLastName').value;
+      const email = document.getElementById('signupEmail').value;
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const birthDate = document.getElementById('signupBirthDate').value;
+      const terms = document.getElementById('terms').checked;
+      
+      // Basic validation for demo
+      if (!firstName || !lastName || !email || !username || !password) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+      }
+      
+      if (!terms) {
+        showNotification('Please agree to the Terms of Service', 'error');
+        return;
+      }
+      
+      // Create user with provided data
+      const mockUser = {
+        name: `${firstName} ${lastName}`,
+        username: username,
+        email: email,
+        avatar: '👤',
+        provider: 'email',
+        birthDate: birthDate
+      };
+      
+      currentUser = mockUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(mockUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      showNotification(`Welcome to PokerGeek, ${firstName}!`, 'success');
+    }
+
+    // Password toggle functionality
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const button = input.nextElementSibling;
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        button.textContent = '👁️';
+      }
+    }
+
+    // Forgot password function
+    function showForgotPassword() {
+      showNotification('Password reset functionality coming soon!', 'info');
+    }
+
+    // Room management functions
+    function openCreateRoomModal() {
+      document.getElementById('createRoomModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeCreateRoomModal() {
+      document.getElementById('createRoomModal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function openJoinRoomModal() {
+      document.getElementById('joinRoomModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeJoinRoomModal() {
+      document.getElementById('joinRoomModal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function createRoom() {
+      const roomName = document.getElementById('roomName').value;
+      const maxPlayers = document.getElementById('maxPlayers').value;
+      const buyIn = document.getElementById('buyIn').value;
+      const blindLevel = document.getElementById('blindLevel').value;
+      const isPrivate = document.getElementById('privateRoom').checked;
+      
+      if (!roomName) {
+        showNotification('Please enter a room name', 'error');
+        return;
+      }
+      
+      // Generate room code
+      const roomCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+      
+      showNotification(`Room "${roomName}" created! Code: ${roomCode}`, 'success');
+      closeCreateRoomModal();
+      
+      // Redirect to game
+      setTimeout(() => {
+        window.location.href = `/poker-test.html?room=${roomCode}`;
+      }, 2000);
+    }
+
+    function joinRoom() {
+      const roomCode = document.getElementById('roomCode').value;
+      
+      if (!roomCode || roomCode.length !== 6) {
+        showNotification('Please enter a valid 6-digit room code', 'error');
+        return;
+      }
+      
+      showNotification(`Joining room ${roomCode}...`, 'info');
+      closeJoinRoomModal();
+      
+      // Redirect to game
+      setTimeout(() => {
+        window.location.href = `/poker-test.html?room=${roomCode}`;
+      }, 1500);
+    }
+
+    function quickPlay() {
+      showNotification('Finding available game...', 'info');
+      
+      // Simulate finding a game
+      setTimeout(() => {
+        const randomRoom = Math.random().toString(36).substr(2, 6).toUpperCase();
+        showNotification(`Joining game ${randomRoom}...`, 'success');
+        
+        setTimeout(() => {
+          window.location.href = `/poker-test.html?room=${randomRoom}`;
+        }, 1000);
+      }, 2000);
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+      // Remove existing notifications
+      const existing = document.querySelector('.notification');
+      if (existing) {
+        existing.remove();
+      }
+      
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.innerHTML = `
+        <div class="notification-content">
+          <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+          <span class="notification-message">${message}</span>
+        </div>
+      `;
+      
+      // Add to page
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // Liquid Glass Controls
+    let isLocked = false;
+    
+    function toggleControls() {
+      const controls = document.querySelector('.glass-controls');
+      const button = controls.querySelector('button[onclick="toggleControls()"]');
+      
+      if (controls.style.display === 'none') {
+        controls.style.display = 'block';
+        button.textContent = 'Hide';
+      } else {
+        controls.style.display = 'none';
+        button.textContent = 'Show';
+      }
+    }
+    
+    function toggleLock() {
+      isLocked = !isLocked;
+      const lockButton = document.getElementById('lock-values');
+      const shadowBlur = document.getElementById('shadow-blur');
+      const tintOpacity = document.getElementById('tint-opacity');
+      const frostBlur = document.getElementById('frost-blur');
+      const distortionStrength = document.getElementById('distortion-strength');
+      
+      lockButton.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+      lockButton.style.background = isLocked ? 'var(--warning)' : 'var(--teal)';
+      
+      [shadowBlur, tintOpacity, frostBlur, distortionStrength].forEach(slider => {
+        slider.disabled = isLocked;
+        slider.style.opacity = isLocked ? '0.5' : '1';
+      });
+    }
+
+    // Initialize liquid glass controls
+    function initGlassControls() {
+      const root = document.documentElement;
+      
+      function updateGlassVar(name, value) {
+        if (isLocked) return;
+        root.style.setProperty(name, value);
+      }
+      
+      function updateSVG() {
+        if (isLocked) return;
+        
+        const distortionStrength = document.getElementById('distortion-strength')?.value || 77;
+        const noiseFrequency = 0.008;
+        
+        const displacementMap = document.querySelector('feDisplacementMap');
+        const turbulence = document.querySelector('feTurbulence');
+        
+        if (displacementMap) displacementMap.setAttribute('scale', distortionStrength);
+        if (turbulence) turbulence.setAttribute('baseFrequency', `${noiseFrequency} ${noiseFrequency}`);
+      }
+      
+      const controls = {
+        'shadow-blur': ['--glass-shadow-blur', v => v + 'px'],
+        'tint-opacity': ['--glass-tint-opacity', v => (v / 100)],
+        'frost-blur': ['--glass-frost-blur', v => v + 'px'],
+        'distortion-strength': ['--glass-distortion-strength', v => v]
+      };
+      
+      Object.keys(controls).forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.addEventListener('input', (e) => {
+            const [cssVar, formatter] = controls[id];
+            updateGlassVar(cssVar, formatter(e.target.value));
+            updateSVG();
+          });
+        }
+      });
+      
+      const lockButton = document.getElementById('lock-values');
+      if (lockButton) {
+        lockButton.addEventListener('click', toggleLock);
+      }
+    }
+
+    // Initialize ongoing animations only
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof initOngoingOnly === 'function') {
+        initOngoingOnly();
+      }
+      checkAuthState(); // Check if user is logged in
+      initGlassControls(); // Initialize glass controls
+    });
+  </script>
+
+  <!-- Liquid Glass SVG Filter -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute; overflow:hidden">
+    <defs>
+      <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+        <feDisplacementMap in="SourceGraphic" in2="blurred" scale="77" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+</body>
+</html>
