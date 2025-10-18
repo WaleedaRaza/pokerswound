@@ -41,7 +41,8 @@ app.use(express.json());
 // Serve static files (card images and UI)
 app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
 
 // In-memory storage for demo (normally would use database)
 const games = new Map();
@@ -357,34 +358,66 @@ async function releaseSeat({ roomId, userId }) {
 }
 
 // Routes
+// ===== PAGE ROUTES =====
+// Root route - serve new index page
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'SOPHISTICATED Poker Engine - Using Real GameStateMachine!',
-    features: ['Proper betting round completion', 'Turn management', 'Action validation', 'State transitions']
-  });
+  res.sendFile(path.join(__dirname, 'public/pages/index.html'));
 });
 
-// Config endpoint for frontend
-app.get('/api/config', (req, res) => {
-  res.json({
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseKey: process.env.SUPABASE_ANON_KEY
-  });
+// Play lobby page
+app.get('/play', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/play.html'));
 });
 
-// PokerGeek.ai page routes
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
-app.get('/play', (req, res) => res.sendFile(path.join(__dirname, 'public/play.html')));
-app.get('/friends', (req, res) => res.sendFile(path.join(__dirname, 'public/friends.html')));
-app.get('/analysis', (req, res) => res.sendFile(path.join(__dirname, 'public/analysis.html')));
-app.get('/learning', (req, res) => res.sendFile(path.join(__dirname, 'public/learning.html')));
-app.get('/ai-solver', (req, res) => res.sendFile(path.join(__dirname, 'public/ai-solver.html')));
-app.get('/forum', (req, res) => res.sendFile(path.join(__dirname, 'public/forum.html')));
+// Friends page
+app.get('/friends', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/friends.html'));
+});
 
-// Legacy routes
-app.get('/poker', (req, res) => res.redirect('/play'));
-app.get('/poker-test.html', (req, res) => res.redirect('/play'));
-app.get('/public/poker-test.html', (req, res) => res.redirect('/play'));
+// AI Solver page
+app.get('/ai-solver', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/ai-solver.html'));
+});
+
+// Analysis page
+app.get('/analysis', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/analysis.html'));
+});
+
+// Learning page
+app.get('/learning', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/learning.html'));
+});
+
+// Poker Today page
+app.get('/poker-today', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/poker-today.html'));
+});
+
+// Game table route (existing poker.html - full game interface)
+app.get('/game', (req, res) => {
+  // Redirect to /play with room parameter if present
+  const roomId = req.query.room;
+  if (roomId) {
+    return res.redirect(`/play?room=${roomId}`);
+  }
+  // Otherwise serve the old poker.html (for backwards compatibility)
+  res.sendFile(path.join(__dirname, 'public/poker.html'));
+});
+
+// Legacy route - redirect to game
+app.get('/poker', (req, res) => {
+  res.redirect('/game');
+});
+
+// Redirect old poker-test.html requests to /game
+app.get('/poker-test.html', (req, res) => {
+  res.redirect('/game');
+});
+
+app.get('/public/poker-test.html', (req, res) => {
+  res.redirect('/game');
+});
 
 // ✅ Register social features routes
 const socialDbPool = getDb();
@@ -661,6 +694,17 @@ app.post('/api/rooms/:roomId/lobby/join', async (req, res) => {
     );
     
     console.log(`👋 Player ${user_id} ${status === 'approved' ? 'joined' : 'requesting to join'} room lobby`);
+    
+    // Get username for broadcast (from request body or generate from user_id)
+    const playerUsername = req.body.username || `Guest_${user_id.substring(0, 6)}`;
+    
+    // Broadcast to room that a player joined
+    io.to(`room:${req.params.roomId}`).emit('player_joined', {
+      userId: user_id,
+      username: playerUsername,
+      status: status
+    });
+    
     res.json({ success: true, status: result.rows[0].status });
   } catch (e) {
     console.error('Lobby join error:', e);
@@ -715,6 +759,12 @@ app.post('/api/rooms/:roomId/lobby/approve', async (req, res) => {
     );
     
     console.log(`✅ Host approved player ${target_user_id}`);
+    
+    // Broadcast approval to room
+    io.to(`room:${req.params.roomId}`).emit('player_approved', {
+      userId: target_user_id
+    });
+    
     res.json({ success: true });
   } catch (e) {
     console.error('Approve player error:', e);
@@ -864,6 +914,88 @@ app.get('/api/rooms/:roomId/history', authenticateToken, async (req, res) => {
 });
 
 // ----- Rooms & Seats (Multi-player support, DB-backed) -----------------------
+// Get all active rooms (for lobby)
+app.get('/api/rooms', async (req, res) => {
+  try {
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not initialized' });
+    }
+
+    const result = await db.query(`
+      SELECT 
+        r.id,
+        r.name,
+        r.small_blind,
+        r.big_blind,
+        r.max_players,
+        r.is_private,
+        r.status,
+        r.created_at,
+        COUNT(DISTINCT rs.user_id) as player_count
+      FROM rooms r
+      LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.status = 'occupied'
+      WHERE r.status IN ('waiting', 'active')
+      GROUP BY r.id, r.name, r.small_blind, r.big_blind, r.max_players, r.is_private, r.status, r.created_at
+      ORDER BY r.created_at DESC
+      LIMIT 50
+    `);
+
+    res.json({ rooms: result.rows });
+  } catch (error) {
+    console.error('❌ Get rooms error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get specific room by ID or invite code
+app.get('/api/rooms/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not initialized' });
+    }
+
+    // Check if roomId is a UUID or an invite code
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(roomId);
+    
+    let result;
+    if (isUUID) {
+      // Query by UUID
+      result = await db.query(`
+        SELECT 
+          r.*,
+          COUNT(DISTINCT rs.user_id) as player_count
+        FROM rooms r
+        LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.status = 'occupied'
+        WHERE r.id = $1
+        GROUP BY r.id
+      `, [roomId]);
+    } else {
+      // Query by invite code
+      result = await db.query(`
+        SELECT 
+          r.*,
+          COUNT(DISTINCT rs.user_id) as player_count
+        FROM rooms r
+        LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.status = 'occupied'
+        WHERE r.invite_code = $1
+        GROUP BY r.id
+      `, [roomId]);
+    }
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    res.json({ room: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Get room error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/rooms', async (req, res) => {
   try {
     const { name, small_blind, big_blind, min_buy_in, max_buy_in, max_players = 9, is_private, user_id } = req.body || {};
@@ -2018,12 +2150,23 @@ recoverIncompleteGames().catch(err => {
 });
 
 io.on('connection', (socket) => {
-  socket.on('join_room', (roomId) => {
+  socket.on('join_room', (data) => {
+    // Handle both old format (string) and new format (object)
+    const roomId = typeof data === 'string' ? data : data?.roomId;
+    const userId = typeof data === 'object' ? data?.userId : null;
+    
     if (!roomId) return;
-    console.log(`🔌 Socket ${socket.id} joining room:${roomId}`);
+    console.log(`🔌 Socket ${socket.id} joining room:${roomId}${userId ? ` (user: ${userId})` : ''}`);
     socket.join(`room:${roomId}`);
     socket.emit('joined_room', { roomId });
     console.log(`✅ Socket ${socket.id} joined room:${roomId}`);
+  });
+  
+  socket.on('start_game', (data) => {
+    const { roomId, game } = data;
+    if (!roomId) return;
+    console.log(`🎮 Broadcasting game start to room:${roomId}`);
+    io.to(`room:${roomId}`).emit('game_started', { roomId, game });
   });
 });
 
