@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis & Data - PokerGeek.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10,8,22,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      z-index: 1000;
+      padding: 16px 0;
+    }
+    
+    .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+    }
+    
+    .logo {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 800;
+      font-size: 24px;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo .suit-symbol {
+      font-size: 0.7em;
+      margin-left: 6px;
+      color: var(--teal);
+      animation: cycleSuits 3s infinite;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
+      text-shadow: var(--glow);
+    }
+    
+    @keyframes cycleSuits {
+      0%, 25% { content: '♠'; }
+      25.1%, 50% { content: '♥'; }
+      50.1%, 75% { content: '♣'; }
+      75.1%, 100% { content: '♦'; }
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .nav-links a:hover {
+      color: var(--teal);
+    }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--teal);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+    
+    .nav-auth {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .btn-auth {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .btn-login { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn-login:hover { background: var(--card); border-color: var(--accent); color: var(--accent); }
+    .btn-signup {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(255,81,0,0.3);
+    }
+    .btn-signup:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,81,0,0.4); }
+    
+    .main-content {
+      margin-top: 80px;
+      padding: 40px 24px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .page-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .page-title {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+    
+    .page-subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .coming-soon {
+      text-align: center;
+      padding: 80px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .coming-soon h2 {
+      font-size: 32px;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+    
+    .coming-soon p {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    
+    .back-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: var(--bg);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      background: #e64700;
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+      .nav-content { padding: 0 16px; }
+      .nav-links { display: none; }
+      .page-title { font-size: 36px; }
+      .page-subtitle { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Global floating animations container -->
+  <div id="floating-cards" class="floating-cards"></div>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-content">
+      <a href="index.html" class="logo">PokerGeek.ai<span class="suit-symbol">♠</span></a>
+      <ul class="nav-links">
+        <li><a href="play.html">Play Now</a></li>
+        <li><a href="ai-solver.html">AI GTO Solver</a></li>
+        <li><a href="analysis.html">Analysis & Data</a></li>
+        <li><a href="learning.html">Learning</a></li>
+        <li><a href="friends.html">Friends</a></li>
+        <li><a href="forum.html">Forum</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="#" onclick="openModal(); return false;" class="btn-auth btn-login">Log In</a>
+        <a href="#" onclick="openModal(); return false;" class="btn-auth btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Analysis & Data</h1>
+      <p class="page-subtitle">Comprehensive performance analytics, hand history analysis, and detailed statistics to improve your game</p>
+    </div>
+    
+    <div class="coming-soon">
+      <h2>📊 Coming Soon</h2>
+      <p>Our Analysis & Data dashboard is currently in development. This comprehensive tool will provide:</p>
+      <ul style="text-align: left; max-width: 400px; margin: 0 auto; color: var(--muted);">
+        <li>Player statistics and performance metrics</li>
+        <li>Hand history analysis and replay</li>
+        <li>Bankroll tracking and charts</li>
+        <li>Session reviews and insights</li>
+        <li>Advanced filtering and reporting</li>
+      </ul>
+      <br>
+      <a href="play.html" class="back-btn">Back to Play</a>
+    </div>
+  </main>
+  
+  <!-- Global animations -->
+  <script src="global-animations.js"></script>
+  <script>
+    // Other pages: Initialize ongoing animations only
+    document.addEventListener('DOMContentLoaded', () => {
+      initOngoingOnly(); // Just ongoing, no wave
+    });
+  </script>
+</body>
+</html>

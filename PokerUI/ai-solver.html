@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI GTO Solver - PokerGeek.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    
+    .page-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .page-title {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+    
+    .page-subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .coming-soon {
+      text-align: center;
+      padding: 80px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .coming-soon h2 {
+      font-size: 32px;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+    
+    .coming-soon p {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    
+    .back-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: var(--bg);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+      background: #e64700;
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+      .nav-content { padding: 0 16px; }
+      .nav-links { display: none; }
+      .page-title { font-size: 36px; }
+      .page-subtitle { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Global floating animations container -->
+  <div id="floating-cards" class="floating-cards"></div>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-content">
+      <a href="index.html" class="logo">PokerGeek.ai<span class="suit-symbol">♠</span></a>
+      <ul class="nav-links">
+        <li><a href="play.html">Play Now</a></li>
+        <li><a href="ai-solver.html">AI GTO Solver</a></li>
+        <li><a href="analysis.html">Analysis & Data</a></li>
+        <li><a href="learning.html">Learning</a></li>
+        <li><a href="friends.html">Friends</a></li>
+        <li><a href="forum.html">Forum</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="#" onclick="openModal(); return false;" class="btn-auth btn-login">Log In</a>
+        <a href="#" onclick="openModal(); return false;" class="btn-auth btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">AI GTO Solver</h1>
+      <p class="page-subtitle">Advanced Game Theory Optimal analysis and decision-making tools powered by cutting-edge AI</p>
+    </div>
+    
+    <div class="coming-soon">
+      <h2>🚀 Coming Soon</h2>
+      <p>Our AI GTO Solver is currently in development. This powerful tool will provide:</p>
+      <ul style="text-align: left; max-width: 400px; margin: 0 auto; color: var(--muted);">
+        <li>Real-time GTO recommendations</li>
+        <li>Range analysis and equity calculations</li>
+        <li>Advanced solver configurations</li>
+        <li>Hand history analysis</li>
+        <li>Custom scenario testing</li>
+      </ul>
+      <br>
+      <a href="play.html" class="back-btn">Back to Play</a>
+    </div>
+  </main>
+  
+  <!-- Global animations -->
+  <script src="global-animations.js"></script>
+  <script>
+    // Other pages: Initialize ongoing animations only
+    document.addEventListener('DOMContentLoaded', () => {
+      initOngoingOnly(); // Just ongoing, no wave
+    });
+  </script>
+</body>
+</html>

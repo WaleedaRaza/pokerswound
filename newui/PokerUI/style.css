@@ -1,0 +1,851 @@
+/* ===== POKERGEEK.AI GLOBAL STYLES ===== */
+
+/* CSS Variables */
+:root {
+  --bg: #0a0816;
+  --text: #eef0f6;
+  --muted: #a8abb8;
+  --accent: #ff5100;
+  --accent-dim: #ff5100;
+  --teal: #00d4aa;
+  --card: #111018;
+  --border: #1a1724;
+  --shadow: 0 20px 60px rgba(0,0,0,.6);
+  --glow: 0 0 30px rgba(255,140,66,.3);
+  --success: #00ff88;
+  --warning: #ffaa00;
+  --error: #ff4444;
+  --info: #00aaff;
+  
+  /* Liquid Glass Variables */
+  --glass-shadow-blur: 20px;
+  --glass-shadow-spread: -5px;
+  --glass-shadow-color: rgba(255, 255, 255, 0.7);
+  --glass-tint-opacity: 0.05;
+  --glass-frost-blur: 20px;
+  --glass-noise-frequency: 0.008;
+  --glass-distortion-strength: 77;
+  --glass-outer-shadow: 24px;
+}
+
+/* ========================================
+   GLOBAL LIQUID GLASS TILE SYSTEM
+   ======================================== 
+   
+   Usage:
+   - Add "liquid-glass" class to any element
+   - Add size modifier: liquid-glass--sm, --md, --lg, --xl
+   - Add color variant (optional): liquid-glass--accent, --teal, --dark
+   - Add liquid-glass--no-hover to disable hover effects
+   
+   Examples:
+   <div class="liquid-glass liquid-glass--md">Content</div>
+   <div class="liquid-glass liquid-glass--lg liquid-glass--accent">Orange glow</div>
+   <div class="liquid-glass liquid-glass--sm liquid-glass--teal">Teal glow</div>
+   
+   All tiles respond to CSS variables:
+   --glass-shadow-blur: Inner shadow blur (default: 20px)
+   --glass-shadow-spread: Inner shadow spread (default: -5px)
+   --glass-tint-opacity: Glass transparency (default: 0.05)
+   --glass-frost-blur: Backdrop blur amount (default: 20px)
+   --glass-distortion-strength: Texture distortion (default: 77)
+   
+   ======================================== */
+
+/* Base liquid glass tile - Apply this class to any element */
+.liquid-glass {
+  position: relative;
+  isolation: isolate;
+  /* NO background or backdrop-filter here - pseudo-elements handle it */
+  box-shadow: 0px 6px var(--glass-outer-shadow) rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Pseudo-elements for layered glass effect */
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 var(--glass-shadow-blur) var(--glass-shadow-spread) var(--glass-shadow-color);
+  background-color: rgba(255, 255, 255, var(--glass-tint-opacity));
+  pointer-events: none;
+}
+
+.liquid-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  backdrop-filter: blur(var(--glass-frost-blur));
+  -webkit-backdrop-filter: blur(var(--glass-frost-blur));
+  filter: url(#glass-distortion);
+  pointer-events: none;
+}
+
+/* Hover state */
+.liquid-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.liquid-glass:hover::before {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Size Modifiers */
+.liquid-glass--sm {
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.liquid-glass--md {
+  padding: 24px 32px;
+  border-radius: 12px;
+}
+
+.liquid-glass--lg {
+  padding: 32px 40px;
+  border-radius: 16px;
+}
+
+.liquid-glass--xl {
+  padding: 40px 48px;
+  border-radius: 20px;
+}
+
+/* Color Variants */
+.liquid-glass--accent::before {
+  background-color: rgba(255, 81, 0, var(--glass-tint-opacity));
+}
+
+.liquid-glass--accent:hover {
+  box-shadow: 0px 8px 32px rgba(255, 81, 0, 0.4);
+}
+
+.liquid-glass--teal::before {
+  background-color: rgba(0, 212, 170, var(--glass-tint-opacity));
+}
+
+.liquid-glass--teal:hover {
+  box-shadow: 0px 8px 32px rgba(0, 212, 170, 0.4);
+}
+
+.liquid-glass--dark::before {
+  background-color: rgba(17, 16, 24, 0.95);
+}
+
+/* Content z-index fix - ensure content appears above pseudo-elements */
+.liquid-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Disable hover effect for specific elements */
+.liquid-glass--no-hover:hover {
+  transform: none;
+}
+
+/* Browser Compatibility Fallbacks for liquid-glass */
+@supports not (backdrop-filter: blur(1px)) {
+  .liquid-glass::after {
+    background: rgba(255, 255, 255, 0.1);
+    filter: none;
+  }
+}
+
+@supports not (filter: url(#glass-distortion)) {
+  .liquid-glass::after {
+    filter: none;
+  }
+}
+
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: "Courier New", monospace;
+  font-weight: normal;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== CONSOLIDATED NAVBAR - SINGLE STYLE ===== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 80px;
+  background: rgba(10, 8, 22, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.navbar-brand {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+
+.navbar-brand:hover {
+  color: var(--teal);
+  transform: scale(1.05);
+}
+
+.navbar-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+  font-family: "Courier New", monospace;
+}
+
+.navbar-links a:hover {
+  color: var(--teal);
+}
+
+.navbar-auth {
+  display: flex;
+  gap: 16px;
+}
+
+.navbar-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.5px;
+}
+
+.navbar-btn-login {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.navbar-btn-login:hover {
+  background: var(--card);
+  color: var(--teal);
+  border-color: var(--teal);
+}
+
+.navbar-btn-signup {
+  background: var(--accent);
+  color: var(--bg);
+  border: 1px solid var(--accent);
+}
+
+.navbar-btn-signup:hover {
+  background: var(--teal);
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 20px;
+    height: 70px;
+  }
+  
+  .navbar-brand {
+    font-size: 24px;
+  }
+  
+  .navbar-links {
+    display: none;
+  }
+  
+  .navbar-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  margin-top: 80px;
+  padding: 40px 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== CONSOLIDATED PAGE STYLES ===== */
+.page-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.page-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--teal);
+  margin-bottom: 16px;
+}
+
+.page-subtitle {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== CONSOLIDATED BUTTONS ===== */
+.btn {
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  text-align: center;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: "Courier New", monospace;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,81,0,0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-secondary:hover {
+  background: var(--accent);
+  color: var(--bg);
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: var(--success);
+  color: var(--bg);
+  border-color: var(--success);
+}
+
+.btn-success:hover {
+  background: #00cc66;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,255,136,0.3);
+}
+
+.btn-warning {
+  background: var(--warning);
+  color: var(--bg);
+  border-color: var(--warning);
+}
+
+.btn-warning:hover {
+  background: #ff8800;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,170,0,0.3);
+}
+
+.btn-info {
+  background: var(--info);
+  color: var(--bg);
+  border-color: var(--info);
+}
+
+.btn-info:hover {
+  background: #0066cc;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,136,255,0.3);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: var(--bg);
+  border-color: var(--error);
+}
+
+.btn-danger:hover {
+  background: #cc3333;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,68,68,0.3);
+}
+
+/* ===== LIQUID GLASS TILES ===== */
+.liquid-glass-tile {
+  /* Use the same liquid glass system as the tuning box */
+  background-color: rgba(255, 255, 255, var(--glass-tint-opacity));
+  backdrop-filter: blur(var(--glass-frost-blur));
+  -webkit-backdrop-filter: blur(var(--glass-frost-blur));
+  filter: url(#glass-distortion);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0px 6px var(--glass-outer-shadow) rgba(0, 0, 0, 0.2),
+    inset 0 0 var(--glass-shadow-blur) var(--glass-shadow-spread) var(--glass-shadow-color);
+}
+
+.liquid-glass-tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent
+  );
+}
+
+.liquid-glass-tile:hover {
+  transform: translateY(-4px);
+  background-color: rgba(255, 255, 255, calc(var(--glass-tint-opacity) + 0.03));
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0px 8px calc(var(--glass-outer-shadow) + 8px) rgba(0, 0, 0, 0.3),
+    inset 0 0 var(--glass-shadow-blur) var(--glass-shadow-spread) var(--glass-shadow-color);
+}
+
+.liquid-glass-tile .tile-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+  text-align: center;
+}
+
+.liquid-glass-tile .tile-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--teal);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.liquid-glass-tile .tile-description {
+  color: var(--muted);
+  margin-bottom: 24px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.liquid-glass-tile .tile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== SECTIONS ===== */
+.section-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 48px;
+  letter-spacing: -0.5px;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  padding: 48px 24px 32px;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--accent);
+  margin-bottom: 18px;
+  display: block;
+}
+
+.footer-desc {
+  color: var(--muted);
+  margin-bottom: 26px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.footer-links a:hover {
+  color: var(--teal);
+}
+
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--teal);
+  transition: width 0.3s ease;
+}
+
+.footer-links a:hover::after {
+  width: 100%;
+}
+
+.copyright {
+  color: var(--muted);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes cycleSuits {
+  0%, 25% { content: '♠'; }
+  25.1%, 50% { content: '♥'; }
+  50.1%, 75% { content: '♣'; }
+  75.1%, 100% { content: '♦'; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 20px 16px;
+  }
+  
+  .footer-links {
+    gap: 16px;
+  }
+  
+  .combined-section {
+    padding: 40px 16px;
+  }
+  
+  .combined-layout {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .why-pokergeek {
+    flex: none;
+    max-width: none;
+    width: 100%;
+  }
+  
+  .features {
+    padding: 0;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-links {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* Ensure all main content appears above animations */
+main, .main-content, .hero, .features, .stats, .why-pokergeek, .footer {
+  position: relative;
+  z-index: 20;
+  background: transparent;
+}
+
+/* Ensure all headings and text content are above animations */
+h1, h2, h3, h4, h5, h6, p, div, section, article, .section-title, .stat-item {
+  position: relative;
+  z-index: 25;
+}
+
+/* Feature tiles use liquid-glass directly - no wrapper class needed */
+
+
+
+/* Combined section layout */
+.combined-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.combined-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.why-pokergeek {
+  /* Layout specific styles only - liquid-glass handles visuals */
+  flex: 0 0 320px;
+  max-width: 320px;
+  height: fit-content;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.why-title-small {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.why-story-full p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: var(--text);
+  text-align: left;
+}
+
+.why-story-full p:last-child {
+  margin-bottom: 0;
+}
+
+.features-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  padding: 0;
+  margin: 0;
+}
+
+
+/* Liquid glass effect for hero content */
+.hero-content {
+  position: relative;
+  isolation: isolate;
+  border-radius: 20px;
+  padding: 40px;
+  margin: 20px 0;
+  box-shadow: 0px 6px var(--glass-outer-shadow) rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.hero-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 20px;
+  box-shadow: inset 0 0 var(--glass-shadow-blur) var(--glass-shadow-spread) var(--glass-shadow-color);
+  background-color: rgba(255, 255, 255, var(--glass-tint-opacity));
+}
+
+.hero-content::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 20px;
+  backdrop-filter: blur(var(--glass-frost-blur));
+  -webkit-backdrop-filter: blur(var(--glass-frost-blur));
+  filter: url(#glass-distortion);
+}
+
+.hero-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hero-content:hover::before {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Ensure modals and interactive elements appear above everything */
+.modal, .modal-overlay, .popup, .dropdown, .tooltip {
+  z-index: 2000;
+}
+
+/* Ensure buttons and interactive elements are clickable above animations */
+button, .btn, .btn-auth, .btn-primary, .btn-secondary, input, select, textarea {
+  position: relative;
+  z-index: 30;
+}
+
+/* Glass effect for buttons */
+.btn-primary, .btn-secondary, .btn-auth {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+  background: rgba(255, 81, 0, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.btn-primary:hover {
+  background: rgba(255, 81, 0, 0.9);
+  box-shadow: 
+    0 6px 20px rgba(255, 81, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 81, 0, 0.3);
+}
+
+/* Glass effect for form inputs */
+input, select, textarea {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+input:focus, select:focus, textarea:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 212, 170, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+/* Floating Animations */
+.floating-cards{
+  position:fixed; top:0; left:0; width:100%; height:100vh;
+  pointer-events:none; overflow:visible; z-index:5;
+}
+.floating-card{
+  position:absolute; width:50px; height:70px; border-radius:6px;
+  background:linear-gradient(135deg, #1a1724 0%, #2a2438 100%);
+  border:1px solid rgba(255,255,255,.1);
+  display:flex; align-items:center; justify-content:center;
+  font-family:"JetBrains Mono", monospace; font-weight:600; font-size:12px;
+  color:var(--accent); box-shadow:0 6px 24px rgba(0,0,0,.4);
+  background-size:cover; background-position:center;
+  transition:transform 0.3s ease, box-shadow 0.3s ease; cursor:pointer;
+  pointer-events:auto;
+}
+.floating-card:hover{ transform: scale(1.5); z-index:10; box-shadow: 0 12px 48px rgba(0,0,0,0.8); border: 2px solid rgba(255,81,0,0.6); }
+.floating-card img{ width:100%; height:100%; object-fit:cover; border-radius:6px; }
+
+.floating-chip{
+  position:absolute; width:40px; height:40px; border-radius:50%;
+  background:linear-gradient(135deg, var(--teal) 0%, var(--teal) 100%);
+  border:2px solid rgba(255,255,255,.1);
+  display:flex; align-items:center; justify-content:center;
+  font-family:"JetBrains Mono", monospace; font-weight:800; font-size:16px;
+  color:white; box-shadow:0 4px 16px rgba(0,0,0,.3);
+  transition:transform 0.3s ease, box-shadow 0.3s ease; cursor:pointer;
+  pointer-events:auto;
+}
+.floating-chip:hover{ transform: scale(1.5); z-index:10; box-shadow:0 8px 32px rgba(0,117,102,0.6); border:2px solid rgba(255,255,255,0.8); }
+
+/* One-shot fall (no fade-out) */
+@keyframes fallDown{
+  0%   { transform: translateY(-120px) rotate(var(--rotStart)); opacity:0; }
+  6%   { opacity:1; }
+  100% { transform: translateY(110vh) rotate(var(--rotEnd)); opacity:1; }
+}
+.falling-once{ animation-fill-mode:forwards; will-change:transform,opacity; }
+
+/* Legacy element compatibility - hero content still uses old system */
+@supports not (backdrop-filter: blur(1px)) {
+  .hero-content::after {
+    background: rgba(255, 255, 255, 0.1);
+    filter: none;
+  }
+}
+
+@supports not (filter: url(#glass-distortion)) {
+  .hero-content::after {
+    filter: none;
+  }
+}

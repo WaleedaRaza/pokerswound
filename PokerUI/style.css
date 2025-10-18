@@ -1,0 +1,499 @@
+/* ===== POKERGEEK.AI GLOBAL STYLES ===== */
+
+/* CSS Variables */
+:root {
+  --bg: #0a0816;
+  --text: #eef0f6;
+  --muted: #a8abb8;
+  --accent: #ff5100;
+  --accent-dim: #ff5100;
+  --teal: #00d4aa;
+  --card: #111018;
+  --border: #1a1724;
+  --shadow: 0 20px 60px rgba(0,0,0,.6);
+  --glow: 0 0 30px rgba(255,140,66,.3);
+  --success: #00ff88;
+  --warning: #ffaa00;
+  --error: #ff4444;
+  --info: #00aaff;
+}
+
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== NAVIGATION ===== */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 16px 0;
+  background: rgba(10,8,22,0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo */
+.logo {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.logo .suit-symbol {
+  font-size: 0.7em;
+  margin-left: 6px;
+  color: var(--teal);
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  text-shadow: var(--glow);
+}
+
+/* Navigation Links */
+.nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-links a:hover {
+  color: var(--teal);
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--teal);
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* Auth Buttons */
+.nav-auth {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-auth {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.btn-login {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-login:hover {
+  background: var(--card);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-signup {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(255,81,0,0.3);
+}
+
+.btn-signup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255,81,0,0.4);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  margin-top: 80px;
+  padding: 40px 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== SECTIONS ===== */
+.section-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 48px;
+  letter-spacing: -0.5px;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  padding: 48px 24px 32px;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--accent);
+  margin-bottom: 18px;
+  display: block;
+}
+
+.footer-desc {
+  color: var(--muted);
+  margin-bottom: 26px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.footer-links a:hover {
+  color: var(--teal);
+}
+
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--teal);
+  transition: width 0.3s ease;
+}
+
+.footer-links a:hover::after {
+  width: 100%;
+}
+
+.copyright {
+  color: var(--muted);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes cycleSuits {
+  0%, 25% { content: '♠'; }
+  25.1%, 50% { content: '♥'; }
+  50.1%, 75% { content: '♣'; }
+  75.1%, 100% { content: '♦'; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-content {
+    padding: 0 16px;
+  }
+  
+  .nav-links {
+    display: none;
+  }
+  
+  .nav-auth {
+    gap: 8px;
+  }
+  
+  .btn-auth {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .main-content {
+    padding: 20px 16px;
+  }
+  
+  .footer-links {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-auth {
+    gap: 6px;
+  }
+  
+  .btn-auth {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* Ensure all main content appears above animations */
+main, .main-content, .hero, .features, .stats, .why-pokergeek, .footer {
+  position: relative;
+  z-index: 20;
+  background: transparent;
+}
+
+/* Ensure all headings and text content are above animations */
+h1, h2, h3, h4, h5, h6, p, div, section, article, .section-title, .stat-item {
+  position: relative;
+  z-index: 25;
+}
+
+/* Liquid glass effect for feature cards */
+.feature-card {
+  position: relative;
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Glass effect for stats */
+.stat-item {
+  position: relative;
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Glass effect for main content sections */
+.features, .stats, .why-pokergeek {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  margin: 20px 0;
+  padding: 40px 24px;
+}
+
+.features {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.why-pokergeek {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 81, 0, 0.02);
+}
+
+/* Glass effect for hero content */
+.hero-content {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 40px;
+  margin: 20px 0;
+}
+
+/* Ensure modals and interactive elements appear above everything */
+.modal, .modal-overlay, .popup, .dropdown, .tooltip {
+  z-index: 2000;
+}
+
+/* Ensure buttons and interactive elements are clickable above animations */
+button, .btn, .btn-auth, .btn-primary, .btn-secondary, input, select, textarea {
+  position: relative;
+  z-index: 30;
+}
+
+/* Glass effect for buttons */
+.btn-primary, .btn-secondary, .btn-auth {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+  background: rgba(255, 81, 0, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.btn-primary:hover {
+  background: rgba(255, 81, 0, 0.9);
+  box-shadow: 
+    0 6px 20px rgba(255, 81, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 81, 0, 0.3);
+}
+
+/* Glass effect for form inputs */
+input, select, textarea {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+input:focus, select:focus, textarea:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 212, 170, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+/* Floating Animations */
+.floating-cards{
+  position:fixed; top:0; left:0; width:100%; height:100vh;
+  pointer-events:none; overflow:visible; z-index:5;
+}
+.floating-card{
+  position:absolute; width:50px; height:70px; border-radius:6px;
+  background:linear-gradient(135deg, #1a1724 0%, #2a2438 100%);
+  border:1px solid rgba(255,255,255,.1);
+  display:flex; align-items:center; justify-content:center;
+  font-family:"JetBrains Mono", monospace; font-weight:600; font-size:12px;
+  color:var(--accent); box-shadow:0 6px 24px rgba(0,0,0,.4);
+  background-size:cover; background-position:center;
+  transition:transform 0.3s ease, box-shadow 0.3s ease; cursor:pointer;
+  pointer-events:auto;
+}
+.floating-card:hover{ transform: scale(1.5); z-index:10; box-shadow: 0 12px 48px rgba(0,0,0,0.8); border: 2px solid rgba(255,81,0,0.6); }
+.floating-card img{ width:100%; height:100%; object-fit:cover; border-radius:6px; }
+
+.floating-chip{
+  position:absolute; width:40px; height:40px; border-radius:50%;
+  background:linear-gradient(135deg, var(--teal) 0%, var(--teal) 100%);
+  border:2px solid rgba(255,255,255,.1);
+  display:flex; align-items:center; justify-content:center;
+  font-family:"JetBrains Mono", monospace; font-weight:800; font-size:16px;
+  color:white; box-shadow:0 4px 16px rgba(0,0,0,.3);
+  transition:transform 0.3s ease, box-shadow 0.3s ease; cursor:pointer;
+  pointer-events:auto;
+}
+.floating-chip:hover{ transform: scale(1.5); z-index:10; box-shadow:0 8px 32px rgba(0,117,102,0.6); border:2px solid rgba(255,255,255,0.8); }
+
+/* One-shot fall (no fade-out) */
+@keyframes fallDown{
+  0%   { transform: translateY(-120px) rotate(var(--rotStart)); opacity:0; }
+  6%   { opacity:1; }
+  100% { transform: translateY(110vh) rotate(var(--rotEnd)); opacity:1; }
+}
+.falling-once{ animation-fill-mode:forwards; will-change:transform,opacity; }

@@ -1,0 +1,2467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Now - PokerGeek.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0a0816; --text:#f0e6e6; --muted:#a0a0a0; --accent:#ff5100; --accent-dim:#ff5100;
+      --success:#00ff88; --warning:#ffaa00; --danger:#ff4444; --info:#0088ff;
+    }
+    
+    /* All global styles come from style.css */
+    
+    /* Game Sections */
+    .game-sections{
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr));
+      gap:32px; margin-bottom:48px;
+    }
+    
+    .game-section{
+      /* Using liquid glass tile styling from style.css */
+    }
+    
+    /* Section styling now uses liquid glass tiles from style.css */
+    
+    /* Buttons - extended from style.css */
+    .section-actions{
+      display:flex; flex-direction:column; gap:12px;
+    }
+    
+    
+    /* Quick Actions */
+    .quick-actions{
+      background:linear-gradient(135deg, rgba(255,81,0,0.1), rgba(0,255,136,0.1));
+      border:1px solid rgba(255,81,0,0.3); border-radius:20px; padding:32px;
+      margin-bottom:48px; text-align:center;
+    }
+    
+    .quick-title{
+      font-family:"JetBrains Mono", monospace; font-size:24px; font-weight:700;
+      color:var(--accent); margin-bottom:16px;
+    }
+    
+    .quick-grid{
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:16px; margin-top:24px;
+    }
+    
+    .quick-btn{
+      padding:16px; border-radius:12px; background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.1); color:var(--text);
+      text-decoration:none; font-weight:600; transition:all 0.3s ease;
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+    }
+    
+    .quick-btn:hover{
+      background:rgba(255,81,0,0.1); border-color:var(--accent);
+      transform:translateY(-2px);
+    }
+    
+    .quick-icon{
+      font-size:24px;
+    }
+    
+    /* Footer */
+    .footer{
+      padding:48px 24px 32px; text-align:center; border-top:1px solid rgba(255,255,255,0.05);
+      margin-top:80px;
+    }
+    
+    .footer-content{ max-width:800px; margin:0 auto; }
+    .footer-logo{ font-family:"JetBrains Mono", monospace; font-weight:800; font-size:20px; color:var(--accent); margin-bottom:18px; display:block; }
+    .footer-desc{ color:var(--muted); margin-bottom:26px; max-width:420px; margin-left:auto; margin-right:auto; }
+    .footer-links{ display:flex; justify-content:center; gap:28px; margin-bottom:26px; flex-wrap:wrap; }
+    .footer-links a{ color:var(--muted); text-decoration:none; transition:all 0.3s ease; position:relative; }
+    .footer-links a:hover{ color:var(--teal); }
+    .footer-links a::after{
+      content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px;
+      background:var(--teal); transition:width 0.3s ease;
+    }
+    .footer-links a:hover::after{ width:100%; }
+    .copyright{ color:var(--muted); font-size:14px; opacity:0.7; }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, rgba(15, 12, 28, 0.95), rgba(20, 16, 35, 0.95));
+      margin: 5% auto;
+      padding: 0;
+      border: 1px solid rgba(255, 81, 0, 0.3);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(-50px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    .modal-header {
+      background: rgba(255, 81, 0, 0.1);
+      padding: 24px;
+      border-radius: 20px 20px 0 0;
+      border-bottom: 1px solid rgba(255, 81, 0, 0.2);
+    }
+    
+    .modal-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0;
+      text-align: center;
+    }
+    
+    .modal-body {
+      padding: 32px 24px;
+    }
+    
+    .join-tabs, .start-tabs {
+      display: flex;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px;
+    }
+    
+    .join-tab, .start-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .join-tab.active, .start-tab.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    
+    .join-form, .start-form {
+      display: none;
+    }
+    
+    .join-form.active, .start-form.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255, 81, 0, 0.1);
+    }
+    
+    .form-input::placeholder {
+      color: var(--muted);
+    }
+    
+    /* Invites List */
+    .invites-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .invite-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .invite-item:hover {
+      background: rgba(255, 81, 0, 0.1);
+      border-color: var(--accent);
+    }
+    
+    .invite-info {
+      flex: 1;
+    }
+    
+    .invite-host {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    
+    .invite-details {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    
+    .invite-time {
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    
+    /* Friends List */
+    .friends-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .friend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .friend-item:hover {
+      background: rgba(255, 81, 0, 0.1);
+      border-color: var(--accent);
+    }
+    
+    .friend-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .friend-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .friend-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .friend-status {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    
+    .friend-status.online {
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--success);
+    }
+    
+    .friend-status.offline {
+      background: rgba(160, 160, 160, 0.2);
+      color: var(--muted);
+    }
+    
+    /* Link Section */
+    .link-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .code-display, .link-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+    }
+    
+    .code-label, .link-label {
+      font-weight: 600;
+      color: var(--text);
+      min-width: 80px;
+    }
+    
+    .code-value, .link-value {
+      flex: 1;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--accent);
+      background: rgba(255, 81, 0, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 81, 0, 0.3);
+    }
+    
+    .link-value {
+      font-size: 14px;
+      word-break: break-all;
+    }
+    
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      color: var(--muted);
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    
+    .close:hover {
+      color: var(--accent);
+    }
+    
+    /* Public Game Modals */
+    .public-tabs {
+      display: flex;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px;
+    }
+    
+    .public-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .public-tab.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    
+    .public-form {
+      display: none;
+    }
+    
+    .public-form.active {
+      display: block;
+    }
+    
+    /* Table Filters */
+    .table-filters {
+      margin-bottom: 24px;
+    }
+    
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .filter-select {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    /* Tables List */
+    .tables-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .table-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .table-item:hover {
+      background: rgba(255, 81, 0, 0.1);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    
+    .table-info {
+      flex: 1;
+    }
+    
+    .table-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    
+    .table-details {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .table-stakes {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .table-players {
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .table-avg-pot {
+      color: var(--warning);
+      font-weight: 600;
+    }
+    
+    .table-host {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Quick Join */
+    .quick-join-section {
+      text-align: center;
+    }
+    
+    .quick-join-note {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    
+    /* Blinds Selector */
+    .blinds-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .blinds-separator {
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    /* Buy-in Selector */
+    .buyin-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .buyin-separator {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    
+    /* Settings Checkboxes */
+    .settings-checkboxes {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+    
+    .checkbox-text {
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    /* Table Management */
+    .table-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .table-name-large {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    
+    .table-stats {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .stat {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .status-controls {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .pending-players, .current-players {
+      margin-bottom: 24px;
+    }
+    
+    .pending-players h3, .current-players h3 {
+      color: var(--text);
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    
+    .player-queue, .players-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .queue-item, .player-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .player-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .player-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .player-name {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    
+    .player-buyin, .player-stack {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    .queue-actions, .player-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Tournament Modals */
+    .tournament-tabs {
+      display: flex;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px;
+    }
+    
+    .tournament-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .tournament-tab.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    
+    .tournament-form {
+      display: none;
+    }
+    
+    .tournament-form.active {
+      display: block;
+    }
+    
+    .tournament-filters {
+      margin-bottom: 24px;
+    }
+    
+    .tournaments-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .tournament-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .tournament-item:hover {
+      background: rgba(255, 81, 0, 0.1);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    
+    .tournament-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    
+    .tournament-details {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .tournament-buyin {
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .tournament-prize {
+      color: var(--warning);
+      font-weight: 600;
+    }
+    
+    .tournament-players {
+      color: var(--info);
+      font-weight: 600;
+    }
+    
+    .tournament-start {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .tournament-type {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    .tournament-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Buy-in Options */
+    .buyin-options {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    
+    .radio-label input[type="radio"] {
+      accent-color: var(--accent);
+    }
+    
+    .radio-text {
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    /* Schedule */
+    .schedule-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .schedule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .schedule-time {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 16px;
+      min-width: 80px;
+    }
+    
+    .schedule-name {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    
+    .schedule-info {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    /* Practice Modals */
+    .practice-tabs {
+      display: flex;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px;
+    }
+    
+    .practice-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .practice-tab.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    
+    .practice-form {
+      display: none;
+    }
+    
+    .practice-form.active {
+      display: block;
+    }
+    
+    /* Difficulty Selector */
+    .difficulty-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .difficulty-option {
+      cursor: pointer;
+    }
+    
+    .difficulty-option input[type="radio"] {
+      display: none;
+    }
+    
+    .difficulty-card {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .difficulty-option input[type="radio"]:checked + .difficulty-card {
+      border-color: var(--accent);
+      background: rgba(255, 81, 0, 0.1);
+    }
+    
+    .difficulty-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .difficulty-desc {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    /* Game Settings Grid */
+    .game-settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    
+    /* Learning Options */
+    .learning-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    /* Scenarios Categories */
+    .scenarios-categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    
+    .category-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .category-item:hover {
+      background: rgba(255, 81, 0, 0.1);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    
+    .category-icon {
+      font-size: 32px;
+    }
+    
+    .category-info {
+      flex: 1;
+    }
+    
+    .category-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .category-desc {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    
+    .category-count {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    /* Offline Options */
+    .offline-options {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .offline-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .offline-item:hover {
+      background: rgba(255, 81, 0, 0.1);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    
+    .offline-icon {
+      font-size: 32px;
+    }
+    
+    .offline-info {
+      flex: 1;
+    }
+    
+    .offline-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .offline-desc {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    /* Responsive */
+    @media (max-width:768px){
+      .nav-content{ padding:0 16px; }
+      .nav-links{ display:none; }
+      .main-content{ padding:20px 16px; }
+      .game-sections{ grid-template-columns:1fr; gap:24px; }
+      .game-section{ padding:24px; }
+      .quick-grid{ grid-template-columns:repeat(2, 1fr); }
+      .modal-content{ width:95%; margin:10% auto; }
+      .code-display, .link-display{ flex-direction:column; align-items:stretch; }
+    }
+  </style>
+  
+  <!-- SVG Filter for Liquid Glass Effect -->
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="glass-distortion" x="-50%" y="-50%" width="200%" height="200%">
+        <feTurbulence baseFrequency="var(--glass-noise-frequency)" numOctaves="4" result="noise" type="fractalNoise"/>
+        <feGaussianBlur in="noise" stdDeviation="2" result="blur"/>
+        <feDisplacementMap in="SourceGraphic" in2="blur" scale="var(--glass-distortion-strength)" result="distorted"/>
+        <feComposite in="distorted" in2="SourceGraphic" operator="over"/>
+      </filter>
+    </defs>
+  </svg>
+</head>
+<body>
+  <!-- Global floating animations container -->
+  <div id="floating-cards" class="floating-cards"></div>
+
+  <!-- CONSOLIDATED NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">PokerGeek.ai</a>
+    <ul class="navbar-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="play.html">Play Now</a></li>
+      <li><a href="friends.html">Friends</a></li>
+    </ul>
+    <div class="navbar-auth">
+      <a href="#" class="navbar-btn navbar-btn-login">Log In</a>
+      <a href="#" class="navbar-btn navbar-btn-signup">Sign Up</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Choose Your Game</h1>
+      <p class="page-subtitle">Join the action with thousands of players worldwide. From casual games with friends to high-stakes tournaments.</p>
+    </div>
+
+    <!-- Main Game Sections -->
+    <div class="game-sections">
+      <!-- Friends & Private Games -->
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-icon">👥</div>
+        <h3 class="tile-title">Play with Friends</h3>
+        <p class="tile-description">
+          Create private rooms and invite your friends using codes or direct invitations. Perfect for home games, poker nights, or learning sessions.
+        </p>
+        <div class="tile-actions">
+          <a href="#join-friends" class="btn btn-primary" onclick="showJoinFriends()">
+            🔗 Join Game with Code
+          </a>
+          <a href="#start-friends" class="btn btn-info" onclick="showStartFriends()">
+            🏠 Start Game with Friends
+          </a>
+        </div>
+      </section>
+
+      <!-- Public Games -->
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-icon">💰</div>
+        <h3 class="tile-title">Public Games</h3>
+        <p class="tile-description">
+          Join public poker tables with players from around the world, or create your own public game for others to join.
+        </p>
+        <div class="tile-actions">
+          <a href="#" onclick="showJoinPublic(); return false;" class="btn btn-primary">
+            🎮 Join Public Game
+          </a>
+          <a href="#" onclick="showStartPublic(); return false;" class="btn btn-secondary">
+            🚀 Start Public Game
+          </a>
+        </div>
+      </section>
+
+      <!-- Tournaments -->
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-icon">🏆</div>
+        <h3 class="tile-title">Tournaments</h3>
+        <p class="tile-description">
+          Join scheduled tournaments with guaranteed prize pools, or create your own tournament for friends and community members.
+        </p>
+        <div class="tile-actions">
+          <a href="#" onclick="showJoinTournament(); return false;" class="btn btn-warning">
+            🏆 Join Tournament
+          </a>
+          <a href="#" onclick="showStartTournament(); return false;" class="btn btn-secondary">
+            🚀 Start Tournament
+          </a>
+        </div>
+      </section>
+
+      <!-- Practice & Local -->
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-icon">🏡</div>
+        <h3 class="tile-title">Practice & Local</h3>
+        <p class="tile-description">
+          Practice your skills with AI opponents, learn new strategies, or play offline when you don't have internet connection.
+        </p>
+        <div class="tile-actions">
+          <a href="#" onclick="showPracticeMode(); return false;" class="btn btn-success">
+            🤖 Play vs AI
+          </a>
+          <a href="#" onclick="showPracticeMode(); return false;" class="btn btn-secondary">
+            📚 Practice Mode
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Liquid Glass Controls -->
+  <div class="glass-controls" style="position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 12px; z-index: 1000; font-family: 'Courier New', monospace; font-size: 12px; max-width: 250px;">
+    <h3 style="margin: 0 0 15px 0; color: var(--teal); font-size: 14px;">Liquid Glass Controls</h3>
+    <div style="margin-bottom: 10px;">
+      <label style="display: block; margin-bottom: 5px;">Shadow Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="shadow-blur" style="width: 100%;">
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label style="display: block; margin-bottom: 5px;">Tint Opacity:</label>
+      <input type="range" min="0" max="20" value="5" id="tint-opacity" style="width: 100%;">
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label style="display: block; margin-bottom: 5px;">Frost Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="frost-blur" style="width: 100%;">
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label style="display: block; margin-bottom: 5px;">Distortion:</label>
+      <input type="range" min="0" max="100" value="77" id="distortion-strength" style="width: 100%;">
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 10px;">
+      <button id="lock-values" style="background: var(--teal); color: var(--bg); border: none; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; font-size: 11px; flex: 1;">🔓 Lock</button>
+      <button onclick="toggleControls()" style="background: var(--accent); color: var(--bg); border: none; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; font-size: 11px; flex: 1;">Hide</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <a href="index.html" class="footer-logo">PokerGeek.ai</a>
+      <p class="footer-desc">Building the world's most transparent poker platform with provably fair shuffling and cryptographic verification.</p>
+      <div class="footer-links">
+        <a href="#privacy">Privacy Policy</a>
+        <a href="#terms">Terms of Service</a>
+        <a href="#support">Support</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="copyright">© 2025 PokerGeek.ai. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Join Game Modal -->
+  <div id="joinGameModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeJoinModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Join Game</h2>
+      </div>
+      <div class="modal-body">
+        <div class="join-tabs">
+          <button class="join-tab active" onclick="switchJoinTab('code')">Enter Code</button>
+          <button class="join-tab" onclick="switchJoinTab('invite')">Pending Invites</button>
+        </div>
+        
+        <!-- Enter Code Form -->
+        <div class="join-form active" id="codeForm">
+          <div class="form-group">
+            <label class="form-label" for="roomCode">Room Code</label>
+            <input type="text" id="roomCode" class="form-input" placeholder="Enter 6-digit room code" maxlength="6" style="text-transform: uppercase;">
+          </div>
+          <button class="btn btn-primary" onclick="joinWithCode()">
+            🎮 Join Game
+          </button>
+        </div>
+        
+        <!-- Pending Invites -->
+        <div class="join-form" id="inviteForm">
+          <div class="invites-list">
+            <div class="invite-item">
+              <div class="invite-info">
+                <div class="invite-host">🎯 Friday Night Poker</div>
+                <div class="invite-details">Hosted by Alex • 6 players • $10/$20</div>
+                <div class="invite-time">2 minutes ago</div>
+              </div>
+              <button class="btn btn-success" onclick="joinInvite('FNP123')">Join</button>
+            </div>
+            <div class="invite-item">
+              <div class="invite-info">
+                <div class="invite-host">🏆 Tournament Practice</div>
+                <div class="invite-details">Hosted by Sarah • 4 players • $5/$10</div>
+                <div class="invite-time">15 minutes ago</div>
+              </div>
+              <button class="btn btn-success" onclick="joinInvite('TP456')">Join</button>
+            </div>
+            <div class="invite-item">
+              <div class="invite-info">
+                <div class="invite-host">🎲 Quick Game</div>
+                <div class="invite-details">Hosted by Mike • 2 players • $1/$2</div>
+                <div class="invite-time">1 hour ago</div>
+              </div>
+              <button class="btn btn-success" onclick="joinInvite('QG789')">Join</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Game Modal -->
+  <div id="startGameModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeStartModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Start Game</h2>
+      </div>
+      <div class="modal-body">
+        <div class="start-tabs">
+          <button class="start-tab active" onclick="switchStartTab('friends')">Invite Friends</button>
+          <button class="start-tab" onclick="switchStartTab('link')">Share Link</button>
+        </div>
+        
+        <!-- Invite Friends Form -->
+        <div class="start-form active" id="friendsForm">
+          <div class="form-group">
+            <label class="form-label">Game Settings</label>
+            <div class="game-settings">
+              <input type="text" class="form-input" placeholder="Room name (e.g., Friday Night Poker)" style="margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <select class="form-input">
+                  <option>Texas Hold'em</option>
+                  <option>Omaha</option>
+                  <option>7-Card Stud</option>
+                </select>
+                <select class="form-input">
+                  <option>2 Players</option>
+                  <option>4 Players</option>
+                  <option>6 Players</option>
+                  <option>8 Players</option>
+                  <option>10 Players</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Invite Friends</label>
+            <div class="friends-list">
+              <div class="friend-item">
+                <div class="friend-info">
+                  <div class="friend-avatar">👤</div>
+                  <div class="friend-name">Alex Johnson</div>
+                  <div class="friend-status online">Online</div>
+                </div>
+                <button class="btn btn-secondary" onclick="inviteFriend('alex')">Invite</button>
+              </div>
+              <div class="friend-item">
+                <div class="friend-info">
+                  <div class="friend-avatar">👤</div>
+                  <div class="friend-name">Sarah Wilson</div>
+                  <div class="friend-status online">Online</div>
+                </div>
+                <button class="btn btn-secondary" onclick="inviteFriend('sarah')">Invite</button>
+              </div>
+              <div class="friend-item">
+                <div class="friend-info">
+                  <div class="friend-avatar">👤</div>
+                  <div class="friend-name">Mike Chen</div>
+                  <div class="friend-status offline">Offline</div>
+                </div>
+                <button class="btn btn-secondary" onclick="inviteFriend('mike')">Invite</button>
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn btn-primary" onclick="createGameWithFriends()">
+            🚀 Create Game
+          </button>
+        </div>
+        
+        <!-- Share Link Form -->
+        <div class="start-form" id="linkForm">
+          <div class="form-group">
+            <label class="form-label">Game Settings</label>
+            <div class="game-settings">
+              <input type="text" class="form-input" placeholder="Room name" style="margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <select class="form-input">
+                  <option>Texas Hold'em</option>
+                  <option>Omaha</option>
+                  <option>7-Card Stud</option>
+                </select>
+                <select class="form-input">
+                  <option>2 Players</option>
+                  <option>4 Players</option>
+                  <option>6 Players</option>
+                  <option>8 Players</option>
+                  <option>10 Players</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Room Code & Link</label>
+            <div class="link-section">
+              <div class="code-display">
+                <div class="code-label">Room Code:</div>
+                <div class="code-value" id="generatedCode">FNP123</div>
+                <button class="btn btn-secondary" onclick="copyCode()">Copy Code</button>
+              </div>
+              <div class="link-display">
+                <div class="link-label">Share Link:</div>
+                <div class="link-value" id="generatedLink">https://pokergeek.ai/join/FNP123</div>
+                <button class="btn btn-secondary" onclick="copyLink()">Copy Link</button>
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn btn-primary" onclick="createGameWithLink()">
+            🚀 Create Game
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join Public Game Modal -->
+  <div id="joinPublicModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <span class="close" onclick="closePublicModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Join Public Game</h2>
+      </div>
+      <div class="modal-body">
+        <div class="public-tabs">
+          <button class="public-tab active" onclick="switchPublicTab('browse')">Browse Tables</button>
+          <button class="public-tab" onclick="switchPublicTab('quick')">Quick Join</button>
+        </div>
+        
+        <!-- Browse Tables -->
+        <div class="public-form active" id="browseForm">
+          <div class="table-filters">
+            <div class="filter-row">
+              <select class="filter-select">
+                <option>All Stakes</option>
+                <option>$1/$2</option>
+                <option>$5/$10</option>
+                <option>$10/$20</option>
+                <option>$25/$50</option>
+              </select>
+              <select class="filter-select">
+                <option>All Game Types</option>
+                <option>Texas Hold'em</option>
+                <option>Omaha</option>
+                <option>7-Card Stud</option>
+              </select>
+              <select class="filter-select">
+                <option>All Players</option>
+                <option>2-4 Players</option>
+                <option>5-6 Players</option>
+                <option>7-8 Players</option>
+                <option>9-10 Players</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="tables-list">
+            <div class="table-item">
+              <div class="table-info">
+                <div class="table-name">🎯 High Stakes Table</div>
+                <div class="table-details">
+                  <span class="table-stakes">$25/$50</span>
+                  <span class="table-players">6/10 players</span>
+                  <span class="table-avg-pot">Avg Pot: $1,250</span>
+                </div>
+                <div class="table-host">Hosted by ProPlayer123</div>
+              </div>
+              <div class="table-actions">
+                <button class="btn btn-primary" onclick="joinTable('HS001')">Join Table</button>
+                <button class="btn btn-secondary" onclick="spectateTable('HS001')">Spectate</button>
+              </div>
+            </div>
+            
+            <div class="table-item">
+              <div class="table-info">
+                <div class="table-name">🏆 Tournament Practice</div>
+                <div class="table-details">
+                  <span class="table-stakes">$10/$20</span>
+                  <span class="table-players">4/8 players</span>
+                  <span class="table-avg-pot">Avg Pot: $450</span>
+                </div>
+                <div class="table-host">Hosted by TournamentMaster</div>
+              </div>
+              <div class="table-actions">
+                <button class="btn btn-primary" onclick="joinTable('TP002')">Join Table</button>
+                <button class="btn btn-secondary" onclick="spectateTable('TP002')">Spectate</button>
+              </div>
+            </div>
+            
+            <div class="table-item">
+              <div class="table-info">
+                <div class="table-name">🎲 Casual Game</div>
+                <div class="table-details">
+                  <span class="table-stakes">$5/$10</span>
+                  <span class="table-players">7/9 players</span>
+                  <span class="table-avg-pot">Avg Pot: $180</span>
+                </div>
+                <div class="table-host">Hosted by CasualPlayer</div>
+              </div>
+              <div class="table-actions">
+                <button class="btn btn-primary" onclick="joinTable('CG003')">Join Table</button>
+                <button class="btn btn-secondary" onclick="spectateTable('CG003')">Spectate</button>
+              </div>
+            </div>
+            
+            <div class="table-item">
+              <div class="table-info">
+                <div class="table-name">🔥 Fast Action</div>
+                <div class="table-details">
+                  <span class="table-stakes">$1/$2</span>
+                  <span class="table-players">9/10 players</span>
+                  <span class="table-avg-pot">Avg Pot: $65</span>
+                </div>
+                <div class="table-host">Hosted by SpeedDemon</div>
+              </div>
+              <div class="table-actions">
+                <button class="btn btn-primary" onclick="joinTable('FA004')">Join Table</button>
+                <button class="btn btn-secondary" onclick="spectateTable('FA004')">Spectate</button>
+              </div>
+            </div>
+            
+            <div class="table-item">
+              <div class="table-info">
+                <div class="table-name">🌟 Beginner Friendly</div>
+                <div class="table-details">
+                  <span class="table-stakes">$2/$5</span>
+                  <span class="table-players">3/6 players</span>
+                  <span class="table-avg-pot">Avg Pot: $95</span>
+                </div>
+                <div class="table-host">Hosted by FriendlyHost</div>
+              </div>
+              <div class="table-actions">
+                <button class="btn btn-primary" onclick="joinTable('BF005')">Join Table</button>
+                <button class="btn btn-secondary" onclick="spectateTable('BF005')">Spectate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quick Join -->
+        <div class="public-form" id="quickForm">
+          <div class="quick-join-section">
+            <div class="form-group">
+              <label class="form-label">Preferred Stakes</label>
+              <select class="form-input">
+                <option>$1/$2</option>
+                <option>$2/$5</option>
+                <option>$5/$10</option>
+                <option>$10/$20</option>
+                <option>$25/$50</option>
+                <option>Any Stakes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Game Type</label>
+              <select class="form-input">
+                <option>Texas Hold'em</option>
+                <option>Omaha</option>
+                <option>7-Card Stud</option>
+                <option>Any Game</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="quickJoin()">
+              🚀 Quick Join
+            </button>
+            <p class="quick-join-note">
+              We'll find the best available table matching your preferences
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Public Game Modal -->
+  <div id="startPublicModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeStartPublicModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Start Public Game</h2>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Table Name</label>
+          <input type="text" class="form-input" placeholder="Enter table name (e.g., High Stakes Action)" id="publicTableName">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Game Type</label>
+          <select class="form-input" id="publicGameType">
+            <option>Texas Hold'em</option>
+            <option>Omaha</option>
+            <option>7-Card Stud</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Blind Structure</label>
+          <div class="blinds-selector">
+            <select class="form-input" id="smallBlind">
+              <option value="1">$1</option>
+              <option value="2">$2</option>
+              <option value="5">$5</option>
+              <option value="10">$10</option>
+              <option value="20">$20</option>
+              <option value="25">$25</option>
+              <option value="50">$50</option>
+            </select>
+            <span class="blinds-separator">/</span>
+            <select class="form-input" id="bigBlind">
+              <option value="2">$2</option>
+              <option value="5">$5</option>
+              <option value="10">$10</option>
+              <option value="20">$20</option>
+              <option value="25">$25</option>
+              <option value="50">$50</option>
+              <option value="100">$100</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Buy-in Limits</label>
+          <div class="buyin-selector">
+            <input type="number" class="form-input" placeholder="Min buy-in" id="minBuyin" min="10">
+            <span class="buyin-separator">to</span>
+            <input type="number" class="form-input" placeholder="Max buy-in" id="maxBuyin" min="10">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Max Players</label>
+          <select class="form-input" id="maxPlayers">
+            <option value="2">2 Players</option>
+            <option value="4">4 Players</option>
+            <option value="6" selected>6 Players</option>
+            <option value="8">8 Players</option>
+            <option value="10">10 Players</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Table Settings</label>
+          <div class="settings-checkboxes">
+            <label class="checkbox-label">
+              <input type="checkbox" id="autoStart" checked>
+              <span class="checkbox-text">Auto-start when table is full</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="allowSpectators" checked>
+              <span class="checkbox-text">Allow spectators</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="showCards">
+              <span class="checkbox-text">Show cards on showdown</span>
+            </label>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="startPublicGame()">
+          🚀 Start Game
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Management Modal -->
+  <div id="tableManageModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+      <span class="close" onclick="closeTableManageModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Table Management</h2>
+      </div>
+      <div class="modal-body">
+        <div class="table-status">
+          <div class="status-info">
+            <div class="table-name-large">🎯 High Stakes Table</div>
+            <div class="table-stats">
+              <span class="stat">$25/$50</span>
+              <span class="stat">6/10 players</span>
+              <span class="stat">$1,250 avg pot</span>
+            </div>
+          </div>
+          <div class="status-controls">
+            <button class="btn btn-warning" onclick="pauseTable()">Pause</button>
+            <button class="btn btn-danger" onclick="closeTable()">Close Table</button>
+          </div>
+        </div>
+        
+        <div class="pending-players">
+          <h3>Pending Players</h3>
+          <div class="player-queue">
+            <div class="queue-item">
+              <div class="player-info">
+                <div class="player-avatar">👤</div>
+                <div class="player-details">
+                  <div class="player-name">NewPlayer123</div>
+                  <div class="player-buyin">Buy-in: $500</div>
+                </div>
+              </div>
+              <div class="queue-actions">
+                <button class="btn btn-success" onclick="acceptPlayer('player1')">Accept</button>
+                <button class="btn btn-danger" onclick="denyPlayer('player1')">Deny</button>
+              </div>
+            </div>
+            
+            <div class="queue-item">
+              <div class="player-info">
+                <div class="player-avatar">👤</div>
+                <div class="player-details">
+                  <div class="player-name">PokerPro99</div>
+                  <div class="player-buyin">Buy-in: $750</div>
+                </div>
+              </div>
+              <div class="queue-actions">
+                <button class="btn btn-success" onclick="acceptPlayer('player2')">Accept</button>
+                <button class="btn btn-danger" onclick="denyPlayer('player2')">Deny</button>
+              </div>
+            </div>
+            
+            <div class="queue-item">
+              <div class="player-info">
+                <div class="player-avatar">👤</div>
+                <div class="player-details">
+                  <div class="player-name">BeginnerPlayer</div>
+                  <div class="player-buyin">Buy-in: $300</div>
+                </div>
+              </div>
+              <div class="queue-actions">
+                <button class="btn btn-success" onclick="acceptPlayer('player3')">Accept</button>
+                <button class="btn btn-danger" onclick="denyPlayer('player3')">Deny</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="current-players">
+          <h3>Current Players</h3>
+          <div class="players-list">
+            <div class="player-item">
+              <div class="player-info">
+                <div class="player-avatar">👤</div>
+                <div class="player-details">
+                  <div class="player-name">You (Host)</div>
+                  <div class="player-stack">Stack: $1,200</div>
+                </div>
+              </div>
+              <div class="player-actions">
+                <button class="btn btn-secondary" onclick="kickPlayer('host')">Kick</button>
+              </div>
+            </div>
+            
+            <div class="player-item">
+              <div class="player-info">
+                <div class="player-avatar">👤</div>
+                <div class="player-details">
+                  <div class="player-name">ProPlayer123</div>
+                  <div class="player-stack">Stack: $850</div>
+                </div>
+              </div>
+              <div class="player-actions">
+                <button class="btn btn-secondary" onclick="kickPlayer('pro')">Kick</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tournaments Modal -->
+  <div id="tournamentsModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="close" onclick="closeTournamentsModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Tournaments</h2>
+      </div>
+      <div class="modal-body">
+        <div class="tournament-tabs">
+          <button class="tournament-tab active" onclick="switchTournamentTab('join')">Join Tournament</button>
+          <button class="tournament-tab" onclick="switchTournamentTab('create')">Create Tournament</button>
+          <button class="tournament-tab" onclick="switchTournamentTab('schedule')">Schedule</button>
+        </div>
+        
+        <!-- Join Tournament -->
+        <div class="tournament-form active" id="joinForm">
+          <div class="tournament-filters">
+            <div class="filter-row">
+              <select class="filter-select">
+                <option>All Buy-ins</option>
+                <option>Free</option>
+                <option>$1 - $10</option>
+                <option>$10 - $50</option>
+                <option>$50 - $100</option>
+                <option>$100+</option>
+              </select>
+              <select class="filter-select">
+                <option>All Types</option>
+                <option>Sit & Go</option>
+                <option>Multi-Table</option>
+                <option>Freeroll</option>
+                <option>Satellite</option>
+              </select>
+              <select class="filter-select">
+                <option>All Status</option>
+                <option>Starting Soon</option>
+                <option>In Progress</option>
+                <option>Registration Open</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="tournaments-list">
+            <div class="tournament-item">
+              <div class="tournament-info">
+                <div class="tournament-name">🏆 Daily Freeroll</div>
+                <div class="tournament-details">
+                  <span class="tournament-buyin">FREE</span>
+                  <span class="tournament-prize">Prize: $500</span>
+                  <span class="tournament-players">45/100 players</span>
+                  <span class="tournament-start">Starts in 15 min</span>
+                </div>
+                <div class="tournament-type">Sit & Go • Texas Hold'em</div>
+              </div>
+              <div class="tournament-actions">
+                <button class="btn btn-primary" onclick="joinTournament('DF001')">Join</button>
+                <button class="btn btn-secondary" onclick="viewTournament('DF001')">Details</button>
+              </div>
+            </div>
+            
+            <div class="tournament-item">
+              <div class="tournament-info">
+                <div class="tournament-name">💎 High Roller Championship</div>
+                <div class="tournament-details">
+                  <span class="tournament-buyin">$250</span>
+                  <span class="tournament-prize">Prize: $25,000</span>
+                  <span class="tournament-players">12/50 players</span>
+                  <span class="tournament-start">Starts in 2 hours</span>
+                </div>
+                <div class="tournament-type">Multi-Table • Texas Hold'em</div>
+              </div>
+              <div class="tournament-actions">
+                <button class="btn btn-primary" onclick="joinTournament('HR001')">Join</button>
+                <button class="btn btn-secondary" onclick="viewTournament('HR001')">Details</button>
+              </div>
+            </div>
+            
+            <div class="tournament-item">
+              <div class="tournament-info">
+                <div class="tournament-name">⚡ Turbo Sit & Go</div>
+                <div class="tournament-details">
+                  <span class="tournament-buyin">$10</span>
+                  <span class="tournament-prize">Prize: $100</span>
+                  <span class="tournament-players">8/9 players</span>
+                  <span class="tournament-start">Starting now</span>
+                </div>
+                <div class="tournament-type">Sit & Go • Texas Hold'em</div>
+              </div>
+              <div class="tournament-actions">
+                <button class="btn btn-primary" onclick="joinTournament('TS001')">Join</button>
+                <button class="btn btn-secondary" onclick="viewTournament('TS001')">Details</button>
+              </div>
+            </div>
+            
+            <div class="tournament-item">
+              <div class="tournament-info">
+                <div class="tournament-name">🌟 Beginner's Paradise</div>
+                <div class="tournament-details">
+                  <span class="tournament-buyin">$5</span>
+                  <span class="tournament-prize">Prize: $200</span>
+                  <span class="tournament-players">23/30 players</span>
+                  <span class="tournament-start">Starts in 45 min</span>
+                </div>
+                <div class="tournament-type">Sit & Go • Texas Hold'em</div>
+              </div>
+              <div class="tournament-actions">
+                <button class="btn btn-primary" onclick="joinTournament('BP001')">Join</button>
+                <button class="btn btn-secondary" onclick="viewTournament('BP001')">Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Create Tournament -->
+        <div class="tournament-form" id="createForm">
+          <div class="form-group">
+            <label class="form-label">Tournament Name</label>
+            <input type="text" class="form-input" placeholder="Enter tournament name" id="tournamentName">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Tournament Type</label>
+            <select class="form-input" id="tournamentType">
+              <option>Sit & Go</option>
+              <option>Multi-Table Tournament</option>
+              <option>Freeroll</option>
+              <option>Satellite</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Buy-in Amount</label>
+            <div class="buyin-options">
+              <label class="radio-label">
+                <input type="radio" name="buyin" value="free" checked>
+                <span class="radio-text">Free (Freeroll)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="buyin" value="custom">
+                <span class="radio-text">Custom Amount</span>
+              </label>
+            </div>
+            <input type="number" class="form-input" placeholder="Enter buy-in amount" id="customBuyin" style="display: none;" min="1">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Prize Pool</label>
+            <input type="number" class="form-input" placeholder="Enter prize pool amount" id="prizePool" min="0">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Max Players</label>
+            <select class="form-input" id="maxTournamentPlayers">
+              <option value="6">6 Players</option>
+              <option value="9">9 Players</option>
+              <option value="18">18 Players</option>
+              <option value="27">27 Players</option>
+              <option value="45">45 Players</option>
+              <option value="90">90 Players</option>
+              <option value="180">180 Players</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Blind Structure</label>
+            <select class="form-input" id="blindStructure">
+              <option>Slow (10 min levels)</option>
+              <option>Normal (5 min levels)</option>
+              <option>Turbo (3 min levels)</option>
+              <option>Hyper (1 min levels)</option>
+            </select>
+          </div>
+          
+          <button class="btn btn-primary" onclick="createTournament()">
+            🚀 Create Tournament
+          </button>
+        </div>
+        
+        <!-- Tournament Schedule -->
+        <div class="tournament-form" id="scheduleForm">
+          <div class="schedule-calendar">
+            <h3>Upcoming Tournaments</h3>
+            <div class="schedule-list">
+              <div class="schedule-item">
+                <div class="schedule-time">2:00 PM</div>
+                <div class="schedule-details">
+                  <div class="schedule-name">Daily Freeroll</div>
+                  <div class="schedule-info">FREE • $500 Prize • 100 players</div>
+                </div>
+                <button class="btn btn-secondary" onclick="joinTournament('DF002')">Join</button>
+              </div>
+              
+              <div class="schedule-item">
+                <div class="schedule-time">4:00 PM</div>
+                <div class="schedule-details">
+                  <div class="schedule-name">Mid-Stakes MTT</div>
+                  <div class="schedule-info">$25 • $2,500 Prize • 50 players</div>
+                </div>
+                <button class="btn btn-secondary" onclick="joinTournament('MS001')">Join</button>
+              </div>
+              
+              <div class="schedule-item">
+                <div class="schedule-time">6:00 PM</div>
+                <div class="schedule-details">
+                  <div class="schedule-name">Evening Sit & Go</div>
+                  <div class="schedule-info">$10 • $100 Prize • 9 players</div>
+                </div>
+                <button class="btn btn-secondary" onclick="joinTournament('ES001')">Join</button>
+              </div>
+              
+              <div class="schedule-item">
+                <div class="schedule-time">8:00 PM</div>
+                <div class="schedule-details">
+                  <div class="schedule-name">High Roller Championship</div>
+                  <div class="schedule-info">$250 • $25,000 Prize • 50 players</div>
+                </div>
+                <button class="btn btn-secondary" onclick="joinTournament('HR002')">Join</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice & Local Modal -->
+  <div id="practiceModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closePracticeModal()">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Practice & Local Games</h2>
+      </div>
+      <div class="modal-body">
+        <div class="practice-tabs">
+          <button class="practice-tab active" onclick="switchPracticeTab('ai')">Play vs AI</button>
+          <button class="practice-tab" onclick="switchPracticeTab('scenarios')">Hand Scenarios</button>
+          <button class="practice-tab" onclick="switchPracticeTab('offline')">Offline Mode</button>
+        </div>
+        
+        <!-- Play vs AI -->
+        <div class="practice-form active" id="aiForm">
+          <div class="form-group">
+            <label class="form-label">AI Difficulty</label>
+            <div class="difficulty-selector">
+              <label class="difficulty-option">
+                <input type="radio" name="difficulty" value="beginner" checked>
+                <div class="difficulty-card">
+                  <div class="difficulty-name">Beginner</div>
+                  <div class="difficulty-desc">Basic strategy, good for learning</div>
+                </div>
+              </label>
+              <label class="difficulty-option">
+                <input type="radio" name="difficulty" value="intermediate">
+                <div class="difficulty-card">
+                  <div class="difficulty-name">Intermediate</div>
+                  <div class="difficulty-desc">Solid play, some advanced concepts</div>
+                </div>
+              </label>
+              <label class="difficulty-option">
+                <input type="radio" name="difficulty" value="expert">
+                <div class="difficulty-card">
+                  <div class="difficulty-name">Expert</div>
+                  <div class="difficulty-desc">GTO-based, very challenging</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Game Settings</label>
+            <div class="game-settings-grid">
+              <select class="form-input">
+                <option>Texas Hold'em</option>
+                <option>Omaha</option>
+                <option>7-Card Stud</option>
+              </select>
+              <select class="form-input">
+                <option>2 Players (Heads-up)</option>
+                <option>3 Players</option>
+                <option>4 Players</option>
+                <option>6 Players</option>
+              </select>
+              <select class="form-input">
+                <option>$1/$2</option>
+                <option>$2/$5</option>
+                <option>$5/$10</option>
+                <option>$10/$20</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Learning Mode</label>
+            <div class="learning-options">
+              <label class="checkbox-label">
+                <input type="checkbox" id="showHints" checked>
+                <span class="checkbox-text">Show hints and tips</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="explainMoves">
+                <span class="checkbox-text">Explain AI moves</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="trackStats" checked>
+                <span class="checkbox-text">Track statistics</span>
+              </label>
+            </div>
+          </div>
+          
+          <button class="btn btn-primary" onclick="startAIGame()">
+            🤖 Start AI Game
+          </button>
+        </div>
+        
+        <!-- Hand Scenarios -->
+        <div class="practice-form" id="scenariosForm">
+          <div class="scenarios-categories">
+            <div class="category-item">
+              <div class="category-icon">🎯</div>
+              <div class="category-info">
+                <div class="category-name">Pre-flop Strategy</div>
+                <div class="category-desc">Learn when to fold, call, or raise pre-flop</div>
+                <div class="category-count">15 scenarios</div>
+              </div>
+              <button class="btn btn-secondary" onclick="startScenarios('preflop')">Start</button>
+            </div>
+            
+            <div class="category-item">
+              <div class="category-icon">🃏</div>
+              <div class="category-info">
+                <div class="category-name">Post-flop Play</div>
+                <div class="category-desc">Master continuation betting and board reading</div>
+                <div class="category-count">22 scenarios</div>
+              </div>
+              <button class="btn btn-secondary" onclick="startScenarios('postflop')">Start</button>
+            </div>
+            
+            <div class="category-item">
+              <div class="category-icon">🧠</div>
+              <div class="category-info">
+                <div class="category-name">GTO Training</div>
+                <div class="category-desc">Learn Game Theory Optimal strategies</div>
+                <div class="category-count">30 scenarios</div>
+              </div>
+              <button class="btn btn-secondary" onclick="startScenarios('gto')">Start</button>
+            </div>
+            
+            <div class="category-item">
+              <div class="category-icon">💰</div>
+              <div class="category-info">
+                <div class="category-name">Bankroll Management</div>
+                <div class="category-desc">Learn proper bet sizing and risk management</div>
+                <div class="category-count">12 scenarios</div>
+              </div>
+              <button class="btn btn-secondary" onclick="startScenarios('bankroll')">Start</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Offline Mode -->
+        <div class="practice-form" id="offlineForm">
+          <div class="offline-options">
+            <div class="offline-item">
+              <div class="offline-icon">📱</div>
+              <div class="offline-info">
+                <div class="offline-name">Mobile Practice</div>
+                <div class="offline-desc">Practice on your phone without internet</div>
+              </div>
+              <button class="btn btn-primary" onclick="startOffline('mobile')">Start</button>
+            </div>
+            
+            <div class="offline-item">
+              <div class="offline-icon">💻</div>
+              <div class="offline-info">
+                <div class="offline-name">Desktop Practice</div>
+                <div class="offline-desc">Full-featured practice on your computer</div>
+              </div>
+              <button class="btn btn-primary" onclick="startOffline('desktop')">Start</button>
+            </div>
+            
+            <div class="offline-item">
+              <div class="offline-icon">📊</div>
+              <div class="offline-info">
+                <div class="offline-name">Statistics Review</div>
+                <div class="offline-desc">Review your past games and statistics</div>
+              </div>
+              <button class="btn btn-secondary" onclick="viewStats()">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =================== MODAL FUNCTIONALITY ===================
+    
+    // FRIENDS & PRIVATE GAMES
+    function showJoinFriends() {
+      document.getElementById('joinGameModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function showStartFriends() {
+      document.getElementById('startGameModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Close modals
+    function closeJoinModal() {
+      document.getElementById('joinGameModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    function closeStartModal() {
+      document.getElementById('startGameModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Tab switching for Join modal
+    function switchJoinTab(tab) {
+      document.querySelectorAll('.join-tab').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[onclick="switchJoinTab('${tab}')"]`).classList.add('active');
+      
+      document.querySelectorAll('.join-form').forEach(form => form.classList.remove('active'));
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+    
+    // Tab switching for Start modal
+    function switchStartTab(tab) {
+      document.querySelectorAll('.start-tab').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[onclick="switchStartTab('${tab}')"]`).classList.add('active');
+      
+      document.querySelectorAll('.start-form').forEach(form => form.classList.remove('active'));
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+    
+    // Join game with code
+    function joinWithCode() {
+      const code = document.getElementById('roomCode').value.toUpperCase();
+      if (code.length === 6) {
+        alert(`Joining game with code: ${code}\n\nIn production, this would:\n• Validate the room code\n• Check if room exists\n• Join the game if valid\n• Redirect to poker table`);
+        // In production: validate code and join game
+      } else {
+        alert('Please enter a valid 6-digit room code');
+      }
+    }
+    
+    // Join from invite
+    function joinInvite(code) {
+      alert(`Joining invite with code: ${code}\n\nIn production, this would:\n• Join the specific game\n• Redirect to poker table`);
+      // In production: join specific game
+    }
+    
+    // Invite friend
+    function inviteFriend(friendId) {
+      alert(`Inviting friend: ${friendId}\n\nIn production, this would:\n• Send invitation to friend\n• Show pending status\n• Update friend list`);
+      // In production: send invitation
+    }
+    
+    // Create game with friends
+    function createGameWithFriends() {
+      alert('Creating game with friends...\n\nIn production, this would:\n• Create private room\n• Send invitations to selected friends\n• Generate room code\n• Redirect to poker table');
+      // In production: create game and invite friends
+    }
+    
+    // Copy room code
+    function copyCode() {
+      const code = document.getElementById('generatedCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert(`Room code copied: ${code}`);
+      });
+    }
+    
+    // Copy share link
+    function copyLink() {
+      const link = document.getElementById('generatedLink').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        alert(`Share link copied: ${link}`);
+      });
+    }
+    
+    // Create game with link
+    function createGameWithLink() {
+      alert('Creating game with share link...\n\nIn production, this would:\n• Create public room\n• Generate shareable link\n• Redirect to poker table');
+      // In production: create public game
+    }
+    
+    // PUBLIC GAMES
+    function showStartPublic() {
+      document.getElementById('startPublicModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function showJoinPublic() {
+      document.getElementById('joinPublicModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Close public modals
+    function closePublicModal() {
+      document.getElementById('joinPublicModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    function closeStartPublicModal() {
+      document.getElementById('startPublicModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Tab switching for public modal
+    function switchPublicTab(tab) {
+      document.querySelectorAll('.public-tab').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[onclick="switchPublicTab('${tab}')"]`).classList.add('active');
+      
+      document.querySelectorAll('.public-form').forEach(form => form.classList.remove('active'));
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+    
+    // Join table from browse
+    function joinTable(tableId) {
+      alert(`Joining table: ${tableId}\n\nIn production, this would:\n• Validate player eligibility\n• Process buy-in\n• Join the table\n• Redirect to poker table`);
+      // In production: join specific table
+    }
+    
+    // Spectate table
+    function spectateTable(tableId) {
+      alert(`Spectating table: ${tableId}\n\nIn production, this would:\n• Join as spectator\n• View game without playing\n• Redirect to poker table (spectator mode)`);
+      // In production: spectate table
+    }
+    
+    // Quick join
+    function quickJoin() {
+      alert('Quick Join activated!\n\nIn production, this would:\n• Find best matching table\n• Auto-join based on preferences\n• Redirect to poker table');
+      // In production: quick join logic
+    }
+    
+    // Start public game
+    function startPublicGame() {
+      const tableName = document.getElementById('publicTableName').value;
+      const gameType = document.getElementById('publicGameType').value;
+      const smallBlind = document.getElementById('smallBlind').value;
+      const bigBlind = document.getElementById('bigBlind').value;
+      const minBuyin = document.getElementById('minBuyin').value;
+      const maxBuyin = document.getElementById('maxBuyin').value;
+      const maxPlayers = document.getElementById('maxPlayers').value;
+      
+      alert(`Creating public game:\n\n• Table: ${tableName || 'Untitled Table'}\n• Game: ${gameType}\n• Blinds: $${smallBlind}/$${bigBlind}\n• Buy-in: $${minBuyin} - $${maxBuyin}\n• Max Players: ${maxPlayers}\n\nIn production, this would:\n• Create public table\n• Add to public lobby\n• Redirect to poker table as host`);
+      // In production: create public game
+    }
+    
+    // TABLE MANAGEMENT
+    function closeTableManageModal() {
+      document.getElementById('tableManageModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    function acceptPlayer(playerId) {
+      alert(`Accepting player: ${playerId}\n\nIn production, this would:\n• Add player to table\n• Process their buy-in\n• Update player list\n• Notify player of acceptance`);
+    }
+    
+    function denyPlayer(playerId) {
+      alert(`Denying player: ${playerId}\n\nIn production, this would:\n• Remove from queue\n• Notify player of denial\n• Update queue display`);
+    }
+    
+    function kickPlayer(playerId) {
+      alert(`Kicking player: ${playerId}\n\nIn production, this would:\n• Remove from table\n• Return their chips\n• Notify player of removal\n• Update player list`);
+    }
+    
+    function pauseTable() {
+      alert('Pausing table...\n\nIn production, this would:\n• Pause current hand\n• Stop new players joining\n• Notify all players\n• Show pause status');
+    }
+    
+    function closeTable() {
+      alert('Closing table...\n\nIn production, this would:\n• End current game\n• Return all chips\n• Remove from public lobby\n• Notify all players');
+    }
+    
+    // Show table management (called from poker table)
+    function showTableManagement() {
+      document.getElementById('tableManageModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // TOURNAMENTS
+    function showJoinTournament() {
+      document.getElementById('tournamentsModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function showStartTournament() {
+      document.getElementById('tournamentsModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      // Switch to create tab
+      setTimeout(() => switchTournamentTab('create'), 100);
+    }
+    
+    function closeTournamentsModal() {
+      document.getElementById('tournamentsModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    function switchTournamentTab(tab) {
+      document.querySelectorAll('.tournament-tab').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[onclick="switchTournamentTab('${tab}')"]`).classList.add('active');
+      
+      document.querySelectorAll('.tournament-form').forEach(form => form.classList.remove('active'));
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+    
+    function joinTournament(tournamentId) {
+      alert(`Joining tournament: ${tournamentId}\n\nIn production, this would:\n• Process buy-in payment\n• Register for tournament\n• Add to tournament lobby\n• Redirect to tournament table`);
+    }
+    
+    function viewTournament(tournamentId) {
+      alert(`Viewing tournament details: ${tournamentId}\n\nIn production, this would show:\n• Tournament rules\n• Prize structure\n• Blind schedule\n• Player list\n• Registration deadline`);
+    }
+    
+    function createTournament() {
+      const name = document.getElementById('tournamentName').value;
+      const type = document.getElementById('tournamentType').value;
+      const buyinType = document.querySelector('input[name="buyin"]:checked').value;
+      const customBuyin = document.getElementById('customBuyin').value;
+      const prizePool = document.getElementById('prizePool').value;
+      const maxPlayers = document.getElementById('maxTournamentPlayers').value;
+      const blindStructure = document.getElementById('blindStructure').value;
+      
+      alert(`Creating tournament:\n\n• Name: ${name || 'Untitled Tournament'}\n• Type: ${type}\n• Buy-in: ${buyinType === 'free' ? 'FREE' : '$' + customBuyin}\n• Prize Pool: $${prizePool}\n• Max Players: ${maxPlayers}\n• Blind Structure: ${blindStructure}\n\nIn production, this would:\n• Create tournament\n• Add to tournament lobby\n• Set up registration\n• Redirect to tournament management`);
+    }
+    
+    // PRACTICE & LOCAL
+    function showPracticeMode() {
+      document.getElementById('practiceModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closePracticeModal() {
+      document.getElementById('practiceModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    function switchPracticeTab(tab) {
+      document.querySelectorAll('.practice-tab').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[onclick="switchPracticeTab('${tab}')"]`).classList.add('active');
+      
+      document.querySelectorAll('.practice-form').forEach(form => form.classList.remove('active'));
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+    
+    function startAIGame() {
+      const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+      const showHints = document.getElementById('showHints').checked;
+      const explainMoves = document.getElementById('explainMoves').checked;
+      const trackStats = document.getElementById('trackStats').checked;
+      
+      alert(`Starting AI game:\n\n• Difficulty: ${difficulty}\n• Show hints: ${showHints ? 'Yes' : 'No'}\n• Explain moves: ${explainMoves ? 'Yes' : 'No'}\n• Track stats: ${trackStats ? 'Yes' : 'No'}\n\nIn production, this would:\n• Start AI poker game\n• Redirect to poker table\n• Enable learning features\n• Begin statistics tracking`);
+    }
+    
+    function startScenarios(category) {
+      alert(`Starting ${category} scenarios:\n\nIn production, this would:\n• Load scenario training\n• Present poker situations\n• Provide feedback\n• Track progress\n• Show statistics`);
+    }
+    
+    function startOffline(mode) {
+      alert(`Starting offline ${mode} practice:\n\nIn production, this would:\n• Download offline content\n• Enable offline play\n• Sync when online\n• Track progress locally`);
+    }
+    
+    function viewStats() {
+      alert('Viewing statistics:\n\nIn production, this would show:\n• Win/loss record\n• Hand analysis\n• Learning progress\n• Performance charts\n• Improvement suggestions');
+    }
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+    
+    // Navigation scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.nav');
+      nav.style.background = (window.scrollY > 100) ? 'rgba(10,8,22,0.98)' : 'rgba(10,8,22,0.95)';
+    });
+    
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      const joinModal = document.getElementById('joinGameModal');
+      const startModal = document.getElementById('startGameModal');
+      const joinPublicModal = document.getElementById('joinPublicModal');
+      const startPublicModal = document.getElementById('startPublicModal');
+      const tableManageModal = document.getElementById('tableManageModal');
+      const tournamentsModal = document.getElementById('tournamentsModal');
+      const practiceModal = document.getElementById('practiceModal');
+      
+      if (event.target === joinModal) closeJoinModal();
+      if (event.target === startModal) closeStartModal();
+      if (event.target === joinPublicModal) closePublicModal();
+      if (event.target === startPublicModal) closeStartPublicModal();
+      if (event.target === tableManageModal) closeTableManageModal();
+      if (event.target === tournamentsModal) closeTournamentsModal();
+      if (event.target === practiceModal) closePracticeModal();
+    }
+    
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeJoinModal();
+        closeStartModal();
+        closePublicModal();
+        closeStartPublicModal();
+        closeTableManageModal();
+        closeTournamentsModal();
+        closePracticeModal();
+      }
+    });
+  </script>
+  
+  <!-- Global animations -->
+  <script src="global-animations.js"></script>
+  <script>
+    // Other pages: Initialize ongoing animations only
+    document.addEventListener('DOMContentLoaded', () => {
+      initOngoingOnly(); // Just ongoing, no wave
+    });
+
+    // Liquid Glass Controls
+    let controlsVisible = true;
+    
+    function toggleControls() {
+      const controls = document.querySelector('.glass-controls');
+      controlsVisible = !controlsVisible;
+      controls.style.display = controlsVisible ? 'block' : 'none';
+    }
+
+    // Initialize liquid glass controls
+    document.addEventListener('DOMContentLoaded', () => {
+      const controls = document.querySelector('.glass-controls');
+      if (controls) {
+        const shadowBlur = document.getElementById('shadow-blur');
+        const tintOpacity = document.getElementById('tint-opacity');
+        const frostBlur = document.getElementById('frost-blur');
+        const distortionStrength = document.getElementById('distortion-strength');
+        const lockButton = document.getElementById('lock-values');
+
+        let isLocked = false;
+
+        function updateGlassEffect() {
+          if (isLocked) return;
+          
+          document.documentElement.style.setProperty('--glass-shadow-blur', shadowBlur.value + 'px');
+          document.documentElement.style.setProperty('--glass-tint-opacity', (tintOpacity.value / 100).toFixed(2));
+          document.documentElement.style.setProperty('--glass-frost-blur', frostBlur.value + 'px');
+          document.documentElement.style.setProperty('--glass-distortion-strength', distortionStrength.value);
+          
+          // Update SVG filter distortion
+          const svgFilter = document.querySelector('#glass-distortion feDisplacementMap');
+          if (svgFilter) {
+            svgFilter.setAttribute('scale', distortionStrength.value);
+          }
+        }
+
+        function toggleLock() {
+          isLocked = !isLocked;
+          lockButton.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+          lockButton.style.background = isLocked ? 'var(--warning)' : 'var(--teal)';
+          
+          // Disable/enable sliders
+          [shadowBlur, tintOpacity, frostBlur, distortionStrength].forEach(slider => {
+            slider.disabled = isLocked;
+            slider.style.opacity = isLocked ? '0.5' : '1';
+          });
+        }
+
+        shadowBlur.addEventListener('input', updateGlassEffect);
+        tintOpacity.addEventListener('input', updateGlassEffect);
+        frostBlur.addEventListener('input', updateGlassEffect);
+        distortionStrength.addEventListener('input', updateGlassEffect);
+        lockButton.addEventListener('click', toggleLock);
+      }
+    });
+  </script>
+</body>
+</html>

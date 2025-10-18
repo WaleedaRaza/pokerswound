@@ -29,6 +29,11 @@ const { EventReplayer } = require('./dist/application/services/EventReplayer');
 // ✅ DAY 5: CQRS - Application Service (CommandBus + QueryBus)
 const { GameApplicationService } = require('./dist/application/services/GameApplicationService');
 
+// ✅ NEW: Social Features Services
+const { createUserRoutes } = require('./dist/routes/user.routes');
+const { createFriendRoutes } = require('./dist/routes/friends.routes');
+const { createGameDisplayRoutes } = require('./dist/routes/game-display.routes');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -36,6 +41,7 @@ app.use(express.json());
 // Serve static files (card images and UI)
 app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // In-memory storage for demo (normally would use database)
 const games = new Map();
@@ -298,19 +304,13 @@ async function claimSeat({ roomId, userId, seatIndex, buyInAmount }) {
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    // Ensure user exists (auto-provision guest if missing)
-    const userExists = await client.query(`SELECT 1 FROM users WHERE id=$1`, [userId]);
-    if (userExists.rowCount === 0) {
-      const email = `guest-${userId}@poker.local`;
-      const username = `guest_${userId.substring(0, 8)}`;
-      // Dev-only bcrypt for placeholder password: 'guest'
-      const placeholderHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewngHTNk.5gZLWhy';
-      await client.query(
-        `INSERT INTO users (id, email, username, password_hash, display_name, is_verified)
-         VALUES ($1,$2,$3,$4,$5,true)`,
-        [userId, email, username, placeholderHash, username]
-      );
-    }
+    // Ensure user profile exists (auto-provision guest if missing)
+    await client.query(
+      `INSERT INTO user_profiles (id, username, display_name)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (id) DO NOTHING`,
+      [userId, `Guest_${userId.substring(0, 6)}`, `Guest_${userId.substring(0, 6)}`]
+    );
     // Ensure seat is free
     const exists = await client.query(
       `SELECT 1 FROM room_seats WHERE room_id=$1 AND seat_index=$2 AND left_at IS NULL`,
@@ -364,9 +364,35 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/poker', (req, res) => {
-  res.sendFile(__dirname + '/public/poker-test.html');
+// Config endpoint for frontend
+app.get('/api/config', (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKey: process.env.SUPABASE_ANON_KEY
+  });
 });
+
+// PokerGeek.ai page routes
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
+app.get('/play', (req, res) => res.sendFile(path.join(__dirname, 'public/play.html')));
+app.get('/friends', (req, res) => res.sendFile(path.join(__dirname, 'public/friends.html')));
+app.get('/analysis', (req, res) => res.sendFile(path.join(__dirname, 'public/analysis.html')));
+app.get('/learning', (req, res) => res.sendFile(path.join(__dirname, 'public/learning.html')));
+app.get('/ai-solver', (req, res) => res.sendFile(path.join(__dirname, 'public/ai-solver.html')));
+app.get('/forum', (req, res) => res.sendFile(path.join(__dirname, 'public/forum.html')));
+
+// Legacy routes
+app.get('/poker', (req, res) => res.redirect('/play'));
+app.get('/poker-test.html', (req, res) => res.redirect('/play'));
+app.get('/public/poker-test.html', (req, res) => res.redirect('/play'));
+
+// ✅ Register social features routes
+const socialDbPool = getDb();
+if (socialDbPool) {
+  app.use('/api/user', createUserRoutes(socialDbPool));
+  app.use('/api/friends', createFriendRoutes(socialDbPool));
+  app.use('/api/game', createGameDisplayRoutes(socialDbPool));
+}
 
 // Create game with sophisticated engine
 app.post('/api/games', async (req, res) => {
@@ -528,7 +554,7 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   // ⚠️ DEPRECATED: This endpoint is no longer used
   // Authentication is now handled by Supabase Google OAuth
-  // See: poker-test.html -> signInWithGoogle()
+  // See: poker.html -> signInWithGoogle()
   return res.status(410).json({ 
     error: 'This login method is deprecated. Please use Google Sign-In.',
     message: 'Authentication is now handled via Supabase OAuth. Use the Google Sign-In button on the frontend.'
@@ -607,19 +633,20 @@ app.post('/api/rooms/:roomId/lobby/join', async (req, res) => {
     
     const isHost = roomCheck.rows[0].host_user_id === user_id;
     
-    // Auto-provision user profile if they don't exist
+    // Check if user exists in auth.users (for real users) or create guest profile
     const userCheck = await db.query('SELECT id FROM auth.users WHERE id = $1', [user_id]);
-    if (userCheck.rowCount === 0) {
-      console.log(`❌ User ${user_id} not in auth.users - invalid user ID`);
-      return res.status(400).json({ error: 'Invalid user ID - please authenticate first' });
+    const userExists = userCheck.rowCount > 0;
+    
+    if (!userExists) {
+      console.log(`⚠️ User ${user_id} not in auth.users - treating as guest/anonymous user`);
     }
     
-    // Create user profile if it doesn't exist
+    // Create user profile if it doesn't exist (works for both real and guest users)
     await db.query(
       `INSERT INTO user_profiles (id, username, display_name)
        VALUES ($1, $2, $3)
        ON CONFLICT (id) DO NOTHING`,
-      [user_id, `User_${user_id.substring(0, 6)}`, `User_${user_id.substring(0, 6)}`]
+      [user_id, `Guest_${user_id.substring(0, 6)}`, `Guest_${user_id.substring(0, 6)}`]
     );
     
     // Add player to lobby (auto-approve if host, otherwise pending)
@@ -839,26 +866,26 @@ app.get('/api/rooms/:roomId/history', authenticateToken, async (req, res) => {
 // ----- Rooms & Seats (Multi-player support, DB-backed) -----------------------
 app.post('/api/rooms', async (req, res) => {
   try {
-    const { name, small_blind, big_blind, min_buy_in, max_buy_in, max_players = 9, is_private } = req.body || {};
+    const { name, small_blind, big_blind, min_buy_in, max_buy_in, max_players = 9, is_private, user_id } = req.body || {};
     if (!name || !small_blind || !big_blind || !min_buy_in || !max_buy_in) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
-    // For now, use a default user ID (we'll fix this with proper auth later)
-    const host_user_id = (await getDb().query('SELECT id FROM auth.users LIMIT 1')).rows[0]?.id;
-    const room = await createRoom({ name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, host_user_id });
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id required - please sign in first' });
+    }
     
-    // Auto-join host to lobby if we have a user
-    if (host_user_id) {
-      const db = getDb();
-      if (db) {
-        await db.query(
-          `INSERT INTO room_players (room_id, user_id, status, approved_at)
-           VALUES ($1, $2, 'approved', NOW())`,
-          [room.id, host_user_id]
-        );
-        console.log(`👑 Host ${host_user_id} auto-joined room ${room.id}`);
-      }
+    const room = await createRoom({ name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, is_private, host_user_id: user_id });
+    
+    // Auto-join host to lobby
+    const db = getDb();
+    if (db) {
+      await db.query(
+        `INSERT INTO room_players (room_id, user_id, status, approved_at)
+         VALUES ($1, $2, 'approved', NOW())`,
+        [room.id, user_id]
+      );
+      console.log(`👑 Host ${user_id} auto-joined room ${room.id}`);
     }
     
     res.status(201).json({ 
@@ -997,9 +1024,9 @@ app.post('/api/games/:id/start-hand', async (req, res) => {
       if (db) {
         // 🏆 TOURNAMENT MODE: Exclude players with 0 chips (eliminated)
         const seatsRes = await db.query(
-          `SELECT rs.seat_index, rs.user_id, rs.chips_in_play, u.username
+          `SELECT rs.seat_index, rs.user_id, rs.chips_in_play, up.username
            FROM room_seats rs
-           JOIN users u ON rs.user_id = u.id
+           JOIN user_profiles up ON rs.user_id = up.id
            WHERE rs.room_id = $1 
              AND rs.status = 'SEATED' 
              AND rs.left_at IS NULL

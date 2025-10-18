@@ -1,0 +1,5 @@
+cd pokeher
+cd pokeher
+cd poker-engine
+Get-Process node | Stop-Process -Force
+node ./soph

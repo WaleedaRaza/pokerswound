@@ -1695,22 +1695,52 @@
             }
         }
         
+        // Guest/Anonymous Sign-In Function
+        async function signInAsGuest() {
+            try {
+                const { data, error } = await supabase.auth.signInAnonymously();
+                if (error) throw error;
+                
+                currentUser = {
+                    id: data.user.id,
+                    username: `Guest_${data.user.id.substring(0, 6)}`,
+                    email: null
+                };
+                console.log('✅ Guest user created:', currentUser);
+                document.getElementById('userDisplay').textContent = currentUser.username;
+                showStatus('👋 Joined as guest', 'success');
+            } catch (error) {
+                console.error('Guest sign-in error:', error);
+                showStatus('❌ Failed to create guest account: ' + error.message, 'error');
+            }
+        }
+        
         // Check for existing session on page load
         async function checkAuthSession() {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
+                // Check if anonymous or real user
+                const isAnonymous = session.user.is_anonymous || !session.user.email;
                 currentUser = {
                     id: session.user.id,
-                    username: session.user.email.split('@')[0],
-                    email: session.user.email
+                    username: isAnonymous ? `Guest_${session.user.id.substring(0, 6)}` : session.user.email.split('@')[0],
+                    email: session.user.email || null
                 };
                 console.log('✅ User authenticated:', currentUser);
                 document.getElementById('userDisplay').textContent = currentUser.username;
-                // Hide sign-in button if it exists
+                
+                // Show game actions, hide sign-in button
                 const signInBtn = document.getElementById('googleSignInBtn');
+                const landingActions = document.querySelector('.landing-actions');
                 if (signInBtn) signInBtn.style.display = 'none';
+                if (landingActions) landingActions.style.display = 'grid';
             } else {
                 console.log('⚠️ No active session - user needs to sign in');
+                // Hide game actions, show sign-in button
+                const signInBtn = document.getElementById('googleSignInBtn');
+                const landingActions = document.querySelector('.landing-actions');
+                if (signInBtn) signInBtn.style.display = 'block';
+                if (landingActions) landingActions.style.display = 'none';
             }
         }
 
@@ -1721,27 +1751,23 @@
             return true; // Don't show auth modal automatically
         }
 
-        // API Helper with JWT
+        // API Helper - Simplified for testing
         async function apiCall(endpoint, options = {}) {
             const headers = {
                 'Content-Type': 'application/json',
                 ...options.headers
             };
             
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
-            
             const response = await fetch(`${API_BASE}${endpoint}`, {
                 ...options,
                 headers
             });
             
-            if (response.status === 401) {
-                // Token expired, clear auth
-                logout();
-                throw new Error('Session expired, please login again');
-            }
+            console.log(`API Call: ${endpoint}`, {
+                status: response.status,
+                statusText: response.statusText,
+                body: options.body
+            });
             
             return response;
         }
@@ -1968,21 +1994,9 @@
         }
 
         async function showCreateGameModal() {
-            // Check if user is authenticated with Supabase
             if (!currentUser) {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    showStatus('❌ Please sign in with Google first', 'error');
-                    await signInWithGoogle();
-                    return;
-                }
-                currentUser = {
-                    id: session.user.id,
-                    username: session.user.email.split('@')[0],
-                    email: session.user.email
-                };
-                console.log('✅ User authenticated:', currentUser);
-                document.getElementById('userDisplay').textContent = currentUser.username;
+                showStatus('🔒 Please sign in with Google first', 'error');
+                return;
             }
             document.getElementById('createGameModal').classList.remove('hidden');
         }
@@ -1991,11 +2005,10 @@
             document.getElementById('createGameModal').classList.add('hidden');
         }
 
-        function showJoinGameModal() {
+        async function showJoinGameModal() {
             if (!currentUser) {
-                showStatus('🔒 Please login to join a game', 'error');
-                showAuthModal();
-                return;
+                // Create anonymous guest user
+                await signInAsGuest();
             }
             document.getElementById('joinGameModal').classList.remove('hidden');
         }
@@ -2028,7 +2041,8 @@
                         min_buy_in: gameSettings.minBuyIn, 
                         max_buy_in: gameSettings.maxBuyIn, 
                         max_players: Math.min(maxPlayers, 9),
-                        host_user_id: currentUser.id
+                        is_private: false,
+                        user_id: currentUser.id
                     })
                 });
                 if (!roomRes.ok) {

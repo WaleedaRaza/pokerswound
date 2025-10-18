@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friends - PokerGeek.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Friends Page Specific Styles */
+    .friends-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    /* Sidebar */
+    .friends-sidebar {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+    }
+
+    .add-friend-section {
+      margin-bottom: 32px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .search-input-group {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+      opacity: 0.6;
+    }
+
+    .btn-add-friend {
+      width: 100%;
+      padding: 10px 16px;
+      background: rgba(0, 212, 170, 0.15);
+      border: 1px solid var(--teal);
+      border-radius: 8px;
+      color: var(--teal);
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-add-friend:hover {
+      background: rgba(0, 212, 170, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+    }
+
+    .stats-section {
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .stat-value {
+      color: var(--teal);
+      font-weight: 600;
+    }
+
+    /* Main Content Area */
+    .friends-main {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 32px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 16px;
+    }
+
+    .tab {
+      padding: 8px 20px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+    }
+
+    .tab:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab.active {
+      color: var(--teal);
+      border-color: var(--teal);
+      background: rgba(0, 212, 170, 0.1);
+    }
+
+    .tab .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 6px;
+      font-weight: 800;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .empty-state-hint {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    /* Friend Cards */
+    .friend-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .friend-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .friend-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .friend-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .friend-info {
+      flex: 1;
+    }
+
+    .friend-username {
+      font-size: 16px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .friend-status {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-online {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-offline {
+      background: var(--muted);
+    }
+
+    .friend-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-accept {
+      background: rgba(0, 255, 136, 0.15);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .btn-accept:hover {
+      background: rgba(0, 255, 136, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+    }
+
+    .btn-deny, .btn-remove {
+      background: rgba(255, 68, 68, 0.15);
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .btn-deny:hover, .btn-remove:hover {
+      background: rgba(255, 68, 68, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+    }
+
+    .btn-message {
+      background: rgba(0, 212, 170, 0.15);
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .btn-message:hover {
+      background: rgba(0, 212, 170, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
+    }
+
+    .btn-invite {
+      background: rgba(255, 81, 0, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-invite:hover {
+      background: rgba(255, 81, 0, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(255, 81, 0, 0.3);
+    }
+
+    /* Request timestamp */
+    .request-time {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    /* Search results */
+    .search-results {
+      margin-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 24px;
+    }
+
+    .search-results-title {
+      font-size: 14px;
+      color: var(--teal);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Responsive */
+    @media (max-width: 968px) {
+      .friends-container {
+        grid-template-columns: 1fr;
+      }
+
+      .friends-sidebar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .friend-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .friend-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .request-time {
+        position: static;
+        margin-top: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Global floating animations container -->
+  <div id="floating-cards" class="floating-cards"></div>
+  
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-content">
+      <a href="index.html" class="logo">PokerGeek.ai<span class="suit-symbol">♠</span></a>
+      <ul class="nav-links">
+        <li><a href="play.html">Play Now</a></li>
+        <li><a href="ai-solver.html">AI GTO Solver</a></li>
+        <li><a href="analysis.html">Analysis & Data</a></li>
+        <li><a href="learning.html">Learning</a></li>
+        <li><a href="friends.html">Friends</a></li>
+        <li><a href="forum.html">Forum</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="#" class="btn-auth btn-login">Log In</a>
+        <a href="#" class="btn-auth btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Friends</h1>
+      <p class="page-subtitle">Connect with fellow poker players and build your network</p>
+    </div>
+    
+    <div class="friends-container">
+      <!-- Sidebar -->
+      <aside class="friends-sidebar">
+        <div class="add-friend-section">
+          <div class="section-label">Add Friend</div>
+          <div class="search-input-group">
+            <input 
+              type="text" 
+              class="search-input" 
+              id="friendUsernameInput"
+              placeholder="Enter username..."
+              autocomplete="off"
+            >
+          </div>
+          <button class="btn-add-friend" onclick="sendFriendRequest()">
+            + Send Request
+          </button>
+        </div>
+
+        <div class="stats-section">
+          <div class="section-label">Your Stats</div>
+          <div class="stat-row">
+            <span>Total Friends</span>
+            <span class="stat-value" id="totalFriends">12</span>
+          </div>
+          <div class="stat-row">
+            <span>Online Now</span>
+            <span class="stat-value" id="onlineFriends">5</span>
+          </div>
+          <div class="stat-row">
+            <span>Pending Requests</span>
+            <span class="stat-value" id="pendingCount">3</span>
+          </div>
+          <div class="stat-row">
+            <span>Sent Requests</span>
+            <span class="stat-value" id="sentCount">2</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="friends-main">
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('friends')">
+            My Friends
+          </button>
+          <button class="tab" onclick="switchTab('pending')">
+            Pending <span class="badge" id="pendingBadge">3</span>
+          </button>
+          <button class="tab" onclick="switchTab('sent')">
+            Sent <span class="badge" id="sentBadge">2</span>
+          </button>
+        </div>
+
+        <!-- Friends Tab -->
+        <div class="tab-content active" id="friends-tab">
+          <div class="friend-list">
+            <!-- Sample Friends -->
+            <div class="friend-card">
+              <div class="friend-avatar">PG</div>
+              <div class="friend-info">
+                <div class="friend-username">PokerPro88</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-online"></span>
+                  Online • In game
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-message">Message</button>
+                <button class="btn-action btn-invite">Invite</button>
+                <button class="btn-action btn-remove" onclick="removeFriend(this)">Remove</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="friend-avatar">CC</div>
+              <div class="friend-info">
+                <div class="friend-username">CardCounter</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-online"></span>
+                  Online
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-message">Message</button>
+                <button class="btn-action btn-invite">Invite</button>
+                <button class="btn-action btn-remove" onclick="removeFriend(this)">Remove</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="friend-avatar">AK</div>
+              <div class="friend-info">
+                <div class="friend-username">AceKing47</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-offline"></span>
+                  Offline • Last seen 2h ago
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-message">Message</button>
+                <button class="btn-action btn-invite">Invite</button>
+                <button class="btn-action btn-remove" onclick="removeFriend(this)">Remove</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="friend-avatar">BB</div>
+              <div class="friend-info">
+                <div class="friend-username">BigBlindBandit</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-online"></span>
+                  Online
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-message">Message</button>
+                <button class="btn-action btn-invite">Invite</button>
+                <button class="btn-action btn-remove" onclick="removeFriend(this)">Remove</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="friend-avatar">RF</div>
+              <div class="friend-info">
+                <div class="friend-username">RoyalFlush99</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-offline"></span>
+                  Offline • Last seen 1d ago
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-message">Message</button>
+                <button class="btn-action btn-invite">Invite</button>
+                <button class="btn-action btn-remove" onclick="removeFriend(this)">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Requests Tab -->
+        <div class="tab-content" id="pending-tab">
+          <div class="friend-list">
+            <!-- Sample Pending Requests -->
+            <div class="friend-card">
+              <div class="request-time">2 minutes ago</div>
+              <div class="friend-avatar">GT</div>
+              <div class="friend-info">
+                <div class="friend-username">GTO_Master</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-online"></span>
+                  Online
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-accept" onclick="acceptRequest(this)">Accept</button>
+                <button class="btn-action btn-deny" onclick="denyRequest(this)">Deny</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="request-time">1 hour ago</div>
+              <div class="friend-avatar">BR</div>
+              <div class="friend-info">
+                <div class="friend-username">BluffRunner</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-offline"></span>
+                  Offline
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-accept" onclick="acceptRequest(this)">Accept</button>
+                <button class="btn-action btn-deny" onclick="denyRequest(this)">Deny</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="request-time">3 hours ago</div>
+              <div class="friend-avatar">TP</div>
+              <div class="friend-info">
+                <div class="friend-username">TightPlayer</div>
+                <div class="friend-status">
+                  <span class="status-indicator status-online"></span>
+                  Online
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-accept" onclick="acceptRequest(this)">Accept</button>
+                <button class="btn-action btn-deny" onclick="denyRequest(this)">Deny</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sent Requests Tab -->
+        <div class="tab-content" id="sent-tab">
+          <div class="friend-list">
+            <!-- Sample Sent Requests -->
+            <div class="friend-card">
+              <div class="request-time">Sent 5 minutes ago</div>
+              <div class="friend-avatar">FO</div>
+              <div class="friend-info">
+                <div class="friend-username">FoldOrBluff</div>
+                <div class="friend-status">Awaiting response...</div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-deny" onclick="cancelRequest(this)">Cancel</button>
+              </div>
+            </div>
+
+            <div class="friend-card">
+              <div class="request-time">Sent 2 days ago</div>
+              <div class="friend-avatar">PC</div>
+              <div class="friend-info">
+                <div class="friend-username">PokerChamp23</div>
+                <div class="friend-status">Awaiting response...</div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-action btn-deny" onclick="cancelRequest(this)">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Global animations -->
+  <script src="global-animations.js"></script>
+  <script>
+    // Tab switching
+    function switchTab(tabName) {
+      // Remove active class from all tabs and tab contents
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Add active class to selected tab and content
+      event.target.classList.add('active');
+      document.getElementById(tabName + '-tab').classList.add('active');
+    }
+
+    // Send friend request
+    function sendFriendRequest() {
+      const input = document.getElementById('friendUsernameInput');
+      const username = input.value.trim();
+      
+      if (!username) {
+        alert('Please enter a username');
+        return;
+      }
+      
+      // Mock API call
+      console.log('Sending friend request to:', username);
+      
+      // Show success message
+      alert(`Friend request sent to ${username}!`);
+      
+      // Update sent count
+      const sentCount = document.getElementById('sentCount');
+      const sentBadge = document.getElementById('sentBadge');
+      const newCount = parseInt(sentCount.textContent) + 1;
+      sentCount.textContent = newCount;
+      sentBadge.textContent = newCount;
+      
+      // Clear input
+      input.value = '';
+      
+      // Add to sent requests (mock)
+      const sentTab = document.getElementById('sent-tab').querySelector('.friend-list');
+      const newRequest = createSentRequestCard(username);
+      sentTab.insertBefore(newRequest, sentTab.firstChild);
+    }
+
+    // Accept friend request
+    function acceptRequest(button) {
+      const card = button.closest('.friend-card');
+      const username = card.querySelector('.friend-username').textContent;
+      
+      console.log('Accepting friend request from:', username);
+      alert(`You are now friends with ${username}!`);
+      
+      // Update counts
+      updateCounts(-1, 0, 1);
+      
+      // Move to friends list
+      const friendsTab = document.getElementById('friends-tab').querySelector('.friend-list');
+      const newFriend = createFriendCard(username);
+      friendsTab.insertBefore(newFriend, friendsTab.firstChild);
+      
+      // Remove from pending
+      card.remove();
+    }
+
+    // Deny friend request
+    function denyRequest(button) {
+      const card = button.closest('.friend-card');
+      const username = card.querySelector('.friend-username').textContent;
+      
+      console.log('Denying friend request from:', username);
+      
+      // Update counts
+      updateCounts(-1, 0, 0);
+      
+      // Remove card with animation
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-20px)';
+      setTimeout(() => card.remove(), 300);
+    }
+
+    // Cancel sent request
+    function cancelRequest(button) {
+      const card = button.closest('.friend-card');
+      const username = card.querySelector('.friend-username').textContent;
+      
+      console.log('Canceling friend request to:', username);
+      
+      // Update counts
+      updateCounts(0, -1, 0);
+      
+      // Remove card with animation
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-20px)';
+      setTimeout(() => card.remove(), 300);
+    }
+
+    // Remove friend
+    function removeFriend(button) {
+      const card = button.closest('.friend-card');
+      const username = card.querySelector('.friend-username').textContent;
+      
+      if (!confirm(`Remove ${username} from your friends?`)) {
+        return;
+      }
+      
+      console.log('Removing friend:', username);
+      
+      // Update total friends count
+      const totalFriends = document.getElementById('totalFriends');
+      totalFriends.textContent = parseInt(totalFriends.textContent) - 1;
+      
+      // Remove card with animation
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-20px)';
+      setTimeout(() => card.remove(), 300);
+    }
+
+    // Update counts
+    function updateCounts(pendingDelta, sentDelta, friendsDelta) {
+      const pendingCount = document.getElementById('pendingCount');
+      const pendingBadge = document.getElementById('pendingBadge');
+      const sentCount = document.getElementById('sentCount');
+      const sentBadge = document.getElementById('sentBadge');
+      const totalFriends = document.getElementById('totalFriends');
+      
+      if (pendingDelta !== 0) {
+        const newPending = Math.max(0, parseInt(pendingCount.textContent) + pendingDelta);
+        pendingCount.textContent = newPending;
+        pendingBadge.textContent = newPending;
+      }
+      
+      if (sentDelta !== 0) {
+        const newSent = Math.max(0, parseInt(sentCount.textContent) + sentDelta);
+        sentCount.textContent = newSent;
+        sentBadge.textContent = newSent;
+      }
+      
+      if (friendsDelta !== 0) {
+        totalFriends.textContent = Math.max(0, parseInt(totalFriends.textContent) + friendsDelta);
+      }
+    }
+
+    // Create friend card (helper)
+    function createFriendCard(username) {
+      const initials = username.substring(0, 2).toUpperCase();
+      const div = document.createElement('div');
+      div.className = 'friend-card';
+      div.innerHTML = `
+        <div class="friend-avatar">${initials}</div>
+        <div class="friend-info">
+          <div class="friend-username">${username}</div>
+          <div class="friend-status">
+            <span class="status-indicator status-online"></span>
+            Online
+          </div>
+        </div>
+        <div class="friend-actions">
+          <button class="btn-action btn-message">Message</button>
+          <button class="btn-action btn-invite">Invite</button>
+          <button class="btn-action btn-remove" onclick="removeFriend(this)">Remove</button>
+        </div>
+      `;
+      return div;
+    }
+
+    // Create sent request card (helper)
+    function createSentRequestCard(username) {
+      const initials = username.substring(0, 2).toUpperCase();
+      const div = document.createElement('div');
+      div.className = 'friend-card';
+      div.innerHTML = `
+        <div class="request-time">Sent just now</div>
+        <div class="friend-avatar">${initials}</div>
+        <div class="friend-info">
+          <div class="friend-username">${username}</div>
+          <div class="friend-status">Awaiting response...</div>
+        </div>
+        <div class="friend-actions">
+          <button class="btn-action btn-deny" onclick="cancelRequest(this)">Cancel</button>
+        </div>
+      `;
+      return div;
+    }
+
+    // Allow Enter key to send request
+    document.getElementById('friendUsernameInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendFriendRequest();
+      }
+    });
+
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', () => {
+      initOngoingOnly();
+    });
+  </script>
+</body>
+</html>
