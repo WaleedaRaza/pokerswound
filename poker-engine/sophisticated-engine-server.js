@@ -396,12 +396,7 @@ app.get('/poker-today', (req, res) => {
 
 // Game table route (existing poker.html - full game interface)
 app.get('/game', (req, res) => {
-  // Redirect to /play with room parameter if present
-  const roomId = req.query.room;
-  if (roomId) {
-    return res.redirect(`/play?room=${roomId}`);
-  }
-  // Otherwise serve the old poker.html (for backwards compatibility)
+  // Always serve poker.html - it will handle ?room= parameter and auto-join
   res.sendFile(path.join(__dirname, 'public/poker.html'));
 });
 
@@ -666,21 +661,25 @@ app.post('/api/rooms/:roomId/lobby/join', async (req, res) => {
     
     const isHost = roomCheck.rows[0].host_user_id === user_id;
     
-    // Check if user exists in auth.users (for real users) or create guest profile
-    const userCheck = await db.query('SELECT id FROM auth.users WHERE id = $1', [user_id]);
-    const userExists = userCheck.rowCount > 0;
+    // Check if user profile already exists
+    const profileCheck = await db.query('SELECT id, username FROM user_profiles WHERE id = $1', [user_id]);
     
-    if (!userExists) {
-      console.log(`⚠️ User ${user_id} not in auth.users - treating as guest/anonymous user`);
+    if (profileCheck.rowCount === 0) {
+      // No profile exists - need to create one
+      // Try to get username from request body (sent by frontend)
+      const username = req.body.username || `Guest_${user_id.substring(0, 6)}`;
+      
+      console.log(`📝 Creating user profile for ${user_id} with username: ${username}`);
+      
+      await db.query(
+        `INSERT INTO user_profiles (id, username, display_name)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (id) DO NOTHING`,
+        [user_id, username, username]
+      );
+    } else {
+      console.log(`✅ User profile exists: ${profileCheck.rows[0].username}`);
     }
-    
-    // Create user profile if it doesn't exist (works for both real and guest users)
-    await db.query(
-      `INSERT INTO user_profiles (id, username, display_name)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (id) DO NOTHING`,
-      [user_id, `Guest_${user_id.substring(0, 6)}`, `Guest_${user_id.substring(0, 6)}`]
-    );
     
     // Add player to lobby (auto-approve if host, otherwise pending)
     const status = isHost ? 'approved' : 'pending';
