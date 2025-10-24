@@ -1,0 +1,13 @@
+{
+  "startTime": "2025-10-21T03:49:52.945Z",
+  "currentHour": 0,
+  "checkpointsPassed": [],
+  "checkpointsFailed": [
+    {
+      "name": "hour1-dual-boot",
+      "reason": "Could not find server.listen() call",
+      "timestamp": "2025-10-21T03:50:17.125Z"
+    }
+  ],
+  "canProceed": false
+}

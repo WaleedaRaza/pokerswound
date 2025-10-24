@@ -1,0 +1,417 @@
+# Migration Task Tracker
+# Machine-readable format for AI assistants
+# Update status as tasks complete
+# Last updated: 2025-10-21T00:00:00Z
+
+metadata:
+  project: pokeher-poker-engine
+  migration_start_date: "2025-10-21"
+  current_phase: 1
+  total_phases: 4
+  completion_percentage: 0
+
+feature_flags:
+  USE_DB_REPOSITORY: false
+  USE_INPUT_VALIDATION: false
+  USE_AUTH_MIDDLEWARE: false
+  USE_EVENT_PERSISTENCE: false
+  USE_REDIS_SESSIONS: false
+
+phases:
+  - id: 1
+    name: "Database Persistence"
+    status: READY
+    start_date: null
+    end_date: null
+    estimated_days: 5
+    actual_days: null
+    tasks:
+      - id: "1.1"
+        name: "Initialize Repository Infrastructure"
+        level: L3
+        status: READY
+        dependencies: []
+        files_modified: []
+        estimated_minutes: 30
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "1.2"
+        name: "Migrate GET /api/games/:id"
+        level: L2
+        status: BLOCKED
+        dependencies: ["1.1"]
+        files_modified: []
+        estimated_minutes: 20
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "1.3"
+        name: "Migrate POST /api/games"
+        level: L2
+        status: BLOCKED
+        dependencies: ["1.2"]
+        files_modified: []
+        estimated_minutes: 25
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "1.4"
+        name: "Migrate POST /api/games/:id/action"
+        level: L2
+        status: BLOCKED
+        dependencies: ["1.3"]
+        files_modified: []
+        estimated_minutes: 30
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "1.5"
+        name: "Migrate remaining game endpoints"
+        level: L3
+        status: BLOCKED
+        dependencies: ["1.4"]
+        files_modified: []
+        estimated_minutes: 60
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "1.6"
+        name: "Enable event persistence"
+        level: L2
+        status: BLOCKED
+        dependencies: ["1.5"]
+        files_modified: []
+        estimated_minutes: 20
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "1.7"
+        name: "Remove in-memory Map"
+        level: L2
+        status: BLOCKED
+        dependencies: ["1.6"]
+        files_modified: []
+        estimated_minutes: 15
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+
+  - id: 2
+    name: "Input Validation"
+    status: BLOCKED
+    start_date: null
+    end_date: null
+    estimated_days: 3
+    actual_days: null
+    tasks:
+      - id: "2.1"
+        name: "Add Zod schemas for all endpoints"
+        level: L3
+        status: BLOCKED
+        dependencies: ["1.7"]
+        files_modified: []
+        estimated_minutes: 120
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "2.2"
+        name: "Add validation middleware"
+        level: L2
+        status: BLOCKED
+        dependencies: ["2.1"]
+        files_modified: []
+        estimated_minutes: 30
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "2.3"
+        name: "Apply validation to all endpoints"
+        level: L3
+        status: BLOCKED
+        dependencies: ["2.2"]
+        files_modified: []
+        estimated_minutes: 90
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+
+  - id: 3
+    name: "Authentication & Security"
+    status: BLOCKED
+    start_date: null
+    end_date: null
+    estimated_days: 4
+    actual_days: null
+    tasks:
+      - id: "3.1"
+        name: "Add auth middleware"
+        level: L2
+        status: BLOCKED
+        dependencies: ["2.3"]
+        files_modified: []
+        estimated_minutes: 45
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "3.2"
+        name: "Apply auth to GET endpoints"
+        level: L2
+        status: BLOCKED
+        dependencies: ["3.1"]
+        files_modified: []
+        estimated_minutes: 30
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "3.3"
+        name: "Apply auth to POST endpoints"
+        level: L2
+        status: BLOCKED
+        dependencies: ["3.2"]
+        files_modified: []
+        estimated_minutes: 40
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "3.4"
+        name: "Add rate limiting"
+        level: L2
+        status: BLOCKED
+        dependencies: ["3.3"]
+        files_modified: []
+        estimated_minutes: 45
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "3.5"
+        name: "Update frontend auth headers"
+        level: L3
+        status: BLOCKED
+        dependencies: ["3.3"]
+        files_modified: []
+        estimated_minutes: 60
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+
+  - id: 4
+    name: "Modularization"
+    status: BLOCKED
+    start_date: null
+    end_date: null
+    estimated_days: 10
+    actual_days: null
+    tasks:
+      - id: "4.1"
+        name: "Extract room routes to separate file"
+        level: L3
+        status: BLOCKED
+        dependencies: ["3.5"]
+        files_modified: []
+        estimated_minutes: 90
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "4.2"
+        name: "Extract game routes to separate file"
+        level: L3
+        status: BLOCKED
+        dependencies: ["4.1"]
+        files_modified: []
+        estimated_minutes: 120
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "4.3"
+        name: "Extract WebSocket handlers"
+        level: L3
+        status: BLOCKED
+        dependencies: ["4.2"]
+        files_modified: []
+        estimated_minutes: 90
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "4.4"
+        name: "Create RoomService class"
+        level: L3
+        status: BLOCKED
+        dependencies: ["4.1"]
+        files_modified: []
+        estimated_minutes: 120
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "4.5"
+        name: "Remove tsconfig exclusions"
+        level: L2
+        status: BLOCKED
+        dependencies: ["4.4"]
+        files_modified: []
+        estimated_minutes: 15
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "4.6"
+        name: "Full TypeScript compilation"
+        level: L2
+        status: BLOCKED
+        dependencies: ["4.5"]
+        files_modified: []
+        estimated_minutes: 30
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+        
+      - id: "4.7"
+        name: "Delete monolith server file"
+        level: L2
+        status: BLOCKED
+        dependencies: ["4.6"]
+        files_modified: []
+        estimated_minutes: 10
+        actual_minutes: null
+        assignee: null
+        started_at: null
+        completed_at: null
+        validation_passed: false
+        rollback_tested: false
+        notes: []
+
+testing_status:
+  unit_tests:
+    total: 47
+    passing: 47
+    failing: 0
+    last_run: null
+    
+  integration_tests:
+    total: 12
+    passing: 12
+    failing: 0
+    last_run: null
+    
+  e2e_tests:
+    total: 5
+    passing: 4
+    failing: 1
+    flaky: ["game_flow_test.js"]
+    last_run: null
+
+rollback_history:
+  - task_id: null
+    reason: null
+    timestamp: null
+    resolved: false
+
+incidents:
+  - id: null
+    task_id: null
+    description: null
+    severity: null
+    timestamp: null
+    resolved: false
+    resolution: null
+

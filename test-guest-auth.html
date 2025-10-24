@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Guest Auth Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Guest Auth Test</h1>
+  <button onclick="testGuestAuth()">Test Guest Sign In</button>
+  <button onclick="testGetToken()">Test Get Token</button>
+  <pre id="output"></pre>
+
+  <script>
+    const log = (msg) => {
+      const output = document.getElementById('output');
+      output.textContent += msg + '\n';
+      console.log(msg);
+    };
+
+    // Initialize Supabase
+    const supabase = window.supabase.createClient(
+      'https://curkkakmkiyrimqsafps.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cmtrYWtta2l5cmltcXNhZnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDI5NTYsImV4cCI6MjA3NTY3ODk1Nn0.68l4EDYgeK2oWJ_p69MaHkbjn8T52BqetWpcnxCU1gU'
+    );
+
+    async function testGuestAuth() {
+      log('🔐 Testing guest sign in...');
+      
+      try {
+        const { data, error } = await supabase.auth.signInAnonymously();
+        
+        if (error) {
+          log('❌ Error: ' + error.message);
+          return;
+        }
+        
+        log('✅ Sign in successful!');
+        log('User ID: ' + data.user.id);
+        log('Is Anonymous: ' + data.user.is_anonymous);
+        
+        if (data.session) {
+          log('✅ Session exists');
+          log('Token: ' + data.session.access_token.substring(0, 50) + '...');
+        } else {
+          log('❌ No session!');
+        }
+      } catch (err) {
+        log('❌ Exception: ' + err.message);
+      }
+    }
+
+    async function testGetToken() {
+      log('🔍 Testing get token...');
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          log('❌ Error: ' + error.message);
+          return;
+        }
+        
+        if (session) {
+          log('✅ Session found');
+          log('Token: ' + session.access_token.substring(0, 50) + '...');
+        } else {
+          log('❌ No session found');
+        }
+      } catch (err) {
+        log('❌ Exception: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
+

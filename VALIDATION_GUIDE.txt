@@ -1,0 +1,90 @@
+=======================================================
+✅ MIGRATION PHASE 1 - VALIDATION GUIDE
+=======================================================
+
+CRITICAL FIXES IMPLEMENTED:
+1. ✅ Event persistence flag now respected (line 335 in sophisticated-engine-server.js)
+2. ✅ Game recovery endpoint added (GET /api/rooms/:roomId/game-state)
+3. ✅ Frontend recovery logic on page load (play.html line 1732-1787)
+4. ✅ Structured logging system (Logger with categories)
+5. ✅ FullGameRepository for complete schema integration
+
+=======================================================
+HOW TO VALIDATE (5 MINUTES)
+=======================================================
+
+STEP 1: START SERVER
+--------------------
+cd pokeher/poker-engine
+npm start
+
+Expected logs:
+[TIMESTAMP] SUCCESS   [EVENT     ] EventBus initialized | persistEvents=false
+[TIMESTAMP] INFO      [STARTUP   ] Server starting...
+
+STEP 2: CREATE & PLAY GAME
+---------------------------
+1. Open http://localhost:3000/pages/play.html
+2. Sign in as guest
+3. Create a room
+4. Start game with 2+ players
+5. Play 1-2 hands
+
+Expected: Clean structured logs like:
+[TIMESTAMP] INFO      [GAME      ] Hand started | gameId=... handNumber=1
+[TIMESTAMP] SUCCESS   [PERSIST   ] Game saved to DB | gameId=... version=2
+
+STEP 3: TEST RECOVERY
+----------------------
+1. **REFRESH THE PAGE** (F5 or Ctrl+R)
+
+Expected behavior:
+✅ Console shows: "🔄 Attempting game recovery..."
+✅ Console shows: "✅ Game recovered!"
+✅ Poker table reappears with same game state
+✅ Hand number, pot, and stacks match
+
+If recovery fails:
+❌ Console shows: "ℹ️ No active game to recover"
+→ Check USE_DB_REPOSITORY=true in .env
+→ Check game_states table has data
+
+STEP 4: CHECK DATABASE
+----------------------
+Open Supabase SQL Editor, run:
+
+SELECT id, hand_number, total_pot, status 
+FROM game_states 
+WHERE status != 'completed'
+ORDER BY created_at DESC 
+LIMIT 5;
+
+Expected: Recent games with incrementing hand_number
+
+STEP 5: VERIFY NO ERRORS
+-------------------------
+Check logs for:
+❌ NO "causation_id" errors (flag is working!)
+❌ NO "domain_events" errors  
+✅ Clean structured logs with categories
+
+=======================================================
+KNOWN ISSUES (MINOR)
+=======================================================
+1. TypeScript compilation warnings (base.repo.ts) - SAFE TO IGNORE
+2. Event persistence disabled for now (USE_EVENT_PERSISTENCE=false)
+   → Will re-enable after full schema integration
+3. Full-game repository not wired in yet
+   → Phase 1.3 will integrate all tables
+
+=======================================================
+NEXT PHASE: FULL SCHEMA INTEGRATION
+=======================================================
+Once validated:
+1. Wire FullGameRepository into game flow
+2. Log to: hands, actions, chips_transactions, player_hand_history
+3. Update player_statistics on hand completion
+4. Re-enable event persistence with correct EventStoreRepository
+
+=======================================================
+

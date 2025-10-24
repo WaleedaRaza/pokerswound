@@ -1,0 +1,225 @@
+============================================
+POKER ENGINE DATABASE RELATIONSHIP DIAGRAM
+============================================
+
+AUTHENTICATION LAYER
+┌─────────────────┐
+│   auth.users    │ (Supabase managed)
+│   (Supabase)    │
+└─────────────────┘
+         │
+         │ (1:1, no FK)
+         ▼
+┌─────────────────┐
+│ user_profiles   │
+│ - id (PK)       │
+│ - username      │
+│ - display_name  │
+│ - bio           │
+│ - avatar_url    │
+│ - chips         │
+└─────────────────┘
+         │
+         │ (1:many, no FK)
+         ▼
+┌─────────────────┐
+│ room_players    │
+│ - room_id (FK)  │
+│ - user_id       │
+│ - status        │
+└─────────────────┘
+
+ROOM MANAGEMENT LAYER
+┌─────────────────┐
+│     rooms       │
+│ - id (PK)       │
+│ - host_user_id  │
+│ - invite_code   │
+│ - stakes        │
+│ - max_players   │
+└─────────────────┘
+         │
+         ├─ (1:many) ──► room_players
+         ├─ (1:many) ──► room_seats
+         ├─ (1:many) ──► room_spectators
+         └─ (1:1) ──────► games
+
+┌─────────────────┐
+│   room_seats    │
+│ - room_id (FK)  │
+│ - user_id       │
+│ - seat_index    │
+│ - chips_in_play │
+└─────────────────┘
+
+┌─────────────────┐
+│ room_spectators │
+│ - room_id (FK)  │
+│ - user_id       │
+└─────────────────┘
+
+GAME EXECUTION LAYER
+┌─────────────────┐
+│     games       │
+│ - id (PK)       │
+│ - room_id (FK)  │
+│ - status        │
+│ - stakes        │
+└─────────────────┘
+         │
+         └─ (1:many) ──► players
+
+┌─────────────────┐
+│    players      │
+│ - game_id (FK)  │
+│ - user_id       │
+│ - seat_number   │
+│ - chips         │
+│ - status        │
+└─────────────────┘
+         │
+         └─ (1:many) ──► hands (via game)
+
+HAND EXECUTION LAYER
+┌─────────────────┐
+│     hands       │
+│ - id (PK)       │
+│ - game_id (FK)  │
+│ - hand_number   │
+│ - status        │
+│ - pot           │
+│ - community_cards│
+└─────────────────┘
+         │
+         ├─ (1:many) ──► actions
+         ├─ (1:many) ──► pots
+         └─ (1:1) ──────► hand_history
+
+┌─────────────────┐
+│    actions      │
+│ - hand_id (FK)  │
+│ - user_id       │
+│ - action_type   │
+│ - amount        │
+│ - position      │
+└─────────────────┘
+
+┌─────────────────┐
+│      pots       │
+│ - hand_id (FK)  │
+│ - pot_number    │
+│ - amount        │
+│ - eligible_players│
+│ - winner_user_id│
+└─────────────────┘
+
+┌─────────────────┐
+│  hand_history   │
+│ - hand_id (FK)  │
+│ - hand_data     │
+│ (JSONB)         │
+└─────────────────┘
+
+AUDIT & TRACKING LAYER
+┌─────────────────┐
+│   audit_log     │
+│ - user_id       │
+│ - action        │
+│ - table_name    │
+│ - record_id     │
+│ - old_values    │
+│ - new_values    │
+└─────────────────┘
+
+┌─────────────────┐
+│chips_transactions│
+│ - user_id       │
+│ - type          │
+│ - amount        │
+│ - game_id (FK)  │
+│ - hand_id (FK)  │
+└─────────────────┘
+
+┌─────────────────┐
+│ chips_pending   │
+│ - user_id       │
+│ - amount        │
+│ - game_id (FK)  │
+│ - status        │
+└─────────────────┘
+
+┌─────────────────┐
+│ rejoin_tokens   │
+│ - user_id       │
+│ - game_id (FK)  │
+│ - token         │
+│ - expires_at    │
+└─────────────────┘
+
+CONFIGURATION LAYER
+┌─────────────────┐
+│  table_stakes   │
+│ - room_id (FK)  │
+│ - small_blind   │
+│ - big_blind     │
+│ - min_buy_in    │
+│ - max_buy_in    │
+└─────────────────┘
+
+┌─────────────────┐
+│ user_sessions   │ (Legacy)
+│ - user_id       │
+│ - session_token │
+│ - expires_at    │
+└─────────────────┘
+
+============================================
+KEY RELATIONSHIPS SUMMARY
+============================================
+
+PRIMARY FLOW:
+1. User creates/joins room (rooms, room_players)
+2. Players claim seats (room_seats)
+3. Host starts game (games, players)
+4. Game plays hands (hands, actions, pots)
+5. Results recorded (hand_history, chips_transactions)
+
+USER JOURNEY:
+auth.users → user_profiles → room_players → room_seats → players → actions
+
+DATA FLOW:
+rooms → games → hands → actions/pots → hand_history
+
+AUDIT TRAIL:
+All changes → audit_log
+All chip movements → chips_transactions
+
+============================================
+SCALING CONSIDERATIONS
+============================================
+
+HOT TABLES (High Activity):
+- rooms, room_players, room_seats
+- games, players, hands, actions
+
+WARM TABLES (Medium Activity):
+- user_profiles, pots, chips_transactions
+
+COLD TABLES (Low Activity):
+- hand_history, audit_log, rejoin_tokens
+
+PARTITIONING CANDIDATES:
+- hands (by date)
+- actions (by date)
+- audit_log (by date)
+- hand_history (by date)
+
+SHARDING CANDIDATES:
+- actions (by game_id)
+- hands (by game_id)
+- audit_log (by user_id)
+
+CACHING CANDIDATES:
+- user_profiles (by user_id)
+- rooms (by room_id)
+- active games (by game_id)
