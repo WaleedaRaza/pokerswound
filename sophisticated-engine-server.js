@@ -1001,7 +1001,6 @@ function initializeEventSourcing(io) {
     
     // ✅ CRITICAL: Initialize GameStateMachine with EventBus
     stateMachine = new GameStateMachine(Math.random, eventBus);
-    app.locals.stateMachine = stateMachine; // Update app.locals after initialization
     Logger.success(LogCategory.STARTUP, 'GameStateMachine initialized with EventBus');
     
     // Register event handlers
@@ -1035,7 +1034,6 @@ function initializeEventSourcing(io) {
     // Fallback: Create GameStateMachine without EventBus
     if (!stateMachine) {
       stateMachine = new GameStateMachine(Math.random, null);
-      app.locals.stateMachine = stateMachine; // Update app.locals after fallback initialization
       Logger.warn(LogCategory.STARTUP, 'GameStateMachine initialized without EventBus (fallback)');
     }
   }

@@ -191,7 +191,7 @@ router.get('/:roomId/game', async (req, res) => {
     if (!db) return res.status(500).json({ error: 'Database not configured' });
     
     const result = await db.query(
-      'SELECT id, current_state, status FROM game_states WHERE room_id = $1 ORDER BY created_at DESC LIMIT 1',
+      'SELECT id, state FROM game_states WHERE room_id = $1 ORDER BY created_at DESC LIMIT 1',
       [req.params.roomId]
     );
     
@@ -204,8 +204,7 @@ router.get('/:roomId/game', async (req, res) => {
     
     res.json({
       id: gameState.id,
-      state: gameState.current_state,
-      status: gameState.status
+      state: gameState.state
     });
   } catch (e) {
     console.error('Get active game error:', e);

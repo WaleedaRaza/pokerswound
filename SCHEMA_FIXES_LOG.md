@@ -210,55 +210,13 @@ Fixed function calls in `sophisticated-engine-server.js`:
 
 ---
 
----
-
-## 🐛 Issue 6: Game Start Failures
-
-**Errors:**
-```
-1. Get active game error: column "state" does not exist
-2. Start hand error: Cannot read properties of null (reading 'processAction')
-```
-
-**User Report:**
-> "It is quite messy, people take seats and it tells them they need to claim a seat to start"
-
-**Root Causes:**
-1. **Schema Mismatch:** `routes/rooms.js` was querying `state` column, but `game_states` table uses `current_state`
-2. **Null State Machine:** `app.locals.stateMachine` was set to `null` during module loading, before `stateMachine` was actually initialized in `initializeServices()`
-
-**Timeline of Null Issue:**
-```
-Line 262:  let stateMachine = null;  // Declared
-Line 722:  app.locals.stateMachine = stateMachine;  // ❌ Set to null!
-Line 1003: stateMachine = new GameStateMachine(...);  // ✅ Initialized
-Routes:    app.locals.stateMachine.processAction(...)  // ❌ Still null!
-```
-
-**Fixes:**
-1. **routes/rooms.js (Line 194):**
-   - Changed `SELECT id, state FROM game_states` → `SELECT id, current_state, status FROM game_states`
-   - Changed `res.json({ id, state })` → `res.json({ id, state: current_state, status })`
-
-2. **sophisticated-engine-server.js (Lines 1004, 1038):**
-   - Added `app.locals.stateMachine = stateMachine;` immediately AFTER initialization
-   - Added fallback update for error case
-
-**Files Modified:**
-- `routes/rooms.js` (lines 194, 207-208)
-- `sophisticated-engine-server.js` (lines 1004, 1038)
-
-**Status:** ✅ Fixed
-
----
-
 ## 🎯 Next Steps
 
 1. ✅ Fix schema mismatches (auth, lobby join, lobby players)
 2. ✅ Add Socket.IO broadcasts for real-time lobby updates
 3. ✅ Fix seat broadcast parameter mismatch
-4. ✅ Fix game start failures (schema + null stateMachine)
-5. 🔄 **NOW TESTING:** Full game flow (create → join → seats → start → deal → actions)
-6. Test multiple hands in succession
+4. 🔄 **NOW TESTING:** Seat claiming (should broadcast to all players in real-time)
+5. Test game start
+6. Test full game flow (deal, actions, showdown)
 7. Complete full test plan in `MODULARIZATION_TEST_PLAN.md`
 

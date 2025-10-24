@@ -365,43 +365,8 @@ router.post('/:id/start-hand', async (req, res) => {
           return res.status(400).json({ error: 'Need at least 2 players with chips to start' });
         }
         
-        // Check if hand is already active (multiple conditions for safety)
-        const isHandActive = (
-          (gameState.handState && gameState.handState.isHandActive) ||
-          (gameState.handState && gameState.handState.handNumber > 0) ||
-          (gameState.players && gameState.players.size > 0 && 
-           Array.from(gameState.players.values()).some(p => p.holeCards && p.holeCards.length > 0))
-        );
-        
-        if (isHandActive) {
-          console.log('⚠️  Hand already active, preventing duplicate start');
-          console.log('   - handState.isHandActive:', gameState.handState?.isHandActive);
-          console.log('   - handNumber:', gameState.handState?.handNumber);
-          console.log('   - players with cards:', Array.from(gameState.players?.values() || []).filter(p => p.holeCards?.length > 0).length);
-          
-          return res.status(409).json({ 
-            error: 'Hand already in progress',
-            message: 'A hand is already active for this game',
-            handNumber: gameState.handState?.handNumber,
-            status: 'active'
-          });
-        }
-        
         // Clear and repopulate players
         gameState.players.clear();
-        
-        // Also clear table seats to prevent "Seat already occupied" errors
-        if (gameState.table && gameState.table.seats) {
-          // Check if seats is a Map or array
-          if (gameState.table.seats instanceof Map) {
-            gameState.table.seats.clear();
-          } else if (Array.isArray(gameState.table.seats)) {
-            gameState.table.seats.length = 0;
-          } else {
-            // Fallback: recreate the seats structure
-            gameState.table.seats = new Map();
-          }
-        }
         
         if (!playerUserIds.has(gameId)) {
           playerUserIds.set(gameId, new Map());
