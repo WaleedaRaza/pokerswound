@@ -6,8 +6,13 @@ const cors = require('cors');
 const path = require('path');
 const { Pool } = require('pg');
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
 // ✅ AUTH: Supabase integration
 const { createClient } = require('@supabase/supabase-js');
+// ✅ REDIS: Session & Scaling Infrastructure
+const { initializeRedis, getRedisClient, getRedisSubscriber } = require('./config/redis');
+const { SessionService } = require('./services/session-service');
+const { createSessionMiddleware, ensureSession, attachSessionService } = require('./middleware/session');
 
 // Import our SOPHISTICATED compiled engine components
 const { GameStateModel } = require('./dist/core/models/game-state');
@@ -67,7 +72,10 @@ try {
 }
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve static files (card images and UI)
@@ -75,6 +83,9 @@ app.use('/cards', express.static(path.join(__dirname, 'public/cards')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/js', express.static(path.join(__dirname, 'public/js')));
+
+// ✅ GLOBAL: Session Service (initialized after Redis ready)
+let sessionService = null;
 
 // ============================================
 // MIGRATION INFRASTRUCTURE - Phase 1: Database Persistence
@@ -1001,6 +1012,7 @@ function initializeEventSourcing(io) {
     
     // ✅ CRITICAL: Initialize GameStateMachine with EventBus
     stateMachine = new GameStateMachine(Math.random, eventBus);
+    app.locals.stateMachine = stateMachine; // ⚔️ MIRA: Update app.locals AFTER init
     Logger.success(LogCategory.STARTUP, 'GameStateMachine initialized with EventBus');
     
     // Register event handlers
@@ -1034,8 +1046,38 @@ function initializeEventSourcing(io) {
     // Fallback: Create GameStateMachine without EventBus
     if (!stateMachine) {
       stateMachine = new GameStateMachine(Math.random, null);
+      app.locals.stateMachine = stateMachine; // ⚔️ MIRA: Update app.locals in fallback too
       Logger.warn(LogCategory.STARTUP, 'GameStateMachine initialized without EventBus (fallback)');
     }
+  }
+}
+
+// ✅ REDIS INITIALIZATION
+async function initializeRedisInfrastructure() {
+  try {
+    Logger.info(LogCategory.STARTUP, 'Initializing Redis infrastructure...');
+    
+    const { client, subscriber } = await initializeRedis();
+    
+    // Create SessionService
+    sessionService = new SessionService(client, getDb());
+    Logger.success(LogCategory.STARTUP, 'SessionService initialized');
+    
+    // Apply session middleware to app
+    app.use(createSessionMiddleware(client));
+    app.use(ensureSession);
+    app.use(attachSessionService(sessionService));
+    Logger.success(LogCategory.STARTUP, 'Session middleware applied');
+    
+    // Make Redis clients available globally
+    app.locals.redisClient = client;
+    app.locals.redisSubscriber = subscriber;
+    app.locals.sessionService = sessionService;
+    
+    return { client, subscriber };
+  } catch (error) {
+    Logger.error(LogCategory.STARTUP, 'Redis initialization failed', { error: error.message });
+    throw error;
   }
 }
 
@@ -1094,8 +1136,23 @@ async function recoverIncompleteGames() {
 // ============================================
 
 async function initializeServices() {
+  // Initialize Redis (MUST be first for sessions)
+  const { client, subscriber } = await initializeRedisInfrastructure();
+  
   // Initialize Supabase Auth
   initializeSupabase();
+  
+  // Attach Redis adapter to Socket.IO for horizontal scaling
+  if (io && client && subscriber) {
+    io.adapter(createAdapter(client, subscriber));
+    Logger.success(LogCategory.STARTUP, 'Socket.IO Redis adapter attached');
+  }
+  
+  // Make sessionService directly accessible to Socket.IO
+  if (io && sessionService) {
+    io.sessionService = sessionService;
+    Logger.success(LogCategory.STARTUP, 'SessionService attached to Socket.IO');
+  }
   
   // Initialize event sourcing infrastructure
   initializeEventSourcing(io);

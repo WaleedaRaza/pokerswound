@@ -2,9 +2,24 @@
 
 **Revolutionary online poker platform with full data persistence, AI analysis, and community features.**
 
-**Current Status:** MODULARIZATION COMPLETE ✅ (64% reduction, 48 endpoints extracted)  
-**Next Phase:** Testing → Week 4 Features (Chat, History, Rebuy)  
-**Target Launch:** 7-9 weeks to full MVP
+**Current Status:** 85% Infrastructure, 20% Features  
+**Next Phase:** Validate Refresh Recovery → Horizontal Scaling → Feature Velocity  
+**Target Launch:** 8-12 weeks to MVP
+
+---
+
+## ⚠️ **START HERE**
+
+**Read `PRODUCTION_BATTLEPLAN.md` ⭐ - Your ONLY strategic document**
+
+This comprehensive battleplan contains:
+- Complete ground truth (what actually works vs what's claimed)
+- Critical path to production (Phase 0-4)
+- Feature reality matrix (what exists vs what's implemented)
+- Strategic positioning against competition
+- Week-by-week execution plan
+
+**All other planning docs have been archived. This is your single source of truth.**
 
 ---
 
@@ -12,19 +27,18 @@
 
 ### **For Developers (First Time Here):**
 
-1. **Start Here:** Read `STRATEGIC_OVERVIEW_OCT24.md` ⭐ (10 min)
-   - Where we are, where we're going
-   - Complete roadmap and decision points
-   - **THIS IS THE MAIN REFERENCE DOCUMENT**
+1. **Read:** `PRODUCTION_BATTLEPLAN.md` ⭐ (30 min)
+   - Complete picture: infrastructure, features, timeline
+   - Validated against actual code
+   - Clear prioritization and success metrics
 
-2. **Then:** Skim `PROJECT_MASTER.md` (5 min)
-   - Feature list and timeline
-   - High-level architecture
+2. **For Database:** `Schemasnapshot.txt` (reference)
+   - Complete schema with all 60+ tables
+   - Use for query development
 
-3. **For Technical Deep Dive:** `ARCHITECTURE_MIGRATION_GUIDE.md` (30 min)
-   - Implementation details
-   - Code structure
-   - Migration procedures
+3. **For Config:** `.env.example`
+   - Copy to `.env` and configure
+   - Supabase credentials required
 
 ### **For Running the Server:**
 
@@ -47,25 +61,26 @@ node sophisticated-engine-server.js
 
 ## 📚 **DOCUMENTATION STRUCTURE**
 
-### **Core Documents (Read These):**
+### **Core Documents (4 Files Only):**
 
 ```
-📖 README.md                          ← You are here
-📖 STRATEGIC_OVERVIEW_OCT24.md        ⭐ MAIN REFERENCE (current status, roadmap, decisions)
-📖 PROJECT_MASTER.md                  📋 Project roadmap, features, timeline
-📖 ARCHITECTURE_MIGRATION_GUIDE.md   🏗️ Technical implementation details
+📖 README.md                    ← You are here (quick start)
+📖 PRODUCTION_BATTLEPLAN.md     ⭐ SINGLE SOURCE OF TRUTH (read this!)
+📖 Schemasnapshot.txt           🗄️  Database schema reference
+📖 .env.example                 ⚙️  Configuration template
 ```
 
 ### **Historical Documentation:**
 
 ```
-archive/docs-history/
-├── progress/         (Week 1-2 completion logs)
-├── bugs/            (Auth fixes, bug resolutions)
-├── modularization/  (Week 2 Day 4 extraction process)
-├── decisions/       (Planning snapshots)
-└── old/             (Deprecated documentation)
+archive/
+├── history/          (All previous planning docs, handoffs, fix attempts)
+├── completed/        (Completed work logs, summaries)
+├── decisions/        (Architectural decisions, strategies)
+└── docs-history/     (Legacy documentation from earlier phases)
 ```
+
+**Note:** If you're reading anything other than `PRODUCTION_BATTLEPLAN.md`, it's historical context, not current strategy.
 
 ---
 
@@ -94,12 +109,13 @@ Build the **chess.com of poker** that destroys pokernow.club
 - ✅ Security stack (rate limiting, validation, auth)
 - ✅ **NEW: Modular router architecture (21 endpoints organized)**
 
-### **What's Next (Week 2 Days 5-7):**
-- ⏳ Frontend state management (2 hours)
-- ⏳ Action timer system (3 hours)
-- ⏳ Player status system (3 hours)
+### **What's ACTUALLY Built (Discovered!):**
+- ✅ Frontend state management **COMPLETE** (game-state-manager.js - 364 lines)
+- ✅ Action timer system **COMPLETE** (action-timer-manager.js - 258 lines)
+- ✅ Player status system **COMPLETE** (player-status-manager.js - 284 lines)
+- ⏳ **Need Integration:** Wire these into game flow (4 hours)
 
-**Progress:** Foundation 70%, Features 5%
+**Progress:** Foundation 85%, Features 10%, Overall 20%
 
 ---
 
@@ -126,27 +142,35 @@ Build the **chess.com of poker** that destroys pokernow.club
 
 ## 🗺️ **ROADMAP OVERVIEW**
 
-### **Phase 1: Playable Game (Weeks 2-3) ← WE ARE HERE**
-- ✅ URL routing, seats, refresh, modularization
-- ⏳ Timers, status, room management
-- **Target:** November 3
+### **Phase 0: Validate Refresh Recovery** ⚠️ **START HERE** (2-4 hours)
+- Test refresh flow end-to-end
+- Verify Anton's 3 fix attempts actually work
+- Document any remaining issues
 
-### **Phase 2: Feature Parity (Week 4)**
-- Chat, show cards, rebuy
-- Hand/game history
-- **Target:** November 10
+### **Phase 1: Horizontal Scaling** (1-2 weeks)
+- Room URL system (`/game/:roomId`)
+- Redis session store
+- Socket.IO Redis adapter
+- Link-based session recovery
 
-### **Phase 3: Competitive Advantage (Week 5)**
-- Friend system, tournaments
-- Public/private rooms
-- **Target:** November 17
+### **Phase 2: Integrate Built Managers** (4-6 hours)
+- Action timer integration (auto-fold on timeout)
+- Game state manager (localStorage persistence)
+- Player status tracking (ACTIVE/AWAY/OFFLINE)
 
-### **Phase 4: Platform Features (Weeks 6-10)**
-- Scaling (Redis), post-game analysis
-- Ranked system, clubs, learning, forum
-- **Target:** December 22
+### **Phase 3: Feature Velocity** (2-3 weeks)
+- Hand/game history endpoints
+- In-game chat with rate limiting
+- Nicknames & profiles
+- Card reveal, rebuy, public rooms
 
-**Full details:** See `STRATEGIC_OVERVIEW_OCT24.md`
+### **Phase 4: Platform Differentiation** (3-4 weeks)
+- Friend system & clubs
+- Post-game analysis (chess.com style)
+- Ranked matchmaking & chip economy
+- Tournaments, AI analysis
+
+**Full roadmap with weekly breakdowns:** See `PRODUCTION_BATTLEPLAN.md`
 
 ---
 
@@ -178,10 +202,10 @@ Build the **chess.com of poker** that destroys pokernow.club
 ## 🤝 **FOR CONTRIBUTORS**
 
 ### **Development Process:**
-1. Read `STRATEGIC_OVERVIEW_OCT24.md` for current status
-2. Check Week 2-3 roadmap for next tasks
-3. Follow modular architecture patterns
-4. Test thoroughly before committing
+1. Read `PRODUCTION_BATTLEPLAN.md` for current status and priorities
+2. Check Phase 0-4 roadmap for next tasks
+3. Follow modular architecture patterns (see Code Structure below)
+4. Test thoroughly before committing (90-hour bug lesson learned)
 
 ### **Code Structure:**
 ```
@@ -219,15 +243,21 @@ public/
 
 **This project represents freedom. We stop at no cost.**
 
-**The chess.com of poker is within reach.**
+**The chess.com of poker is 8-12 weeks away.**
 
-**Week 2 Day 4 ✅ Modularization complete.**  
-**Week 2 Days 5-7 ⏳ Timers & Status next.**
+**Key Achievements:**
+- ✅ Modularization complete: 64% reduction (2,886 → 1,046 lines)
+- ✅ Week 2 Days 5-7 already built: 906 lines of managers ready to integrate
+- ✅ Documentation consolidated: 12 docs → 1 battleplan
 
-**For complete current status and next steps:**  
-→ **Read `STRATEGIC_OVERVIEW_OCT24.md`** ⭐
+**Next Action:**  
+→ **Phase 0: Validate refresh recovery (2-4 hours)**
+
+**For everything else:**  
+→ **Read `PRODUCTION_BATTLEPLAN.md`** ⭐
 
 ---
 
-**Last Updated:** October 24, 2025  
-**Documentation Cleaned:** 62 → 4 core files ✅
+**Last Updated:** October 25, 2025 (Chat #6 - Mira)  
+**Status:** Documentation overhaul complete. Ready for Phase 0 execution.  
+**Progress:** 85% Infrastructure, 20% Features, MVP 8-12 weeks away

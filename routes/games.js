@@ -92,10 +92,10 @@ router.post('/', async (req, res) => {
       if (db) {
         try {
           await db.query(
-            'UPDATE rooms SET game_id = $1, current_game_id = $2 WHERE id = $3',
-            [gameId, gameUuid, roomId]
+            'UPDATE rooms SET game_id = $1 WHERE id = $2',
+            [gameId, roomId]
           );
-          Logger.debug(LogCategory.GAME, 'Linked game to room', { gameId, gameUuid, roomId });
+          Logger.debug(LogCategory.GAME, 'Linked game to room', { gameId, roomId });
         } catch (dbError) {
           Logger.error(LogCategory.GAME, 'Error linking game to room', { 
             gameId, 

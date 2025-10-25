@@ -145,6 +145,37 @@ router.get('/:roomId/seats', async (req, res) => {
 
 // POST /api/rooms/:roomId/join - Claim seat
 // ⚠️ NO AUTH: Guests need to join without JWT tokens
+// GET /api/rooms/:roomId/session - Get session info for current user
+router.get('/:roomId/session', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const userId = req.userId || req.query.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID required' });
+    }
+    
+    const sessionService = req.app.locals.sessionService;
+    if (!sessionService) {
+      return res.status(500).json({ error: 'Session service not available' });
+    }
+    
+    // Get session and seat binding
+    const session = await sessionService.getOrCreateSession(userId);
+    const seatBinding = await sessionService.getUserSeat(userId);
+    
+    res.json({
+      session,
+      seatBinding,
+      isSeated: !!seatBinding && seatBinding.roomId === roomId,
+      roomId
+    });
+  } catch (e) {
+    console.error('Session info error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.post('/:roomId/join', async (req, res) => {
   try {
     console.log('🎯 Claim seat request:', {
@@ -160,8 +191,21 @@ router.post('/:roomId/join', async (req, res) => {
     
     const claimSeat = req.app.locals.claimSeat;
     await claimSeat({ roomId: req.params.roomId, userId: user_id, seatIndex: seat_index, buyInAmount: buy_in_amount });
+    
+    // ✅ NEW: Bind user to seat via SessionService
+    const sessionService = req.app.locals.sessionService;
+    let seatToken = null;
+    if (sessionService) {
+      try {
+        seatToken = await sessionService.bindUserToSeat(user_id, req.params.roomId, seat_index);
+        console.log(`✅ User ${user_id} bound to seat ${seat_index} in room ${req.params.roomId}`);
+      } catch (bindError) {
+        console.warn('Failed to bind seat via SessionService:', bindError.message);
+      }
+    }
+    
     console.log('✅ Seat claimed successfully');
-    res.status(201).json({ ok: true, seatIndex: seat_index });
+    res.status(201).json({ ok: true, seatIndex: seat_index, seatToken });
   } catch (e) {
     console.error('❌ Join room error:', e.message);
     res.status(400).json({ error: e.message });
@@ -191,7 +235,7 @@ router.get('/:roomId/game', async (req, res) => {
     if (!db) return res.status(500).json({ error: 'Database not configured' });
     
     const result = await db.query(
-      'SELECT id, state FROM game_states WHERE room_id = $1 ORDER BY created_at DESC LIMIT 1',
+      'SELECT id, current_state, status FROM game_states WHERE room_id = $1 AND status != \'completed\' ORDER BY created_at DESC LIMIT 1',
       [req.params.roomId]
     );
     
@@ -204,10 +248,70 @@ router.get('/:roomId/game', async (req, res) => {
     
     res.json({
       id: gameState.id,
-      state: gameState.state
+      state: gameState.current_state,
+      status: gameState.status
     });
   } catch (e) {
     console.error('Get active game error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ⚔️ MIRA: Get complete state for refresh recovery (comprehensive)
+router.get('/:roomId/my-state', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId query parameter' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    console.log('🔄 [REFRESH RECOVERY] Fetching state for user:', userId, 'room:', req.params.roomId);
+    
+    // Get active game
+    const gameResult = await db.query(
+      'SELECT id, current_state, status FROM game_states WHERE room_id = $1 AND status != \'completed\' ORDER BY created_at DESC LIMIT 1',
+      [req.params.roomId]
+    );
+    
+    // Get user's seat
+    const seatResult = await db.query(
+      'SELECT seat_index, chips_in_play, status, joined_at FROM room_seats WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL',
+      [req.params.roomId, userId]
+    );
+    
+    // Get all seats
+    const allSeatsResult = await db.query(
+      'SELECT seat_index, user_id, status, chips_in_play FROM room_seats WHERE room_id = $1 AND left_at IS NULL ORDER BY seat_index ASC',
+      [req.params.roomId]
+    );
+    
+    const response = {
+      game: gameResult.rowCount > 0 ? {
+        id: gameResult.rows[0].id,
+        state: gameResult.rows[0].current_state,
+        status: gameResult.rows[0].status
+      } : null,
+      mySeat: seatResult.rowCount > 0 ? seatResult.rows[0] : null,
+      allSeats: allSeatsResult.rows,
+      isSeated: seatResult.rowCount > 0
+    };
+    
+    console.log('✅ [REFRESH RECOVERY] State fetched:', {
+      hasGame: !!response.game,
+      isSeated: response.isSeated,
+      seatIndex: response.mySeat?.seat_index,
+      totalSeats: response.allSeats.length
+    });
+    
+    res.json(response);
+  } catch (e) {
+    console.error('❌ [REFRESH RECOVERY] Error:', e);
     res.status(500).json({ error: e.message });
   }
 });
