@@ -1,0 +1,263 @@
+# 🎯 POKEHER .GITIGNORE
+# Comprehensive .gitignore for Next.js, Node.js, and TypeScript poker platform
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# NYC test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# Next.js build output
+.next/
+out/
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Runtime data
+*.tgz
+*.tar.gz
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+.tscache
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Supabase
+.env.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Build outputs
+build/
+dist/
+
+# Test outputs
+test-results/
+playwright-report/
+
+# Poker-specific ignores
+# Game state backups
+game-states/
+*.game
+
+# Card image cache
+card-cache/
+
+# Log files specific to poker engine
+poker-engine/logs/
+*.poker-log
+
+# Development files
+*.dev
+*.local
+*.test
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Lock files (include only one)
+# If using npm:
+package-lock.json
+
+# If using yarn (uncomment if switching):
+# yarn.lock
+
+# If using pnpm (uncomment if switching):
+# pnpm-lock.yaml
+
+# Production build artifacts
+*.production
+
+# Analytics and tracking
+analytics/
+tracking/
+
+# Documentation builds
+docs/build/
+
+# Temporary development files
+scratch/
+playground/
+experiments/
+
+# Security keys (never commit these!)
+*.key
+*.pem
+*.cert
+*.crt
+secrets/
+
+# Database migrations (local)
+migrations/local/
+
+# Performance profiling
+*.prof
+*.trace
+
+# Redis dumps
+dump.rdb
+
+# Webpack bundles
+webpack-stats.json
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# StyleLint cache
+.stylelintcache
+
+# Editor directories and files
+.vscode/settings.json
+.history/
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Poker game replays and hand histories
+replays/
+hand-histories/
+*.replay
+*.hand
+
+# Performance monitoring
+newrelic_agent.log
+
+# Sentry
+.sentryclirc
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Local Supabase
+supabase/.branches
+supabase/.temp
+
+# Misc development
+TODO.md
+NOTES.md
+scratch.js
+test.js
