@@ -68,6 +68,42 @@ module.exports = function setupSocketIO(io, getDb) {
           seatBinding
         });
         
+        // Send state_sync for hydration if we have room context
+        const effectiveRoomId = roomId || seatBinding?.roomId;
+        if (effectiveRoomId && io.engine?.httpServer?.app?.locals) {
+          const { getDb, dbV2 } = io.engine.httpServer.app.locals;
+          
+          try {
+            const db = getDb();
+            const currentSeq = dbV2 ? await dbV2.getCurrentSequence(effectiveRoomId) : 0;
+            
+            // Quick check if user has a seat in this room
+            const seatCheck = await db.query(
+              'SELECT seat_index FROM room_seats WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL',
+              [effectiveRoomId, userId]
+            );
+            
+            if (seatCheck.rowCount > 0) {
+              console.log('🌊 [SOCKET] Sending state_sync for hydration:', userId, 'room:', effectiveRoomId);
+              
+              // Signal client to fetch hydration data
+              socket.emit('state_sync', {
+                type: 'state_sync',
+                version: '1.0.0',
+                seq: currentSeq,
+                timestamp: Date.now(),
+                payload: {
+                  roomId: effectiveRoomId,
+                  userId,
+                  fetchViaHttp: true // Client should call /hydrate endpoint
+                }
+              });
+            }
+          } catch (error) {
+            console.error('State sync error:', error);
+          }
+        }
+        
       } catch (error) {
         console.error('Authentication error:', error);
         socket.emit('auth_error', { error: error.message });

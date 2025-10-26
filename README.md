@@ -1,263 +1,189 @@
-# 🎮 PokerGeek - The Chess.com of Poker
+# 🎮 PokerGeek.AI - The Chess.com of Poker
 
 **Revolutionary online poker platform with full data persistence, AI analysis, and community features.**
-
-**Current Status:** 85% Infrastructure, 20% Features  
-**Next Phase:** Validate Refresh Recovery → Horizontal Scaling → Feature Velocity  
-**Target Launch:** 8-12 weeks to MVP
-
----
-
-## ⚠️ **START HERE**
-
-**Read `PRODUCTION_BATTLEPLAN.md` ⭐ - Your ONLY strategic document**
-
-This comprehensive battleplan contains:
-- Complete ground truth (what actually works vs what's claimed)
-- Critical path to production (Phase 0-4)
-- Feature reality matrix (what exists vs what's implemented)
-- Strategic positioning against competition
-- Week-by-week execution plan
-
-**All other planning docs have been archived. This is your single source of truth.**
 
 ---
 
 ## 🚀 **QUICK START**
 
-### **For Developers (First Time Here):**
-
-1. **Read:** `PRODUCTION_BATTLEPLAN.md` ⭐ (30 min)
-   - Complete picture: infrastructure, features, timeline
-   - Validated against actual code
-   - Clear prioritization and success metrics
-
-2. **For Database:** `Schemasnapshot.txt` (reference)
-   - Complete schema with all 60+ tables
-   - Use for query development
-
-3. **For Config:** `.env.example`
-   - Copy to `.env` and configure
-   - Supabase credentials required
-
-### **For Running the Server:**
-
+### **Run the Server**
 ```bash
-# From project root
+# Install dependencies (first time only)
+npm install
+
+# Start server
 node sophisticated-engine-server.js
 
 # Server runs on http://localhost:3000
 # Game interface: http://localhost:3000/poker.html
 ```
 
-### **Environment Setup:**
-
+### **Environment Setup**
 1. Copy `.env.example` to `.env`
 2. Add your Supabase credentials
 3. Configure PostgreSQL connection
-4. Run: `node sophisticated-engine-server.js`
+4. Run server
 
 ---
 
-## 📚 **DOCUMENTATION STRUCTURE**
+## 📚 **CORE DOCUMENTATION**
 
-### **Core Documents (4 Files Only):**
+**For Developers & Debugging:**
 
-```
-📖 README.md                    ← You are here (quick start)
-📖 PRODUCTION_BATTLEPLAN.md     ⭐ SINGLE SOURCE OF TRUTH (read this!)
-📖 Schemasnapshot.txt           🗄️  Database schema reference
-📖 .env.example                 ⚙️  Configuration template
-```
+### **→ [SYSTEM_ARCHITECTURE_MAP.md](SYSTEM_ARCHITECTURE_MAP.md)** ⭐ **START HERE**
+Complete system map for understanding the refresh bug:
+- All routes and API endpoints
+- Database schema and persistence
+- Frontend architecture (poker.html)
+- WebSocket communication
+- Auth system flow
+- Game engine integration
+- State management
+- **Detailed refresh bug analysis**
 
-### **Historical Documentation:**
+### Other References:
+- **[Schemasnapshot.txt](Schemasnapshot.txt)** - Complete database schema
+- **[env.example](env.example)** - Configuration template
 
-```
-archive/
-├── history/          (All previous planning docs, handoffs, fix attempts)
-├── completed/        (Completed work logs, summaries)
-├── decisions/        (Architectural decisions, strategies)
-└── docs-history/     (Legacy documentation from earlier phases)
-```
-
-**Note:** If you're reading anything other than `PRODUCTION_BATTLEPLAN.md`, it's historical context, not current strategy.
-
----
-
-## 🎯 **PROJECT GOALS**
-
-### **Mission:**
-Build the **chess.com of poker** that destroys pokernow.club
-
-### **Why We'll Win:**
-1. **Full Data Persistence** - Hand history, game history, stats (competitors: NONE)
-2. **Post-Game Analysis** - AI-powered insights (competitors: NONE)
-3. **Superior UX** - No 90-hour bugs, modern UI (competitors: stuck in 2010)
-4. **Complete Platform** - Friends, clubs, tournaments, learning (competitors: just tables)
-5. **Provably Fair** - Transparent RNG (competitors: suspected rigged)
+### **Historical Documentation** (archive/)
+All past work, decisions, and completed migrations are archived for reference.
 
 ---
 
-## 📊 **CURRENT STATUS**
+## 🎯 **CURRENT STATUS**
 
-### **What's Working:**
-- ✅ Core poker engine (full Texas Hold'em)
-- ✅ Lobby system (room creation, invites, approval)
-- ✅ Authentication (Guest + Google OAuth)
-- ✅ Database persistence (games survive restarts)
-- ✅ Real-time WebSocket communication
-- ✅ Security stack (rate limiting, validation, auth)
-- ✅ **NEW: Modular router architecture (21 endpoints organized)**
+### **What's Working** ✅
+- Core poker engine (PREFLOP → SHOWDOWN, all-in scenarios)
+- Database persistence (game states, hand history, seats)
+- Modular architecture (48 endpoints across 5 routers)
+- WebSocket real-time updates
+- Authentication (Google OAuth + Guest users)
+- Room creation, player approval, seat claiming
 
-### **What's ACTUALLY Built (Discovered!):**
-- ✅ Frontend state management **COMPLETE** (game-state-manager.js - 364 lines)
-- ✅ Action timer system **COMPLETE** (action-timer-manager.js - 258 lines)
-- ✅ Player status system **COMPLETE** (player-status-manager.js - 284 lines)
-- ⏳ **Need Integration:** Wire these into game flow (4 hours)
+### **Critical Issue** 🔴
+**Refresh destroys UI state** - User refreshes during game → sees lobby instead of poker table
 
-**Progress:** Foundation 85%, Features 10%, Overall 20%
+**Details:** See `SYSTEM_ARCHITECTURE_MAP.md` Section: "🐛 REFRESH BUG - DETAILED ANALYSIS"
 
 ---
 
 ## 🏗️ **TECH STACK**
 
-### **Backend:**
+**Backend:**
 - Node.js + Express
-- TypeScript (sophisticated engine)
+- TypeScript (game engine)
 - PostgreSQL (Supabase)
 - Socket.IO (real-time)
 
-### **Frontend:**
-- Vanilla JavaScript (for now)
+**Frontend:**
+- Vanilla JavaScript
 - Socket.IO client
 - Google OAuth
 
-### **Architecture:**
-- Modular router structure
-- Dependency injection via app.locals
-- Event sourcing + CQRS patterns
-- Sophisticated game engine (GameStateMachine, BettingEngine, TurnManager)
+**Game Engine:**
+- GameStateMachine
+- BettingEngine
+- HandEvaluator
+- TurnManager
 
 ---
 
-## 🗺️ **ROADMAP OVERVIEW**
-
-### **Phase 0: Validate Refresh Recovery** ⚠️ **START HERE** (2-4 hours)
-- Test refresh flow end-to-end
-- Verify Anton's 3 fix attempts actually work
-- Document any remaining issues
-
-### **Phase 1: Horizontal Scaling** (1-2 weeks)
-- Room URL system (`/game/:roomId`)
-- Redis session store
-- Socket.IO Redis adapter
-- Link-based session recovery
-
-### **Phase 2: Integrate Built Managers** (4-6 hours)
-- Action timer integration (auto-fold on timeout)
-- Game state manager (localStorage persistence)
-- Player status tracking (ACTIVE/AWAY/OFFLINE)
-
-### **Phase 3: Feature Velocity** (2-3 weeks)
-- Hand/game history endpoints
-- In-game chat with rate limiting
-- Nicknames & profiles
-- Card reveal, rebuy, public rooms
-
-### **Phase 4: Platform Differentiation** (3-4 weeks)
-- Friend system & clubs
-- Post-game analysis (chess.com style)
-- Ranked matchmaking & chip economy
-- Tournaments, AI analysis
-
-**Full roadmap with weekly breakdowns:** See `PRODUCTION_BATTLEPLAN.md`
-
----
-
-## 🎮 **FOR USERS**
+## 🎮 **FOR PLAYERS**
 
 ### **How to Play:**
 1. Visit http://localhost:3000
 2. Sign in with Google or play as Guest
 3. Create a room or join with invite code
 4. Wait for host approval
-5. Play Texas Hold'em poker!
+5. Claim a seat
+6. Play Texas Hold'em poker!
 
 ### **Features Available Now:**
 - Room creation with invite codes
 - Player approval system
-- Full Texas Hold'em gameplay
+- Full Texas Hold'em gameplay (all streets, all-in, showdown)
 - Real-time updates via WebSocket
-- Seat persistence (refresh keeps your seat)
-
-### **Coming Soon:**
-- Action timers (30s per turn)
-- Away/Offline player status
-- In-game chat
-- Hand history tracking
-- Post-game analysis with AI
+- Database persistence (games survive server restarts)
 
 ---
 
 ## 🤝 **FOR CONTRIBUTORS**
 
-### **Development Process:**
-1. Read `PRODUCTION_BATTLEPLAN.md` for current status and priorities
-2. Check Phase 0-4 roadmap for next tasks
-3. Follow modular architecture patterns (see Code Structure below)
-4. Test thoroughly before committing (90-hour bug lesson learned)
-
-### **Code Structure:**
+### **Project Structure:**
 ```
-sophisticated-engine-server.js  (main server, now streamlined)
+sophisticated-engine-server.js    (Main server, 1,046 lines)
 routes/
-├── rooms.js   (11 endpoints for room management)
-├── games.js   (7 endpoints for game logic)
-└── auth.js    (3 endpoints for authentication)
-src/
-├── core/      (TypeScript game engine)
-├── services/  (database, event sourcing)
-└── types/     (TypeScript interfaces)
+  ├── rooms.js                    (22 endpoints, 1,072 lines)
+  ├── games.js                    (7 endpoints, 630 lines)
+  ├── auth.js                     (3 endpoints)
+  ├── pages.js                    (13 page routes)
+  └── v2.js                       (3 endpoints)
+  
 public/
-├── poker.html (game interface)
-├── play.html  (lobby interface)
-└── js/        (frontend logic)
+  ├── poker.html                  (Game interface)
+  ├── play.html                   (Lobby)
+  └── js/                         (Frontend managers)
+  
+src/                              (TypeScript game engine)
+  ├── core/                       (Engine, models)
+  ├── services/                   (Database, events)
+  └── types/                      (Interfaces)
 ```
 
-### **Testing:**
-- Manual testing currently
-- Automated tests planned for Week 6
-- Test all endpoints after changes
+### **Before Contributing:**
+1. Read `SYSTEM_ARCHITECTURE_MAP.md` (comprehensive system overview)
+2. Understand the refresh bug (Section 🐛)
+3. Check `Schemasnapshot.txt` for database structure
+4. Test changes thoroughly
+
+---
+
+## 🎯 **PROJECT GOALS**
+
+### **Mission:** 
+Build the **chess.com of poker** - destroy pokernow.club
+
+### **Why We'll Win:**
+1. **Full Data Persistence** - Hand history, game history, stats (competitors: NONE)
+2. **Post-Game Analysis** - AI-powered insights (competitors: NONE)
+3. **Superior UX** - Modern UI, fast, reliable (competitors: stuck in 2010)
+4. **Complete Platform** - Friends, clubs, tournaments, learning (competitors: just tables)
+5. **Provably Fair** - Transparent RNG (competitors: suspected rigged)
+
+---
+
+## 🚨 **IMMEDIATE PRIORITIES**
+
+1. **Fix refresh bug** (blocks all testing)
+2. **Validate database alignment** (ensure schema supports desired features)
+3. **Consider table rebuild** (if current UI is fundamentally broken)
+4. **Implement horizontal scaling** (Redis sessions, room URLs)
 
 ---
 
 ## 📞 **CONTACT & LINKS**
 
-**Project Lead:** Building towards freedom through creation  
 **Target Market:** Non-gambling online poker players  
 **Competition:** pokernow.club (we're better in every way)
 
 ---
 
-## 🎯 **REMEMBER:**
+## ⚔️ **FOR THE NEXT AGENT**
 
-**This project represents freedom. We stop at no cost.**
+Read `SYSTEM_ARCHITECTURE_MAP.md` first. It contains:
+- Complete system state
+- All moving parts mapped
+- Refresh bug analysis with hypotheses
+- Debugging checklist
+- Everything needed to fix this
 
-**The chess.com of poker is 8-12 weeks away.**
-
-**Key Achievements:**
-- ✅ Modularization complete: 64% reduction (2,886 → 1,046 lines)
-- ✅ Week 2 Days 5-7 already built: 906 lines of managers ready to integrate
-- ✅ Documentation consolidated: 12 docs → 1 battleplan
-
-**Next Action:**  
-→ **Phase 0: Validate refresh recovery (2-4 hours)**
-
-**For everything else:**  
-→ **Read `PRODUCTION_BATTLEPLAN.md`** ⭐
+**The Ferrari engine (backend/DB) is solid.**  
+**The Honda chassis (frontend table) needs repair.**
 
 ---
 
-**Last Updated:** October 25, 2025 (Chat #6 - Mira)  
-**Status:** Documentation overhaul complete. Ready for Phase 0 execution.  
-**Progress:** 85% Infrastructure, 20% Features, MVP 8-12 weeks away
+**Last Updated:** October 26, 2025 (Chat #6 - Mira)  
+**Documentation:** Organized, archived, single source of truth created  
+**Status:** Awaiting refresh bug fix, then rapid feature development
+
+**SHINZO WO SASAGEYO.** ⚔️

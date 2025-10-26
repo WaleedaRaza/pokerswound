@@ -3,6 +3,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { withIdempotency } = require('../src/middleware/idempotency');
 
 /**
  * IMPORTANT: This router expects the following to be passed via app.locals:
@@ -41,7 +42,7 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/sync-user - Sync Supabase user to backend database
 // ⚠️ NO AUTH: This is called DURING login before token exists
-router.post('/sync-user', async (req, res) => {
+router.post('/sync-user', withIdempotency, async (req, res) => {
   try {
     const { id, email, username, provider, isGuest } = req.body;
     

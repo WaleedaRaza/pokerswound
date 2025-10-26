@@ -714,6 +714,13 @@ app.locals.jwt = jwt;
 app.locals.JWT_SECRET = JWT_SECRET;
 app.locals.authenticateToken = authenticateToken;
 
+// Initialize Poker Table V2 Database Layer
+const PokerTableV2DB = require('./src/db/poker-table-v2');
+if (process.env.DATABASE_URL) {
+  app.locals.dbV2 = new PokerTableV2DB(process.env.DATABASE_URL);
+  console.log('✅ Poker Table V2 DB layer initialized');
+}
+
 // Room-related
 app.locals.createRoom = createRoom;
 app.locals.getRoomByInvite = getRoomByInvite;

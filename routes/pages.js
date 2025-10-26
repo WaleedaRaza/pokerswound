@@ -53,6 +53,36 @@ router.get('/game/:roomId', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker.html'));
 });
 
+// NEW: Test route for modern poker table UI
+router.get('/poker-v2', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-v2.html'));
+});
+
+// Direct v2 room access
+router.get('/game-v2/:roomId', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-v2.html'));
+});
+
+// Demo version - no backend required!
+router.get('/poker-demo', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-v2-demo.html'));
+});
+
+// V3 - Premium rectangular table design
+router.get('/poker-v3', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-v3.html'));
+});
+
+// V3 Demo - See the new design!
+router.get('/poker-v3-demo', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-v3-demo.html'));
+});
+
+// FINAL PRODUCTION TABLE
+router.get('/table', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-final.html'));
+});
+
 // Legacy routes - redirect to game
 router.get('/poker', (req, res) => {
   res.redirect('/game');

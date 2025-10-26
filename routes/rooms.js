@@ -3,6 +3,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { withIdempotency } = require('../src/middleware/idempotency');
 
 /**
  * IMPORTANT: This router expects the following to be passed via app.locals:
@@ -43,7 +44,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/rooms - Create new room
 // 🔒 AUTH REQUIRED
-router.post('/', async (req, res) => {
+router.post('/', withIdempotency, async (req, res) => {
   const authenticateToken = req.app.locals.authenticateToken;
   
   // Apply auth middleware
@@ -176,7 +177,7 @@ router.get('/:roomId/session', async (req, res) => {
   }
 });
 
-router.post('/:roomId/join', async (req, res) => {
+router.post('/:roomId/join', withIdempotency, async (req, res) => {
   try {
     console.log('🎯 Claim seat request:', {
       roomId: req.params.roomId,
@@ -214,7 +215,7 @@ router.post('/:roomId/join', async (req, res) => {
 
 // POST /api/rooms/:roomId/leave - Release seat
 // ⚠️ NO AUTH: Players might be using local guest accounts
-router.post('/:roomId/leave', async (req, res) => {
+router.post('/:roomId/leave', withIdempotency, async (req, res) => {
   try {
     const { user_id } = req.body || {};
     if (!user_id) return res.status(400).json({ error: 'Missing user_id' });
@@ -257,7 +258,254 @@ router.get('/:roomId/game', async (req, res) => {
   }
 });
 
-// ⚔️ MIRA: Get complete state for refresh recovery (comprehensive)
+// ⚔️ HYDRATION ENDPOINT: Complete state recovery - FIXES REFRESH BUG!
+router.get('/:roomId/hydrate', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId query parameter' });
+    }
+    
+    const { getDb, dbV2 } = req.app.locals;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    console.log('🌊 [HYDRATION] Building complete snapshot for user:', userId, 'room:', req.params.roomId);
+    
+    // Get current sequence number
+    const currentSeq = dbV2 ? await dbV2.getCurrentSequence(req.params.roomId) : 0;
+    
+    // Get room details
+    const roomResult = await db.query(
+      `SELECT id, code, host_id, capacity, status, turn_time_seconds, timebank_seconds, 
+              small_blind, big_blind, created_at
+       FROM rooms WHERE id = $1`,
+      [req.params.roomId]
+    );
+    
+    if (roomResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const room = roomResult.rows[0];
+    
+    // Get active game with full state
+    const gameResult = await db.query(
+      `SELECT g.id, g.status, g.current_hand_id, gs.current_state, gs.seq, gs.version
+       FROM games g
+       JOIN game_states gs ON g.id = gs.id
+       WHERE g.room_id = $1 AND g.status != 'completed'
+       ORDER BY g.created_at DESC LIMIT 1`,
+      [req.params.roomId]
+    );
+    
+    let game = null;
+    let hand = null;
+    let players = [];
+    let myHoleCards = null;
+    let recentActions = [];
+    
+    if (gameResult.rowCount > 0) {
+      game = gameResult.rows[0];
+      
+      // Get current hand details
+      if (game.current_hand_id) {
+        const handResult = await db.query(
+          `SELECT id, hand_number, phase, board, pot_total, current_bet,
+                  dealer_seat, current_actor_seat, created_at
+           FROM hands WHERE id = $1`,
+          [game.current_hand_id]
+        );
+        
+        if (handResult.rowCount > 0) {
+          hand = handResult.rows[0];
+          
+          // Get players in this hand
+          const playersResult = await db.query(
+            `SELECT p.user_id, p.seat_index, p.stack, p.status, p.current_bet,
+                    p.has_acted, p.is_all_in, p.has_folded, p.hole_cards,
+                    p.contributed_to_pot, up.username
+             FROM players p
+             JOIN user_profiles up ON p.user_id = up.id
+             WHERE p.game_id = $1
+             ORDER BY p.seat_index`,
+            [game.id]
+          );
+          
+          players = playersResult.rows.map(p => {
+            const playerData = {
+              user_id: p.user_id,
+              username: p.username,
+              seat_index: p.seat_index,
+              stack: p.stack,
+              status: p.status,
+              current_bet: p.current_bet || 0,
+              has_acted: p.has_acted,
+              is_all_in: p.is_all_in,
+              has_folded: p.has_folded,
+              contributed_to_pot: p.contributed_to_pot || 0
+            };
+            
+            // Only include hole cards for the requesting user
+            if (p.user_id === userId && p.hole_cards) {
+              myHoleCards = p.hole_cards;
+            }
+            
+            return playerData;
+          });
+          
+          // Get recent actions for context
+          const actionsResult = await db.query(
+            `SELECT a.seq, a.action_type, a.amount, a.player_id, up.username
+             FROM actions a
+             JOIN user_profiles up ON a.player_id = up.id
+             WHERE a.hand_id = $1
+             ORDER BY a.seq DESC
+             LIMIT 5`,
+            [hand.id]
+          );
+          
+          recentActions = actionsResult.rows.reverse();
+        }
+      }
+      
+      // Get turn timer if active
+      if (hand && hand.current_actor_seat !== null) {
+        const timerResult = await dbV2?.getTurnTimer(game.id);
+        if (timerResult) {
+          const turnStartedAt = timerResult.actor_turn_started_at;
+          const turnTimeSeconds = timerResult.turn_time_seconds || 30;
+          const timebankRemaining = timerResult.actor_timebank_remaining || 0;
+          
+          const elapsedMs = Date.now() - turnStartedAt;
+          const turnTimeRemainingMs = Math.max(0, (turnTimeSeconds * 1000) - elapsedMs);
+          
+          hand.timer = {
+            started_at: new Date(turnStartedAt).toISOString(),
+            turn_time_seconds: turnTimeSeconds,
+            turn_time_remaining_ms: turnTimeRemainingMs,
+            timebank_remaining_ms: timebankRemaining,
+            is_using_timebank: turnTimeRemainingMs === 0 && timebankRemaining > 0
+          };
+        }
+      }
+    }
+    
+    // Get all room seats (including empty ones)
+    const seatsResult = await db.query(
+      `SELECT rs.seat_index, rs.user_id, rs.status, rs.chips_in_play,
+              up.username
+       FROM room_seats rs
+       LEFT JOIN user_profiles up ON rs.user_id = up.id
+       WHERE rs.room_id = $1 AND rs.left_at IS NULL
+       ORDER BY rs.seat_index`,
+      [req.params.roomId]
+    );
+    
+    const seats = Array(room.capacity).fill(null);
+    let mySeat = null;
+    
+    seatsResult.rows.forEach(seat => {
+      seats[seat.seat_index] = {
+        index: seat.seat_index,
+        user_id: seat.user_id,
+        username: seat.username,
+        status: seat.status,
+        chips_in_play: seat.chips_in_play
+      };
+      
+      if (seat.user_id === userId) {
+        mySeat = seat.seat_index;
+      }
+    });
+    
+    // Merge game player data with seat data
+    if (players.length > 0) {
+      players.forEach(player => {
+        if (seats[player.seat_index]) {
+          Object.assign(seats[player.seat_index], {
+            stack: player.stack,
+            current_bet: player.current_bet,
+            has_acted: player.has_acted,
+            is_all_in: player.is_all_in,
+            has_folded: player.has_folded,
+            contributed_to_pot: player.contributed_to_pot
+          });
+        }
+      });
+    }
+    
+    // Generate rejoin token
+    const crypto = require('crypto');
+    const rejoinToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rejoinToken).digest('hex');
+    
+    if (dbV2 && mySeat !== null) {
+      await dbV2.createRejoinToken(req.params.roomId, userId, mySeat, tokenHash);
+    }
+    
+    // Build complete hydration response
+    const hydrationData = {
+      seq: currentSeq,
+      timestamp: Date.now(),
+      room: {
+        id: room.id,
+        code: room.code,
+        host_id: room.host_id,
+        capacity: room.capacity,
+        status: room.status,
+        turn_time_seconds: room.turn_time_seconds,
+        timebank_seconds: room.timebank_seconds,
+        small_blind: room.small_blind,
+        big_blind: room.big_blind
+      },
+      game: game ? {
+        id: game.id,
+        status: game.status,
+        current_hand_id: game.current_hand_id,
+        state: game.current_state // Full game state for compatibility
+      } : null,
+      hand: hand ? {
+        id: hand.id,
+        number: hand.hand_number,
+        phase: hand.phase,
+        board: hand.board || [],
+        pot_total: hand.pot_total || 0,
+        current_bet: hand.current_bet || 0,
+        dealer_seat: hand.dealer_seat,
+        actor_seat: hand.current_actor_seat,
+        timer: hand.timer
+      } : null,
+      seats: seats,
+      me: mySeat !== null ? {
+        user_id: userId,
+        seat_index: mySeat,
+        hole_cards: myHoleCards,
+        rejoin_token: rejoinToken
+      } : null,
+      recent_actions: recentActions
+    };
+    
+    console.log('🌊 [HYDRATION] Complete snapshot built:', {
+      roomId: req.params.roomId,
+      userId,
+      seq: currentSeq,
+      hasGame: !!game,
+      hasHand: !!hand,
+      hasSeat: mySeat !== null,
+      hasHoleCards: !!myHoleCards
+    });
+    
+    res.json(hydrationData);
+  } catch (error) {
+    console.error('❌ [HYDRATION] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ⚔️ MIRA: Get complete state for refresh recovery (comprehensive) - LEGACY ENDPOINT
 router.get('/:roomId/my-state', async (req, res) => {
   try {
     const { userId } = req.query;
@@ -322,7 +570,7 @@ router.get('/:roomId/my-state', async (req, res) => {
 
 // POST /api/rooms/:roomId/lobby/join - Join lobby
 // ⚠️ NO AUTH: Guests don't have JWT tokens
-router.post('/:roomId/lobby/join', async (req, res) => {
+router.post('/:roomId/lobby/join', withIdempotency, async (req, res) => {
   try {
     const { user_id, username } = req.body;
     
@@ -386,13 +634,23 @@ router.post('/:roomId/lobby/join', async (req, res) => {
     // Broadcast to all clients in the room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(req.params.roomId) : Date.now();
+      
       io.to(`room:${req.params.roomId}`).emit('player_joined', {
-        userId: user_id,
-        username,
-        status,
-        approved_at: approvedAt
+        type: 'player_joined',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          userId: user_id,
+          username,
+          status,
+          approved_at: approvedAt
+        }
       });
-      console.log(`📡 Broadcast player_joined to room:${req.params.roomId}`);
+      console.log(`📡 Broadcast player_joined to room:${req.params.roomId} (seq: ${seq})`);
     }
     
     res.json({ ok: true, status });
@@ -427,7 +685,7 @@ router.get('/:roomId/lobby/players', async (req, res) => {
 
 // POST /api/rooms/:roomId/lobby/approve - Approve player (host only)
 // ⚠️ NO AUTH: Host might be using local guest account
-router.post('/:roomId/lobby/approve', async (req, res) => {
+router.post('/:roomId/lobby/approve', withIdempotency, async (req, res) => {
   try {
     const { user_id, target_user_id } = req.body;
     if (!user_id || !target_user_id) return res.status(400).json({ error: 'Missing user_id or target_user_id' });
@@ -463,11 +721,21 @@ router.post('/:roomId/lobby/approve', async (req, res) => {
     // Broadcast to all clients in the room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(req.params.roomId) : Date.now();
+      
       io.to(`room:${req.params.roomId}`).emit('player_approved', {
-        userId: target_user_id,
-        approved_at: new Date().toISOString()
+        type: 'player_approved',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          userId: target_user_id,
+          approved_at: new Date().toISOString()
+        }
       });
-      console.log(`📡 Broadcast player_approved to room:${req.params.roomId}`);
+      console.log(`📡 Broadcast player_approved to room:${req.params.roomId} (seq: ${seq})`);
     }
     
     res.json({ ok: true });
@@ -479,7 +747,7 @@ router.post('/:roomId/lobby/approve', async (req, res) => {
 
 // POST /api/rooms/:roomId/lobby/reject - Reject player (host only)
 // ⚠️ NO AUTH: Host might be using local guest account
-router.post('/:roomId/lobby/reject', async (req, res) => {
+router.post('/:roomId/lobby/reject', withIdempotency, async (req, res) => {
   try {
     const { user_id, target_user_id } = req.body;
     if (!user_id || !target_user_id) return res.status(400).json({ error: 'Missing user_id or target_user_id' });
@@ -514,10 +782,20 @@ router.post('/:roomId/lobby/reject', async (req, res) => {
     // Broadcast to all clients in the room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(req.params.roomId) : Date.now();
+      
       io.to(`room:${req.params.roomId}`).emit('player_rejected', {
-        userId: target_user_id
+        type: 'player_rejected',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          userId: target_user_id
+        }
       });
-      console.log(`📡 Broadcast player_rejected to room:${req.params.roomId}`);
+      console.log(`📡 Broadcast player_rejected to room:${req.params.roomId} [seq: ${seq}]`);
     }
     
     res.json({ ok: true });
@@ -584,7 +862,7 @@ router.get('/my-rooms', async (req, res) => {
 });
 
 // POST /api/rooms/:roomId/close - Host closes/deletes a room
-router.post('/:roomId/close', async (req, res) => {
+router.post('/:roomId/close', withIdempotency, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { hostId } = req.body;
@@ -628,10 +906,20 @@ router.post('/:roomId/close', async (req, res) => {
     // Broadcast to all players in room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       io.to(`room:${roomId}`).emit('room_closed', {
-        roomId,
-        closedBy: hostId,
-        timestamp: new Date().toISOString()
+        type: 'room_closed',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          roomId,
+          closedBy: hostId,
+          closedAt: new Date().toISOString()
+        }
       });
     }
     
@@ -647,7 +935,7 @@ router.post('/:roomId/close', async (req, res) => {
 });
 
 // POST /api/rooms/:roomId/abandon - Guest leaves/abandons a room
-router.post('/:roomId/abandon', async (req, res) => {
+router.post('/:roomId/abandon', withIdempotency, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { userId } = req.body;
@@ -697,10 +985,20 @@ router.post('/:roomId/abandon', async (req, res) => {
     // Broadcast to all players in room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       io.to(`room:${roomId}`).emit('player_left', {
-        roomId,
-        userId,
-        timestamp: new Date().toISOString()
+        type: 'player_left',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          roomId,
+          userId,
+          username
+        }
       });
     }
     
@@ -720,7 +1018,7 @@ router.post('/:roomId/abandon', async (req, res) => {
 // ============================================
 
 // POST /api/rooms/:roomId/kick - Host kicks a player from room/game
-router.post('/:roomId/kick', async (req, res) => {
+router.post('/:roomId/kick', withIdempotency, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { hostId, targetPlayerId, targetUserId } = req.body;
@@ -764,11 +1062,21 @@ router.post('/:roomId/kick', async (req, res) => {
     // Broadcast to all players in room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       io.to(`room:${roomId}`).emit('player_kicked', {
-        roomId,
-        kickedUserId: kickedPlayer.user_id,
-        kickedBy: hostId,
-        timestamp: new Date().toISOString()
+        type: 'player_kicked',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          roomId,
+          kickedUserId: kickedPlayer.user_id,
+          kickedBy: hostId,
+          kickedAt: new Date().toISOString()
+        }
       });
     }
     
@@ -791,7 +1099,7 @@ router.post('/:roomId/kick', async (req, res) => {
 });
 
 // POST /api/rooms/:roomId/set-away - Host sets a player to AWAY status
-router.post('/:roomId/set-away', async (req, res) => {
+router.post('/:roomId/set-away', withIdempotency, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { hostId, targetPlayerId } = req.body;
@@ -833,12 +1141,22 @@ router.post('/:roomId/set-away', async (req, res) => {
     // Broadcast to all players in room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       io.to(`room:${roomId}`).emit('player_set_away', {
-        roomId,
-        playerId: targetPlayerId,
-        status: 'AWAY',
-        setBy: hostId,
-        timestamp: new Date().toISOString()
+        type: 'player_set_away',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          roomId,
+          playerId: targetPlayerId,
+          status: 'AWAY',
+          setBy: hostId,
+          setAt: new Date().toISOString()
+        }
       });
     }
     
@@ -855,7 +1173,7 @@ router.post('/:roomId/set-away', async (req, res) => {
 });
 
 // POST /api/rooms/:roomId/capacity - Host changes room player capacity
-router.post('/:roomId/capacity', async (req, res) => {
+router.post('/:roomId/capacity', withIdempotency, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { hostId, newCapacity } = req.body;
@@ -918,12 +1236,22 @@ router.post('/:roomId/capacity', async (req, res) => {
     // Broadcast to all players in room
     const io = req.app.locals.io;
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       io.to(`room:${roomId}`).emit('capacity_changed', {
-        roomId,
-        oldCapacity,
-        newCapacity: capacity,
-        changedBy: hostId,
-        timestamp: new Date().toISOString()
+        type: 'capacity_changed',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          roomId,
+          oldCapacity,
+          newCapacity: capacity,
+          changedBy: hostId,
+          changedAt: new Date().toISOString()
+        }
       });
     }
     
@@ -945,7 +1273,7 @@ router.post('/:roomId/capacity', async (req, res) => {
 // ============================================
 
 // POST /api/rooms/:roomId/rebuy - Player rebuy
-router.post('/:roomId/rebuy', async (req, res) => {
+router.post('/:roomId/rebuy', withIdempotency, async (req, res) => {
   const { authenticateToken, getDb, io } = req.app.locals;
   
   // Apply auth
@@ -1006,11 +1334,21 @@ router.post('/:roomId/rebuy', async (req, res) => {
     
     // Broadcast to room
     if (io) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       io.to(`room:${roomId}`).emit('player_rebuy', {
-        userId,
-        amount,
-        newStack,
-        message: `Player bought in for $${amount}`
+        type: 'player_rebuy',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          userId,
+          amount,
+          newStack,
+          message: `Player bought in for $${amount}`
+        }
       });
     }
     

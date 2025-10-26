@@ -3,13 +3,15 @@
 
 const express = require('express');
 const router = express.Router();
+const { withIdempotency } = require('../src/middleware/idempotency');
+const timerService = require('../src/services/timer-service');
 
 // All dependencies injected via app.locals
 
 // ============================================
 // POST /api/games - Create new game
 // ============================================
-router.post('/', async (req, res) => {
+router.post('/', withIdempotency, async (req, res) => {
   const { 
     games, gameMetadata, playerUserIds, generateGameId,
     GameStateModel, StorageAdapter, fullGameRepository, getDb,
@@ -214,7 +216,7 @@ router.get('/:id', (req, res) => {
 // ============================================
 // POST /api/games/:id/join - Join game
 // ============================================
-router.post('/:id/join', (req, res) => {
+router.post('/:id/join', withIdempotency, (req, res) => {
   const { games, generatePlayerId, PlayerModel } = req.app.locals;
   
   try {
@@ -306,7 +308,7 @@ router.get('/:id/legal-actions', (req, res) => {
 // ============================================
 // NOTE: This is a large endpoint with room bridging, persistence, and WebSocket logic
 // TODO: Extract business logic to services layer in Phase 3
-router.post('/:id/start-hand', async (req, res) => {
+router.post('/:id/start-hand', withIdempotency, async (req, res) => {
   const {
     games, playerUserIds, gameMetadata, getDb, PlayerModel,
     stateMachine, fullGameRepository, Logger, LogCategory, io
@@ -346,10 +348,20 @@ router.post('/:id/start-hand', async (req, res) => {
           console.log(`🏆 GAME OVER! Winner: ${winner.username} with $${winner.chips_in_play}`);
           
           if (io) {
+            // Increment sequence number
+            const dbV2 = req.app.locals.dbV2;
+            const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+            
             io.to(`room:${roomId}`).emit('game_over', {
+              type: 'game_over',
+              version: '1.0.0',
+              seq: seq,
+              timestamp: Date.now(),
+              payload: {
               winner: { 
                 name: winner.username, 
                 stack: winner.chips_in_play 
+                }
               }
             });
           }
@@ -446,8 +458,17 @@ router.post('/:id/start-hand', async (req, res) => {
     
     // Broadcast via WebSocket
     if (io && roomId) {
+      // Increment sequence number
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
       const userIdMap = playerUserIds.get(gameId);
       io.to(`room:${roomId}`).emit('hand_started', {
+        type: 'hand_started',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
         gameId,
         handNumber: result.newState.handState.handNumber,
         players: Array.from(result.newState.players.values()).map(p => ({
@@ -457,6 +478,117 @@ router.post('/:id/start-hand', async (req, res) => {
           seatIndex: p.seatIndex,
           userId: userIdMap ? userIdMap.get(p.uuid) : null
         }))
+        }
+      });
+    }
+    
+    // Start timer for first player to act
+    const firstPlayer = result.newState.toAct;
+    if (firstPlayer) {
+      const { dbV2 } = req.app.locals;
+      
+      // Get room's turn time setting
+      let turnTimeSeconds = 30; // Default
+      if (getDb && roomId) {
+        try {
+          const db = getDb();
+          const roomResult = await db.query(
+            'SELECT turn_time_seconds FROM rooms WHERE id = $1',
+            [roomId]
+          );
+          if (roomResult.rows[0]) {
+            turnTimeSeconds = roomResult.rows[0].turn_time_seconds || 30;
+          }
+        } catch (error) {
+          console.error('Failed to get room turn time:', error);
+        }
+      }
+      
+      // Auto-fold handler
+      const onTimeout = async (gameId, playerId) => {
+        console.log(`⏰ Auto-folding player ${playerId} due to timeout`);
+        
+        try {
+          // Get current game state
+          const gameState = games.get(gameId);
+          if (!gameState) {
+            console.error('Game not found for auto-fold:', gameId);
+            return;
+          }
+          
+          // Check if it's still this player's turn
+          if (gameState.toAct !== playerId) {
+            console.log('Not player turn anymore, skipping auto-fold');
+            return;
+          }
+          
+          // Process fold action directly
+          const result = stateMachine.processAction(gameState, {
+            type: 'PLAYER_ACTION',
+            playerId: playerId,
+            actionType: 'FOLD',
+            amount: 0
+          });
+          
+          if (result.success) {
+            // Update game state
+            games.set(gameId, result.newState);
+            
+            // Broadcast timeout and fold
+            if (io && roomId) {
+              const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+              
+              io.to(`room:${roomId}`).emit('turn_timeout', {
+                type: 'turn_timeout',
+                version: '1.0.0',
+                seq: seq,
+                timestamp: Date.now(),
+                payload: {
+                  gameId,
+                  playerId,
+                  action: 'FOLD',
+                  reason: 'timeout'
+                }
+              });
+              
+              // Clear timers if hand complete
+              if (result.newState.isHandComplete()) {
+                timerService.clearGameTimers(gameId);
+              } else {
+                // Start timer for next player
+                const nextPlayer = result.newState.toAct;
+                if (nextPlayer) {
+                  await timerService.startTurnTimer({
+                    gameId,
+                    playerId: nextPlayer,
+                    roomId,
+                    turnTimeSeconds,
+                    dbV2,
+                    io,
+                    onTimeout
+                  });
+                }
+              }
+            }
+            
+            console.log(`✅ Auto-fold completed for player ${playerId}`);
+          } else {
+            console.error('Auto-fold failed:', result.error);
+          }
+        } catch (error) {
+          console.error('Auto-fold error:', error);
+        }
+      };
+      
+      // Start the timer
+      await timerService.startTurnTimer({
+        gameId,
+        playerId: firstPlayer,
+        roomId,
+        turnTimeSeconds,
+        dbV2,
+        io,
+        onTimeout
       });
     }
     
@@ -490,7 +622,7 @@ router.post('/:id/start-hand', async (req, res) => {
 // NOTE: This is the most complex endpoint (~700 lines)
 // Handles all game actions, all-in runout animations, hand completion, database persistence
 // TODO: Extract to GameActionService in Phase 3
-router.post('/:id/actions', async (req, res) => {
+router.post('/:id/actions', withIdempotency, async (req, res) => {
   const {
     games, playerUserIds, gameMetadata, stateMachine, fullGameRepository,
     getDb, displayStateManager, Logger, LogCategory, io
@@ -549,6 +681,9 @@ router.post('/:id/actions', async (req, res) => {
     
     Logger.success(LogCategory.GAME, 'Action processed', { gameId, player_id, action, amount });
     
+    // Clear timer for the player who just acted
+    timerService.clearPlayerTimer(gameId, player_id);
+    
     // Persist action
     const metadata = gameMetadata.get(gameId);
     if (fullGameRepository && metadata && metadata.gameUuid && metadata.currentHandId) {
@@ -602,12 +737,128 @@ router.post('/:id/actions', async (req, res) => {
     
     games.set(gameId, result.newState);
     
+    // Start timer for next player (if any)
+    const nextPlayer = result.newState.toAct;
+    if (nextPlayer && !result.newState.isHandComplete()) {
+      const { dbV2 } = req.app.locals;
+      
+      // Get room's turn time setting
+      let turnTimeSeconds = 30; // Default
+      if (getDb && roomId) {
+        try {
+          const db = getDb();
+          const roomResult = await db.query(
+            'SELECT turn_time_seconds FROM rooms WHERE id = $1',
+            [roomId]
+          );
+          if (roomResult.rows[0]) {
+            turnTimeSeconds = roomResult.rows[0].turn_time_seconds || 30;
+          }
+        } catch (error) {
+          console.error('Failed to get room turn time:', error);
+        }
+      }
+      
+      // Auto-fold handler
+      const onTimeout = async (gameId, playerId) => {
+        console.log(`⏰ Auto-folding player ${playerId} due to timeout`);
+        
+        try {
+          // Get current game state
+          const gameState = games.get(gameId);
+          if (!gameState) {
+            console.error('Game not found for auto-fold:', gameId);
+            return;
+          }
+          
+          // Check if it's still this player's turn
+          if (gameState.toAct !== playerId) {
+            console.log('Not player turn anymore, skipping auto-fold');
+            return;
+          }
+          
+          // Process fold action directly
+          const result = stateMachine.processAction(gameState, {
+            type: 'PLAYER_ACTION',
+            playerId: playerId,
+            actionType: 'FOLD',
+            amount: 0
+          });
+          
+          if (result.success) {
+            // Update game state
+            games.set(gameId, result.newState);
+            
+            // Broadcast timeout and fold
+            if (io && roomId) {
+              const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+              
+              io.to(`room:${roomId}`).emit('turn_timeout', {
+                type: 'turn_timeout',
+                version: '1.0.0',
+                seq: seq,
+                timestamp: Date.now(),
+                payload: {
+                  gameId,
+                  playerId,
+                  action: 'FOLD',
+                  reason: 'timeout'
+                }
+              });
+              
+              // Clear timers if hand complete
+              if (result.newState.isHandComplete()) {
+                timerService.clearGameTimers(gameId);
+              } else {
+                // Start timer for next player
+                const nextPlayer = result.newState.toAct;
+                if (nextPlayer) {
+                  await timerService.startTurnTimer({
+                    gameId,
+                    playerId: nextPlayer,
+                    roomId,
+                    turnTimeSeconds,
+                    dbV2,
+                    io,
+                    onTimeout
+                  });
+                }
+              }
+            }
+            
+            console.log(`✅ Auto-fold completed for player ${playerId}`);
+          } else {
+            console.error('Auto-fold failed:', result.error);
+          }
+        } catch (error) {
+          console.error('Auto-fold error:', error);
+        }
+      };
+      
+      // Start the timer
+      await timerService.startTurnTimer({
+        gameId,
+        playerId: nextPlayer,
+        roomId,
+        turnTimeSeconds,
+        dbV2,
+        io,
+        onTimeout
+      });
+    }
+    
     Logger.debug(LogCategory.GAME, 'Broadcasting update', { roomId, ioExists: !!io });
     
     // Check for hand completion
     const isHandComplete = result.newState.isHandComplete();
     const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
     const willBeAllInRunout = isHandComplete && result.events.filter(e => e.type === 'STREET_ADVANCED').length > 1;
+    
+    // Clear all timers if hand is complete
+    if (isHandComplete) {
+      timerService.clearGameTimers(gameId);
+      console.log(`🏁 Hand complete, cleared all timers for game ${gameId}`);
+    }
     
     let potAmount = result.newState.pot.totalPot;
     if (handCompletedEvent && handCompletedEvent.data && handCompletedEvent.data.pot) {
