@@ -1,0 +1,194 @@
+.username-card {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.username-section, .display-name-section {
+  margin-bottom: 1.5rem;
+}
+
+.username-section label, .display-name-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #aaa;
+}
+
+.username-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.username-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.username-info small {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.display-name-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.display-name-input input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.friend-list, .friend-requests, .add-friends {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.friend-item, .request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.friend-item.online {
+  border-left: 3px solid #4caf50;
+}
+
+.friend-item.offline {
+  border-left: 3px solid #666;
+}
+
+.friend-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.friend-status {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.alias-manager {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.alias-manager input {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal.modal-active {
+  display: flex;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #fff;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+}
+
+.modal-body input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+#usernameValidation, #searchResults {
+  margin-top: 0.5rem;
+}
+
+.player-name.admin-override {
+  color: #ff9800;
+  font-weight: 700;
+}
+
+.player-name.game-alias {
+  color: #2196f3;
+  font-style: italic;
+}
+

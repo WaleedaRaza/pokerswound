@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokerGeek - Premium Table</title>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="/css/poker-table-v3.css">
+    <link rel="stylesheet" href="/css/timer-display.css">
+    
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Supabase for Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body data-table-color="green">
+    <!-- Main Container -->
+    <div class="poker-container">
+        <!-- Header Bar -->
+        <header class="game-header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-text">PokerGeek</span>
+                    <span class="logo-badge">PRO</span>
+                </div>
+                <div class="room-info">
+                    <span class="room-code" id="roomCode">Room: XXXX</span>
+                    <span class="game-status" id="gameStatus">Waiting...</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="blinds-info">
+                    <span class="blind-label">Blinds</span>
+                    <span class="blind-values" id="blindValues">$1/$2</span>
+                </div>
+                <div class="hand-counter">
+                    <span class="hand-label">Hand</span>
+                    <span class="hand-number" id="handNumber">#1</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn host-btn" id="hostControlsBtn" style="display: none;">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                    </svg>
+                </button>
+                <button class="header-btn" id="settingsBtn">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+                    </svg>
+                </button>
+                <button class="header-btn" id="chatBtn">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+                <div class="user-avatar" id="userAvatar">
+                    <img src="" alt="User" id="userAvatarImg" style="display: none;">
+                    <div class="avatar-placeholder">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-area">
+            <!-- Poker Table -->
+            <div class="poker-table-container">
+                <div class="poker-table">
+                    <!-- Table Felt -->
+                    <div class="table-felt">
+                        <div class="table-logo">♠♥♣♦</div>
+                        
+                        <!-- Community Cards Area -->
+                        <div class="community-cards-area">
+                            <div class="community-cards" id="communityCards">
+                                <!-- Cards will be dynamically added -->
+                            </div>
+                            <div class="pot-display" id="potDisplay">
+                                <div class="pot-amount">$0</div>
+                                <div class="pot-label">POT</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dealer Button -->
+                        <div class="dealer-button" id="dealerButton" style="display: none;">D</div>
+                        
+                        <!-- Small/Big Blind Buttons -->
+                        <div class="blind-button sb" id="sbButton" style="display: none;">SB</div>
+                        <div class="blind-button bb" id="bbButton" style="display: none;">BB</div>
+                    </div>
+                    
+                    <!-- Player Seats (10-max) -->
+                    <div class="seats-container">
+                        <!-- Generate 10 seats -->
+                        <div class="seat seat-0" data-seat="0">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">👤</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">Empty Seat</div>
+                                        <div class="player-stack">$0</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: none;">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                                <div class="player-bet">
+                                    <div class="bet-amount">$0</div>
+                                </div>
+                                <div class="player-timer">
+                                    <div class="timer-ring">
+                                        <svg class="timer-svg" viewBox="0 0 36 36">
+                                            <path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="timer-text">30</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Repeat for seats 1-9 -->
+                        <div class="seat seat-1" data-seat="1"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-2" data-seat="2"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-3" data-seat="3"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-4" data-seat="4"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-5" data-seat="5"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-6" data-seat="6"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-7" data-seat="7"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-8" data-seat="8"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                        
+                        <div class="seat seat-9" data-seat="9"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div><div class="player-status"></div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">$0</div></div></div><div class="player-cards" style="display: none;"><div class="card card-back"></div><div class="card card-back"></div></div><div class="player-bet"><div class="bet-amount">$0</div></div><div class="player-timer"><div class="timer-ring"><svg class="timer-svg" viewBox="0 0 36 36"><path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path></svg></div><div class="timer-text">30</div></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel" id="actionPanel">
+                <div class="action-controls">
+                    <div class="quick-amounts">
+                        <button class="quick-bet" data-amount="0.5">½ POT</button>
+                        <button class="quick-bet" data-amount="0.75">¾ POT</button>
+                        <button class="quick-bet" data-amount="1">POT</button>
+                        <button class="quick-bet" data-amount="2">2x POT</button>
+                    </div>
+                    
+                    <div class="bet-slider-container">
+                        <input type="range" class="bet-slider" id="betSlider" min="0" max="1000" value="0">
+                        <div class="bet-input-container">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" class="bet-input" id="betInput" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn fold-btn" id="foldBtn">
+                            <span class="btn-text">FOLD</span>
+                            <span class="btn-hotkey">F</span>
+                        </button>
+                        <button class="action-btn call-btn" id="callBtn">
+                            <span class="btn-text">CALL</span>
+                            <span class="btn-amount">$0</span>
+                            <span class="btn-hotkey">C</span>
+                        </button>
+                        <button class="action-btn raise-btn" id="raiseBtn">
+                            <span class="btn-text">RAISE</span>
+                            <span class="btn-amount">$0</span>
+                            <span class="btn-hotkey">R</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Auto Actions -->
+                <div class="auto-actions">
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoFold">
+                        <span>Auto Fold</span>
+                    </label>
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoCheck">
+                        <span>Auto Check/Fold</span>
+                    </label>
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoCall">
+                        <span>Auto Call Any</span>
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <!-- Host Controls Panel -->
+        <div class="host-controls" id="hostControls">
+            <div class="host-controls-header">
+                <h3 class="host-controls-title">Host Controls</h3>
+                <button class="close-btn" id="closeHostControls">×</button>
+            </div>
+            
+            <div class="host-control-group">
+                <div class="host-control-label">Table Color</div>
+                <div class="table-color-options">
+                    <button class="color-btn green active" data-color="green"></button>
+                    <button class="color-btn red" data-color="red"></button>
+                    <button class="color-btn black" data-color="black"></button>
+                    <button class="color-btn blue" data-color="blue"></button>
+                    <button class="color-btn grey" data-color="grey"></button>
+                    <button class="color-btn tan" data-color="tan"></button>
+                    <button class="color-btn purple" data-color="purple"></button>
+                </div>
+            </div>
+            
+            <div class="host-control-group">
+                <div class="host-control-label">Game Controls</div>
+                <button class="host-action-btn" id="pauseGameBtn">Pause Game</button>
+                <button class="host-action-btn" id="adjustChipsBtn">Adjust Chips</button>
+                <button class="host-action-btn" id="kickPlayerBtn">Kick Player</button>
+            </div>
+            
+            <div class="host-control-group">
+                <div class="host-control-label">Table Settings</div>
+                <button class="host-action-btn" id="changeBlindsBtn">Change Blinds</button>
+                <button class="host-action-btn" id="changeTimerBtn">Change Timer</button>
+                <button class="host-action-btn" id="autoStartBtn">Auto-Start: OFF</button>
+            </div>
+        </div>
+
+        <!-- Chat Panel (Hidden by default) -->
+        <aside class="chat-panel" id="chatPanel" style="display: none;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3 class="chat-title">Table Chat</h3>
+                    <button class="chat-minimize" id="chatMinimize">−</button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Dynamic messages -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+                    <button class="chat-send" id="chatSend">
+                        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/js/sequence-tracker.js"></script>
+    <script src="/js/timer-display.js"></script>
+    <script src="/js/poker-table-v2.js"></script>
+    
+    <script>
+        // Initialize the premium poker experience
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎰 Premium Poker Table v3 Initializing...');
+            window.pokerTable = new PokerTableV2();
+            window.pokerTable.init();
+            
+            // Host controls toggle
+            const hostBtn = document.getElementById('hostControlsBtn');
+            const hostControls = document.getElementById('hostControls');
+            const closeHost = document.getElementById('closeHostControls');
+            
+            if (hostBtn) {
+                hostBtn.addEventListener('click', () => {
+                    hostControls.classList.toggle('show');
+                });
+            }
+            
+            if (closeHost) {
+                closeHost.addEventListener('click', () => {
+                    hostControls.classList.remove('show');
+                });
+            }
+            
+            // Table color switching
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const color = btn.dataset.color;
+                    document.body.dataset.tableColor = color;
+                    
+                    // Update active state
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // TODO: Save preference
+                });
+            });
+            
+            // Style adjustments for host control buttons
+            const style = document.createElement('style');
+            style.textContent = `
+                .host-action-btn {
+                    width: 100%;
+                    padding: 0.5rem;
+                    margin-bottom: 0.5rem;
+                    background: var(--bg-tertiary);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: var(--radius-sm);
+                    color: var(--text-primary);
+                    font-size: 0.875rem;
+                    cursor: pointer;
+                    transition: all var(--transition-fast);
+                }
+                
+                .host-action-btn:hover {
+                    background: var(--brand-orange);
+                    color: white;
+                    border-color: var(--brand-orange);
+                }
+                
+                .close-btn {
+                    background: transparent;
+                    border: none;
+                    color: var(--text-secondary);
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    line-height: 1;
+                }
+                
+                .player-bet {
+                    position: absolute;
+                    bottom: -25px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 1rem;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    opacity: 0;
+                    transition: all var(--transition-normal);
+                    font-size: 0.75rem;
+                }
+                
+                .player-bet.show {
+                    opacity: 1;
+                }
+                
+                .player-timer {
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    width: 36px;
+                    height: 36px;
+                    display: none;
+                }
+                
+                .seat.active.to-act .player-timer {
+                    display: block;
+                }
+                
+                .chat-panel {
+                    position: fixed;
+                    right: 1rem;
+                    bottom: 1rem;
+                    width: 320px;
+                    height: 400px;
+                    background: var(--bg-panel);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: var(--radius-lg);
+                    box-shadow: var(--shadow-xl);
+                    z-index: 100;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

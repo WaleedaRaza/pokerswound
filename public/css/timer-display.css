@@ -1,0 +1,165 @@
+/* Timer Display Styles */
+
+.timer-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 100;
+}
+
+.turn-timer {
+  font-size: 2.5rem;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+/* Timer states */
+.timer-normal {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 2px solid #2ecc71;
+}
+
+.timer-warning {
+  background: rgba(241, 196, 15, 0.2);
+  color: #f1c40f;
+  border: 2px solid #f1c40f;
+  animation: pulse-warning 1s infinite;
+}
+
+.timer-critical {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 2px solid #e74c3c;
+  animation: pulse-critical 0.5s infinite;
+}
+
+.timer-timebank {
+  background: rgba(155, 89, 182, 0.2);
+  color: #9b59b6;
+  border: 2px solid #9b59b6;
+  animation: pulse-timebank 1.5s infinite;
+}
+
+.timer-timeout {
+  background: rgba(231, 76, 60, 0.5);
+  color: #fff;
+  border: 2px solid #e74c3c;
+  animation: shake 0.5s;
+}
+
+/* Timebank display */
+.timebank-display {
+  margin-top: 10px;
+  font-size: 1rem;
+  color: #9b59b6;
+  font-weight: normal;
+  display: none;
+}
+
+/* Animations */
+@keyframes pulse-warning {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-critical {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-timebank {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-50%, -50%) translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translate(-50%, -50%) translateX(5px); }
+}
+
+/* Timer bar (alternative display) */
+.timer-bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.timer-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.timer-bar-normal {
+  background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+
+.timer-bar-warning {
+  background: linear-gradient(90deg, #f1c40f, #f39c12);
+}
+
+.timer-bar-critical {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.timer-bar-timebank {
+  background: linear-gradient(90deg, #9b59b6, #8e44ad);
+}
+
+/* Player timer position */
+.player-timer {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.2rem;
+  font-weight: bold;
+  min-width: 80px;
+}
+
+/* Small timer for other players */
+.player-timer-small {
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  min-width: 60px;
+}
+
+/* Timer sound icon */
+.timer-sound-toggle {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.timer-sound-toggle:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .turn-timer {
+    font-size: 2rem;
+    min-width: 100px;
+  }
+  
+  .player-timer {
+    font-size: 1rem;
+  }
+}

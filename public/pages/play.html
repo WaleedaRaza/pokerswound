@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Now - PokerGeek.ai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/pokergeek.css">
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Unified Auth System -->
+  <script src="/js/auth-manager.js"></script>
+  <script src="/js/nav-shared.js"></script>
+  
+  <!-- SVG Filter for Liquid Glass Effect -->
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="glass-distortion" x="-50%" y="-50%" width="200%" height="200%">
+        <feTurbulence baseFrequency="var(--glass-noise-frequency)" numOctaves="4" result="noise" type="fractalNoise"/>
+        <feGaussianBlur in="noise" stdDeviation="2" result="blur"/>
+        <feDisplacementMap in="SourceGraphic" in2="blur" scale="var(--glass-distortion-strength)" result="distorted"/>
+        <feComposite in="distorted" in2="SourceGraphic" operator="over"/>
+      </filter>
+    </defs>
+  </svg>
+</head>
+<body>
+  <!-- Global floating animations container -->
+  <div id="floating-cards" class="floating-cards"></div>
+
+  <!-- CONSOLIDATED NAVBAR -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">PokerGeek.ai</a>
+    <ul class="navbar-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/play">Play Now</a></li>
+      <li><a href="/friends">Friends</a></li>
+      <li><a href="/ai-solver">AI Solver</a></li>
+      <li><a href="/analysis">Analysis</a></li>
+      <li><a href="/learning">Learning</a></li>
+      <li><a href="/poker-today">Poker Today</a></li>
+    </ul>
+    <div class="navbar-auth" id="navbarAuth">
+      <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
+      <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
+    </div>
+    
+    <!-- User Profile Tile (shown when logged in) -->
+    <div class="navbar-user" id="navbarUser" style="display: none;">
+      <div class="user-profile-tile liquid-glass-tile" onclick="toggleUserDropdown()">
+        <div class="user-avatar" id="userAvatar">👤</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Username</div>
+          <div class="user-status">Online</div>
+        </div>
+        <div class="user-menu-icon">⚙️</div>
+      </div>
+      
+      <!-- User Dropdown Menu -->
+      <div id="userDropdown" class="user-dropdown" style="display: none; position: absolute; top: 60px; right: 20px; background: rgba(20,20,40,0.98); border-radius: 10px; padding: 1rem; min-width: 250px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div id="dropdownAvatar" style="font-size: 3rem;">👤</div>
+            <div>
+              <div id="dropdownUsername" style="color: #fff; font-weight: bold; font-size: 1.1rem;">Username</div>
+              <div id="dropdownEmail" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">user@example.com</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <button onclick="openProfileSettings()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+            👤 Profile Settings
+          </button>
+          <button onclick="openChangeUsername()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+            ✏️ Change Username
+          </button>
+          <button onclick="openChangePassword()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+            🔒 Change Password
+          </button>
+          <button onclick="openAvatarPicker()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+            😊 Change Avatar
+          </button>
+          <button onclick="handleLogout()" style="padding: 0.75rem; background: rgba(220,53,69,0.2); border: none; border-radius: 5px; color: #dc3545; cursor: pointer; text-align: left; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='rgba(220,53,69,0.3)'" onmouseout="this.style.background='rgba(220,53,69,0.2)'">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Play Now</h1>
+      <p class="page-subtitle">Choose your game mode and start playing</p>
+    </div>
+    
+    <!-- WEEK 3 DAY 3-4: Manage Rooms Section -->
+    <div id="manageRoomsSection" class="manage-rooms-section" style="max-width: 1200px; margin: 0 auto 2rem auto; display: none;">
+      <div class="liquid-glass-tile" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="color: #fff; font-size: 1.5rem; margin: 0;">🏠 My Rooms</h3>
+          <button onclick="refreshMyRooms()" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+            🔄 Refresh
+          </button>
+        </div>
+        
+        <div id="roomLimitWarning" style="display: none; background: rgba(255,193,7,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #FFC107;">
+          ⚠️ You have reached the maximum of 5 active rooms. Please close a room to create a new one.
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+          <!-- Hosted Rooms -->
+          <div>
+            <h4 style="color: rgba(255,255,255,0.7); font-size: 1rem; margin-bottom: 1rem;">
+              👑 Hosted Rooms (<span id="hostedCount">0</span>/5)
+            </h4>
+            <div id="hostedRoomsList" class="rooms-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">
+                No hosted rooms
+              </div>
+            </div>
+          </div>
+          
+          <!-- Joined Rooms -->
+          <div>
+            <h4 style="color: rgba(255,255,255,0.7); font-size: 1rem; margin-bottom: 1rem;">
+              👥 Joined Rooms (<span id="joinedCount">0</span>)
+            </h4>
+            <div id="joinedRoomsList" class="rooms-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">
+                No joined rooms
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Game Sections using liquid glass tiles -->
+    <div class="game-sections">
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-content">
+          <div class="tile-icon">🎯</div>
+          <h3 class="tile-title">Quick Play</h3>
+          <p class="tile-description">Jump into a game instantly with random opponents</p>
+          <div class="tile-actions">
+            <button class="btn btn-primary" onclick="openQuickPlayModal()">Start Game</button>
+            <button class="btn btn-secondary" onclick="openJoinModal()">Join Room</button>
+          </div>
+        </div>
+      </section>
+      
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-content">
+          <div class="tile-icon">🏠</div>
+          <h3 class="tile-title">Create Room</h3>
+          <p class="tile-description">Host your own private poker room with friends</p>
+          <div class="tile-actions">
+            <button class="btn btn-primary" onclick="openCreateModal()">Create Room</button>
+            <button class="btn btn-secondary" onclick="openSettingsModal()">Settings</button>
+          </div>
+        </div>
+      </section>
+      
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-content">
+          <div class="tile-icon">🏆</div>
+          <h3 class="tile-title">Tournaments</h3>
+          <p class="tile-description">Compete in scheduled tournaments and win prizes</p>
+          <div class="tile-actions">
+            <button class="btn btn-primary" onclick="openTournamentsModal()">View Tournaments</button>
+            <button class="btn btn-secondary" onclick="openCreateTournamentModal()">Create Tournament</button>
+          </div>
+        </div>
+      </section>
+      
+      <section class="game-section liquid-glass-tile">
+        <div class="tile-content">
+          <div class="tile-icon">👥</div>
+          <h3 class="tile-title">Public Tables</h3>
+          <p class="tile-description">Join public tables and meet new players</p>
+          <div class="tile-actions">
+            <button class="btn btn-primary" onclick="openPublicModal()">Browse Tables</button>
+            <button class="btn btn-secondary" onclick="openTableManageModal()">Manage Tables</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Game Lobby Section (Hidden by default) -->
+  <div id="gameLobbySection" class="game-lobby-section" style="display: none;">
+    <div class="lobby-container liquid-glass-tile" style="max-width: 800px; margin: 2rem auto; padding: 2rem;">
+      <!-- Header with Room Code -->
+      <div class="lobby-header" style="text-align: center; margin-bottom: 2rem;">
+        <h2 style="color: #fff; font-size: 2rem; margin-bottom: 1rem;">🎰 Game Lobby</h2>
+        <div class="room-code-banner" style="background: rgba(76, 175, 80, 0.2); padding: 1rem; border-radius: 10px; display: inline-block;">
+          <span class="room-code-label" style="color: rgba(255,255,255,0.7); margin-right: 0.5rem;">Room Code:</span>
+          <span class="room-code-value" id="roomCodeDisplay" style="color: #4CAF50; font-size: 1.5rem; font-weight: bold; letter-spacing: 2px;">------</span>
+          <button class="btn btn-secondary" onclick="copyRoomCode()" style="margin-left: 1rem; padding: 0.5rem 1rem;">📋 Copy</button>
+        </div>
+      </div>
+
+      <!-- Host Controls -->
+      <div id="hostControls" style="display: none;">
+        <div class="host-section">
+          <h3 style="color: #fff; margin-bottom: 1rem;">👑 Host Controls</h3>
+          <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">Approve players to let them join the game:</p>
+          
+          <div id="pendingPlayersList" class="players-list" style="margin-bottom: 2rem;">
+            <!-- Dynamically populated with player cards -->
+          </div>
+
+          <button id="startGameButton" class="btn btn-primary btn-large" onclick="startGame()" disabled style="width: 100%; padding: 1rem; font-size: 1.2rem;">
+            🎮 START GAME (NEED 2+ PLAYERS)
+          </button>
+        </div>
+      </div>
+
+      <!-- Guest Waiting View -->
+      <div id="guestWaiting" style="display: none;">
+        <div class="waiting-container" style="text-align: center; padding: 3rem;">
+          <div class="spinner-animation" style="font-size: 4rem; margin-bottom: 1rem;">⏳</div>
+          <h3 id="waitingStatus" style="color: #fff; margin-bottom: 0.5rem;">Waiting for host approval...</h3>
+          <p id="waitingMessage" style="color: rgba(255,255,255,0.7);">The host will approve you shortly</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Poker Table Section (Hidden by default) -->
+  <div id="pokerTableSection" class="poker-table-section" style="display: none; padding: 2rem; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);">
+    <div class="table-container" style="max-width: 1400px; margin: 0 auto;">
+      <div class="table-header" style="text-align: center; margin-bottom: 2rem;">
+        <h2 style="color: #fff; font-size: 2.5rem; margin-bottom: 0.5rem;">🎰 Poker Table</h2>
+        <p style="color: rgba(255,255,255,0.7); font-size: 1.2rem;">Room Code: <span id="tableRoomCode" style="color: #4CAF50; font-weight: bold;">------</span></p>
+      </div>
+
+      <!-- Seat Grid -->
+      <div id="playersGrid" class="seat-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem; padding: 2rem; background: rgba(0,0,0,0.3); border-radius: 20px;">
+        <!-- Seats will be dynamically rendered -->
+      </div>
+
+      <!-- Community Cards & Pot -->
+      <div class="table-center" style="text-align: center; margin: 2rem 0;">
+        <div class="community-cards" style="margin-bottom: 1rem;">
+          <div id="communityCards" style="display: flex; justify-content: center; gap: 0.5rem;">
+            <!-- Cards will be rendered here -->
+          </div>
+        </div>
+        
+        <div class="pot-display" style="background: rgba(255,193,7,0.2); padding: 1rem; border-radius: 10px; display: inline-block;">
+          <span style="color: rgba(255,255,255,0.7); margin-right: 0.5rem;">POT:</span>
+          <span id="potAmount" style="color: #FFC107; font-size: 1.5rem; font-weight: bold;">$0</span>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div id="actionPanel" class="action-panel" style="display: none; text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px;">
+        <div style="margin-bottom: 1rem;">
+          <span style="color: #fff;">Your turn!</span>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button class="btn btn-secondary" onclick="playerAction('fold')">Fold</button>
+          <button class="btn btn-primary" onclick="playerAction('call')" id="callBtn">Call $0</button>
+          <button class="btn btn-success" onclick="playerAction('raise')" id="raiseBtn">Raise</button>
+        </div>
+        <div style="margin-top: 1rem;">
+          <input type="range" id="raiseAmount" min="0" max="1000" value="0" style="width: 200px;">
+          <span id="raiseAmountDisplay" style="color: #fff; margin-left: 1rem;">$0</span>
+        </div>
+      </div>
+
+      <!-- Admin Panel (Host Only) -->
+      <div id="adminGamePanel" style="display: none; margin-top: 2rem; padding: 1rem; background: rgba(76,175,80,0.1); border-radius: 10px;">
+        <button class="btn btn-primary" onclick="adminStartHand()" id="adminStartHandBtn">
+          🎲 Start Hand
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liquid Glass Controls -->
+  <div class="glass-controls">
+    <h3>Liquid Glass Controls</h3>
+    <div>
+      <label>Shadow Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="shadow-blur">
+    </div>
+    <div>
+      <label>Tint Opacity:</label>
+      <input type="range" min="0" max="20" value="5" id="tint-opacity">
+    </div>
+    <div>
+      <label>Frost Blur:</label>
+      <input type="range" min="0" max="30" value="20" id="frost-blur">
+    </div>
+    <div>
+      <label>Distortion:</label>
+      <input type="range" min="0" max="100" value="77" id="distortion-strength">
+    </div>
+    <div>
+      <button id="lock-values">🔓 Lock</button>
+      <button onclick="toggleControls()">Hide</button>
+    </div>
+  </div>
+
+  <!-- Login/Signup Modal -->
+  <div id="loginModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Welcome to PokerGeek</h2>
+        <p class="modal-subtitle">Sign in to your account or create a new one</p>
+      </div>
+      
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchModalTab('login')">Sign In</button>
+        <button class="modal-tab" onclick="switchModalTab('signup')">Sign Up</button>
+      </div>
+      
+      <!-- Login Form -->
+      <div id="loginForm" class="modal-form active">
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        
+        <button class="btn btn-secondary" onclick="handleGuestSignIn()" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; background: rgba(108,117,125,0.2); border: 1px solid rgba(108,117,125,0.5); color: #fff;">
+          👤 Continue as Guest
+        </button>
+        
+        <div class="divider"><span>or</span></div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="loginEmailError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+          </div>
+          <div class="form-error" id="loginPasswordError"></div>
+        </div>
+        <div class="form-options">
+          <div class="checkbox-group">
+            <input type="checkbox" class="checkbox" id="remember">
+            <label class="checkbox-label" for="remember">Remember me for 30 days</label>
+          </div>
+          <a href="#" class="forgot-link" onclick="showForgotPassword()">Forgot password?</a>
+        </div>
+        <button class="btn-submit" onclick="handleLogin()">Sign In to PokerGeek</button>
+        <div class="form-footer">
+          <p>Don't have an account? <a href="#" onclick="switchModalTab('signup')">Create one here</a></p>
+        </div>
+      </div>
+      
+      <!-- Signup Form -->
+      <div id="signupForm" class="modal-form">
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div class="divider"><span>or</span></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-input" id="signupFirstName" placeholder="First name" required>
+            <div class="form-error" id="signupFirstNameError"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-input" id="signupLastName" placeholder="Last name" required>
+            <div class="form-error" id="signupLastNameError"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="signupEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="signupEmailError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signupUsername" placeholder="Choose a username" required>
+          <div class="form-error" id="signupUsernameError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="signupPassword" placeholder="Create a password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')">👁️</button>
+          </div>
+          <div class="password-strength" id="passwordStrength"></div>
+          <div class="form-error" id="signupPasswordError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="signupConfirmPassword" placeholder="Confirm your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupConfirmPassword')">👁️</button>
+          </div>
+          <div class="form-error" id="signupConfirmPasswordError"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input type="date" class="form-input" id="signupBirthDate" required>
+          <div class="form-error" id="signupBirthDateError"></div>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="terms" required>
+          <label class="checkbox-label" for="terms">I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Policy</a></label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" class="checkbox" id="newsletter">
+          <label class="checkbox-label" for="newsletter">Subscribe to our newsletter for updates and promotions</label>
+        </div>
+        <button class="btn-submit" onclick="handleSignup()">Create Account</button>
+        <div class="form-footer">
+          <p>Already have an account? <a href="#" onclick="switchModalTab('login')">Sign in here</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== -->
+  <!-- LOBBY WAITING SECTION -->
+  <!-- ======================== -->
+  <section id="gameLobbySection" style="display: none;" class="lobby-section">
+    <div class="main-content">
+      <div class="lobby-container liquid-glass-tile" style="max-width: 800px; margin: 2rem auto; padding: 3rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem;">🎰 Game Lobby</h2>
+        
+        <div class="room-code-display" style="text-align: center; margin-bottom: 3rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 15px;">
+          <div style="font-size: 1rem; opacity: 0.7; margin-bottom: 0.5rem;">Room Code</div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+            <span id="roomCodeDisplay" class="room-code" style="font-size: 2.5rem; font-weight: bold; letter-spacing: 0.3rem; color: var(--teal, #10b981);">------</span>
+            <button onclick="copyRoomCode()" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">📋 Copy</button>
+          </div>
+        </div>
+        
+        <!-- Host Controls -->
+        <div id="hostControls" style="display: none;">
+          <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">👑 Host Controls</h3>
+          <p style="opacity: 0.8; margin-bottom: 1.5rem;">Approve players to let them join the game:</p>
+          <div id="pendingPlayersList" class="players-list" style="margin-bottom: 2rem;"></div>
+          <button id="startGameButton" onclick="startGame()" class="btn btn-primary" disabled style="width: 100%; padding: 1.25rem; font-size: 1.2rem; font-weight: bold;">
+            🎮 START GAME (NEED 2+ PLAYERS)
+          </button>
+        </div>
+        
+        <!-- Guest Waiting -->
+        <div id="guestWaiting" style="display: none;">
+          <div class="waiting-message" style="text-align: center; padding: 3rem;">
+            <div class="waiting-icon" style="font-size: 4rem; margin-bottom: 1rem;">⏳</div>
+            <p id="waitingStatus" style="font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: bold;">Waiting for host approval...</p>
+            <p id="waitingMessage" style="opacity: 0.7; font-size: 1.1rem;">The host will approve you shortly</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== -->
+  <!-- POKER TABLE SECTION -->
+  <!-- ======================== -->
+  <section id="pokerTableSection" style="display: none;" class="poker-table-section">
+    <div class="main-content">
+      <div class="poker-table-container liquid-glass-tile" style="max-width: 1200px; margin: 2rem auto; padding: 2rem;">
+        
+        <div class="table-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 2rem;">🎰 Poker Table</h2>
+          <div id="tableRoomCode" class="table-room-code" style="font-size: 1.2rem; opacity: 0.7;"></div>
+        </div>
+        
+        <!-- Poker table UI -->
+        <div id="pokerTable" class="poker-table" style="position: relative; min-height: 500px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+          
+          <!-- Pot Display -->
+          <div class="pot-display" style="text-align: center; margin-bottom: 2rem;">
+            <div class="pot-label" style="font-size: 0.9rem; opacity: 0.7; margin-bottom: 0.5rem;">POT</div>
+            <div id="potAmount" class="pot-amount" style="font-size: 2.5rem; font-weight: bold; color: var(--teal, #10b981);">$0</div>
+          </div>
+          
+          <!-- Community Cards -->
+          <div id="communityCards" class="community-cards" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; min-height: 120px;"></div>
+          
+          <!-- Seats Grid -->
+          <div id="seatsGrid" class="seats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem;"></div>
+        </div>
+        
+        <!-- Action Panel -->
+        <div id="actionPanel" class="action-panel" style="display: none; padding: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 1rem;">
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button onclick="playerAction('fold')" class="btn btn-danger" style="flex: 1; min-width: 120px; padding: 1rem; font-size: 1.1rem; font-weight: bold;">FOLD</button>
+            <button onclick="playerAction('call')" class="btn btn-secondary" style="flex: 1; min-width: 120px; padding: 1rem; font-size: 1.1rem; font-weight: bold;">CALL</button>
+            <button onclick="playerAction('raise')" class="btn btn-primary" style="flex: 1; min-width: 120px; padding: 1rem; font-size: 1.1rem; font-weight: bold;">RAISE</button>
+            <button onclick="playerAction('all-in')" class="btn btn-warning" style="flex: 1; min-width: 120px; padding: 1rem; font-size: 1.1rem; font-weight: bold;">ALL-IN</button>
+          </div>
+          <div id="raiseControls" style="margin-top: 1rem; text-align: center;">
+            <input type="number" id="raiseAmount" placeholder="Raise amount" style="padding: 0.75rem; width: 200px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem;">
+          </div>
+        </div>
+        
+        <!-- Host Game Controls -->
+        <div id="hostGameControls" style="display: none; text-align: center;">
+          <button onclick="adminStartHand()" class="btn btn-success" style="padding: 1.25rem 3rem; font-size: 1.2rem; font-weight: bold;">🎲 START HAND</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <a href="index.html" class="footer-logo">PokerGeek.ai</a>
+      <p class="footer-desc">Building the world's most transparent poker platform with provably fair shuffling and cryptographic verification.</p>
+      <div class="footer-links">
+        <a href="#privacy">Privacy Policy</a>
+        <a href="#terms">Terms of Service</a>
+        <a href="#support">Support</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 PokerGeek.ai. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Global animations -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="/js/sequence-tracker.js"></script>
+  <script src="/js/global-animations.js"></script>
+  <script src="/js/auth-shared.js"></script>
+  <script src="/js/nav-shared.js"></script>
+  <script>
+    // ===== APPLICATION STATE =====
+    const AppState = {
+      GAME_SELECTION: 'game_selection',
+      LOBBY_WAITING: 'lobby_waiting',
+      PLAYING: 'playing'
+    };
+
+    let currentState = AppState.GAME_SELECTION;
+    let currentRoom = null;
+    let currentGame = null;
+    let isHost = false;
+    let socket = null;
+    let sequenceTracker = null;
+    let seats = [];
+    let gameState = null;
+    
+    // ===== INITIALIZE WEBSOCKET =====
+    console.log('🔌 Initializing WebSocket connection...');
+    socket = io();
+    sequenceTracker = new SequenceTracker();
+    
+    socket.on('connect', () => {
+      console.log('✅ WebSocket connected:', socket.id);
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('❌ WebSocket disconnected');
+    });
+    
+    socket.on('game_started', sequenceTracker.createHandler((data) => {
+      console.log('🎮 Game started event received!', data);
+      const { roomId, gameId, game } = data;
+      currentGame = game || { id: gameId };
+      
+      // ✅ REDIRECT TO WORKING POKER TABLE (guests)
+      const url = `/game?room=${roomId}&gameId=${gameId}`;
+      console.log('🚀 Redirecting guest to WORKING poker table:', url);
+      window.location.href = url;
+    });
+    
+    // ✅ CRITICAL: Handle player approval - show they're approved in lobby
+    socket.on('player_approved', sequenceTracker.createHandler((data) => {
+      console.log('✅ Player approval received!', data);
+      const { userId } = data;
+      const me = window.currentUser;
+      if (!me || !currentRoom) return;
+      if (String(userId) !== String(me.id)) return;
+      console.log('🎉 You have been approved!');
+      showNotification('Approved! Waiting for host to start game...', 'success');
+      
+      // Update waiting message
+      const waitingStatus = document.getElementById('waitingStatus');
+      const waitingMessage = document.getElementById('waitingMessage');
+      if (waitingStatus) waitingStatus.textContent = '✅ You are approved!';
+      if (waitingMessage) waitingMessage.textContent = 'Waiting for host to start the game...';
+    });
+
+    // ===== UNIFIED AUTHENTICATION SYSTEM =====
+    // Auth state management
+    let isLoggedIn = false;
+    let currentUser = null; // Will be set by initializeAuth()
+
+    // Helper to get current user
+    function getCurrentUser() {
+      return window.authManager?.getUser() || currentUser;
+    }
+
+    // Check if user is logged in on page load
+    async function checkAuthState() {
+      const user = await window.authManager.checkAuth();
+      if (user) {
+        currentUser = user;
+        isLoggedIn = true;
+        window.currentUser = user; // Set global for socket events
+        updateNavbarForLoggedInUser();
+      } else {
+        currentUser = null;
+        isLoggedIn = false;
+        updateNavbarForLoggedOutUser();
+      }
+    }
+
+    // Subscribe to auth state changes (so UI updates on login/logout)
+    if (window.authManager) {
+      window.authManager.onAuthStateChange((user) => {
+        console.log('🔔 [Play Page] Auth state changed:', user);
+        if (user) {
+          currentUser = user;
+          isLoggedIn = true;
+          window.currentUser = user;
+          updateNavbarForLoggedInUser();
+        } else {
+          currentUser = null;
+          isLoggedIn = false;
+          window.currentUser = null;
+          updateNavbarForLoggedOutUser();
+        }
+      });
+    }
+    
+    function closeLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function switchModalTab(tab) {
+      // Remove active class from all tabs and forms
+      document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.modal-form').forEach(f => f.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding form
+      event.target.classList.add('active');
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+
+    function openSettingsModal() {
+      // Redirect to home page for settings
+      window.location.href = 'index.html';
+    }
+
+    // handleLogout is now in nav-shared.js (global function)
+
+    // handleGoogleAuth is part of openLoginModal() in nav-shared.js
+
+    // Mock Login - Instant login with any email/password
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      // Simple validation for demo
+      if (!email || !password) {
+        showNotification('Please enter both email and password', 'error');
+        return;
+      }
+      
+      // Generate user data based on email
+      const username = email.split('@')[0];
+      const name = username.charAt(0).toUpperCase() + username.slice(1) + ' User';
+      
+      const mockUser = {
+        name: name,
+        username: username,
+        email: email,
+        avatar: '👤',
+        provider: 'email'
+      };
+      
+      currentUser = mockUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(mockUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      showNotification(`Welcome back, ${name}!`, 'success');
+    }
+
+    // Mock Signup - Instant signup with any data
+    function handleSignup() {
+      const firstName = document.getElementById('signupFirstName').value;
+      const lastName = document.getElementById('signupLastName').value;
+      const email = document.getElementById('signupEmail').value;
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const birthDate = document.getElementById('signupBirthDate').value;
+      const terms = document.getElementById('terms').checked;
+      
+      // Basic validation for demo
+      if (!firstName || !lastName || !email || !username || !password) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+      }
+      
+      if (!terms) {
+        showNotification('Please agree to the Terms of Service', 'error');
+        return;
+      }
+      
+      // Create user with provided data
+      const mockUser = {
+        name: `${firstName} ${lastName}`,
+        username: username,
+        email: email,
+        avatar: '👤',
+        provider: 'email',
+        birthDate: birthDate
+      };
+      
+      currentUser = mockUser;
+      isLoggedIn = true;
+      localStorage.setItem('pokerUser', JSON.stringify(mockUser));
+      
+      updateNavbarForLoggedInUser();
+      closeLoginModal();
+      
+      showNotification(`Welcome to PokerGeek, ${firstName}!`, 'success');
+    }
+
+    // Guest Sign In
+    async function handleGuestSignIn() {
+      try {
+        const user = await window.authManager.signInAnonymously();
+        
+        if (!user || !user.id) {
+          throw new Error('Failed to create guest user');
+        }
+        
+        // Update local state
+        currentUser = user;
+        isLoggedIn = true;
+        
+        updateNavbarForLoggedInUser();
+        closeLoginModal();
+        showNotification(`Welcome ${user.username}! (Guest users can join rooms but cannot create them)`, 'info');
+      } catch (error) {
+        console.error('❌ Guest sign in error:', error);
+        showNotification('Failed to create guest session. Please try again.', 'error');
+      }
+    }
+
+    // Toggle User Dropdown
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      const isVisible = dropdown.style.display !== 'none';
+      
+      if (isVisible) {
+        dropdown.style.display = 'none';
+      } else {
+        // Update dropdown content with current user data
+        document.getElementById('dropdownAvatar').textContent = currentUser?.avatar || '👤';
+        document.getElementById('dropdownUsername').textContent = currentUser?.username || 'Username';
+        document.getElementById('dropdownEmail').textContent = currentUser?.email || 'user@example.com';
+        dropdown.style.display = 'block';
+      }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('userDropdown');
+      const profileTile = document.querySelector('.user-profile-tile');
+      
+      if (dropdown && !dropdown.contains(event.target) && !profileTile.contains(event.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    // Logout Function
+    async function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        // Use AuthManager for unified logout
+        await window.authManager.logout();
+        
+        // Clear user data
+        currentUser = null;
+        isLoggedIn = false;
+        localStorage.removeItem('pokerUser');
+        
+        // Hide dropdown
+        document.getElementById('userDropdown').style.display = 'none';
+        
+        // Update navbar
+        document.getElementById('navbarUser').style.display = 'none';
+        document.getElementById('navbarActions').style.display = 'flex';
+        
+        showNotification('Logged out successfully', 'success');
+        
+        // Redirect to home if on play page
+        if (window.location.pathname === '/play') {
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
+        }
+      }
+    }
+
+    // Profile Settings (placeholder)
+    function openProfileSettings() {
+      toggleUserDropdown();
+      showNotification('Profile settings coming soon!', 'info');
+    }
+
+    // Change Username (placeholder)
+    function openChangeUsername() {
+      toggleUserDropdown();
+      const newUsername = prompt('Enter new username:', currentUser?.username || '');
+      
+      if (newUsername && newUsername.trim()) {
+        if (currentUser) {
+          currentUser.username = newUsername.trim();
+          localStorage.setItem('pokerUser', JSON.stringify(currentUser));
+          document.getElementById('userName').textContent = newUsername.trim();
+          showNotification('Username updated successfully!', 'success');
+        }
+      }
+    }
+
+    // Change Password (placeholder)
+    function openChangePassword() {
+      toggleUserDropdown();
+      
+      if (currentUser?.isGuest) {
+        showNotification('Guest users cannot change passwords. Sign up for a full account!', 'info');
+        return;
+      }
+      
+      showNotification('Change password functionality coming soon!', 'info');
+    }
+
+    // Avatar Picker (placeholder)
+    function openAvatarPicker() {
+      toggleUserDropdown();
+      
+      const avatars = ['👤', '😎', '🤓', '🎯', '👑', '🃏', '🎲', '🎰', '💎', '⭐', '🔥', '💪', '🧠', '🚀', '👻'];
+      const choice = prompt('Choose an avatar:\n' + avatars.map((a, i) => `${i + 1}. ${a}`).join('\n'));
+      
+      if (choice && !isNaN(choice)) {
+        const index = parseInt(choice) - 1;
+        if (index >= 0 && index < avatars.length) {
+          if (currentUser) {
+            currentUser.avatar = avatars[index];
+            localStorage.setItem('pokerUser', JSON.stringify(currentUser));
+            document.getElementById('userAvatar').textContent = avatars[index];
+            showNotification('Avatar updated!', 'success');
+          }
+        }
+      }
+    }
+
+    // Password toggle functionality
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const button = input.nextElementSibling;
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        button.textContent = '👁️';
+      }
+    }
+
+    // Forgot password function
+    function showForgotPassword() {
+      showNotification('Password reset functionality coming soon!', 'info');
+    }
+
+    // Notification system
+    // Modal helper functions
+    function closeLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+
+    function switchModalTab(tab) {
+      document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.modal-form').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tab + 'Form').classList.add('active');
+    }
+
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const button = input.parentNode?.querySelector('.password-toggle');
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (button) button.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        if (button) button.textContent = '👁️';
+      }
+    }
+
+    // Legacy handlers (redirect to Google/Guest)
+    function handleLogin() {
+      showNotification('Please use Google Sign-In or continue as Guest', 'info');
+    }
+
+    function handleSignup() {
+      showNotification('Please use Google Sign-In to create an account', 'info');
+    }
+
+    function showNotification(message, type = 'info') {
+      // Remove existing notifications
+      const existing = document.querySelector('.notification');
+      if (existing) {
+        existing.remove();
+      }
+      
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.innerHTML = `
+        <div class="notification-content">
+          <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+          <span class="notification-message">${message}</span>
+        </div>
+      `;
+      
+      // Add to page
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // Other pages: Initialize ongoing animations only
+    // Initialize auth on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('🎬 [Play Page] DOMContentLoaded - initializing...');
+      initOngoingOnly(); // Just ongoing, no wave
+      await checkAuthState(); // Check if user is logged in
+      console.log('✅ [Play Page] Auth state checked, user:', currentUser);
+      
+      // ⚔️ PHASE 1: URL-Based Room Recovery
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // Check for path-based room ID: /game/:roomId
+      let roomId = null;
+      if (pathSegments.length >= 2 && pathSegments[0] === 'game') {
+        roomId = pathSegments[1];
+        console.log('🔗 [RECOVERY] Room ID detected in path:', roomId);
+      }
+      
+      // Fallback: Check query parameter: /play?room=code
+      const roomCode = urlParams.get('room');
+      if (!roomId && roomCode) {
+        roomId = roomCode;
+        console.log('🔗 [RECOVERY] Room code detected in query:', roomCode);
+      }
+      
+      // If we have a room ID, attempt recovery
+      if (roomId && currentUser) {
+        console.log('⚔️ [RECOVERY] Attempting room recovery...', { roomId, userId: currentUser.id });
+        await attemptRoomRecovery(roomId);
+      }
+    });
+
+    // ⚔️ ROOM RECOVERY FUNCTION - USES NEW HYDRATION ENDPOINT
+    async function attemptRoomRecovery(roomId) {
+      try {
+        console.log('🌊 [RECOVERY] Fetching hydration data...', roomId);
+        
+        // Fetch complete hydration data
+        const hydrationResponse = await fetch(`/api/rooms/${roomId}/hydrate?userId=${currentUser.id}`);
+        if (!hydrationResponse.ok) {
+          throw new Error('Hydration failed: ' + hydrationResponse.status);
+        }
+        
+        const hydration = await hydrationResponse.json();
+        console.log('🌊 [RECOVERY] Hydration complete:', hydration);
+        
+        // Initialize sequence tracker with current seq
+        if (sequenceTracker && hydration.seq) {
+          sequenceTracker.currentSeq = hydration.seq;
+          console.log('🔢 [RECOVERY] Sequence initialized at:', hydration.seq);
+        }
+        
+        // Store room data
+        currentRoom = hydration.room;
+        isHost = hydration.room.host_id === currentUser.id;
+        
+        // ⚔️ CRITICAL: Check if game is active BEFORE deciding which UI to show
+        if (hydration.game && hydration.game.id && hydration.me?.seat_index !== null) {
+          // Game is active and user has a seat, show game table
+          console.log('🎮 [RECOVERY] Game is active, showing game table');
+          showGameTable();
+          
+          // Update game info
+          document.getElementById('currentGameId').textContent = `Game: ${hydration.game.id}`;
+          
+          // Render game state with hydrated data
+          if (hydration.game.state) {
+            renderGameState(hydration.game.state);
+          }
+          
+          // If we have hole cards, restore them
+          if (hydration.me?.hole_cards) {
+            console.log('🎴 [RECOVERY] Restoring hole cards');
+            // Store for game display
+            window.myHoleCards = hydration.me.hole_cards;
+          }
+          
+          // Store rejoin token for future reconnects
+          if (hydration.me?.rejoin_token) {
+            sessionStorage.setItem('rejoinToken', hydration.me.rejoin_token);
+            console.log('🔑 [RECOVERY] Rejoin token stored');
+          }
+          
+          showNotification('Reconnected to active game!', 'success');
+        } else {
+          // No active game or no seat, show lobby
+          console.log('🏠 [RECOVERY] Showing lobby');
+          showLobby();
+          
+          // Update room info display
+          document.getElementById('roomCodeDisplay').textContent = hydration.room.code || 'N/A';
+          
+          // Render hydrated seats
+          if (hydration.seats) {
+            renderSeatsFromHydration(hydration.seats);
+            
+            // If user has a seat, highlight it
+            if (hydration.me?.seat_index !== null) {
+              showNotification(`✅ You are in seat ${hydration.me.seat_index + 1}`, 'success');
+            }
+          }
+          
+          // Store rejoin token for future reconnects
+          if (hydration.me?.rejoin_token) {
+            sessionStorage.setItem('rejoinToken', hydration.me.rejoin_token);
+            console.log('🔑 [RECOVERY] Rejoin token stored');
+          }
+          document.getElementById('currentGameId').textContent = `Room: ${currentRoom.id}`;
+          
+          // Load lobby players
+          await loadLobbyPlayers();
+          
+          showNotification('Reconnected to lobby!', 'success');
+        }
+        
+        // ⚔️ PHASE 2: Restore seat if player has one
+        await restorePlayerSeat(roomId);
+        
+        // ⚔️ PHASE 3: Reconnect socket
+        await reconnectSocket(roomId);
+        
+        console.log('🎉 [RECOVERY] Room recovery complete!');
+        
+      } catch (error) {
+        console.error('❌ [RECOVERY] Room recovery failed:', error);
+        showNotification('Failed to reconnect to room: ' + error.message, 'error');
+        // Redirect to lobby
+        showLobbyList();
+      }
+    }
+
+    // ⚔️ RESTORE PLAYER SEAT (Phase 2)
+    async function restorePlayerSeat(roomId) {
+      try {
+        console.log('🪑 [RECOVERY] Checking for player seat...');
+        
+        const response = await fetch(`/api/rooms/${roomId}/seats`);
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const recoveredSeats = data.seats || data;
+        
+        // Find player's seat
+        const mySeat = recoveredSeats.find(s => s.user_id === currentUser.id);
+        
+        if (mySeat) {
+          console.log('✅ [RECOVERY] Seat found:', mySeat);
+          console.log('🪑 [RECOVERY] Your seat:', {
+            seatIndex: mySeat.seat_index,
+            chips: mySeat.chips_in_play || mySeat.chips,
+            username: mySeat.username
+          });
+          
+          showNotification(`✅ Restored: You are in seat ${mySeat.seat_index + 1} with $${mySeat.chips_in_play || mySeat.chips} chips`, 'success');
+          
+          // Render seats (will highlight player's seat in gold)
+          await loadSeats();
+          
+          // Check if game is active
+          await checkActiveGame(roomId);
+        } else {
+          console.log('ℹ️ [RECOVERY] No seat claimed yet - you can claim one now');
+          // Still load seats to show what's available
+          await loadSeats();
+        }
+      } catch (error) {
+        console.error('⚠️ [RECOVERY] Seat restoration failed:', error);
+      }
+    }
+
+    // ⚔️ RECONNECT SOCKET (Phase 3)
+    async function reconnectSocket(roomId) {
+      try {
+        console.log('🔌 [RECOVERY] Reconnecting socket...', roomId);
+        
+        // If socket already exists, disconnect first
+        if (socket && socket.connected) {
+          console.log('🔌 [RECOVERY] Disconnecting old socket...');
+          socket.disconnect();
+        }
+        
+        // Create new socket connection with room context
+        socket = io(WS_BASE, {
+          query: {
+            roomId: roomId,
+            userId: currentUser.id
+          },
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000
+        });
+        
+        // Re-initialize sequence tracker for new connection
+        sequenceTracker = new SequenceTracker();
+        
+        // Register event handlers
+        socket.on('connect', () => {
+          console.log('✅ [RECOVERY] Socket connected!');
+          // Emit authenticate with rejoin token if available
+          const rejoinToken = sessionStorage.getItem('rejoinToken');
+          socket.emit('authenticate', { 
+            roomId: roomId, 
+            userId: currentUser.id,
+            rejoinToken: rejoinToken
+          });
+        });
+        
+        // Listen for state_sync to complete hydration
+        socket.on('state_sync', (data) => {
+          console.log('🌊 [SOCKET] State sync received:', data);
+          if (data.payload?.fetchViaHttp) {
+            console.log('📡 Server suggests HTTP hydration - already done');
+          }
+        });
+        
+        socket.on('player_joined', sequenceTracker.createHandler((data) => {
+          console.log('👋 [SOCKET] Player joined:', data);
+          loadLobbyPlayers();
+        }));
+        
+        socket.on('player_approved', sequenceTracker.createHandler((data) => {
+          console.log('✅ [SOCKET] Player approved:', data);
+          const me = window.currentUser;
+          if (me && data.userId === me.id) {
+            showNotification('You have been approved!', 'success');
+          }
+          loadLobbyPlayers();
+        }));
+        
+        socket.on('game_started', sequenceTracker.createHandler((data) => {
+          console.log('🎮 [SOCKET] Game started:', data);
+          currentGame = { id: data.gameId };
+          showNotification('Game is starting!', 'success');
+        }));
+        
+        socket.on('disconnect', () => {
+          console.log('⚠️ [SOCKET] Disconnected');
+        });
+        
+        console.log('✅ [RECOVERY] Socket reconnection complete');
+        
+      } catch (error) {
+        console.error('❌ [RECOVERY] Socket reconnection failed:', error);
+      }
+    }
+
+    // ⚔️ RENDER SEATS FROM HYDRATION
+    function renderSeatsFromHydration(hydratedSeats) {
+      console.log('🪑 [HYDRATION] Rendering seats:', hydratedSeats);
+      
+      // Clear existing seats
+      seats = hydratedSeats || [];
+      
+      // Update seat UI
+      const seatElements = document.querySelectorAll('.seat');
+      
+      hydratedSeats.forEach((seat, index) => {
+        if (seat && seatElements[index]) {
+          const seatElement = seatElements[index];
+          seatElement.classList.remove('empty', 'taken', 'mine');
+          
+          if (seat.user_id) {
+            seatElement.classList.add('taken');
+            if (seat.user_id === currentUser?.id) {
+              seatElement.classList.add('mine');
+            }
+            
+            // Update seat display
+            const usernameEl = seatElement.querySelector('.seat-username');
+            const chipsEl = seatElement.querySelector('.seat-chips');
+            
+            if (usernameEl) usernameEl.textContent = seat.username || 'Player';
+            if (chipsEl) chipsEl.textContent = `$${seat.chips_in_play || seat.stack || 0}`;
+          } else {
+            seatElement.classList.add('empty');
+          }
+        }
+      });
+    }
+
+    // ⚔️ CHECK ACTIVE GAME (Phase 4) - RETURNS game data
+    async function checkActiveGame(roomId) {
+      try {
+        console.log('🎮 [RECOVERY] Checking for active game...');
+        
+        // Query if there's an active game for this room
+        const response = await fetch(`/api/rooms/${roomId}/game`);
+        if (!response.ok) {
+          console.log('ℹ️ [RECOVERY] No active game found');
+          return null; // No game, return null
+        }
+        
+        const gameData = await response.json();
+        console.log('🎮 [RECOVERY] Active game found:', gameData);
+        
+        // Store game globally
+        currentGame = gameData;
+        
+        // Return game data for caller to decide what to do
+        return gameData;
+        
+      } catch (error) {
+        console.error('⚠️ [RECOVERY] Game state check failed:', error);
+        return null;
+      }
+    }
+
+    // Liquid Glass Controls
+    let controlsVisible = true;
+    let isLocked = false;
+    
+    function toggleControls() {
+      const controls = document.querySelector('.glass-controls');
+      controlsVisible = !controlsVisible;
+      controls.style.display = controlsVisible ? 'block' : 'none';
+    }
+
+    function toggleLock() {
+      isLocked = !isLocked;
+      const lockButton = document.getElementById('lock-values');
+      const shadowBlur = document.getElementById('shadow-blur');
+      const tintOpacity = document.getElementById('tint-opacity');
+      const frostBlur = document.getElementById('frost-blur');
+      const distortionStrength = document.getElementById('distortion-strength');
+      
+      lockButton.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+      lockButton.style.background = isLocked ? 'var(--warning)' : 'var(--teal)';
+      
+      // Disable/enable sliders
+      [shadowBlur, tintOpacity, frostBlur, distortionStrength].forEach(slider => {
+        slider.disabled = isLocked;
+        slider.style.opacity = isLocked ? '0.5' : '1';
+      });
+    }
+
+    // Initialize liquid glass controls
+    document.addEventListener('DOMContentLoaded', () => {
+      const controls = document.querySelector('.glass-controls');
+      if (controls) {
+        const shadowBlur = document.getElementById('shadow-blur');
+        const tintOpacity = document.getElementById('tint-opacity');
+        const frostBlur = document.getElementById('frost-blur');
+        const distortionStrength = document.getElementById('distortion-strength');
+        const lockButton = document.getElementById('lock-values');
+
+        function updateGlassEffect() {
+          if (isLocked) return;
+          
+          document.documentElement.style.setProperty('--glass-shadow-blur', shadowBlur.value + 'px');
+          document.documentElement.style.setProperty('--glass-tint-opacity', (tintOpacity.value / 100).toFixed(2));
+          document.documentElement.style.setProperty('--glass-frost-blur', frostBlur.value + 'px');
+          document.documentElement.style.setProperty('--glass-distortion-strength', distortionStrength.value);
+          
+          // Update SVG filter elements (critical for distortion to work)
+          const displacementMap = document.querySelector('feDisplacementMap');
+          const turbulence = document.querySelector('feTurbulence');
+          
+          if (displacementMap) displacementMap.setAttribute('scale', distortionStrength.value);
+          if (turbulence) turbulence.setAttribute('baseFrequency', `${0.008} ${0.008}`);
+        }
+
+        shadowBlur.addEventListener('input', updateGlassEffect);
+        tintOpacity.addEventListener('input', updateGlassEffect);
+        frostBlur.addEventListener('input', updateGlassEffect);
+        distortionStrength.addEventListener('input', updateGlassEffect);
+        lockButton.addEventListener('click', toggleLock);
+      }
+    });
+
+    // Game modal functions
+    function openQuickPlayModal() {
+      // Quick Play = Create Room with default settings
+      openCreateModal();
+    }
+
+    async function openJoinModal() {
+      document.getElementById('joinRoomModal').classList.add('show');
+      document.getElementById('joinRoomModal').style.display = 'flex';
+      await loadAvailableRooms();
+    }
+
+    function closeJoinModal() {
+      document.getElementById('joinRoomModal').classList.remove('show');
+      document.getElementById('joinRoomModal').style.display = 'none';
+    }
+
+    async function loadAvailableRooms() {
+      try {
+        const response = await fetch('/api/rooms');
+        if (!response.ok) throw new Error('Failed to fetch rooms');
+        
+        const data = await response.json();
+        const roomsList = document.getElementById('roomsList');
+        
+        if (!data.rooms || data.rooms.length === 0) {
+          roomsList.innerHTML = '<p style="color: rgba(255,255,255,0.5);">No active rooms available. Create one!</p>';
+          return;
+        }
+        
+        roomsList.innerHTML = data.rooms.map(room => `
+          <div class="liquid-glass-tile" style="padding: 15px; margin-bottom: 10px; cursor: pointer;" onclick="joinRoomById('${room.id}')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="color: #fff; font-weight: 600;">Room ${room.id.substring(0, 8)}</div>
+                <div style="color: rgba(255,255,255,0.7); font-size: 0.9em;">
+                  Blinds: ${room.small_blind}/${room.big_blind} • Players: ${room.player_count || 0}/${room.max_players}
+                </div>
+              </div>
+              <button class="btn btn-primary" style="padding: 8px 16px;">Join</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Load rooms error:', error);
+        document.getElementById('roomsList').innerHTML = '<p style="color: rgba(255,100,100,0.8);">Failed to load rooms</p>';
+      }
+    }
+
+    async function joinRoomFromModal() {
+      const roomCode = document.getElementById('joinRoomCode').value.trim();
+      if (!roomCode) {
+        showNotification('Please enter a room code', 'error');
+        return;
+      }
+      await joinRoomById(roomCode);
+    }
+
+    async function joinRoomById(roomId) {
+      try {
+        // Check if user is authenticated, if not prompt them
+        if (!currentUser) {
+          // Store room ID to join after login
+          sessionStorage.setItem('pendingRoomJoin', roomId);
+          showNotification('Please sign in to join the room', 'info');
+          openLoginModal(); // Prompt for login
+          return; // Exit and let user login first
+        }
+        
+        // Fetch room details
+        const response = await fetch(`/api/rooms/${roomId}`);
+        if (!response.ok) throw new Error('Room not found');
+        
+        const data = await response.json();
+        currentRoom = data.room;
+        
+        // Close join modal if open
+        const joinModal = document.getElementById('joinRoomModal');
+        if (joinModal) {
+          joinModal.classList.remove('show');
+          joinModal.style.display = 'none';
+        }
+        
+        // Transition to lobby as a guest (not host)
+        setState(AppState.LOBBY_WAITING, { room: currentRoom, isHost: false });
+        
+      } catch (error) {
+        console.error('Join room error:', error);
+        showNotification('Failed to join room: ' + error.message, 'error');
+      }
+    }
+
+    function openCreateModal() {
+      // Check if user is logged in with Google (not guest)
+      const user = getCurrentUser();
+      
+      if (!user) {
+        showNotification('Please log in to create a room', 'error');
+        openLoginModal();
+        return;
+      }
+      
+      if (user.isGuest || user.isAnonymous) {
+        showNotification('Guest users cannot create rooms. Please sign in with Google to create a room.', 'warning');
+        return;
+      }
+      
+      document.getElementById('createRoomModal').classList.add('show');
+      document.getElementById('createRoomModal').style.display = 'flex';
+    }
+
+    function closeCreateModal() {
+      document.getElementById('createRoomModal').classList.remove('show');
+      document.getElementById('createRoomModal').style.display = 'none';
+    }
+
+    async function createRoomFromModal() {
+      try {
+        // Check if user is authenticated, if not prompt them
+        if (!currentUser) {
+          showNotification('Please sign in to create a room', 'info');
+          openLoginModal(); // Don't await - user will create room after login
+          return; // Exit and let user login first
+        }
+        
+        let user = currentUser;
+        
+        const smallBlind = parseInt(document.getElementById('createSmallBlind').value) || 5;
+        const bigBlind = parseInt(document.getElementById('createBigBlind').value) || 10;
+        const maxPlayers = parseInt(document.getElementById('createMaxPlayers').value) || 6;
+        
+        // Calculate buy-ins based on blinds
+        const minBuyIn = smallBlind * 100;
+        const maxBuyIn = bigBlind * 1000;
+        
+        // Get auth headers (includes JWT token)
+        const headers = await window.authManager.getAuthHeaders();
+        console.log('🔐 [Room Creation] Headers:', headers);
+        console.log('🔐 [Room Creation] Token present:', !!headers.Authorization);
+        
+        const response = await fetch('/api/rooms', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            name: `${user.username}'s Game`,
+            user_id: user.id,
+            small_blind: smallBlind,
+            big_blind: bigBlind,
+            min_buy_in: minBuyIn,
+            max_buy_in: maxBuyIn,
+            max_players: maxPlayers
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to create room');
+        }
+        
+        const data = await response.json();
+        
+        // Close modal
+        closeCreateModal();
+        
+        // Show success notification
+        const roomCode = data.inviteCode || data.room?.invite_code || 'N/A';
+        showNotification(`Game created! Room Code: ${roomCode}`, 'success');
+        
+        // NO REDIRECT - Stay on this page and show lobby
+        currentRoom = {
+          id: data.roomId || data.room?.id,
+          invite_code: roomCode,
+          small_blind: smallBlind,
+          big_blind: bigBlind
+        };
+        isHost = true;
+        
+        // Transition to lobby state
+        setState(AppState.LOBBY_WAITING, { room: currentRoom, isHost: true });
+        
+      } catch (error) {
+        console.error('Create room error:', error);
+        showNotification('Failed to create room: ' + error.message, 'error');
+      }
+    }
+
+    function openSettingsModal() {
+      alert('Settings functionality coming soon!');
+    }
+    
+    // ===== START GAME FUNCTION =====
+    async function startGame() {
+      if (!currentRoom || !isHost) {
+        showNotification('Only the host can start the game', 'error');
+        return;
+      }
+      
+      try {
+        console.log('🎮 Host starting game for room:', currentRoom.id);
+        showNotification('Starting game...', 'info');
+        
+        // STEP 1: Create game object via API
+        const response = await fetch('/api/games', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            small_blind: currentRoom.small_blind || 5,
+            big_blind: currentRoom.big_blind || 10,
+            max_players: currentRoom.max_players || 9,
+            roomId: currentRoom.id
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to create game: ${errorText}`);
+        }
+        
+        const gameData = await response.json();
+        const gameId = gameData.gameId || gameData.id;
+        console.log('✅ Game created with ID:', gameId);
+        
+        // STEP 2: Emit start_game event to all players in the WebSocket room
+        if (socket && socket.connected) {
+          console.log('📡 Broadcasting game start to room:', currentRoom.id);
+          socket.emit('start_game', { 
+            roomId: currentRoom.id,
+            game: { 
+              gameId: gameId, 
+              id: gameId,
+              roomId: currentRoom.id
+            }
+          });
+        } else {
+          console.warn('⚠️ Socket not connected, only host will be redirected');
+        }
+        
+        // STEP 3: Redirect host to poker table (guests will be redirected via game_started event)
+        const url = `/game?room=${currentRoom.id}&gameId=${gameId}`;
+        console.log('🚀 Redirecting host to:', url);
+        window.location.href = url;
+        
+      } catch (error) {
+        console.error('❌ Start game error:', error);
+        showNotification('Failed to start game: ' + error.message, 'error');
+      }
+    }
+
+    // ===== STATE MANAGEMENT =====
+    function setState(newState, data = {}) {
+      console.log('🎯 State transition:', currentState, '→', newState, data);
+      currentState = newState;
+      
+      // Hide all sections
+      const gameSelections = document.querySelector('.game-sections');
+      const gameLobby = document.getElementById('gameLobbySection');
+      const pokerTable = document.getElementById('pokerTableSection');
+      
+      if (gameSelections) gameSelections.style.display = 'none';
+      if (gameLobby) gameLobby.style.display = 'none';
+      if (pokerTable) pokerTable.style.display = 'none';
+      
+      // Show appropriate section
+      switch(newState) {
+        case AppState.GAME_SELECTION:
+          if (gameSelections) gameSelections.style.display = 'grid';
+          break;
+          
+        case AppState.LOBBY_WAITING:
+          if (gameLobby) gameLobby.style.display = 'block';
+          initializeLobby(data.room, data.isHost);
+          
+      // ✅ CRITICAL: Join WebSocket room so we receive player_approved and game_started
+      if (currentRoom && socket && socket.connected) {
+        console.log('🔌 Joining WebSocket room:', currentRoom.id);
+        socket.emit('join_room', { 
+          roomId: currentRoom.id, 
+          userId: window.currentUser?.id 
+        });
+      } else if (currentRoom && socket) {
+        socket.once('connect', () => {
+          console.log('🔌 Joining WebSocket room after connect:', currentRoom.id);
+          socket.emit('join_room', {
+            roomId: currentRoom.id,
+            userId: window.currentUser?.id
+          });
+        });
+      }
+          break;
+          
+        case AppState.PLAYING:
+          if (pokerTable) pokerTable.style.display = 'block';
+          initializeTable(data.game);
+          break;
+      }
+    }
+
+    function initializeLobby(room, isHostUser) {
+      console.log('🎰 Initializing lobby:', room, 'isHost:', isHostUser);
+      currentRoom = room;
+      isHost = isHostUser;
+      
+      // Display room code
+      document.getElementById('roomCodeDisplay').textContent = room.invite_code || '------';
+      
+      // Show appropriate view
+      if (isHost) {
+        document.getElementById('hostControls').style.display = 'block';
+        document.getElementById('guestWaiting').style.display = 'none';
+        loadLobbyPlayers();
+      } else {
+        document.getElementById('hostControls').style.display = 'none';
+        document.getElementById('guestWaiting').style.display = 'block';
+      }
+      
+      // Connect WebSocket
+      connectToRoom(room.id);
+      
+      // Auto-join lobby
+      joinLobbyAPI(room.id);
+    }
+
+    async function joinLobbyAPI(roomId) {
+      try {
+        // Get auth headers (includes JWT token)
+        const headers = await window.authManager.getAuthHeaders();
+        
+        const response = await fetch(`/api/rooms/${roomId}/lobby/join`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            username: currentUser.username || currentUser.email
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to join lobby');
+        }
+        
+        console.log('✅ Joined lobby successfully');
+      } catch (error) {
+        console.error('❌ Join lobby error:', error);
+        showNotification('Failed to join lobby: ' + error.message, 'error');
+      }
+    }
+
+    async function loadLobbyPlayers() {
+      if (!currentRoom) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${currentRoom.id}/lobby/players`);
+        if (!response.ok) throw new Error('Failed to load players');
+        
+        const data = await response.json();
+        updateLobbyPlayersList(data.players || []);
+      } catch (error) {
+        console.error('❌ Load lobby players error:', error);
+      }
+    }
+
+    function updateLobbyPlayersList(players) {
+      const list = document.getElementById('pendingPlayersList');
+      if (!list) return;
+      
+      const approvedCount = players.filter(p => p.status === 'approved').length;
+      const startBtn = document.getElementById('startGameButton');
+      
+      // Update start button
+      if (approvedCount >= 2) {
+        startBtn.disabled = false;
+        startBtn.textContent = `🎮 START GAME (${approvedCount} PLAYERS READY)`;
+      } else {
+        startBtn.disabled = true;
+        startBtn.textContent = `🎮 START GAME (NEED ${2 - approvedCount} MORE)`;
+      }
+      
+      // Render player cards
+      list.innerHTML = players.map(player => `
+        <div class="player-card" style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="color: #fff; font-weight: bold;">${player.username}</span>
+            <span style="color: ${player.status === 'approved' ? '#4CAF50' : '#FFC107'}; margin-left: 1rem; text-transform: uppercase; font-size: 0.8rem;">
+              ${player.status}
+            </span>
+          </div>
+          ${player.status === 'pending' && isHost ? `
+            <button class="btn btn-success" onclick="approvePlayer('${player.user_id}')" style="padding: 0.5rem 1rem;">
+              ✓ Approve
+            </button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function approvePlayer(userId) {
+      if (!currentRoom || !isHost) return;
+      
+      try {
+        // Get auth headers (includes JWT token)
+        const headers = await window.authManager.getAuthHeaders();
+        
+        const response = await fetch(`/api/rooms/${currentRoom.id}/lobby/approve`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ 
+            user_id: currentUser.id,  // Host's ID
+            target_user_id: userId     // Player to approve
+          })
+        });
+        
+        if (!response.ok) throw new Error('Failed to approve player');
+        
+        showNotification('Player approved!', 'success');
+        loadLobbyPlayers();
+      } catch (error) {
+        console.error('❌ Approve player error:', error);
+        showNotification('Failed to approve player: ' + error.message, 'error');
+      }
+    }
+
+    function copyRoomCode() {
+      const code = document.getElementById('roomCodeDisplay').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        showNotification('Room code copied!', 'success');
+      });
+    }
+
+    // START GAME - Create game object and show poker table
+    async function startGame() {
+      if (!currentRoom || !isHost) {
+        showNotification('Only the host can start the game', 'error');
+        return;
+      }
+      
+      try {
+        console.log('🎮 Starting game for room:', currentRoom.id);
+        showNotification('🎲 Creating game...', 'info');
+        
+        // CRITICAL: Create the game object first
+        const response = await fetch('/api/games', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            small_blind: currentRoom.small_blind || 5,
+            big_blind: currentRoom.big_blind || 10,
+            max_players: currentRoom.max_players || 9,
+            roomId: currentRoom.id
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create game');
+        }
+        
+        const gameData = await response.json();
+        const gameId = gameData.gameId || gameData.id;
+        currentGame = gameData; // Store game globally
+        
+        console.log('✅ Game created:', gameId);
+        
+        // Emit game start via WebSocket to notify all players (WITH GAME ID)
+        if (socket) {
+          socket.emit('start_game', { 
+            roomId: currentRoom.id,
+            gameId: gameId,
+            hostId: currentUser.id
+          });
+        }
+        
+        showNotification('🎮 Game started! Loading table...', 'success');
+        
+        // ✅ FIXED: Redirect to WORKING poker table
+        const url = `/game?room=${currentRoom.id}&gameId=${gameId}`;
+        console.log('🚀 Redirecting host to WORKING poker table:', url);
+        window.location.href = url;
+        
+      } catch (error) {
+        console.error('❌ Start game error:', error);
+        showNotification('Failed to start game: ' + error.message, 'error');
+      }
+    }
+
+    // ===== WEBSOCKET INTEGRATION =====
+    function connectToRoom(roomId) {
+      console.log('🔌 connectToRoom called for:', roomId);
+      // CRITICAL: Don't recreate socket, reuse the global one!
+      // Just emit join_room if not already in this room
+      if (socket && socket.connected) {
+        console.log('✅ Reusing existing socket connection');
+        socket.emit('join_room', { roomId, userId: window.currentUser?.id });
+      } else if (socket) {
+        console.log('⏳ Socket exists but not connected, waiting...');
+        socket.once('connect', () => {
+          console.log('✅ Socket connected, joining room');
+          socket.emit('join_room', { roomId, userId: window.currentUser?.id });
+        });
+      } else {
+        console.error('❌ No global socket found!');
+      }
+      
+      // Set up lobby-specific handlers (these are safe to re-attach)
+      socket.off('player_joined'); // Remove old handler if any
+      socket.on('player_joined', sequenceTracker.createHandler((data) => {
+        console.log('👤 Player joined:', data);
+        if (isHost) {
+          loadLobbyPlayers();
+        }
+      }));
+      
+      socket.off('game_state_update');
+      socket.on('game_state_update', sequenceTracker.createHandler((state) => {
+        console.log('📊 Game state update:', state);
+        updateTableUI(state);
+      }));
+    }
+
+    // ===== DEPRECATED OLD START GAME FUNCTION - REMOVED =====
+    // The correct startGame function is defined above at line 1263
+    // This duplicate was overwriting it and breaking the redirect logic
+    // (Removed to prevent function override)
+
+    // ===== TABLE INITIALIZATION =====
+    function initializeTable(game) {
+      console.log('🎲 Initializing table:', game);
+      currentGame = game;
+      
+      // Display room code
+      const roomCodeEl = document.getElementById('tableRoomCode');
+      if (roomCodeEl) {
+        roomCodeEl.textContent = `Room: ${currentRoom.invite_code || '------'}`;
+      }
+      
+      // Show host controls if host
+      if (isHost) {
+        const hostControls = document.getElementById('adminGamePanel');
+        if (hostControls) {
+          hostControls.style.display = 'block';
+        }
+      }
+      
+      // Load seats and render
+      loadSeats();
+    }
+
+    async function loadSeats() {
+      if (!currentRoom) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${currentRoom.id}/seats`);
+        if (!response.ok) throw new Error('Failed to load seats');
+        
+        const data = await response.json();
+        seats = data.seats || [];
+        renderSeats();
+      } catch (error) {
+        console.error('❌ Load seats error:', error);
+      }
+    }
+
+    function renderSeats() {
+      const grid = document.getElementById('playersGrid');
+      if (!grid) {
+        console.error('❌ playersGrid element not found');
+        return;
+      }
+      
+      const maxSeats = 9;
+      grid.innerHTML = '';
+      
+      for (let i = 0; i < maxSeats; i++) {
+        const seat = seats.find(s => s.seat_index === i);
+        const seatDiv = document.createElement('div');
+        seatDiv.className = 'seat-card';
+        seatDiv.style.cssText = 'background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 10px; text-align: center; border: 2px solid rgba(255,255,255,0.1);';
+        
+        if (seat && (seat.status === 'SEATED' || seat.status === 'occupied')) {
+          // ⚔️ Check if this is the current player's seat
+          const isMyDatabaseSeat = seat.user_id === currentUser?.id;
+          
+          if (isMyDatabaseSeat) {
+            // YOUR SEAT - Blue/Gold styling
+            seatDiv.style.border = '3px solid #FFD700';
+            seatDiv.style.background = 'rgba(255, 215, 0, 0.15)';
+            seatDiv.innerHTML = `
+              <div style="color: #FFD700; font-weight: bold; margin-bottom: 0.5rem; font-size: 1.1rem;">YOUR SEAT (${i + 1})</div>
+              <div style="color: #fff; font-size: 1.3rem; font-weight: bold; margin: 0.5rem 0;">${seat.username || 'You'}</div>
+              <div style="color: #FFC107; margin-top: 0.5rem; font-size: 1.3rem; font-weight: bold;">💰 $${seat.chips_in_play || 0}</div>
+              <div style="color: #FFD700; margin-top: 0.5rem; font-size: 0.9rem;">✅ You are seated here</div>
+            `;
+          } else {
+            // SOMEONE ELSE'S SEAT - Green styling
+            seatDiv.style.border = '2px solid #4CAF50';
+            seatDiv.style.background = 'rgba(76, 175, 80, 0.1)';
+            seatDiv.innerHTML = `
+              <div style="color: #4CAF50; font-weight: bold; margin-bottom: 0.5rem; font-size: 1.1rem;">Seat ${i + 1} (Taken)</div>
+              <div style="color: #fff; font-size: 1.3rem; font-weight: bold; margin: 0.5rem 0;">${seat.username || 'Player'}</div>
+              <div style="color: #FFC107; margin-top: 0.5rem; font-size: 1.3rem; font-weight: bold;">💰 $${seat.chips_in_play || 0}</div>
+            `;
+          }
+        } else {
+          // EMPTY SEAT
+          seatDiv.innerHTML = `
+            <div style="color: rgba(255,255,255,0.5); margin-bottom: 1rem;">Seat ${i + 1}</div>
+            <button class="btn btn-primary" onclick="claimSeat(${i})" style="width: 100%; padding: 0.75rem;">Claim Seat</button>
+          `;
+        }
+        
+        grid.appendChild(seatDiv);
+      }
+      
+      console.log(`✅ Rendered ${maxSeats} seats (${seats.length} occupied)`);
+    }
+
+    async function claimSeat(seatIndex) {
+      if (!currentRoom || !currentUser) return;
+      
+      try {
+        // ⚔️ Check if player already has a seat
+        const mySeat = seats.find(s => s.user_id === currentUser.id);
+        if (mySeat) {
+          showNotification(`You're already in seat ${mySeat.seat_index + 1}! You cannot claim another seat.`, 'warning');
+          return;
+        }
+        
+        // Get auth headers (includes JWT token)
+        const headers = await window.authManager.getAuthHeaders();
+        
+        const response = await fetch(`/api/rooms/${currentRoom.id}/join`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            seat_index: seatIndex,
+            buy_in_amount: 500
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to claim seat');
+        }
+        
+        showNotification(`Seat ${seatIndex + 1} claimed!`, 'success');
+        await loadSeats(); // Reload to show updated seats
+      } catch (error) {
+        console.error('❌ Claim seat error:', error);
+        showNotification('Failed to claim seat: ' + error.message, 'error');
+      }
+    }
+
+    async function adminStartHand() {
+      if (!currentGame || !isHost) return;
+      
+      try {
+        const response = await fetch(`/api/games/${currentGame.id}/start-hand`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error('Failed to start hand');
+        
+        showNotification('Hand started!', 'success');
+      } catch (error) {
+        console.error('❌ Start hand error:', error);
+        showNotification('Failed to start hand: ' + error.message, 'error');
+      }
+    }
+
+    function updateTableUI(state) {
+      // Update pot
+      const potEl = document.getElementById('potAmount');
+      if (potEl && state.pot) {
+        potEl.textContent = `$${state.pot}`;
+      }
+      
+      // Update community cards
+      if (state.communityCards) {
+        renderCommunityCards(state.communityCards);
+      }
+      
+      // Update seats
+      if (state.seats) {
+        seats = state.seats;
+        renderSeats();
+      }
+      
+      // Show action panel if it's our turn
+      if (state.currentPlayerId === currentUser?.id) {
+        showActionPanel(state.availableActions);
+      }
+    }
+
+    function renderCommunityCards(cards) {
+      const container = document.getElementById('communityCards');
+      if (!container) return;
+      
+      container.innerHTML = cards.map(card => `
+        <div style="width: 60px; height: 90px; background: #fff; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+          ${card.rank}${card.suit}
+        </div>
+      `).join('');
+    }
+
+    function showActionPanel(actions) {
+      const panel = document.getElementById('actionPanel');
+      if (!panel) return;
+      
+      panel.style.display = 'block';
+      
+      // Update call button
+      const callBtn = document.getElementById('callBtn');
+      const callAmount = actions?.find(a => a.type === 'call')?.amount || 0;
+      if (callBtn) callBtn.textContent = `Call $${callAmount}`;
+    }
+
+    async function playerAction(action) {
+      if (!currentGame) return;
+      
+      const raiseAmount = action === 'raise' ? parseInt(document.getElementById('raiseAmount')?.value || 0) : 0;
+      
+      try {
+        const response = await fetch(`/api/games/${currentGame.id}/action`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            player_id: currentUser.id,
+            action,
+            amount: raiseAmount
+          })
+        });
+        
+        if (!response.ok) throw new Error('Action failed');
+        
+        // Hide action panel
+        document.getElementById('actionPanel').style.display = 'none';
+        
+      } catch (error) {
+        console.error('❌ Player action error:', error);
+        showNotification('Action failed: ' + error.message, 'error');
+      }
+    }
+
+    function openTournamentsModal() {
+      alert('Tournaments functionality coming soon!');
+    }
+
+    function openCreateTournamentModal() {
+      alert('Create Tournament functionality coming soon!');
+    }
+
+    function openPublicModal() {
+      alert('Public Tables functionality coming soon!');
+    }
+
+    function openTableManageModal() {
+      alert('Table Management functionality coming soon!');
+    }
+
+    // Navigation scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.navbar');
+      nav.style.background = (window.scrollY > 100) ? 'rgba(10,8,22,0.98)' : 'rgba(10,8,22,0.95)';
+    });
+    
+    // =============================================================================
+    // WEEK 3 DAY 3-4: MANAGE ROOMS FUNCTIONS
+    // =============================================================================
+    
+    // Load and display user's rooms
+    async function loadMyRooms() {
+      if (!window.currentUser) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/my-rooms?userId=${window.currentUser.id}`);
+        if (!response.ok) throw new Error('Failed to load rooms');
+        
+        const data = await response.json();
+        
+        // Update counts
+        document.getElementById('hostedCount').textContent = data.totalActive;
+        document.getElementById('joinedCount').textContent = data.joined.length;
+        
+        // Show warning if at limit
+        const warning = document.getElementById('roomLimitWarning');
+        if (data.totalActive >= 5) {
+          warning.style.display = 'block';
+        } else {
+          warning.style.display = 'none';
+        }
+        
+        // Render hosted rooms
+        const hostedList = document.getElementById('hostedRoomsList');
+        if (data.hosted.length === 0) {
+          hostedList.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">No hosted rooms</div>';
+        } else {
+          hostedList.innerHTML = data.hosted.map(room => `
+            <div class="room-card" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px solid rgba(76,175,80,0.3);">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <div>
+                  <div style="color: #fff; font-weight: 600; margin-bottom: 0.25rem;">${room.name}</div>
+                  <div style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">Code: ${room.invite_code}</div>
+                </div>
+                <div style="background: rgba(76,175,80,0.2); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; color: #4CAF50;">
+                  ${room.player_count}/${room.max_players} players
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                <button onclick="openRoom('${room.id}')" class="btn btn-secondary" style="flex: 1; padding: 0.5rem; font-size: 0.875rem;">
+                  Open
+                </button>
+                <button onclick="closeRoom('${room.id}', '${room.name}')" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.875rem; background: rgba(220,53,69,0.2); color: #dc3545; border: none;">
+                  Close
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Render joined rooms
+        const joinedList = document.getElementById('joinedRoomsList');
+        if (data.joined.length === 0) {
+          joinedList.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">No joined rooms</div>';
+        } else {
+          joinedList.innerHTML = data.joined.map(room => `
+            <div class="room-card" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px solid rgba(59,130,246,0.3);">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <div>
+                  <div style="color: #fff; font-weight: 600; margin-bottom: 0.25rem;">${room.name}</div>
+                  <div style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">Code: ${room.invite_code}</div>
+                </div>
+                <div style="background: rgba(59,130,246,0.2); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; color: #3B82F6;">
+                  ${room.player_count}/${room.max_players} players
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                <button onclick="openRoom('${room.id}')" class="btn btn-secondary" style="flex: 1; padding: 0.5rem; font-size: 0.875rem;">
+                  Open
+                </button>
+                <button onclick="abandonRoom('${room.id}', '${room.name}')" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.875rem; background: rgba(251,191,36,0.2); color: #fbbf24; border: none;">
+                  Leave
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Show the section if user has rooms
+        if (data.hosted.length > 0 || data.joined.length > 0) {
+          document.getElementById('manageRoomsSection').style.display = 'block';
+        }
+        
+      } catch (error) {
+        console.error('Load rooms error:', error);
+        showNotification('Failed to load rooms: ' + error.message, 'error');
+      }
+    }
+    
+    // Refresh rooms list
+    async function refreshMyRooms() {
+      await loadMyRooms();
+      showNotification('Rooms list refreshed', 'success');
+    }
+    
+    // Open a room (navigate to game)
+    function openRoom(roomId) {
+      window.location.href = `/poker?room=${roomId}`;
+    }
+    
+    // Close a hosted room
+    async function closeRoom(roomId, roomName) {
+      if (!confirm(`Are you sure you want to close "${roomName}"?\n\nAll players will be removed and the room will be permanently closed.`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hostId: window.currentUser.id
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to close room');
+        }
+        
+        showNotification(`Room "${roomName}" closed successfully`, 'success');
+        await loadMyRooms(); // Refresh list
+        
+      } catch (error) {
+        console.error('Close room error:', error);
+        showNotification('Failed to close room: ' + error.message, 'error');
+      }
+    }
+    
+    // Abandon/leave a joined room
+    async function abandonRoom(roomId, roomName) {
+      if (!confirm(`Are you sure you want to leave "${roomName}"?`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/abandon`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: window.currentUser.id
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to leave room');
+        }
+        
+        showNotification(`Left room "${roomName}" successfully`, 'success');
+        await loadMyRooms(); // Refresh list
+        
+      } catch (error) {
+        console.error('Abandon room error:', error);
+        showNotification('Failed to leave room: ' + error.message, 'error');
+      }
+    }
+    
+    // =============================================================================
+    
+    // ===== PAGE INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('🎮 Play page initializing...');
+      
+      // WEEK 3 DAY 3-4: Load user's rooms on page load
+      if (window.currentUser) {
+        await loadMyRooms();
+      }
+      
+      currentUser = await initializeAuth();
+      console.log('✅ Auth initialized:', currentUser?.id || 'anonymous');
+      
+      // ============================================
+      // 🚧 ROOM RECOVERY DISABLED (Deferred to Phase 3: Scaling)
+      // ============================================
+      // Clear any stale localStorage to ensure clean room creation
+      localStorage.removeItem('currentRoomId');
+      localStorage.removeItem('currentGameId');
+      console.log('ℹ️ Room recovery disabled - starting fresh session');
+      
+      setState(AppState.GAME_SELECTION);
+      
+      // Check if there's a room code in URL (for joining via link)
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomCode = urlParams.get('code') || urlParams.get('room');
+      
+      if (roomCode) {
+        console.log('🔗 Auto-joining room from URL:', roomCode);
+        // Auto-join the room if user is authenticated or prompt to authenticate
+        if (currentUser) {
+          await joinRoomById(roomCode);
+        } else {
+          showNotification('Please sign in to join the room', 'info');
+          // Store roomCode for after login
+          sessionStorage.setItem('pendingRoomCode', roomCode);
+        }
+      }
+    });
+    
+    // Check for pending room join after auth
+    window.addEventListener('storage', async (e) => {
+      if (e.key === 'pokerUser' && e.newValue) {
+        // User just logged in, check for pending room
+        const pendingRoom = sessionStorage.getItem('pendingRoomCode');
+        if (pendingRoom) {
+          sessionStorage.removeItem('pendingRoomCode');
+          currentUser = JSON.parse(e.newValue);
+          await joinRoomById(pendingRoom);
+        }
+      }
+    });
+  </script>
+
+  <!-- Create Room Modal -->
+  <div id="createRoomModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Create Poker Room</h2>
+        <p class="modal-subtitle">Set up your custom poker game</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Small Blind</label>
+        <input type="number" class="form-input" id="createSmallBlind" value="5" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Big Blind</label>
+        <input type="number" class="form-input" id="createBigBlind" value="10" min="2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Max Players</label>
+        <input type="number" class="form-input" id="createMaxPlayers" value="6" min="2" max="10">
+      </div>
+      <button class="btn-submit" onclick="createRoomFromModal()">Create Room</button>
+    </div>
+  </div>
+
+  <!-- Join Room Modal -->
+  <div id="joinRoomModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeJoinModal()">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Join Poker Room</h2>
+        <p class="modal-subtitle">Enter room code or browse available rooms</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room Code</label>
+        <input type="text" class="form-input" id="joinRoomCode" placeholder="Enter room ID">
+      </div>
+      <button class="btn-submit" onclick="joinRoomFromModal()">Join Room</button>
+      
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: #fff; margin-bottom: 10px;">Available Rooms</h3>
+        <div id="roomsList" style="max-height: 300px; overflow-y: auto;">
+          <p style="color: rgba(255,255,255,0.5);">Loading rooms...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login/Signup Modal (same as index.html) -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">Welcome to PokerGeek.ai</h2>
+        <p class="modal-subtitle">Sign in to start playing poker</p>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchModalTab('login')">Login</button>
+        <button class="modal-tab" onclick="switchModalTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginForm" class="modal-form active">
+        <!-- Google Auth Button -->
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        
+        <!-- Guest Button -->
+        <button class="btn-guest" onclick="handleGuestLogin()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          👻 Continue as Guest
+        </button>
+        
+        <div class="divider">
+          <span>or use email</span>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="loginEmailError"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="password-input">
+            <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+          </div>
+          <div class="form-error" id="loginPasswordError"></div>
+        </div>
+        
+        <button class="btn-submit" onclick="handleLogin()">Sign In to PokerGeek</button>
+        <div class="form-footer">
+          <p>Don't have an account? <a href="#" onclick="switchModalTab('signup')">Create one here</a></p>
+        </div>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="signupForm" class="modal-form">
+        <!-- Google Auth Button -->
+        <button class="btn-google" onclick="handleGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Sign up with Google
+        </button>
+        
+        <!-- Guest Button -->
+        <button class="btn-guest" onclick="handleGuestLogin()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          👻 Continue as Guest
+        </button>
+
+        <div class="divider">
+          <span>or use email</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-input" id="signupFirstName" placeholder="First name" required>
+            <div class="form-error" id="signupFirstNameError"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-input" id="signupLastName" placeholder="Last name" required>
+            <div class="form-error" id="signupLastNameError"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="signupEmail" placeholder="Enter your email address" required>
+          <div class="form-error" id="signupEmailError"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signupUsername" placeholder="Choose a unique username" required>
+          <div class="form-error" id="signupUsernameError"></div>
+        </div>
+        
+        <button class="btn-submit" onclick="handleSignup()">Create Account</button>
+        <div class="form-footer">
+          <p>Already have an account? <a href="#" onclick="switchModalTab('login')">Sign in here</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

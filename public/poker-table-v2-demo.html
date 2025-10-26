@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokerGeek - UI Demo (No Backend Required)</title>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="/css/poker-table-v2.css">
+    <link rel="stylesheet" href="/css/timer-display.css">
+    
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="poker-container">
+        <!-- Header Bar -->
+        <header class="game-header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-text">PokerGeek</span>
+                    <span class="logo-badge">PRO</span>
+                </div>
+                <div class="room-info">
+                    <span class="room-code" id="roomCode">Room: DEMO</span>
+                    <span class="game-status" id="gameStatus" style="color: #10b981;">UI Preview Mode</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="blinds-info">
+                    <span class="blind-label">Blinds</span>
+                    <span class="blind-values" id="blindValues">$25/$50</span>
+                </div>
+                <div class="hand-counter">
+                    <span class="hand-label">Hand</span>
+                    <span class="hand-number" id="handNumber">#42</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn" id="settingsBtn">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+                    </svg>
+                </button>
+                <button class="header-btn" id="chatBtn">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <span class="notification-dot" style="display: block;"></span>
+                </button>
+                <div class="user-avatar" id="userAvatar">
+                    <div class="avatar-placeholder">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-area">
+            <!-- Poker Table -->
+            <div class="poker-table-container">
+                <div class="poker-table">
+                    <!-- Table Felt -->
+                    <div class="table-felt">
+                        <div class="table-logo">♠♥♣♦</div>
+                        
+                        <!-- Community Cards Area -->
+                        <div class="community-cards-area">
+                            <div class="community-cards" id="communityCards">
+                                <!-- Demo cards -->
+                                <div class="card hearts">A<br>♥</div>
+                                <div class="card spades">K<br>♠</div>
+                                <div class="card hearts">Q<br>♥</div>
+                                <div class="card card-back"></div>
+                                <div class="card card-back"></div>
+                            </div>
+                            <div class="pot-display" id="potDisplay">
+                                <div class="pot-amount">$2,450</div>
+                                <div class="pot-label">POT</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dealer Button -->
+                        <div class="dealer-button" id="dealerButton" style="left: 25%; top: 20%;">D</div>
+                    </div>
+                    
+                    <!-- Player Seats (9-max) -->
+                    <div class="seats-container">
+                        <!-- Seat 0: Bottom Center (You) -->
+                        <div class="seat seat-0 my-seat active to-act" data-seat="0">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">🦈</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">You</div>
+                                        <div class="player-stack">$5,280</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: flex;">
+                                    <div class="card diamonds">A<br>♦</div>
+                                    <div class="card clubs">A<br>♣</div>
+                                </div>
+                                <div class="player-bet show">
+                                    <div class="bet-amount">$250</div>
+                                </div>
+                                <div class="player-timer" style="display: block;">
+                                    <div class="timer-ring">
+                                        <svg class="timer-svg" viewBox="0 0 36 36">
+                                            <path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style="stroke-dashoffset: 30;"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="timer-text">18</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Demo Players -->
+                        <div class="seat seat-1 occupied" data-seat="1">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">🎯</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">ProPlayer21</div>
+                                        <div class="player-stack">$3,750</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: flex;">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                                <div class="player-bet show">
+                                    <div class="bet-amount">$250</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="seat seat-2" data-seat="2">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">👤</div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">Empty Seat</div>
+                                        <div class="player-stack">Click to sit</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="seat seat-3 occupied folded" data-seat="3">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">🐙</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">FishCaller</div>
+                                        <div class="player-stack">$1,200</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: none;">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="seat seat-4 occupied" data-seat="4">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">🚀</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">RocketMan</div>
+                                        <div class="player-stack">$8,900</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: flex;">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                                <div class="player-bet show">
+                                    <div class="bet-amount">$500</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="seat seat-5 occupied" data-seat="5">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">💎</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">DiamondHands</div>
+                                        <div class="player-stack">$12,340</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: flex;">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                                <div class="player-bet show">
+                                    <div class="bet-amount">$1,200</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="seat seat-6 occupied" data-seat="6">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">🎲</div>
+                                        <div class="player-status away"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">LuckyAce</div>
+                                        <div class="player-stack">$2,100</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards" style="display: flex;">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="seat seat-7" data-seat="7"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">Click to sit</div></div></div></div></div>
+                        <div class="seat seat-8" data-seat="8"><div class="seat-content"><div class="player-info"><div class="player-avatar"><div class="avatar-image">👤</div></div><div class="player-details"><div class="player-name">Empty Seat</div><div class="player-stack">Click to sit</div></div></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel show" id="actionPanel">
+                <div class="action-controls">
+                    <div class="quick-amounts">
+                        <button class="quick-bet" data-amount="0.5">½ POT</button>
+                        <button class="quick-bet" data-amount="0.75">¾ POT</button>
+                        <button class="quick-bet" data-amount="1">POT</button>
+                        <button class="quick-bet" data-amount="2">2x POT</button>
+                    </div>
+                    
+                    <div class="bet-slider-container">
+                        <input type="range" class="bet-slider" id="betSlider" min="2400" max="5280" value="2400">
+                        <div class="bet-input-container">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" class="bet-input" id="betInput" value="2400" min="2400">
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn fold-btn" id="foldBtn">
+                            <span class="btn-text">FOLD</span>
+                            <span class="btn-hotkey">F</span>
+                        </button>
+                        <button class="action-btn call-btn" id="callBtn">
+                            <span class="btn-text">CALL</span>
+                            <span class="btn-amount">$950</span>
+                            <span class="btn-hotkey">C</span>
+                        </button>
+                        <button class="action-btn raise-btn" id="raiseBtn">
+                            <span class="btn-text">RAISE</span>
+                            <span class="btn-amount">$2,400</span>
+                            <span class="btn-hotkey">R</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Auto Actions -->
+                <div class="auto-actions">
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoFold">
+                        <span>Auto Fold</span>
+                    </label>
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoCheck">
+                        <span>Auto Check/Fold</span>
+                    </label>
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoCall">
+                        <span>Auto Call Any</span>
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <!-- Demo Info Overlay -->
+        <div style="position: fixed; top: 100px; right: 20px; background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; max-width: 300px; backdrop-filter: blur(10px);">
+            <h3 style="margin: 0 0 8px 0; color: #3b82f6; font-size: 16px;">🎨 UI Demo Mode</h3>
+            <p style="margin: 0; font-size: 14px; color: #a8b3cf; line-height: 1.5;">
+                This is a preview of the new poker table design. No backend connection required. 
+                <br><br>
+                Notice:<br>
+                • Modern dark theme<br>
+                • Smooth animations<br>
+                • Clean card design<br>
+                • Gradient buttons<br>
+                • Circular timer on active player<br>
+                • Ambient background effects
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Simple demo interactions
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎨 UI Demo Mode - No backend required');
+            
+            // Animate timer countdown
+            let timeLeft = 18;
+            const timerText = document.querySelector('.timer-text');
+            const timerPath = document.querySelector('.timer-path');
+            
+            setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) timeLeft = 30;
+                
+                timerText.textContent = timeLeft;
+                const offset = (30 - timeLeft) * (100 / 30);
+                timerPath.style.strokeDashoffset = offset;
+                
+                // Change color based on time
+                if (timeLeft <= 5) {
+                    timerPath.style.stroke = '#ef4444';
+                } else if (timeLeft <= 10) {
+                    timerPath.style.stroke = '#f59e0b';
+                } else {
+                    timerPath.style.stroke = '#3b82f6';
+                }
+            }, 1000);
+            
+            // Quick bet interactions
+            document.querySelectorAll('.quick-bet').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const pot = 2450;
+                    const mult = parseFloat(btn.dataset.amount);
+                    const amount = Math.floor(pot * mult);
+                    document.getElementById('betInput').value = amount;
+                    document.getElementById('betSlider').value = amount;
+                    document.querySelector('.raise-btn .btn-amount').textContent = `$${amount.toLocaleString()}`;
+                });
+            });
+            
+            // Slider interaction
+            const slider = document.getElementById('betSlider');
+            const input = document.getElementById('betInput');
+            slider.addEventListener('input', (e) => {
+                input.value = e.target.value;
+                document.querySelector('.raise-btn .btn-amount').textContent = `$${parseInt(e.target.value).toLocaleString()}`;
+            });
+            
+            input.addEventListener('input', (e) => {
+                slider.value = e.target.value;
+                document.querySelector('.raise-btn .btn-amount').textContent = `$${parseInt(e.target.value).toLocaleString()}`;
+            });
+            
+            // Button hover effects
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    alert(`Demo Mode: ${btn.querySelector('.btn-text').textContent} clicked!`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

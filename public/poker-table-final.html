@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokerGeek.ai — Poker Table</title>
+    
+    <!-- Fonts (same as main site) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Production CSS -->
+    <link rel="stylesheet" href="/css/poker-table-production.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body data-felt="green">
+    <div class="poker-app">
+        <!-- === NAVBAR (Matching main site) === -->
+        <nav class="poker-navbar">
+            <a href="/" class="navbar-brand">PokerGeek<span>.ai</span></a>
+            
+            <div class="navbar-info">
+                <div class="info-item">
+                    <div class="info-label">Room</div>
+                    <div class="info-value" id="roomCode">XXXX</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Blinds</div>
+                    <div class="info-value" id="blinds">$1/$2</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Hand</div>
+                    <div class="info-value" id="handNumber">#1</div>
+                </div>
+            </div>
+            
+            <div class="navbar-controls">
+                <button class="nav-btn host-btn" id="hostBtn" style="display: none;">
+                    🛡️ Host Controls
+                </button>
+                <button class="nav-btn" id="settingsBtn">
+                    ⚙️ Settings
+                </button>
+                <button class="nav-btn" id="leaveBtn">
+                    🚪 Leave Table
+                </button>
+            </div>
+        </nav>
+
+        <!-- === GAME AREA === -->
+        <main class="game-area">
+            <div class="poker-table-wrapper">
+                <div class="poker-table">
+                    <!-- Table Surface -->
+                    <div class="table-surface"></div>
+                    
+                    <!-- Board Area (center) -->
+                    <div class="board-area">
+                        <div class="community-cards" id="communityCards">
+                            <!-- Cards will be dynamically added -->
+                        </div>
+                        <div class="pot-container">
+                            <div class="pot-label">POT</div>
+                            <div class="pot-amount" id="potAmount">$0</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Seats Layer -->
+                    <div class="seats-layer" id="seatsLayer">
+                        <!-- Seats 0-9 will be dynamically generated -->
+                    </div>
+                    
+                    <!-- Dealer Button -->
+                    <div class="dealer-button" id="dealerBtn" style="display: none;">D</div>
+                    
+                    <!-- Blind Buttons -->
+                    <div class="blind-button sb" id="sbBtn" style="display: none;">SB</div>
+                    <div class="blind-button bb" id="bbBtn" style="display: none;">BB</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- === ACTION PANEL === -->
+        <div class="action-panel" id="actionPanel">
+            <div class="action-content">
+                <!-- Quick Bet Buttons -->
+                <div class="quick-bets">
+                    <button class="quick-bet" data-amount="0.5">½ Pot</button>
+                    <button class="quick-bet" data-amount="0.75">¾ Pot</button>
+                    <button class="quick-bet" data-amount="1">Pot</button>
+                    <button class="quick-bet" data-amount="2">2× Pot</button>
+                </div>
+                
+                <!-- Bet Slider -->
+                <div class="bet-controls">
+                    <input type="range" class="bet-slider" id="betSlider" min="0" max="1000" value="0">
+                    <div class="bet-input-group">
+                        <span>$</span>
+                        <input type="number" class="bet-input" id="betInput" value="0" min="0">
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn btn-fold" id="foldBtn">
+                        <span>FOLD</span>
+                        <span class="btn-hotkey">F</span>
+                    </button>
+                    <button class="action-btn btn-call" id="callBtn">
+                        <span>CALL</span>
+                        <span class="btn-amount" id="callAmount">$0</span>
+                        <span class="btn-hotkey">C</span>
+                    </button>
+                    <button class="action-btn btn-raise" id="raiseBtn">
+                        <span>RAISE</span>
+                        <span class="btn-amount" id="raiseAmount">$0</span>
+                        <span class="btn-hotkey">R</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === HOST CONTROLS MODAL === -->
+        <div class="modal-overlay" id="hostModal">
+            <div class="host-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">🛡️ Host Controls</h2>
+                    <button class="modal-close" id="closeHostModal">×</button>
+                </div>
+                
+                <!-- Table Color Section -->
+                <div class="control-section">
+                    <div class="section-title">Table Felt Color</div>
+                    <div class="color-grid">
+                        <div class="color-option active" data-felt="green" title="Green"></div>
+                        <div class="color-option" data-felt="red" title="Red"></div>
+                        <div class="color-option" data-felt="black" title="Black"></div>
+                        <div class="color-option" data-felt="blue" title="Blue"></div>
+                        <div class="color-option" data-felt="grey" title="Grey"></div>
+                        <div class="color-option" data-felt="tan" title="Tan"></div>
+                        <div class="color-option" data-felt="purple" title="Purple"></div>
+                    </div>
+                </div>
+                
+                <!-- Game Controls -->
+                <div class="control-section">
+                    <div class="section-title">Game Controls</div>
+                    <button class="host-action" id="pauseGame">⏸️ Pause Game</button>
+                    <button class="host-action" id="resumeGame">▶️ Resume Game</button>
+                    <button class="host-action" id="kickPlayer">👢 Kick Player</button>
+                </div>
+                
+                <!-- Chip Management -->
+                <div class="control-section">
+                    <div class="section-title">Chip Management</div>
+                    <button class="host-action" id="adjustChips">💰 Adjust Player Chips</button>
+                    <button class="host-action" id="resetChips">🔄 Reset All Chips</button>
+                </div>
+                
+                <!-- Table Settings -->
+                <div class="control-section">
+                    <div class="section-title">Table Settings</div>
+                    <button class="host-action" id="changeBlinds">🎲 Change Blinds</button>
+                    <button class="host-action" id="changeTimer">⏱️ Change Turn Timer</button>
+                    <button class="host-action" id="toggleAutoStart">🔁 Auto-Start Next Hand</button>
+                    <button class="host-action" id="showUndealtCards">👁️ Show Undealt Cards</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <!-- Game Scripts -->
+    <script src="/js/sequence-tracker.js"></script>
+    <script src="/js/poker-table-production.js"></script>
+    
+    <script>
+        // Initialize seats on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const seatsLayer = document.getElementById('seatsLayer');
+            
+            // Generate 10 seats
+            for (let i = 0; i < 10; i++) {
+                const seat = document.createElement('div');
+                seat.className = 'seat empty';
+                seat.setAttribute('data-position', i);
+                seat.setAttribute('data-seat-index', i);
+                
+                seat.innerHTML = `
+                    <div class="seat-container">
+                        <div class="player-info">
+                            <div class="player-avatar">➕</div>
+                            <div class="player-details">
+                                <div class="player-name">Seat ${i + 1}</div>
+                                <div class="player-stack">Empty</div>
+                            </div>
+                        </div>
+                        <div class="player-cards">
+                            <!-- Cards will be added when player sits -->
+                        </div>
+                        <div class="player-bet">$0</div>
+                        <div class="turn-timer">
+                            <div class="timer-circle">
+                                <svg class="timer-svg" viewBox="0 0 36 36">
+                                    <circle class="timer-bg" cx="18" cy="18" r="15.915"></circle>
+                                    <circle class="timer-progress" cx="18" cy="18" r="15.915"></circle>
+                                </svg>
+                                <div class="timer-text">30</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                seatsLayer.appendChild(seat);
+            }
+            
+            // Modal controls
+            const hostBtn = document.getElementById('hostBtn');
+            const hostModal = document.getElementById('hostModal');
+            const closeHostModal = document.getElementById('closeHostModal');
+            
+            if (hostBtn) {
+                hostBtn.addEventListener('click', () => {
+                    hostModal.classList.add('show');
+                });
+            }
+            
+            if (closeHostModal) {
+                closeHostModal.addEventListener('click', () => {
+                    hostModal.classList.remove('show');
+                });
+            }
+            
+            // Close modal on overlay click
+            hostModal.addEventListener('click', (e) => {
+                if (e.target === hostModal) {
+                    hostModal.classList.remove('show');
+                }
+            });
+            
+            // Table color changing
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const felt = option.getAttribute('data-felt');
+                    document.body.setAttribute('data-felt', felt);
+                    
+                    // Update active state
+                    document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+                    option.classList.add('active');
+                });
+            });
+            
+            // Show action panel for demo
+            setTimeout(() => {
+                document.getElementById('actionPanel').classList.add('show');
+            }, 500);
+            
+            // Show host button for demo
+            document.getElementById('hostBtn').style.display = 'block';
+            
+            // Demo: Fill some seats
+            const demoSeats = [
+                { index: 0, name: 'WALEED', stack: '$5,280', avatar: '🦈', isMe: true, cards: ['hearts_A', 'diamonds_A'] },
+                { index: 1, name: 'ProPlayer21', stack: '$3,750', avatar: '🎯', cards: ['back', 'back'] },
+                { index: 3, name: 'RocketMan', stack: '$8,875', avatar: '🚀', cards: ['back', 'back'] },
+                { index: 5, name: 'DiamondHands', stack: '$11,200', avatar: '💎', cards: ['back', 'back'] },
+                { index: 7, name: 'LuckyAce', stack: '$2,100', avatar: '🎲', cards: ['back', 'back'] },
+            ];
+            
+            demoSeats.forEach(demoSeat => {
+                const seatEl = seatsLayer.querySelector(`[data-seat-index="${demoSeat.index}"]`);
+                if (seatEl) {
+                    seatEl.classList.remove('empty');
+                    seatEl.classList.add('occupied');
+                    if (demoSeat.isMe) seatEl.classList.add('my-seat');
+                    
+                    seatEl.querySelector('.player-avatar').textContent = demoSeat.avatar;
+                    seatEl.querySelector('.player-name').textContent = demoSeat.name;
+                    seatEl.querySelector('.player-stack').textContent = demoSeat.stack;
+                    
+                    // Add cards
+                    const cardsContainer = seatEl.querySelector('.player-cards');
+                    cardsContainer.innerHTML = demoSeat.cards.map(card => 
+                        `<div class="player-card card-${card}" style="background-image: url('/cards/${card}.png');"></div>`
+                    ).join('');
+                }
+            });
+            
+            // Mark seat 0 as active/to-act
+            const seat0 = seatsLayer.querySelector('[data-seat-index="0"]');
+            seat0.classList.add('active', 'to-act');
+            
+            // Add community cards
+            const communityCards = document.getElementById('communityCards');
+            const demoBoard = ['hearts_A', 'spades_K', 'hearts_Q', 'clubs_J', 'back'];
+            communityCards.innerHTML = demoBoard.map(card => 
+                `<div class="card" style="background-image: url('/cards/${card}.png');"></div>`
+            ).join('');
+            
+            // Update pot
+            document.getElementById('potAmount').textContent = '$3,450';
+            
+            // Update room info
+            document.getElementById('roomCode').textContent = 'DEMO';
+            document.getElementById('blinds').textContent = '$25/$50';
+            document.getElementById('handNumber').textContent = '#42';
+            
+            console.log('🎰 PokerGeek Production Table Loaded');
+        });
+    </script>
+</body>
+</html>

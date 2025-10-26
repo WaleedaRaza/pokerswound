@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build outputs
-dist/
+# dist/ - UNIGNORED: Backend compiled code needed
 build/
 
 # Environment variables
@@ -68,11 +68,11 @@ jspm_packages/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# dist - UNIGNORED: Backend compiled code needed
 
 # Gatsby files
 .cache/
-public
+# public - UNIGNORED: Frontend assets needed for poker game
 
 # Storybook build outputs
 .out

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokerGeek - Premium Table Experience</title>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="/css/poker-table-v2.css">
+    <link rel="stylesheet" href="/css/timer-display.css">
+    
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Supabase for Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="poker-container">
+        <!-- Header Bar -->
+        <header class="game-header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-text">PokerGeek</span>
+                    <span class="logo-badge">PRO</span>
+                </div>
+                <div class="room-info">
+                    <span class="room-code" id="roomCode">Room: XXXX</span>
+                    <span class="game-status" id="gameStatus">Waiting...</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="blinds-info">
+                    <span class="blind-label">Blinds</span>
+                    <span class="blind-values" id="blindValues">$1/$2</span>
+                </div>
+                <div class="hand-counter">
+                    <span class="hand-label">Hand</span>
+                    <span class="hand-number" id="handNumber">#1</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn" id="settingsBtn">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+                    </svg>
+                </button>
+                <button class="header-btn" id="chatBtn">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+                <div class="user-avatar" id="userAvatar">
+                    <img src="" alt="User" id="userAvatarImg">
+                    <div class="avatar-placeholder">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-area">
+            <!-- Poker Table -->
+            <div class="poker-table-container">
+                <div class="poker-table">
+                    <!-- Table Felt -->
+                    <div class="table-felt">
+                        <div class="table-logo">♠♥♣♦</div>
+                        
+                        <!-- Community Cards Area -->
+                        <div class="community-cards-area">
+                            <div class="community-cards" id="communityCards">
+                                <!-- Cards will be dynamically added -->
+                            </div>
+                            <div class="pot-display" id="potDisplay">
+                                <div class="pot-amount">$0</div>
+                                <div class="pot-label">POT</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dealer Button -->
+                        <div class="dealer-button" id="dealerButton">D</div>
+                    </div>
+                    
+                    <!-- Player Seats (9-max) -->
+                    <div class="seats-container">
+                        <!-- Seat 0: Bottom Center -->
+                        <div class="seat seat-0" data-seat="0">
+                            <div class="seat-content">
+                                <div class="player-info">
+                                    <div class="player-avatar">
+                                        <div class="avatar-image">👤</div>
+                                        <div class="player-status"></div>
+                                    </div>
+                                    <div class="player-details">
+                                        <div class="player-name">Empty Seat</div>
+                                        <div class="player-stack">$0</div>
+                                    </div>
+                                </div>
+                                <div class="player-cards">
+                                    <div class="card card-back"></div>
+                                    <div class="card card-back"></div>
+                                </div>
+                                <div class="player-bet">
+                                    <div class="bet-amount">$0</div>
+                                </div>
+                                <div class="player-timer">
+                                    <div class="timer-ring">
+                                        <svg class="timer-svg" viewBox="0 0 36 36">
+                                            <path class="timer-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="timer-text">30</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seats 1-8 will be similar, positioned around the table -->
+                        <div class="seat seat-1" data-seat="1"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-2" data-seat="2"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-3" data-seat="3"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-4" data-seat="4"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-5" data-seat="5"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-6" data-seat="6"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-7" data-seat="7"><div class="seat-content"><!-- Same structure --></div></div>
+                        <div class="seat seat-8" data-seat="8"><div class="seat-content"><!-- Same structure --></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel" id="actionPanel">
+                <div class="action-controls">
+                    <div class="quick-amounts">
+                        <button class="quick-bet" data-amount="0.5">½ POT</button>
+                        <button class="quick-bet" data-amount="0.75">¾ POT</button>
+                        <button class="quick-bet" data-amount="1">POT</button>
+                        <button class="quick-bet" data-amount="2">2x POT</button>
+                    </div>
+                    
+                    <div class="bet-slider-container">
+                        <input type="range" class="bet-slider" id="betSlider" min="0" max="1000" value="0">
+                        <div class="bet-input-container">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" class="bet-input" id="betInput" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn fold-btn" id="foldBtn">
+                            <span class="btn-text">FOLD</span>
+                            <span class="btn-hotkey">F</span>
+                        </button>
+                        <button class="action-btn call-btn" id="callBtn">
+                            <span class="btn-text">CALL</span>
+                            <span class="btn-amount">$0</span>
+                            <span class="btn-hotkey">C</span>
+                        </button>
+                        <button class="action-btn raise-btn" id="raiseBtn">
+                            <span class="btn-text">RAISE</span>
+                            <span class="btn-amount">$0</span>
+                            <span class="btn-hotkey">R</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Auto Actions -->
+                <div class="auto-actions">
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoFold">
+                        <span>Auto Fold</span>
+                    </label>
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoCheck">
+                        <span>Auto Check/Fold</span>
+                    </label>
+                    <label class="auto-action">
+                        <input type="checkbox" id="autoCall">
+                        <span>Auto Call Any</span>
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <!-- Side Panels -->
+        <aside class="side-panel left-panel" id="leftPanel">
+            <!-- Player List / Lobby -->
+            <div class="panel-section">
+                <h3 class="panel-title">Players</h3>
+                <div class="players-list" id="playersList">
+                    <!-- Dynamic player list -->
+                </div>
+            </div>
+            
+            <!-- Hand History -->
+            <div class="panel-section">
+                <h3 class="panel-title">Hand History</h3>
+                <div class="hand-history" id="handHistory">
+                    <!-- Dynamic hand history -->
+                </div>
+            </div>
+        </aside>
+
+        <aside class="side-panel right-panel" id="rightPanel">
+            <!-- Chat -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3 class="chat-title">Table Chat</h3>
+                    <button class="chat-minimize" id="chatMinimize">−</button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Dynamic messages -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+                    <button class="chat-send" id="chatSend">
+                        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modals -->
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Table Settings</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Settings content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Host Controls Modal -->
+    <div class="modal" id="hostControlsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Host Controls</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Host control options -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/js/sequence-tracker.js"></script>
+    <script src="/js/timer-display.js"></script>
+    <script src="/js/poker-table-v2.js"></script>
+    
+    <script>
+        // Initialize the premium poker experience
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎰 Premium Poker Table v2 Initializing...');
+            window.pokerTable = new PokerTableV2();
+            window.pokerTable.init();
+        });
+    </script>
+</body>
+</html>
