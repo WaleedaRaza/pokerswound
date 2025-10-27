@@ -942,14 +942,17 @@ class PokerTableGrid {
       const scaleY = containerHeight / stage.height;
       this.scale = Math.min(scaleX, scaleY);
 
-      // Calculate letterbox/pillarbox offsets
+      // Calculate letterbox/pillarbox offsets (AFTER scaling)
       const scaledWidth = stage.width * this.scale;
       const scaledHeight = stage.height * this.scale;
       const offsetX = (containerWidth - scaledWidth) / 2;
       const offsetY = (containerHeight - scaledHeight) / 2;
 
-      // Apply single transform to entire stage
-      table.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${this.scale})`;
+      // CRITICAL FIX: Set position via left/top, NOT translate
+      // This way the offset doesn't get scaled
+      table.style.left = `${offsetX}px`;
+      table.style.top = `${offsetY}px`;
+      table.style.transform = `scale(${this.scale})`;
     };
 
     // Initial scale
