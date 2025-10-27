@@ -10,8 +10,8 @@
 ## 🎯 CURRENT TASK
 
 **Mission:** Fix refresh bug by wiring zoom-lock table to existing backend  
-**Blocker:** Frontend doesn't call hydration endpoint on page load  
-**Status:** Backend ready ✅, Frontend needs wiring ❌
+**Status:** ✅ **COMPLETE** - Frontend wired, ready for deployment  
+**Next:** Deploy to Railway, test in production
 
 ---
 
@@ -54,19 +54,21 @@
 
 ---
 
-## ❌ WHAT'S BROKEN (KNOWN ISSUES)
+## ✅ WHAT WAS FIXED (COMPLETED)
 
-1. **Zoom-Lock Table Not Connected**
+1. **Zoom-Lock Table Wired to Backend**
    - File: `public/poker-table-zoom-lock.html`
-   - Line 914: calls `initDemo()` instead of `initWithBackend()`
-   - No WebSocket connection
-   - No hydration fetch
-   - No action button wiring
+   - Replaced `initDemo()` with `initWithBackend()`
+   - Added WebSocket connection
+   - Added hydration fetch on page load
+   - Added action button wiring
+   - Added all game event handlers
 
-2. **Refresh Doesn't Work**
-   - Root cause: Frontend doesn't call hydration on page load
-   - Fix exists on backend, just not called by frontend
-   - **This is THE ONLY blocker to MVP**
+2. **Refresh Bug FIXED**
+   - Implementation: Frontend calls hydration on page load
+   - Backend returns complete state from DB
+   - Frontend renders from server truth
+   - **MVP BLOCKER REMOVED** ✅
 
 ---
 
