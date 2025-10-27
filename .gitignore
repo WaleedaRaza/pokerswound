@@ -97,3 +97,9 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+!public/**
+
+!dist/**
+
+!pokeher/**
