@@ -88,6 +88,11 @@ router.get('/table-hud', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-hud.html'));
 });
 
+// Responsive table design (proper flex/grid layout)
+router.get('/table-responsive', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-responsive.html'));
+});
+
 // Legacy routes - redirect to game
 router.get('/poker', (req, res) => {
   res.redirect('/game');
