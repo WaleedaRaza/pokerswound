@@ -8,42 +8,13 @@ class PokerTableGrid {
     this.roomId = null;
     this.userId = null;
     this.gameState = null;
-    this.socket = null;
-    this.sequenceTracker = null;
-    this.callAmount = 0;
     console.log('🎰 Poker Table Grid initialized');
   }
   
   async init() {
-    // Get room from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    this.roomId = urlParams.get('room');
-    
-    if (!this.roomId) {
-      console.log('Demo mode');
-      this.initDemo();
-      this.initHostControls();
-      return;
-    }
-    
-    // Get user
-    const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      const user = JSON.parse(userData);
-      this.userId = user.id;
-    }
-    
-    if (!this.userId) {
-      console.error('No user - redirecting');
-      window.location.href = '/play';
-      return;
-    }
-    
-    // Initialize systems
+    // Initialize demo data for now
+    this.initDemo();
     this.initHostControls();
-    await this.initWebSocket();
-    await this.hydrate();
-    this.wireActions();
   }
   
   initDemo() {
@@ -185,75 +156,6 @@ class PokerTableGrid {
     if (room) room.textContent = data.room;
     if (hand) hand.textContent = `#${data.hand}`;
     if (chips) chips.textContent = `$${data.seats[0].chips.toLocaleString()}`;
-  }
-  
-  async initWebSocket() {
-    this.sequenceTracker = new SequenceTracker();
-    this.socket = io({ query: { roomId: this.roomId, userId: this.userId } });
-    
-    this.socket.on('connect', () => {
-      console.log('✅ Connected');
-      this.socket.emit('authenticate', { roomId: this.roomId, userId: this.userId, rejoinToken: sessionStorage.getItem('rejoinToken') });
-    });
-    
-    this.socket.on('state_sync', this.sequenceTracker.createHandler((data) => {
-      if (data.payload?.fetchViaHttp) this.hydrate();
-    }));
-    
-    this.socket.on('hand_started', this.sequenceTracker.createHandler((data) => {
-      this.renderBoard(data.board || []);
-    }));
-    
-    this.socket.on('turn_started', this.sequenceTracker.createHandler((data) => {
-      // Show action panel if my turn
-    }));
-  }
-  
-  async hydrate() {
-    const response = await fetch(`/api/rooms/${this.roomId}/hydrate?userId=${this.userId}`);
-    if (!response.ok) return;
-    
-    const data = await response.json();
-    this.gameState = data;
-    this.sequenceTracker.currentSeq = data.seq;
-    
-    this.renderSeats(data.seats);
-    if (data.hand) {
-      this.renderBoard(data.hand.board || []);
-      this.renderPot(data.hand.pot_total || 0);
-    }
-    this.renderHudInfo({ room: data.room.code, hand: data.hand?.number || 1, seats: data.seats });
-    
-    if (data.me?.rejoin_token) sessionStorage.setItem('rejoinToken', data.me.rejoin_token);
-  }
-  
-  wireActions() {
-    const foldBtn = document.getElementById('foldBtn');
-    const callBtn = document.getElementById('callBtn');
-    const raiseBtn = document.getElementById('raiseBtn');
-    const betInput = document.getElementById('betInput');
-    
-    if (foldBtn) foldBtn.onclick = () => this.sendAction('FOLD', 0);
-    if (callBtn) callBtn.onclick = () => this.sendAction('CALL', this.callAmount);
-    if (raiseBtn) raiseBtn.onclick = () => this.sendAction('RAISE', parseInt(betInput.value));
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.key === 'f') foldBtn?.click();
-      if (e.key === 'c') callBtn?.click();
-      if (e.key === 'r') raiseBtn?.click();
-    });
-  }
-  
-  async sendAction(action, amount) {
-    const response = await fetch(`/api/games/${this.gameState.game.id}/actions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': `${action}-${Date.now()}` },
-      body: JSON.stringify({ player_id: this.userId, action, amount })
-    });
-    
-    if (response.ok) console.log(`✅ ${action} sent`);
   }
 }
 
