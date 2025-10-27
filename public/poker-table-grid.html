@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PokerGeek.ai — Poker Table (Grid)</title>
 
-  <!-- Optional: keep your existing token sheets; this file also has fallbacks -->
+  <!-- Optional: keep your token sheets; the CSS below has fallbacks -->
   <link rel="stylesheet" href="/css/design-tokens.css" />
   <link rel="stylesheet" href="/css/pokergeek.css" />
 
-  <!-- This file is the one below -->
+  <!-- This file -->
   <link rel="stylesheet" href="/css/poker-table-grid.css" />
 
   <!-- Fonts (optional) -->
@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- NAVBAR (use your real one; height accounted for via --nav-h) -->
+  <!-- NAVBAR (height accounted for via --nav-h) -->
   <nav class="navbar">
     <div class="navbar-inner">
       <a class="navbar-brand" href="/">PokerGeek<span class="dot">.ai</span></a>
@@ -31,7 +31,7 @@
         <li><a href="/poker-today">Poker Today</a></li>
       </ul>
       <div class="navbar-auth">
-        <button class="navbar-btn host-btn" id="hostControlsBtn" onclick="document.getElementById('hostModal').classList.add('show')" style="background: linear-gradient(135deg, var(--accent) 0%, #ff7722 100%); border: none; color: white; cursor: pointer; display: none;">
+        <button class="navbar-btn host-btn" id="hostControlsBtn" onclick="document.getElementById('hostModal').classList.add('show')" style="display:none">
           🛡️ Host Controls
         </button>
         <a class="navbar-btn login" href="#">Log In</a>
@@ -44,12 +44,13 @@
   <main class="poker-game">
     <!-- Row 1: Table area -->
     <div class="table-wrapper">
+      <!-- THIS is the virtual stage the scaler controls -->
       <div class="poker-table">
         <div class="table-felt"></div>
 
-        <!-- Shared inner box so seats and board align to the same reference -->
+        <!-- Shared inner box so seats and board align to same reference -->
         <div class="table-inner">
-          <!-- Seats are absolutely positioned by JS (ellipse) -->
+          <!-- Seats layer (positions are applied by JS, not CSS) -->
           <div class="seats-layer">
             <!-- 10 seats -->
             <div class="seat seat-main" data-seat="0">
@@ -171,7 +172,7 @@
 
   <!-- Scripts -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  <!-- This file is the one below -->
+  <!-- This file -->
   <script src="/js/poker-table-grid.js"></script>
 </body>
 </html>

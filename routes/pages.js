@@ -78,8 +78,13 @@ router.get('/poker-v3-demo', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-v3-demo.html'));
 });
 
-// PRODUCTION TABLE - GRID VERSION (Proper responsive design)
+// ZOOM-LOCKED TABLE (Virtual canvas with uniform scaling)
 router.get('/table', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-zoom-lock.html'));
+});
+
+// Grid version (previous approach)
+router.get('/table-grid', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-grid.html'));
 });
 

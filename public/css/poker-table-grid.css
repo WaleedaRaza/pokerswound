@@ -1,6 +1,6 @@
-/* ===== PokerGeek Table (Grid version, zoom-safe) ===== */
+/* ===== PokerGeek Table (Grid version, zoom-locked) ===== */
 
-/* Fallback tokens in case your design-tokens.css is missing anything */
+/* Fallback tokens if your design-tokens.css is missing anything */
 :root{
   --bg: #0b0b12;
   --text: #e9eef7;
@@ -15,7 +15,6 @@
 
   --nav-h: 64px;
   --hud-gap: clamp(12px, 2vw, 24px);
-  --table-inset: clamp(12px, 3cqi, 28px);
 
   --shadow-md: 0 8px 18px rgba(0,0,0,.35);
   --shadow-lg: 0 12px 28px rgba(0,0,0,.45);
@@ -48,53 +47,50 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
   gap: var(--hud-gap);
 }
 
+/* --- Stage container shows the bars (letterbox/pillarbox) --- */
 .table-wrapper{
-  min-height:0;
-  display:flex; 
-  align-items:center; 
-  justify-content:center;
-  background: var(--bg); /* Letterbox/pillarbox background */
   position: relative;
+  width: 100%;
+  min-height: 0;
+  height: calc(100svh - var(--nav-h) - 180px);
+  display:flex; align-items:center; justify-content:center;
+  background: var(--bg);
+  overflow:hidden; /* bars live here; no scroll */
 }
 
-/* ASPECT RATIO LOCK - Like video player */
+/* --- VIRTUAL STAGE (fixed design resolution; JS scales root) --- */
 .poker-table{
-  container-type: inline-size;
-  position:relative;
-  aspect-ratio: 2.1 / 1; /* Locked! */
-  
-  /* Fit within available space, add bars if needed */
-  width: 100%;
-  max-width: min(
-    calc((100svh - var(--nav-h) - 180px) * 2.1), /* Width if constrained by height */
-    min(1850px, 98vw) /* Width if constrained by viewport */
-  );
-  
-  /* BASE FONT SIZE - everything scales from this */
-  font-size: clamp(10px, 1.8cqi, 16px);
-  overflow: clip;
+  position: absolute;
+  width: 2100px;   /* VIRT_W */
+  height: 1000px;  /* VIRT_H */
+  transform-origin: top left;
+  font-size: 16px; /* neutral base; root scale does responsiveness */
 }
 
 /* Shared reference box for both seats and board */
-.table-inner{ position:absolute; inset: var(--table-inset); }
+.table-inner{
+  position:absolute;
+  /* FIXED virtual inset; avoids drifting math */
+  inset: 40px;
+}
 
-/* Felt */
+/* Felt (purely decorative) */
 .table-felt{
   position:absolute; inset:0;
-  border-radius: 18cqi;
-  border: max(1px, 1cqi) solid #0d1117;
+  border-radius: 180px;                /* tuned for 2100x1000 */
+  border: 2px solid #0d1117;
   background: var(--felt-current);
   box-shadow:
-    inset 0 0 0 calc(.8cqi) rgba(0,0,0,.35),
-    inset 0 0 calc(20cqi) rgba(0,0,0,.45);
+    inset 0 0 0 8px rgba(0,0,0,.25),
+    inset 0 0 160px rgba(0,0,0,.35);
 }
 .table-felt::after{
-  content:""; position:absolute; inset:-6cqi; border-radius:inherit;
-  box-shadow: 0 calc(4cqi) calc(14cqi) rgba(0,0,0,.55);
+  content:""; position:absolute; inset:-30px; border-radius:inherit;
+  box-shadow: 0 22px 80px rgba(0,0,0,.55);
   pointer-events:none;
 }
 
-/* --- Seats (ellipse anchored) --- */
+/* --- Seats (JS positions them; CSS just styles) --- */
 .seats-layer{ position:absolute; inset:0; }
 .seat{
   position:absolute;
@@ -102,32 +98,11 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
   display:flex; align-items:center; justify-content:center;
 }
 
-/* 10-SEAT POSITIONING - FROM POSITIONING TOOL */
-.seat[data-seat="0"] { left: 50%; top: 87%; }
-.seat[data-seat="1"] { left: 75%; top: 78%; }
-.seat[data-seat="2"] { left: 90%; top: 28%; }
-.seat[data-seat="3"] { left: 90%; top: 60%; }
-.seat[data-seat="4"] { left: 66%; top: 8%; }
-.seat[data-seat="5"] { left: 49%; top: 13%; }
-.seat[data-seat="6"] { left: 32%; top: 8%; }
-.seat[data-seat="7"] { left: 11%; top: 32%; }
-.seat[data-seat="8"] { left: 11%; top: 63%; }
-.seat[data-seat="9"] { left: 26%; top: 74%; }
-
-/* Main player is LARGER - maintains rectangular aspect ratio */
-.seat-main .seat-content {
-  width: 26em; /* Scales with container font-size */
-  height: auto;
-  aspect-ratio: 1.8 / 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+/* Seat blocks */
 .seat-content{
-  width: 13em; /* Scales with container font-size */
+  width: 13em;
   padding: 1em;
   border-radius: 0.8em;
-  /* CLEAR LIQUID GLASS - Transparent! */
   position: relative;
   isolation: isolate;
   border: 1px solid rgba(255,255,255,.15);
@@ -136,10 +111,15 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
     0 0.5em 1.5em rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(20px) saturate(120%);
   background: rgba(255, 255, 255, 0.03);
-  /* See-through - felt shows through */
 }
 
-.seat-main .seat-content{
+/* Main player larger */
+.seat-main .seat-content {
+  width: 26em;
+  aspect-ratio: 1.8 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   border-color: var(--teal);
   border-width: 2px;
   box-shadow: 
@@ -191,9 +171,8 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
   position: relative;
   z-index: 1;
 }
-.player-card,
-.card{
-  width: 5em; /* Scales proportionally */
+.player-card, .card{
+  width: 5em;
   aspect-ratio: 5 / 7;
   border-radius: 0.6em;
   background-size: cover; background-position:center;
@@ -204,13 +183,13 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
 .board-center{
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap: clamp(8px, 3cqi, 24px);
+  gap: 16px;
   z-index: 5;
 }
 .community-cards{ display:flex; gap: 0.8em; }
 
 .pot-display{
-  padding: 1.2em 2em; /* Scales proportionally */
+  padding: 1.2em 2em;
   border-radius: 1.2em;
   background: rgba(0,0,0,.92);
   border: 1px solid rgba(255,255,255,.25);
@@ -225,7 +204,7 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
 }
 .pot-amount{
   font-family: var(--font-mono);
-  font-size: 2em; /* Scales proportionally */
+  font-size: 2em;
   color: var(--teal); font-weight:800;
 }
 
@@ -234,16 +213,16 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
   position: static;
   width: min(1000px, 92vw);
   margin-inline: auto;
-  padding: clamp(10px, 3cqi, 20px);
-  border-radius: clamp(12px, 2cqi, 18px);
+  padding: 16px;
+  border-radius: 16px;
   background: rgba(10,8,22,.98);
   border: 1px solid rgba(255,255,255,.1);
   box-shadow: var(--shadow-xl);
   backdrop-filter: blur(20px);
-  display:flex; flex-direction:column; gap: clamp(10px, 2.4cqi, 16px);
+  display:flex; flex-direction:column; gap: 16px;
 }
 
-.hud-info{ display:flex; justify-content:center; gap: clamp(8px, 2cqi, 16px); flex-wrap: wrap; }
+.hud-info{ display:flex; justify-content:center; gap: 12px; flex-wrap: wrap; }
 .info-chip{
   display:flex; flex-direction:column; align-items:center; gap: 4px;
   padding: .5rem .9rem; border-radius: 12px;
@@ -279,199 +258,17 @@ html,body{ height:100%; background:var(--bg); color:var(--text); font-family:var
 .btn-call{ background: linear-gradient(135deg, var(--teal) 0%, #00efc2 100%); color:#0b0b0f; box-shadow: 0 6px 22px rgba(0,212,170,.35); }
 .btn-raise{ background: linear-gradient(135deg, var(--accent) 0%, #ff7a2f 100%); color:#0b0b0f; box-shadow: 0 6px 22px rgba(255,81,0,.35); }
 
-/* Player styling - Main player proportional to regular */
-.seat-main .player-avatar {
-  width: 4em; /* Scales with container */
-  height: 4em;
-  font-size: 1.8em;
-}
-
-.seat-main .player-name {
-  font-size: 1.2em; /* Scales with container */
-  color: var(--teal);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 212, 170, 0.3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.seat-main .player-chips {
-  font-size: 1em; /* Scales with container */
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
-  white-space: nowrap;
-}
-
-/* Main player gets bigger cards - proportional */
-.seat-main .player-card {
-  width: 6.8em; /* Scales with container */
-}
+/* Main player proportional tweaks */
+.seat-main .player-avatar { width: 4em; height: 4em; font-size: 1.8em; }
+.seat-main .player-name { font-size: 1.2em; color: var(--teal); text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 0 2px 10px rgba(0,0,0,.9), 0 0 20px rgba(0, 212, 170, .3); }
+.seat-main .player-chips { font-size: 1em; text-shadow: 0 2px 8px rgba(0,0,0,.9); }
+.seat-main .player-card { width: 6.8em; }
 
 /* Empty seat styling */
-.seat.empty .seat-content {
-  border-style: dashed;
-  opacity: 0.5;
-  cursor: pointer;
-}
+.seat.empty .seat-content { border-style: dashed; opacity: 0.5; cursor: pointer; }
+.seat.empty:hover .seat-content { opacity: 1; border-color: var(--accent); }
 
-.seat.empty:hover .seat-content {
-  opacity: 1;
-  border-color: var(--accent);
-}
-
-/* === HOST CONTROLS MODAL === */
-.host-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.host-modal.show {
-  display: flex;
-}
-
-.host-modal-content {
-  background: rgba(17, 16, 24, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-}
-
-.host-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.host-modal-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.host-modal-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
-  color: var(--muted);
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.host-modal-close:hover {
-  background: var(--error);
-  color: white;
-}
-
-.host-section {
-  margin-bottom: 1.5rem;
-}
-
-.host-section-title {
-  font-size: 0.875rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.felt-colors {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-}
-
-.felt-option {
-  aspect-ratio: 1;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.felt-option:hover {
-  transform: scale(1.05);
-  border-color: var(--text);
-}
-
-.felt-option.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 20px rgba(255, 81, 0, 0.5);
-}
-
-.felt-option[data-color="green"] { background: #0d5f2f; }
-.felt-option[data-color="red"] { background: #6b1414; }
-.felt-option[data-color="black"] { background: #1a1a1a; }
-.felt-option[data-color="blue"] { background: #0f2942; }
-.felt-option[data-color="grey"] { background: #2a2a2a; }
-.felt-option[data-color="tan"] { background: #6b5642; }
-.felt-option[data-color="purple"] { background: #3a1450; }
-
-.host-action-btn {
-  width: 100%;
-  padding: 0.875rem;
-  margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.host-action-btn:hover {
-  background: rgba(255, 81, 0, 0.1);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-/* Mobile vertical mode - when too compressed */
-@media (max-width: 768px) and (orientation: portrait) {
-  .poker-table {
-    aspect-ratio: 1 / 1.3; /* Vertical table */
-  }
-  
-  /* Rearrange seats vertically */
-  .seat[data-seat="0"] { left: 50%; top: 88%; }
-  .seat[data-seat="1"] { left: 70%; top: 80%; }
-  .seat[data-seat="2"] { left: 85%; top: 65%; }
-  .seat[data-seat="3"] { left: 85%; top: 50%; }
-  .seat[data-seat="4"] { left: 85%; top: 35%; }
-  .seat[data-seat="5"] { left: 70%; top: 20%; }
-  .seat[data-seat="6"] { left: 50%; top: 12%; }
-  .seat[data-seat="7"] { left: 30%; top: 20%; }
-  .seat[data-seat="8"] { left: 15%; top: 35%; }
-  .seat[data-seat="9"] { left: 15%; top: 65%; }
-}
-
-/* Tablet/small desktop */
+/* Tablet/small desktop (HUD only) */
 @media (max-width: 900px){
   .action-btns{ grid-template-columns: 80px 1fr 1fr; }
   .quick-bets{ grid-template-columns: repeat(2, 1fr); }
