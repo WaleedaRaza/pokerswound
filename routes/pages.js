@@ -83,6 +83,11 @@ router.get('/table', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-final.html'));
 });
 
+// HUD-based table design (full viewport)
+router.get('/table-hud', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-hud.html'));
+});
+
 // Legacy routes - redirect to game
 router.get('/poker', (req, res) => {
   res.redirect('/game');
