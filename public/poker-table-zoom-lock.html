@@ -312,6 +312,17 @@ html,body{
   z-index: 1;
 }
 
+/* Turn indicator - Active player glow */
+.seat.to-act {
+  box-shadow: 0 0 24px var(--teal);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 24px var(--teal); }
+  50% { box-shadow: 0 0 36px var(--teal), 0 0 48px rgba(0,212,170,0.5); }
+}
+
 .player-card{
   width: 50px;
   aspect-ratio: 5 / 7;
@@ -870,6 +881,15 @@ class PokerTableGrid {
     this.userId = null;
     this.gameState = null;
     
+    // Backend connection properties
+    this.socket = null;
+    this.sequenceTracker = null;
+    this.gameId = null;
+    this.currentBet = 0;
+    this.myTurn = false;
+    this.isHydrated = false;
+    this.lastHydrationTime = 0;
+    
     // VIRTUAL CANVAS DIMENSIONS (fixed!)
     this.HORIZONTAL_STAGE = { width: 1680, height: 800 };
     this.VERTICAL_STAGE = { width: 600, height: 1200 };
@@ -910,9 +930,7 @@ class PokerTableGrid {
   }
 
   async init() {
-    this.setupZoomLock();
-    this.initDemo();
-    this.initHostControls();
+    await this.initWithBackend();
     this.setupResizeObserver();
   }
 
@@ -992,8 +1010,283 @@ class PokerTableGrid {
     });
   }
 
+  async initWithBackend() {
+    console.log('🔌 Initializing with backend...');
+    
+    // Get roomId from URL (supports both /game/:roomId and /game?room=:roomId)
+    const urlParams = new URLSearchParams(window.location.search);
+    const pathParts = window.location.pathname.split('/');
+    
+    // Try query param first, then path param
+    this.roomId = urlParams.get('room') || pathParts[pathParts.length - 1];
+    
+    if (!this.roomId || this.roomId === 'game' || this.roomId === 'table') {
+      console.error('No room ID in URL, redirecting to /play');
+      window.location.href = '/play';
+      return;
+    }
+    
+    console.log('📍 Room ID extracted from URL:', this.roomId);
+    
+    // Get userId from auth or session
+    this.userId = window.currentUser?.id || sessionStorage.getItem('userId');
+    
+    if (!this.userId) {
+      console.error('No user ID found');
+      alert('Please sign in first');
+      window.location.href = '/';
+      return;
+    }
+    
+    console.log(`🎮 Connecting to room ${this.roomId} as user ${this.userId}`);
+    
+    // Initialize sequence tracker
+    this.sequenceTracker = new SequenceTracker();
+    
+    // Initialize Socket.IO
+    this.socket = io();
+    
+    // Socket event handlers
+    this.socket.on('connect', () => {
+      console.log('✅ Socket connected:', this.socket.id);
+      this.authenticateSocket();
+    });
+    
+    this.socket.on('disconnect', (reason) => {
+      console.warn('🔌 Socket disconnected:', reason);
+      if (this.gameId) {
+        this.showToast('Connection lost. Reconnecting...', 'error');
+      }
+    });
+    
+    this.socket.on('authenticated', () => {
+      console.log('✅ Authenticated, fetching game state...');
+      this.fetchHydration();
+    });
+    
+    // Setup UI
+    this.setupZoomLock();
+    this.initHostControls();
+  }
+
+  authenticateSocket() {
+    const rejoinToken = sessionStorage.getItem('rejoin_token');
+    
+    this.socket.emit('authenticate', {
+      userId: this.userId,
+      roomId: this.roomId,
+      rejoinToken: rejoinToken
+    });
+    
+    console.log('🔐 Authentication sent');
+  }
+
+  async fetchHydration() {
+    // Debounce hydration calls
+    const now = Date.now();
+    if (now - this.lastHydrationTime < 1000) {
+      console.log('⏸️ Hydration debounced (too frequent)');
+      return;
+    }
+    this.lastHydrationTime = now;
+    
+    try {
+      console.log('🌊 Fetching hydration data...');
+      
+      const response = await fetch(
+        `/api/rooms/${this.roomId}/hydrate?userId=${this.userId}`
+      );
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.warn('Room not found, redirecting to lobby');
+          this.showToast('Room not found', 'error');
+          setTimeout(() => window.location.href = '/play', 2000);
+          return;
+        }
+        throw new Error(`Hydration failed: ${response.status}`);
+      }
+      
+      const hydration = await response.json();
+      
+      // Validate contract
+      if (typeof hydration.seq !== 'number') {
+        throw new Error('Invalid hydration: missing seq');
+      }
+      
+      console.log('✅ Hydration received (seq:', hydration.seq, ')');
+      
+      // Set sequence BEFORE rendering (prevent race)
+      this.sequenceTracker.setSequence(hydration.seq);
+      
+      // Store game ID for actions
+      if (hydration.game) {
+        this.gameId = hydration.game.id;
+      }
+      
+      // Store rejoin token (rotates on each hydration)
+      if (hydration.me?.rejoin_token) {
+        sessionStorage.setItem('rejoin_token', hydration.me.rejoin_token);
+        console.log('🔑 Rejoin token stored');
+      }
+      
+      // Mark as hydrated
+      this.isHydrated = true;
+      
+      // Render from server truth
+      this.renderFromHydration(hydration);
+      
+      // Setup event listeners AFTER hydration
+      this.setupGameEventHandlers();
+      
+      // Wire action buttons
+      this.wireActionButtons();
+      
+    } catch (error) {
+      console.error('❌ Hydration failed:', error);
+      this.showToast('Failed to load game. Returning to lobby...', 'error');
+      setTimeout(() => {
+        window.location.href = '/play';
+      }, 3000);
+    }
+  }
+
+  renderFromHydration(hydration) {
+    console.log('🎨 Rendering from hydration...');
+    
+    // Apply seat positions
+    this.applySeatPositions();
+    
+    // Render seats
+    if (hydration.seats) {
+      this.renderSeatsFromBackend(hydration.seats, hydration.me?.seat_index);
+    }
+    
+    // Render board cards (if hand active)
+    if (hydration.hand?.board) {
+      this.renderBoard(hydration.hand.board);
+    }
+    
+    // Render pot (if hand active)
+    if (hydration.hand?.pot_total !== undefined) {
+      this.renderPot(hydration.hand.pot_total);
+    }
+    
+    // Render MY hole cards (private data)
+    if (hydration.me?.hole_cards) {
+      this.renderMyCards(hydration.me.hole_cards, hydration.me.seat_index);
+    }
+    
+    // Render dealer button
+    if (hydration.hand?.dealer_seat !== undefined) {
+      this.updateDealerButton(hydration.hand.dealer_seat);
+    }
+    
+    // Update current bet
+    if (hydration.hand?.current_bet !== undefined) {
+      this.currentBet = hydration.hand.current_bet;
+    }
+    
+    // Update HUD
+    this.renderHudInfo({
+      room: hydration.room?.code || 'Unknown',
+      hand: hydration.hand?.hand_number || 0,
+      phase: hydration.hand?.phase || 'WAITING',
+      seats: hydration.seats || []
+    });
+    
+    console.log('✅ Rendering complete');
+  }
+
+  renderSeatsFromBackend(seats, mySeatIndex) {
+    seats.forEach(seat => {
+      if (!seat || seat.seat_index === undefined) return;
+      
+      const seatEl = document.querySelector(`[data-seat="${seat.seat_index}"]`);
+      if (!seatEl) return;
+      
+      if (seat.user_id) {
+        // Occupied seat
+        seatEl.classList.remove('empty');
+        seatEl.classList.add('occupied');
+        
+        const avatar = seatEl.querySelector('.player-avatar');
+        const name = seatEl.querySelector('.player-name');
+        const chips = seatEl.querySelector('.player-chips');
+        
+        if (avatar) avatar.textContent = '🎯';
+        if (name) name.textContent = seat.username || 'Player';
+        if (chips) chips.textContent = `$${(seat.stack || seat.chips_in_play || 0).toLocaleString()}`;
+        
+        // Mark if folded
+        if (seat.has_folded) {
+          seatEl.classList.add('folded');
+          seatEl.style.opacity = '0.5';
+        }
+      } else {
+        // Empty seat
+        seatEl.classList.add('empty');
+        seatEl.classList.remove('occupied');
+        
+        const avatar = seatEl.querySelector('.player-avatar');
+        const name = seatEl.querySelector('.player-name');
+        const chips = seatEl.querySelector('.player-chips');
+        
+        if (avatar) avatar.textContent = '➕';
+        if (name) name.textContent = `Seat ${seat.seat_index + 1}`;
+        if (chips) chips.textContent = 'Empty';
+      }
+    });
+  }
+
+  renderMyCards(cards, seatIndex) {
+    if (!cards || cards.length === 0) return;
+    
+    const mySeat = document.querySelector(`[data-seat="${seatIndex}"]`);
+    if (!mySeat) return;
+    
+    const cardsContainer = mySeat.querySelector('.player-cards');
+    if (!cardsContainer) return;
+    
+    cardsContainer.innerHTML = cards.map(card => 
+      `<div class="player-card" style="background-image: url('/cards/${card}.png');"></div>`
+    ).join('');
+    
+    console.log('🃏 My cards rendered:', cards);
+  }
+
+  updateDealerButton(dealerSeat) {
+    // Remove existing dealer button
+    document.querySelectorAll('.dealer-button').forEach(btn => btn.remove());
+    
+    // Add to dealer seat
+    const seatEl = document.querySelector(`[data-seat="${dealerSeat}"]`);
+    if (seatEl) {
+      const button = document.createElement('div');
+      button.className = 'dealer-button';
+      button.style.cssText = `
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 32px;
+        height: 32px;
+        background: var(--accent);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 16px;
+        box-shadow: 0 4px 12px rgba(255,81,0,0.4);
+      `;
+      button.textContent = 'D';
+      seatEl.appendChild(button);
+    }
+  }
+
   initDemo() {
-    console.log('🎬 Demo mode');
+    console.log('🎬 Demo mode (deprecated - using backend)');
     
     // Show host button in demo
     const hostBtn = document.getElementById('hostControlsBtn');
@@ -1131,7 +1424,309 @@ class PokerTableGrid {
 
     if (room) room.textContent = data.room;
     if (hand) hand.textContent = `#${data.hand}`;
-    if (chips) chips.textContent = `$${data.seats[0].chips.toLocaleString()}`;
+    
+    // Find my seat to show my chips
+    const mySeat = data.seats?.find(s => s.user_id === this.userId);
+    if (chips && mySeat) {
+      chips.textContent = `$${(mySeat.stack || mySeat.chips_in_play || 0).toLocaleString()}`;
+    }
+  }
+
+  wireActionButtons() {
+    console.log('🔘 Wiring action buttons...');
+    
+    const foldBtn = document.getElementById('foldBtn');
+    const callBtn = document.getElementById('callBtn');
+    const raiseBtn = document.getElementById('raiseBtn');
+    const betInput = document.getElementById('betInput');
+    
+    if (!foldBtn || !callBtn || !raiseBtn) {
+      console.warn('Action buttons not found in DOM');
+      return;
+    }
+    
+    foldBtn.addEventListener('click', () => this.sendAction('FOLD', 0));
+    callBtn.addEventListener('click', () => this.sendAction('CALL', this.currentBet));
+    raiseBtn.addEventListener('click', () => {
+      const amount = parseInt(betInput?.value || 0);
+      this.sendAction('RAISE', amount);
+    });
+    
+    console.log('✅ Action buttons wired');
+  }
+
+  async sendAction(action, amount) {
+    // Require hydration first
+    if (!this.isHydrated) {
+      console.error('Cannot send action before hydration');
+      return;
+    }
+    
+    // Require game ID
+    if (!this.gameId) {
+      console.error('No game ID - cannot send action');
+      this.showToast('Game not started', 'error');
+      return;
+    }
+    
+    // Only send if it's your turn (except for special actions)
+    if (!this.myTurn && action !== 'SHOW_CARDS') {
+      console.warn('Not your turn');
+      return;
+    }
+    
+    // Disable buttons immediately (prevent double-click)
+    this.disableActionButtons();
+    
+    console.log(`🎯 Sending action: ${action} amount: ${amount}`);
+    
+    try {
+      const response = await fetch(`/api/games/${this.gameId}/actions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': `${this.gameId}-${this.userId}-${action}-${Date.now()}`
+        },
+        body: JSON.stringify({
+          player_id: this.userId,
+          action: action.toUpperCase(),
+          amount: amount || 0
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Action failed');
+      }
+      
+      const result = await response.json();
+      console.log('✅ Action sent (server will broadcast)');
+      
+      // Don't update UI directly, wait for broadcast
+      
+    } catch (error) {
+      console.error('❌ Action failed:', error);
+      this.showToast(error.message, 'error');
+      this.enableActionButtons();
+    }
+  }
+
+  setupGameEventHandlers() {
+    if (!this.socket || !this.sequenceTracker) {
+      console.error('Cannot setup event handlers: socket or sequenceTracker missing');
+      return;
+    }
+    
+    console.log('🎧 Setting up game event handlers...');
+    
+    // All handlers wrapped with sequence tracker
+    this.socket.on('hand_started', this.sequenceTracker.createHandler((data) => {
+      console.log('🃏 Hand started (seq:', data.seq, ')');
+      this.onHandStarted(data.payload);
+    }));
+    
+    this.socket.on('player_action', this.sequenceTracker.createHandler((data) => {
+      console.log('👤 Player action (seq:', data.seq, ')');
+      this.onPlayerAction(data.payload);
+    }));
+    
+    this.socket.on('action_required', this.sequenceTracker.createHandler((data) => {
+      console.log('⚡ Your turn (seq:', data.seq, ')');
+      this.onActionRequired(data.payload);
+    }));
+    
+    this.socket.on('board_dealt', this.sequenceTracker.createHandler((data) => {
+      console.log('🎴 Board dealt (seq:', data.seq, ')');
+      this.onBoardDealt(data.payload);
+    }));
+    
+    this.socket.on('hand_complete', this.sequenceTracker.createHandler((data) => {
+      console.log('🏆 Hand complete (seq:', data.seq, ')');
+      this.onHandComplete(data.payload);
+    }));
+    
+    this.socket.on('turn_timeout', this.sequenceTracker.createHandler((data) => {
+      console.log('⏰ Turn timeout (seq:', data.seq, ')');
+      this.onTurnTimeout(data.payload);
+    }));
+    
+    this.socket.on('state_sync', this.sequenceTracker.createHandler((data) => {
+      console.log('🔄 State sync (seq:', data.seq, ')');
+      if (data.payload?.fetchViaHttp) {
+        this.fetchHydration();
+      }
+    }));
+    
+    console.log('✅ Event handlers registered (all seq-protected)');
+  }
+
+  onHandStarted(data) {
+    console.log('🆕 New hand starting...');
+    this.clearPreviousHand();
+    
+    if (data.dealerSeat !== undefined) {
+      this.updateDealerButton(data.dealerSeat);
+    }
+    
+    if (data.myCards && data.mySeat !== undefined) {
+      this.renderMyCards(data.myCards, data.mySeat);
+    }
+    
+    this.myTurn = false;
+    this.disableActionButtons();
+    
+    this.showToast('New hand started', 'info');
+  }
+
+  onPlayerAction(data) {
+    if (data.seatIndex === undefined) {
+      console.warn('Invalid player_action: missing seatIndex');
+      return;
+    }
+    
+    const { seatIndex, action, amount } = data;
+    
+    // Update player visual
+    this.updatePlayerActionVisual(seatIndex, action, amount);
+    
+    // Update pot (from server)
+    if (data.pot !== undefined) {
+      this.renderPot(data.pot);
+    }
+    
+    // Update current bet (from server)
+    if (data.currentBet !== undefined) {
+      this.currentBet = data.currentBet;
+    }
+    
+    // If this was me, disable buttons
+    if (data.playerId === this.userId) {
+      this.myTurn = false;
+      this.disableActionButtons();
+      this.removeActiveSeatHighlight();
+    }
+  }
+
+  onActionRequired(data) {
+    if (data.playerId !== this.userId) {
+      console.warn('action_required for different player, ignoring');
+      return;
+    }
+    
+    console.log('⚡ My turn!');
+    
+    // Highlight my seat
+    const mySeat = document.querySelector(`[data-seat="${data.seatIndex}"]`);
+    if (mySeat) {
+      mySeat.classList.add('to-act');
+    }
+    
+    // Enable action buttons
+    this.myTurn = true;
+    this.enableActionButtons();
+    
+    // Update call amount
+    this.currentBet = data.callAmount || 0;
+  }
+
+  onBoardDealt(data) {
+    if (data.board) {
+      this.renderBoard(data.board);
+    }
+  }
+
+  onHandComplete(data) {
+    console.log('🏆 Hand complete:', data);
+    
+    // Update chip stacks
+    if (data.seats) {
+      this.renderSeatsFromBackend(data.seats);
+    }
+    
+    // Show winner
+    if (data.winners) {
+      this.showToast(`Winner: ${data.winners.map(w => w.username).join(', ')}`, 'info');
+    }
+    
+    // Clear board after 5 seconds
+    setTimeout(() => {
+      this.renderBoard([]);
+    }, 5000);
+  }
+
+  onTurnTimeout(data) {
+    this.showToast(`${data.username || 'Player'} timed out`, 'info');
+    this.onPlayerAction(data);
+  }
+
+  clearPreviousHand() {
+    // Remove dealer button
+    document.querySelectorAll('.dealer-button').forEach(el => el.remove());
+    
+    // Clear board
+    this.renderBoard([]);
+    
+    // Reset pot
+    this.renderPot(0);
+    
+    // Remove folded/active states
+    document.querySelectorAll('.seat').forEach(seat => {
+      seat.classList.remove('folded', 'to-act');
+      seat.style.opacity = '1';
+    });
+  }
+
+  updatePlayerActionVisual(seatIndex, action, amount) {
+    const seatEl = document.querySelector(`[data-seat="${seatIndex}"]`);
+    if (!seatEl) return;
+    
+    if (action === 'FOLD') {
+      seatEl.classList.add('folded');
+      seatEl.style.opacity = '0.5';
+    }
+    
+    // Could add action label/animation here
+    console.log(`💫 Seat ${seatIndex}: ${action} ${amount}`);
+  }
+
+  removeActiveSeatHighlight() {
+    document.querySelectorAll('.seat').forEach(seat => {
+      seat.classList.remove('to-act');
+    });
+  }
+
+  disableActionButtons() {
+    ['foldBtn', 'callBtn', 'raiseBtn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = true;
+    });
+  }
+
+  enableActionButtons() {
+    ['foldBtn', 'callBtn', 'raiseBtn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      background: ${type === 'error' ? 'var(--error)' : 'var(--teal)'};
+      color: white;
+      font-weight: 700;
+      box-shadow: var(--shadow-xl);
+      z-index: 300;
+      font-family: var(--font-main);
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   }
 }
 
@@ -1180,6 +1775,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('✅ Zoom-Locked Poker Table script loaded');
 </script>
+
+<!-- Backend Integration Scripts -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/sequence-tracker.js"></script>
+<script src="/js/auth-manager.js"></script>
 
 </body>
 </html>

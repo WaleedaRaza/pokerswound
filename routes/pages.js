@@ -49,8 +49,8 @@ router.get('/game', (req, res) => {
 // Direct room access via /game/:roomId
 router.get('/game/:roomId', (req, res) => {
   console.log(`🎮 Direct room access: /game/${req.params.roomId}`);
-  // Serve poker.html - it will extract roomId from URL path
-  res.sendFile(path.join(__dirname, '../public/poker.html'));
+  // Serve zoom-lock table (wired to backend)
+  res.sendFile(path.join(__dirname, '../public/poker-table-zoom-lock.html'));
 });
 
 // NEW: Test route for modern poker table UI

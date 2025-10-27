@@ -585,9 +585,9 @@
       const { roomId, gameId, game } = data;
       currentGame = game || { id: gameId };
       
-      // ✅ REDIRECT TO WORKING POKER TABLE (guests)
-      const url = `/game?room=${roomId}&gameId=${gameId}`;
-      console.log('🚀 Redirecting guest to WORKING poker table:', url);
+      // ✅ REDIRECT TO ZOOM-LOCK TABLE (guests)
+      const url = `/game/${roomId}?gameId=${gameId}`;
+      console.log('🚀 Redirecting guest to zoom-lock table:', url);
       window.location.href = url;
     });
     
@@ -1591,9 +1591,9 @@
           console.warn('⚠️ Socket not connected, only host will be redirected');
         }
         
-        // STEP 3: Redirect host to poker table (guests will be redirected via game_started event)
-        const url = `/game?room=${currentRoom.id}&gameId=${gameId}`;
-        console.log('🚀 Redirecting host to:', url);
+        // STEP 3: Redirect host to zoom-lock poker table (guests will be redirected via game_started event)
+        const url = `/game/${currentRoom.id}?gameId=${gameId}`;
+        console.log('🚀 Redirecting host to zoom-lock table:', url);
         window.location.href = url;
         
       } catch (error) {
