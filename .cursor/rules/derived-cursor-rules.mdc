@@ -13,6 +13,92 @@ globs: *
 *   The AI coding assistant must not remove or discard existing content unless there is a clear directive to do so.
 *   The AI coding assistant should prioritize file organization and enhancement of rich documentation, avoiding aggressive file deletions.
 *   The AI coding assistant should use a single DOMContentLoaded handler instead of multiple ones to avoid race conditions.
+*   The AI coding assistant should focus on procedures, not code, when the user asks for plans or strategies.
+*   The AI coding assistant should not get ahead of itself and jump to implementation before understanding the full context and receiving approval.
+*   The AI coding assistant should validate fixes by proving the system works end-to-end, and not just at the code level.
+*   The AI coding assistant must not just simply eradicate everything, it's important to understand we have rich documentation, its just an enhancwement and organization, not a wiping.
+*   The AI coding assistant should make edits and deletes with care, to not lose information.
+*   The AI coding assistant should debug the system, not just the code.
+*   The AI coding assistant should focus on understanding the battlefield, not just the trenches.
+*   The AI coding assistant should prove the system works end-to-end, not just the code.
+*   The AI coding assistant should focus deeply on the app architecture, sensing where we are via code, and validting that against docs, also considering where we are at, whats next.
+*   The AI coding assistant should not break anything unless its built beter.
+*   The AI coding assistant should not trade debugging time for forward momentum.
+*   The AI coding assistant should focus on validating the cure, not just fixing the symptoms.
+*   The AI coding assistant should know what ACTUALLY works vs what SHOULD work.
+*   The AI coding assistant should debug the system, not just the code.
+*   The AI coding assistant should be Hange - the one who understands the Titans before trying to kill them.
+*   The AI coding assistant must be Mira - carrying forward with discipline and understanding before action.
+*   The AI coding assistant should focus on validating the cure, not just fixing the symptoms.
+*   The AI coding assistant should not trade debugging time for forward momentum.
+*   The AI coding assistant should not break anything unless its built better.
+*   The AI coding assistant should make edits and deletes with care, to not lose information.
+*   The AI coding assistant must not just simply eradicate everything, it's important to understand we have rich documentation, its just an enhancement and organization, not a wiping.
+*   The AI coding assistant should focus deeply on the app architecture, sensing where we are via code and validating that against docs, also considering where we are at, whats next.
+*   The AI coding assistant should focus on procedures, not code, when the user asks for plans or strategies, and should not jump to implementation before understanding the full context and receiving approval.
+*   The AI coding assistant should focus on validating the cure, not just fixing the symptoms, and should prove the system works end-to-end, not just at the code level.
+*   The AI coding assistant should know what ACTUALLY works vs what SHOULD work.
+*   The AI coding assistant should be Mira - carrying forward with discipline and understanding before action, and should be Hange - the one who understands the Titans before trying to kill them.
+*   The AI coding assistant should focus deeply on the app architecture, sensing where we are via code and validating that against docs, also considering where we are at, whats next, and should make edits and deletes with care, to not lose information.
+*   The AI coding assistant should not trade debugging time for forward momentum, and should not break anything unless its built better, and must not just simply eradicate everything, it's important to understand we have rich documentation, its just an enhancement and organization, not a wiping.
+*   The AI coding assistant should focus on procedures, not code, when the user asks for plans or strategies, and should not get ahead of itself and jump to implementation before understanding the full context and receiving approval.
+*   The AI coding assistant should focus on procedures, not code, and should think holistically and logically. The AI coding assistant should not break anything unless it's built better.
+*   The AI coding assistant should remember that the server must be the source of truth and hydrate on reconnect.
+*   The AI coding assistant should focus on procedures, not code, and should think holistically and logically. The UI must render from server truth and show the same state post-refresh as everyone else.
+*   The AI coding assistant should not focus too much on code, but moreso on procedures.
+*   The AI coding assistant should follow the "Organize, don't obliterate. Archive, don't annihilate." documentation philosophy.
+*   The AI coding assistant should focus deeply on the app architecture, sensing where we are via code and validating that against docs, also considering where we are via code, whats next, and should prioritize file organization and enhancement of rich documentation, avoiding aggressive file deletions, and must ensure that you are not just simply eradicating everything, it's important to understand we have rich documentation, it's just an enhancement and organization, not a wiping.
+*   The AI coding assistant should not get ahead of itself. The AI coding assistant should make edits and deletes with care, to not lose information. The AI coding assistant should focus deeply on the app architecture, sensing where we are via code and validating that against docs, also considering where we are at, whats next. The AI coding assistant should focus on procedures, not code, and should think holistically and logically. The AI coding assistant should not break anything unless it's built better. The AI coding assistant should not trade debugging time for forward momentum. The AI coding assistant should focus on validating the cure, not just fixing the symptoms. The AI coding assistant should know what ACTUALLY works vs what SHOULD work.
+*   The AI coding assistant should remember that the server must be the source of truth and hydrate on reconnect. The UI must render from server truth and show the same state post-refresh as everyone else. A seat has ≤1 user; a user has ≤1 seat in a table. Game cannot transition backward in phase. Sequence number strictly increases. Disconnect ≠ seat free; only grace worker frees.
+*    The AI coding assistant should A) Make the server the source of truth and hydrate on reconnect. Goal: after a refresh, the client asks the server “what’s the current game/hand snapshot for me?” and renders from that—no guessing.
+*   The AI coding assistant should use tables: games (current game status, link to current_hand_id); hands (phase/street, board, pot totals, deck state); players (who’s seated in this game, stacks, per-hand status, private hole cards); room_seats (room seating + statuses); game_states (already has current_state JSON—use this as the public snapshot if kept up to date); actions, pots (append-only logs you may include as deltas); rejoin_tokens (perfect to prove identity/seat on reconnect without re-claiming).
+*   The AI coding assistant should B) follow the one writer model: HTTP mutates; WS broadcasts. Goal: remove races. All authoritative state changes run in server handlers that hit the DB, then emit one broadcast.
+*   The AI coding assistant should keep all game/seat mutations in HTTP (or in a single server command layer), not in ad-hoc WS event handlers. After a successful DB write, emit exactly one table_update / seat_update to room:<id>. WS reconnects are read-only: they fetch/hydrate; they never claim/release seats or re-deal.
+*   The AI coding assistant should C) Add a sequence number to snapshots for idempotency. Goal: client can ignore stale broadcasts and rebuild deterministically.
+*   The AI coding assistant should maintain an integer seq in the snapshot source (e.g., bump game_states.version or add a seq field). Every mutation: compute new snapshot, seq++, persist, then broadcast {seq, ...state}. Hydration returns the latest {seq,...}, and the client discards any incoming broadcast with seq <= currentSeq. This avoids “flash back to lobby” after refresh because UI always renders the highest seq.
+*   The AI coding assistant should D) Persist private info separately, send only to owner. Goal: player gets their hole cards again after refresh without leaking.
+*   The AI coding assistant should store hole cards per user & hand in a player-hand scope (players.hole_cards if you keep it there during the hand; or a small player_hand mapping). On hydrate/reconnect, server looks up only the requester’s private data and includes it in me.hole_cards. Optionally send incremental updates via a private channel (socket id) for things like card flips or auto-muck.
+*   The AI coding assistant should E) Never free or re-deal on disconnect; use a grace + statuses. Goal: refresh (disconnect) doesn’t nuke the hand.
+*   The AI coding assistant should, on socket disconnect, mark the participant in players.status or room_seats.status as a “disconnected/sitting_out” flavor, but do not free the seat or change the hand. Optional: background job flips to a “waitlist/left” status after N seconds if they don’t return. Broadcast the status change so others can see “(disconnected)”.
+*   The AI coding assistant should F) use Timers that survive refresh: timestamps, not countdowns. Goal: action clocks continue correctly after refresh.
+*   The AI coding assistant should, on hydrate, client compute remaining = timebank - (now - actor_started_at).
+*   The AI coding assistant should G) have Rejoin safety with rejoin_tokens. Goal: skip re-claiming; just prove identity and seat binding.
+*   The AI coding assistant should, when a seat is claimed (or when a hand starts), mint a short-lived rejoin token bound to {game_id, user_id, seat_index} and store its hash in rejoin_tokens. On reconnect, verify the token → hydrate; do not mutate seats.
+*   The AI coding assistant should H) Keep the client dumb: render from server truth. Goal: the UI shows the same state post-refresh as everyone else.
+*   The AI coding assistant should implement a boot flow: connect WS → send hello → wait for state_sync → render. Do not guess “lobby” vs “active” based on local memory. From then on, update only from table_update/seat_update (and my_cards private).
+*   The UI should use an architectural implementation of secure, robust approach to handling sensitive player information. Hole cards require end-to-end encryption and strict access controls to prevent any potential information leaks or unauthorized viewing. Ensure player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages.
+*   The UI should use flexbox and CSS Grid for layout, not absolute positioning, and use relative units (%, rem, em, clamp) for sizing, maintaining a fixed aspect ratio for key components.
+*   The UI must implement a comprehensive testing plan.
+*   The AI coding assistant should think holistically and logically, and should not focus too much on code, but moreso on procedures.
+*   A seat has ≤1 user; a user has ≤1 seat in a table. Game cannot transition backward in phase. Sequence number strictly increases. Disconnect ≠ seat free; only grace worker frees. The UI must render from server truth and show the same state post-refresh as everyone else. The client should use design tokens for all sizing and spacing, not magic numbers. The client should connect WS, send hello, wait for state_sync, render, and not guess "lobby" vs "active" based on local memory. The client should update only from table_update/seat_update (and my_cards private).
+*   The AI coding assistant should remember that the server must be the source of truth and hydrate on reconnect, and that the UI must render from server truth and show the same state post-refresh as everyone else.
+*   The AI coding assistant should follow a consistent design system across all UI elements, prioritize responsiveness and accessibility, and ensure that the UI is user-friendly and intuitive.
+*   The AI coding assistant should be more methodical about matching the exact positions from the user's screenshot. Instead of guessing positions, I should ask them for the exact coordinates they want OR I should stop making excuses and just make the tiles bigger and better positioned.
+*   The AI coding assistant should implement a secure, robust approach to handling sensitive player information. Hole cards require end-to-end encryption and strict access controls to prevent any potential information leaks or unauthorized viewing. Ensure player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages. The key is creating a system where player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages.
+*   The AI coding assistant should now create a system where player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages.
+*   The UI should use an architectural implementation of secure, robust approach to handling sensitive player information. Hole cards require end-to-end encryption and strict access controls to prevent any potential information leaks or unauthorized viewing. Ensure player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages.
+*   The UI should use flexbox and CSS Grid for layout, not absolute positioning, and use relative units (%, rem, em, clamp) for sizing, maintaining a fixed aspect ratio for key components.
+*   The UI must implement a comprehensive testing plan.
+*   The UI must not guess "lobby" vs "active" based on local memory.
+*   The UI must have all the html components are able to handle scale and resize elegantly.
+*   A seat has ≤1 user; a user has ≤1 seat in a table. (Invariant)
+*   Game cannot transition backward in phase. (Invariant)
+*   Sequence number strictly increases. (Invariant)
+*   Disconnect ≠ seat free; only grace worker frees. (Invariant)
+*   The UI must render from server truth and show the same state post-refresh as everyone else.
+*   The client should use design tokens for all sizing and spacing, not magic numbers.
+*   The client should connect WS, send hello, wait for state_sync, render, and not guess "lobby" vs "active" based on local memory.
+*   The client should update only from table_update/seat_update (and my_cards private).
+*   The UI must be such that the html components are able to handle scale and resize elegantly.
+*   The UI should use a clean architectural implementation of the handling of sensitive player information.
+*   The UI should implement a zoom lock, so no matter how much you zoom in or out, the proportions of everything stay exactly the same. If shrank vertically, it would just add borders to the side and keep proportions, irf compressed horizontally, it would resize and keep proportions with borders on top and bottom, and if compressed too much, it would elegantly shift to a vertical table where everyone fits.
+*   The UI should use a consistent design system across all UI elements, prioritize responsiveness and accessibility, and ensure that the UI is user-friendly and intuitive.
+*   The AI coding assistant should use flexbox and CSS Grid for layout, not absolute positioning, and use relative units (%, rem, em, clamp) for sizing, maintaining a fixed aspect ratio for key components.
+*   When the UI is resized horizontally or vertically, it should add borders to the side and keep proportions. If compressed too much, it should elegantly shift to a vertical table where everyone fits.
+*   The AI coding assistant should remember to think holistically and logically.
+*   The AI coding assistant should prioritize making a table that fits the tiles in it properly and use a zoom lock, so no matter how much you zoom in or out, the proportions of everything stay exactly the same. If shrank vertically, it would just add borders to the side and keep proportions, or if compressed horizontally, it would resize and keep proportions with borders on top and bottom, and if compressed too much, it would elegantly shift to a vertical table where everyone fits. The AI coding assistant should also remember that when the UI is resized horizontally or vertically, it should add borders to the side and keep proportions. If compressed too much, it should elegantly shift to a vertical table where everyone fits.
+*   The AI coding assistant should remember that the server must be the source of truth and hydrate on reconnect. The UI must render from server truth and show the same state post-refresh as everyone else. A seat has ≤1 user; a user has ≤1 seat in a table. Game cannot transition backward in phase. Sequence number strictly increases. Disconnect ≠ seat free; only grace worker frees.
+
 ## TECH STACK
 *   Node.js
 *   Express
@@ -28,6 +114,8 @@ globs: *
 *   CDN for Socket.IO and Supabase client
 *   redis
 *   @socket.io/redis-adapter
+*   seedrandom
+*   axios
 
 ## PROJECT DOCUMENTATION & CONTEXT SYSTEM
 *   The project uses markdown files for documentation.
@@ -49,6 +137,7 @@ globs: *
     *   Move historical context to the `archive/` directory.
     *   Delete redundant and outdated files.
     *   Create a `DOCUMENTATION_INDEX.md` to serve as a navigation guide.
+*   Documentation Philosophy: "Organize, don't obliterate. Archive, don't annihilate."
 
 ## WORKFLOW & RELEASE RULES
 *   All code must be reviewed before merging.
@@ -59,6 +148,7 @@ globs: *
 *   Strive for continuous integration and continuous delivery (CI/CD).
 *   Always make sure new code does not break existing functionality.
 *   When building new features, follow a test-driven development (TDD) approach.
+*   This project will follow a progressive enhancement strategy, where new features are built alongside old, and a feature flag is used to route new users to the new feature, for A/B testing, and safe rollback if necessary.
 
 ## DEBUGGING
 *   Use structured logging for all components.
@@ -80,58 +170,20 @@ globs: *
 *   Use TypeScript for the game engine to ensure type safety.
 *   All mutations should be performed in HTTP command layer. WebSocket should only be used for read-only broadcasts and private messages.
 *   All WebSocket messages must adhere to a defined schema with type, version, and sequence number.
-
-## FRONTEND GUIDELINES
-*   Use Vanilla JavaScript for now. Transition to a component-based framework like React/Vue/Svelte is under consideration.
-*   Follow a "dumb client" architecture - the client should only render what the server tells it.
-*   Use optimistic updates to improve perceived performance.
-*   Implement proper state management using a library like Zustand or Redux.
-*   Ensure that the UI is responsive and accessible.
-*   Implement a single initialization flow using a single DOMContentLoaded handler.
-*   The client should prioritize rendering from server truth and avoid guessing the state based on local memory.
-
-## DATABASE GUIDELINES
-*   Use PostgreSQL with Supabase.
-*   Implement a dual-write pattern to ensure data persistence.
-*   Use a consistent naming convention for tables and columns.
-*   Foreign key relationships must be enforced.
-*   Use JSONB columns for flexible data storage.
-*   Enable row-level security (RLS) to protect data.
-*   Implement database migrations for schema changes.
-*   Use connection pooling to improve performance.
-*   Keep database transactions short and atomic.
-*   Implement a dual-write pattern with consistency guarantees.
-*   Ensure the database design supports the desired table structure.
-
-## SECURITY GUIDELINES
-*   All data must be validated and sanitized to prevent security vulnerabilities.
-*   Implement input validation and sanitization to prevent XSS and other injection attacks.
-*   Use prepared statements to prevent SQL injection.
-*   Hash passwords using bcrypt.
-*   Enforce rate limits to prevent abuse.
-*   Use JWT tokens for authentication.
-*   Enable CORS to allow cross-origin requests.
-*   Implement a robust permission model with role gates for host-only actions.
-*   Ensure proper handling of private information, such as hole cards, to prevent unauthorized access.
-
-## SCALABILITY GUIDELINES
-*   Strive for continuous integration and continuous delivery (CI/CD).
-*   Use feature flags to enable/disable new features in production.
-*   Monitor key metrics to track performance and identify issues.
-*   Implement a rollback strategy for any new deployment.
-*   Strive for horizontal scaling (Redis).
-*   Shard by roomId; broadcasts scoped to room:<id>.
-*   Ensure no per-room hot locks across instances; writes go to DB, broadcasts come from DB result.
-
-## CODE TESTING GUIDELINES
-*   Automated tests should be implemented for all core functionality.
-*   Use feature flags to enable/disable new features in production.
-*   Monitor key metrics to track performance and identify issues.
-*   Implement a rollback strategy for any new deployment.
-*   Implement integration tests for core flows.
-*   Implement property tests for state transitions (phase graph).
-*   Implement seeded RNG determinism round-trip.
-*   Use Playwright for end-to-end testing of key flows.
-
-## DEPRECATED
-*   The strategy of aggressive file deletions should not be followed. Rich documentation should be organized and enhanced instead.
+*   When handling sensitive player information, such as hole cards, implement end-to-end encryption and strict access controls to prevent unauthorized access. Ensure player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages. Ensure player-specific data remains completely isolated, with the server acting as a trusted intermediary that reveals information only at appropriate game stages.
+*   The server must be the source of truth and hydrate on reconnect.
+*   All code must be validated by another engineer and follow a test-driven development (TDD) approach.
+*   The AI coding assistant should A) Make the server the source of truth and hydrate on reconnect. Goal: after a refresh, the client asks the server “what’s the current game/hand snapshot for me?” and renders from that—no guessing.
+*   The AI coding assistant should use tables: games (current game status, link to current_hand_id); hands (phase/street, board, pot totals, deck state); players (who’s seated in this game, stacks, per-hand status, private hole cards); room_seats (room seating + statuses); game_states (already has current_state JSON—use this as the public snapshot if kept up to date); actions, pots (append-only logs you may include as deltas); rejoin_tokens (perfect to prove identity/seat on reconnect without re-claiming).
+*   The AI coding assistant should B) follow the one writer model: HTTP mutates; WS broadcasts. Goal: remove races. All authoritative state changes run in server handlers that hit the DB, then emit one broadcast.
+*   The AI coding assistant should keep all game/seat mutations in HTTP (or in a single server command layer), not in ad-hoc WS event handlers. After a successful DB write, emit exactly one table_update / seat_update to room:<id>. WS reconnects are read-only: they fetch/hydrate; they never claim/release seats or re-deal.
+*   The AI coding assistant should C) Add a sequence number to snapshots for idempotency. Goal: client can ignore stale broadcasts and rebuild deterministically.
+*   The AI coding assistant should maintain an integer seq in the snapshot source (e.g., bump game_states.version or add a seq field). Every mutation: compute new snapshot, seq++, persist, then broadcast {seq, ...state}. Hydration returns the latest {seq,...}, and the client discards any incoming broadcast with seq <= currentSeq. This avoids “flash back to lobby” after refresh because UI always renders the highest seq.
+*   The AI coding assistant should D) Persist private info separately, send only to owner. Goal: player gets their hole cards again after refresh without leaking.
+*   The AI coding assistant should store hole cards per user & hand in a player-hand scope (players.hole_cards if you keep it there during the hand; or a small player_hand mapping). On hydrate/reconnect, server looks up only the requester’s private data and includes it in me.hole_cards. Optionally send incremental updates via a private channel (socket id) for things like card flips or auto-muck.
+*   The AI coding assistant should E) Never free or re-deal on disconnect; use a grace + statuses. Goal: refresh (disconnect) doesn’t nuke the hand.
+*   The AI coding assistant should, on socket disconnect, mark the participant in players.status or room_seats.status as a “disconnected/sitting_out” flavor, but do not free the seat or change the hand. Optional: background job flips to a “waitlist/left” status after N seconds if they don’t return. Broadcast the status change so others can see “(disconnected)”.
+*   The AI coding assistant should F) use Timers that survive refresh: timestamps, not countdowns. Goal: action clocks continue correctly after refresh.
+*   The AI coding assistant should, on hydrate, client compute remaining = timebank - (now - actor_started_at).
+*   The AI coding assistant should G) have Rejoin safety with rejoin_tokens. Goal: skip re-claiming; just prove identity and seat binding.
+*   The AI coding assistant should, when a seat is claimed (or when a hand starts), mint a short-lived rejoin token bound to {game_id, user_id, seat_index

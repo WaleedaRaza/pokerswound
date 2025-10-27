@@ -78,19 +78,14 @@ router.get('/poker-v3-demo', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-v3-demo.html'));
 });
 
-// FINAL PRODUCTION TABLE
+// PRODUCTION TABLE - GRID VERSION (Proper responsive design)
 router.get('/table', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/poker-table-grid.html'));
+});
+
+// Legacy table (old approach)
+router.get('/table-old', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-final.html'));
-});
-
-// HUD-based table design (full viewport)
-router.get('/table-hud', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/poker-table-hud.html'));
-});
-
-// Responsive table design (proper flex/grid layout)
-router.get('/table-responsive', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/poker-table-responsive.html'));
 });
 
 // Legacy routes - redirect to game

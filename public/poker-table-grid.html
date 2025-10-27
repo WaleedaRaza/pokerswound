@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PokerGeek.ai — Poker Table (Grid)</title>
+
+  <!-- Optional: keep your existing token sheets; this file also has fallbacks -->
+  <link rel="stylesheet" href="/css/design-tokens.css" />
+  <link rel="stylesheet" href="/css/pokergeek.css" />
+
+  <!-- This file is the one below -->
+  <link rel="stylesheet" href="/css/poker-table-grid.css" />
+
+  <!-- Fonts (optional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- NAVBAR (use your real one; height accounted for via --nav-h) -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-brand" href="/">PokerGeek<span class="dot">.ai</span></a>
+      <ul class="navbar-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/play">Play Now</a></li>
+        <li><a href="/friends">Friends</a></li>
+        <li><a href="/ai-solver">AI Solver</a></li>
+        <li><a href="/analysis">Analysis</a></li>
+        <li><a href="/learning">Learning</a></li>
+        <li><a href="/poker-today">Poker Today</a></li>
+      </ul>
+      <div class="navbar-auth">
+        <button class="navbar-btn host-btn" id="hostControlsBtn" onclick="document.getElementById('hostModal').classList.add('show')" style="background: linear-gradient(135deg, var(--accent) 0%, #ff7722 100%); border: none; color: white; cursor: pointer; display: none;">
+          🛡️ Host Controls
+        </button>
+        <a class="navbar-btn login" href="#">Log In</a>
+        <a class="navbar-btn signup" href="#">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE: two rows (table + HUD). HUD never occludes. -->
+  <main class="poker-game">
+    <!-- Row 1: Table area -->
+    <div class="table-wrapper">
+      <div class="poker-table">
+        <div class="table-felt"></div>
+
+        <!-- Shared inner box so seats and board align to the same reference -->
+        <div class="table-inner">
+          <!-- Seats are absolutely positioned by JS (ellipse) -->
+          <div class="seats-layer">
+            <!-- 10 seats -->
+            <div class="seat seat-main" data-seat="0">
+              <div class="seat-content">
+                <div class="player-info">
+                  <div class="player-avatar">👤</div>
+                  <div class="player-name">You</div>
+                  <div class="player-chips">$0</div>
+                </div>
+                <div class="player-cards"></div>
+                <div class="player-bet"></div>
+                <div class="player-timer"></div>
+              </div>
+            </div>
+            <!-- seats 1..9 -->
+            <div class="seat" data-seat="1"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="2"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="3"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="4"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="5"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="6"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="7"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="8"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+            <div class="seat" data-seat="9"><div class="seat-content"><div class="player-info"><div class="player-avatar"></div><div class="player-name"></div><div class="player-chips"></div></div><div class="player-cards"></div><div class="player-bet"></div><div class="player-timer"></div></div></div>
+          </div>
+
+          <!-- Board (cards + pot) centered within same reference box -->
+          <div class="board-center">
+            <div class="community-cards" id="communityCards"></div>
+            <div class="pot-display">
+              <div class="pot-label">POT</div>
+              <div class="pot-amount" id="potAmount">$0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: HUD (in normal flow; reserved space) -->
+    <div class="game-hud">
+      <div class="hud-info">
+        <div class="info-chip"><span class="info-label">ROOM</span><span class="info-value" id="hudRoom">—</span></div>
+        <div class="info-chip"><span class="info-label">HAND</span><span class="info-value" id="hudHand">—</span></div>
+        <div class="info-chip"><span class="info-label">YOUR CHIPS</span><span class="info-value" id="hudChips">$0</span></div>
+      </div>
+
+      <div class="hud-actions">
+        <div class="quick-bets">
+          <button class="quick-bet" data-mult="0.5">½ POT</button>
+          <button class="quick-bet" data-mult="0.75">¾ POT</button>
+          <button class="quick-bet" data-mult="1">POT</button>
+          <button class="quick-bet" data-mult="2">2× POT</button>
+        </div>
+
+        <div class="bet-controls">
+          <input type="range" id="betSlider" class="bet-slider" min="0" max="1000" value="0" />
+          <div class="bet-input-wrap">
+            <span>$</span>
+            <input type="number" id="betInput" value="0" min="0" />
+          </div>
+        </div>
+
+        <div class="action-btns">
+          <button class="action-btn btn-fold" id="foldBtn"><span class="btn-label">FOLD</span><span class="btn-key">F</span></button>
+          <button class="action-btn btn-call" id="callBtn"><span class="btn-label">CALL</span><span class="btn-amount" id="callAmount">$0</span><span class="btn-key">C</span></button>
+          <button class="action-btn btn-raise" id="raiseBtn"><span class="btn-label">RAISE</span><span class="btn-amount" id="raiseAmount">$0</span><span class="btn-key">R</span></button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- HOST CONTROLS MODAL -->
+  <div class="host-modal" id="hostModal">
+    <div class="host-modal-content">
+      <div class="host-modal-header">
+        <h2 class="host-modal-title">🛡️ Host Controls</h2>
+        <button class="host-modal-close" id="closeHostModal">×</button>
+      </div>
+      
+      <!-- Table Color -->
+      <div class="host-section">
+        <div class="host-section-title">Table Felt Color</div>
+        <div class="felt-colors">
+          <div class="felt-option active" data-color="green"></div>
+          <div class="felt-option" data-color="red"></div>
+          <div class="felt-option" data-color="black"></div>
+          <div class="felt-option" data-color="blue"></div>
+          <div class="felt-option" data-color="grey"></div>
+          <div class="felt-option" data-color="tan"></div>
+          <div class="felt-option" data-color="purple"></div>
+        </div>
+      </div>
+      
+      <!-- Game Controls -->
+      <div class="host-section">
+        <div class="host-section-title">Game Controls</div>
+        <button class="host-action-btn" id="pauseGame">⏸️ Pause Game</button>
+        <button class="host-action-btn" id="resumeGame">▶️ Resume Game</button>
+        <button class="host-action-btn" id="kickPlayer">👢 Kick Player</button>
+      </div>
+      
+      <!-- Chip Management -->
+      <div class="host-section">
+        <div class="host-section-title">Chip Management</div>
+        <button class="host-action-btn" id="adjustChips">💰 Adjust Player Chips</button>
+        <button class="host-action-btn" id="resetChips">🔄 Reset All Chips</button>
+      </div>
+      
+      <!-- Table Settings -->
+      <div class="host-section">
+        <div class="host-section-title">Table Settings</div>
+        <button class="host-action-btn" id="changeBlinds">🎲 Change Blinds</button>
+        <button class="host-action-btn" id="changeTimer">⏱️ Change Turn Timer</button>
+        <button class="host-action-btn" id="toggleAutoStart">🔁 Auto-Start: OFF</button>
+        <button class="host-action-btn" id="showUndealt">👁️ Show Undealt Cards</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <!-- This file is the one below -->
+  <script src="/js/poker-table-grid.js"></script>
+</body>
+</html>
