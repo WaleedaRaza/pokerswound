@@ -184,16 +184,35 @@ router.post('/:roomId/join', withIdempotency, async (req, res) => {
       body: req.body
     });
     
-    const { user_id, seat_index, buy_in_amount } = req.body || {};
+    const { user_id, seat_index, buy_in_amount, username } = req.body || {};
     if (!user_id || seat_index === undefined || buy_in_amount === undefined) {
       console.error('❌ Missing fields:', { user_id, seat_index, buy_in_amount });
       return res.status(400).json({ error: 'Missing required fields: user_id, seat_index, buy_in_amount' });
     }
     
+    // ✅ Update username in user_profiles if provided (room_seats doesn't have username column)
+    if (username) {
+      const getDb = req.app.locals.getDb;
+      const db = getDb();
+      if (db) {
+        try {
+          // Only update if username is actually different to avoid duplicate key errors
+          await db.query(
+            `UPDATE user_profiles SET username = $1 WHERE id = $2 AND (username IS NULL OR username != $1)`,
+            [username, user_id]
+          );
+          console.log(`✅ Updated username to "${username}" for user ${user_id}`);
+        } catch (usernameError) {
+          // Log but don't fail on username errors - not critical for seat claiming
+          console.warn(`⚠️ Username update failed (non-critical):`, usernameError.message);
+        }
+      }
+    }
+    
     const claimSeat = req.app.locals.claimSeat;
     await claimSeat({ roomId: req.params.roomId, userId: user_id, seatIndex: seat_index, buyInAmount: buy_in_amount });
     
-    // ✅ NEW: Bind user to seat via SessionService
+    // ✅ Bind user to seat via SessionService
     const sessionService = req.app.locals.sessionService;
     let seatToken = null;
     if (sessionService) {
@@ -202,6 +221,42 @@ router.post('/:roomId/join', withIdempotency, async (req, res) => {
         console.log(`✅ User ${user_id} bound to seat ${seat_index} in room ${req.params.roomId}`);
       } catch (bindError) {
         console.warn('Failed to bind seat via SessionService:', bindError.message);
+      }
+    }
+    
+    // ✅ Broadcast seat update to all players in room
+    const io = req.app.locals.io;
+    if (io) {
+      const getDb = req.app.locals.getDb;
+      const db = getDb();
+      if (db) {
+        // Get all current seats with usernames from user_profiles
+        const seatsResult = await db.query(
+          `SELECT 
+             rs.seat_index, 
+             rs.user_id, 
+             up.username, 
+             rs.chips_in_play, 
+             rs.status 
+           FROM room_seats rs
+           LEFT JOIN user_profiles up ON rs.user_id = up.id
+           WHERE rs.room_id = $1 
+           ORDER BY rs.seat_index`,
+          [req.params.roomId]
+        );
+        
+        io.to(`room:${req.params.roomId}`).emit('seat_update', {
+          type: 'seat_update',
+          version: '1.0.0',
+          seq: Date.now(),
+          timestamp: Date.now(),
+          payload: {
+            roomId: req.params.roomId,
+            seats: seatsResult.rows
+          }
+        });
+        
+        console.log(`📡 Broadcasted seat update to room:${req.params.roomId}`);
       }
     }
     
@@ -279,7 +334,7 @@ router.get('/:roomId/hydrate', async (req, res) => {
     
     // Get room details
     const roomResult = await db.query(
-      `SELECT id, code, host_id, capacity, status, turn_time_seconds, timebank_seconds, 
+      `SELECT id, invite_code, host_user_id, max_players, status, turn_time_seconds, timebank_seconds, 
               small_blind, big_blind, created_at
        FROM rooms WHERE id = $1`,
       [req.params.roomId]
@@ -291,12 +346,12 @@ router.get('/:roomId/hydrate', async (req, res) => {
     
     const room = roomResult.rows[0];
     
-    // Get active game with full state
+    // Get active game with full state (LEFT JOIN so it works even if game_states empty)
     const gameResult = await db.query(
       `SELECT g.id, g.status, g.current_hand_id, gs.current_state, gs.seq, gs.version
        FROM games g
-       JOIN game_states gs ON g.id = gs.id
-       WHERE g.room_id = $1 AND g.status != 'completed'
+       LEFT JOIN game_states gs ON g.id::text = gs.id
+       WHERE g.room_id = $1::uuid AND g.status != 'completed'
        ORDER BY g.created_at DESC LIMIT 1`,
       [req.params.roomId]
     );
@@ -404,7 +459,7 @@ router.get('/:roomId/hydrate', async (req, res) => {
       [req.params.roomId]
     );
     
-    const seats = Array(room.capacity).fill(null);
+    const seats = Array(room.max_players || 10).fill(null);
     let mySeat = null;
     
     seatsResult.rows.forEach(seat => {
@@ -452,9 +507,9 @@ router.get('/:roomId/hydrate', async (req, res) => {
       timestamp: Date.now(),
       room: {
         id: room.id,
-        code: room.code,
-        host_id: room.host_id,
-        capacity: room.capacity,
+        code: room.invite_code,
+        host_id: room.host_user_id,
+        capacity: room.max_players,
         status: room.status,
         turn_time_seconds: room.turn_time_seconds,
         timebank_seconds: room.timebank_seconds,
@@ -1538,6 +1593,206 @@ router.get('/:roomId/game-state', async (req, res) => {
       error: error.message
     });
     res.status(500).json({ error: 'Recovery failed', details: error.message });
+  }
+});
+
+// POST /api/rooms/:roomId/update-chips - Host directly sets player chip amount
+router.post('/:roomId/update-chips', withIdempotency, async (req, res) => {
+  try {
+    const { hostId, targetUserId, newAmount } = req.body;
+    const { roomId } = req.params;
+    
+    if (!hostId || !targetUserId || newAmount === undefined) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify host
+    const roomCheck = await db.query(
+      'SELECT host_user_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomCheck.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Only host can adjust chips' });
+    }
+    
+    // Update chips
+    const updateResult = await db.query(
+      'UPDATE room_seats SET chips_in_play = $1 WHERE room_id = $2 AND user_id = $3 RETURNING seat_index',
+      [newAmount, roomId, targetUserId]
+    );
+    
+    if (updateResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Player not found in room' });
+    }
+    
+    console.log(`💰 Host ${hostId} set player ${targetUserId} chips to ${newAmount}`);
+    
+    // Broadcast seat update
+    const io = req.app.locals.io;
+    if (io) {
+      const seatsResult = await db.query(
+        `SELECT rs.seat_index, rs.user_id, up.username, rs.chips_in_play, rs.status
+         FROM room_seats rs
+         LEFT JOIN user_profiles up ON rs.user_id = up.id
+         WHERE rs.room_id = $1
+         ORDER BY rs.seat_index`,
+        [roomId]
+      );
+      
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
+      io.to(`room:${roomId}`).emit('seat_update', {
+        type: 'seat_update',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          roomId: roomId,
+          seats: seatsResult.rows
+        }
+      });
+      
+      console.log(`📡 Broadcasted chip update to room:${roomId}`);
+    }
+    
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Update chips error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/rooms/:roomId/pause-game - Host pauses the game
+router.post('/:roomId/pause-game', withIdempotency, async (req, res) => {
+  try {
+    const { hostId } = req.body;
+    const { roomId } = req.params;
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify host
+    const roomCheck = await db.query(
+      'SELECT host_user_id, game_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomCheck.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Only host can pause game' });
+    }
+    
+    const gameId = roomCheck.rows[0].game_id;
+    if (!gameId) {
+      return res.status(400).json({ error: 'No active game to pause' });
+    }
+    
+    // Update game status
+    await db.query(
+      'UPDATE games SET status = $1 WHERE id = $2',
+      ['PAUSED', gameId]
+    );
+    
+    console.log(`⏸️ Host ${hostId} paused game ${gameId}`);
+    
+    // Broadcast
+    const io = req.app.locals.io;
+    if (io) {
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
+      io.to(`room:${roomId}`).emit('game_paused', {
+        type: 'game_paused',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          gameId: gameId,
+          pausedBy: hostId
+        }
+      });
+    }
+    
+    res.json({ ok: true, status: 'PAUSED' });
+  } catch (error) {
+    console.error('Pause game error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/rooms/:roomId/resume-game - Host resumes the game
+router.post('/:roomId/resume-game', withIdempotency, async (req, res) => {
+  try {
+    const { hostId } = req.body;
+    const { roomId } = req.params;
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify host
+    const roomCheck = await db.query(
+      'SELECT host_user_id, game_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomCheck.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Only host can resume game' });
+    }
+    
+    const gameId = roomCheck.rows[0].game_id;
+    if (!gameId) {
+      return res.status(400).json({ error: 'No game to resume' });
+    }
+    
+    // Update game status
+    await db.query(
+      'UPDATE games SET status = $1 WHERE id = $2',
+      ['ACTIVE', gameId]
+    );
+    
+    console.log(`▶️ Host ${hostId} resumed game ${gameId}`);
+    
+    // Broadcast
+    const io = req.app.locals.io;
+    if (io) {
+      const dbV2 = req.app.locals.dbV2;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
+      io.to(`room:${roomId}`).emit('game_resumed', {
+        type: 'game_resumed',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          gameId: gameId,
+          resumedBy: hostId
+        }
+      });
+    }
+    
+    res.json({ ok: true, status: 'ACTIVE' });
+  } catch (error) {
+    console.error('Resume game error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

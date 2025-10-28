@@ -192,45 +192,7 @@
     </div>
   </main>
 
-  <!-- Game Lobby Section (Hidden by default) -->
-  <div id="gameLobbySection" class="game-lobby-section" style="display: none;">
-    <div class="lobby-container liquid-glass-tile" style="max-width: 800px; margin: 2rem auto; padding: 2rem;">
-      <!-- Header with Room Code -->
-      <div class="lobby-header" style="text-align: center; margin-bottom: 2rem;">
-        <h2 style="color: #fff; font-size: 2rem; margin-bottom: 1rem;">🎰 Game Lobby</h2>
-        <div class="room-code-banner" style="background: rgba(76, 175, 80, 0.2); padding: 1rem; border-radius: 10px; display: inline-block;">
-          <span class="room-code-label" style="color: rgba(255,255,255,0.7); margin-right: 0.5rem;">Room Code:</span>
-          <span class="room-code-value" id="roomCodeDisplay" style="color: #4CAF50; font-size: 1.5rem; font-weight: bold; letter-spacing: 2px;">------</span>
-          <button class="btn btn-secondary" onclick="copyRoomCode()" style="margin-left: 1rem; padding: 0.5rem 1rem;">📋 Copy</button>
-        </div>
-      </div>
-
-      <!-- Host Controls -->
-      <div id="hostControls" style="display: none;">
-        <div class="host-section">
-          <h3 style="color: #fff; margin-bottom: 1rem;">👑 Host Controls</h3>
-          <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">Approve players to let them join the game:</p>
-          
-          <div id="pendingPlayersList" class="players-list" style="margin-bottom: 2rem;">
-            <!-- Dynamically populated with player cards -->
-          </div>
-
-          <button id="startGameButton" class="btn btn-primary btn-large" onclick="startGame()" disabled style="width: 100%; padding: 1rem; font-size: 1.2rem;">
-            🎮 START GAME (NEED 2+ PLAYERS)
-          </button>
-        </div>
-      </div>
-
-      <!-- Guest Waiting View -->
-      <div id="guestWaiting" style="display: none;">
-        <div class="waiting-container" style="text-align: center; padding: 3rem;">
-          <div class="spinner-animation" style="font-size: 4rem; margin-bottom: 1rem;">⏳</div>
-          <h3 id="waitingStatus" style="color: #fff; margin-bottom: 0.5rem;">Waiting for host approval...</h3>
-          <p id="waitingMessage" style="color: rgba(255,255,255,0.7);">The host will approve you shortly</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- REMOVED: Duplicate lobby section - using the better one below at line ~445 -->
 
   <!-- Poker Table Section (Hidden by default) -->
   <div id="pokerTableSection" class="poker-table-section" style="display: none; padding: 2rem; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);">
@@ -458,8 +420,46 @@
         <!-- Host Controls -->
         <div id="hostControls" style="display: none;">
           <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">👑 Host Controls</h3>
+          
+          <!-- Game Settings -->
+          <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1.1rem;">⚙️ Game Settings</h4>
+            
+            <div style="display: grid; gap: 1rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">Small Blind:</label>
+                <input type="number" id="smallBlindInput" value="10" min="1" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: white;">
+              </div>
+              
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">Big Blind:</label>
+                <input type="number" id="bigBlindInput" value="20" min="2" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: white;">
+              </div>
+              
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">Default Buy-In:</label>
+                <input type="number" id="buyInInput" value="1000" min="100" step="100" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: white;">
+              </div>
+              
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">Table Color:</label>
+                <select id="tableColorInput" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: white;">
+                  <option value="green">🟢 Classic Green</option>
+                  <option value="blue">🔵 Ocean Blue</option>
+                  <option value="red">🔴 Ruby Red</option>
+                  <option value="purple">🟣 Royal Purple</option>
+                  <option value="black">⚫ Midnight Black</option>
+                  <option value="grey">⚪ Steel Grey</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Player Approval -->
           <p style="opacity: 0.8; margin-bottom: 1.5rem;">Approve players to let them join the game:</p>
           <div id="pendingPlayersList" class="players-list" style="margin-bottom: 2rem;"></div>
+          
+          <!-- Start Game Button -->
           <button id="startGameButton" onclick="startGame()" class="btn btn-primary" disabled style="width: 100%; padding: 1.25rem; font-size: 1.2rem; font-weight: bold;">
             🎮 START GAME (NEED 2+ PLAYERS)
           </button>
@@ -544,13 +544,126 @@
   </footer>
 
   <!-- Global animations -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script src="/js/sequence-tracker.js"></script>
   <script src="/js/global-animations.js"></script>
-  <script src="/js/auth-shared.js"></script>
-  <script src="/js/nav-shared.js"></script>
+  
+  <!-- Modal Functions - MUST BE DEFINED BEFORE DOM -->
   <script>
+    console.log('🎬 DEFINING MODAL FUNCTIONS IMMEDIATELY');
+    
+    // ===== MODAL FUNCTIONS - GLOBAL SCOPE =====
+    window.openQuickPlayModal = function() {
+      console.log('✅ openQuickPlayModal called');
+      window.openCreateModal();
+    };
+    
+    window.openJoinModal = async function() {
+      console.log('✅ openJoinModal called');
+      const modal = document.getElementById('joinRoomModal');
+      if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+        if (typeof loadAvailableRooms === 'function') {
+          await loadAvailableRooms();
+        }
+      } else {
+        console.error('❌ joinRoomModal not found');
+      }
+    };
+    
+    window.openCreateModal = function() {
+      console.log('✅ openCreateModal called');
+      const modal = document.getElementById('createRoomModal');
+      if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+      } else {
+        console.error('❌ createRoomModal not found');
+      }
+    };
+    
+    window.closeCreateModal = function() {
+      const modal = document.getElementById('createRoomModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
+    };
+    
+    window.closeJoinModal = function() {
+      const modal = document.getElementById('joinRoomModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
+    };
+    
+    window.openSettingsModal = function() {
+      alert('Settings functionality coming soon!');
+    };
+    
+    window.openTournamentsModal = function() {
+      alert('Tournaments functionality coming soon!');
+    };
+    
+    window.openCreateTournamentModal = function() {
+      alert('Create tournament functionality coming soon!');
+    };
+    
+    window.openPublicModal = function() {
+      alert('Public tables functionality coming soon!');
+    };
+    
+    window.openTableManageModal = function() {
+      alert('Table management functionality coming soon!');
+    };
+    
+    // Stubs - will be overwritten by real implementations in main script
+    window.createRoomFromModal = async function() {
+      console.log('⏳ createRoomFromModal STUB called - main script will replace this');
+      alert('Loading... please wait and try again in a moment');
+    };
+    
+    window.joinRoomFromModal = async function() {
+      console.log('⏳ joinRoomFromModal STUB called - main script will replace this');
+      alert('Loading... please wait and try again in a moment');
+    };
+    
+    console.log('✅ All modal functions defined (stubs):', {
+      openQuickPlayModal: typeof window.openQuickPlayModal,
+      openJoinModal: typeof window.openJoinModal,
+      openCreateModal: typeof window.openCreateModal,
+      closeCreateModal: typeof window.closeCreateModal,
+      closeJoinModal: typeof window.closeJoinModal,
+      createRoomFromModal: typeof window.createRoomFromModal,
+      joinRoomFromModal: typeof window.joinRoomFromModal
+    });
+  </script>
+  
+  <!-- Main Application Script -->
+  <script>
+    console.log('🎬 MAIN SCRIPT START - play.html inline script beginning');
+    
+    // ===== UTILITY FUNCTIONS =====
+    // Simple hash function for idempotency keys (keeps them under 64 chars)
+    function simpleHash(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return Math.abs(hash).toString(36);
+    }
+    
+    function makeIdempotencyKey(action, ...parts) {
+      // Create short hash of all parts
+      const hash = simpleHash(parts.join('-'));
+      const timestamp = Date.now().toString(36); // Base36 is shorter
+      return `${action}-${hash}-${timestamp}`.substring(0, 63); // Max 63 chars
+    }
+    
     // ===== APPLICATION STATE =====
     const AppState = {
       GAME_SELECTION: 'game_selection',
@@ -568,6 +681,7 @@
     let gameState = null;
     
     // ===== INITIALIZE WEBSOCKET =====
+    const WS_BASE = window.location.origin;
     console.log('🔌 Initializing WebSocket connection...');
     socket = io();
     sequenceTracker = new SequenceTracker();
@@ -585,11 +699,38 @@
       const { roomId, gameId, game } = data;
       currentGame = game || { id: gameId };
       
-      // ✅ REDIRECT TO ZOOM-LOCK TABLE (guests)
-      const url = `/game/${roomId}?gameId=${gameId}`;
-      console.log('🚀 Redirecting guest to zoom-lock table:', url);
+      // ✅ REDIRECT TO ZOOM-LOCK TABLE
+      const url = `/game/${roomId}`;
+      console.log('🚀 Redirecting to zoom-lock table:', url);
       window.location.href = url;
-    });
+    }));
+    
+    // ✅ Real-time seat updates - all players see when seats are claimed
+    socket.on('seat_update', sequenceTracker.createHandler((data) => {
+      console.log('🪑 Seat update received:', data);
+      if (data.roomId === currentRoom?.id) {
+        loadSeats(); // Reload seats to show changes
+      }
+    }));
+    
+    socket.on('seat_claimed', sequenceTracker.createHandler((data) => {
+      console.log('🪑 Seat claimed by player:', data);
+      if (data.roomId === currentRoom?.id) {
+        showNotification(`${data.username} claimed seat ${data.seatIndex + 1}`, 'info');
+        loadSeats(); // Reload seats
+      }
+    }));
+    
+    // ✅ NEW: Go to table event (for seat selection)
+    socket.on('go_to_table', sequenceTracker.createHandler((data) => {
+      console.log('🎰 Go to table event received!', data);
+      const { roomId } = data;
+      
+      // Redirect to table for seat selection
+      const url = `/game/${roomId}`;
+      console.log('🚀 Going to table:', url);
+      window.location.href = url;
+    }));
     
     // ✅ CRITICAL: Handle player approval - show they're approved in lobby
     socket.on('player_approved', sequenceTracker.createHandler((data) => {
@@ -599,14 +740,15 @@
       if (!me || !currentRoom) return;
       if (String(userId) !== String(me.id)) return;
       console.log('🎉 You have been approved!');
-      showNotification('Approved! Waiting for host to start game...', 'success');
+      showNotification('Approved! Redirecting to table...', 'success');
       
-      // Update waiting message
-      const waitingStatus = document.getElementById('waitingStatus');
-      const waitingMessage = document.getElementById('waitingMessage');
-      if (waitingStatus) waitingStatus.textContent = '✅ You are approved!';
-      if (waitingMessage) waitingMessage.textContent = 'Waiting for host to start the game...';
-    });
+      // ✅ NEW: Approved players go straight to table for seat selection
+      setTimeout(() => {
+        const url = `/game/${currentRoom.id}`;
+        console.log('🚀 Going to table after approval:', url);
+        window.location.href = url;
+      }, 1500);
+    }));
 
     // ===== UNIFIED AUTHENTICATION SYSTEM =====
     // Auth state management
@@ -625,11 +767,17 @@
         currentUser = user;
         isLoggedIn = true;
         window.currentUser = user; // Set global for socket events
-        updateNavbarForLoggedInUser();
+        // ✅ CRITICAL: Store userId for zoom-lock table redirect
+        sessionStorage.setItem('userId', user.id);
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('✅ User stored in sessionStorage:', user.id);
+        // Navbar is handled by nav-shared.js NavbarController
       } else {
         currentUser = null;
         isLoggedIn = false;
-        updateNavbarForLoggedOutUser();
+        sessionStorage.removeItem('userId');
+        sessionStorage.removeItem('currentUser');
+        // Navbar is handled by nav-shared.js NavbarController
       }
     }
 
@@ -641,12 +789,18 @@
           currentUser = user;
           isLoggedIn = true;
           window.currentUser = user;
-          updateNavbarForLoggedInUser();
+          // ✅ CRITICAL: Store userId for zoom-lock table redirect
+          sessionStorage.setItem('userId', user.id);
+          sessionStorage.setItem('currentUser', JSON.stringify(user));
+          console.log('✅ User stored in sessionStorage:', user.id);
+          // Navbar is handled by nav-shared.js NavbarController
         } else {
           currentUser = null;
           isLoggedIn = false;
           window.currentUser = null;
-          updateNavbarForLoggedOutUser();
+          sessionStorage.removeItem('userId');
+          sessionStorage.removeItem('currentUser');
+          // Navbar is handled by nav-shared.js NavbarController
         }
       });
     }
@@ -705,7 +859,7 @@
       isLoggedIn = true;
       localStorage.setItem('pokerUser', JSON.stringify(mockUser));
       
-      updateNavbarForLoggedInUser();
+      // Navbar is handled by nav-shared.js NavbarController
       closeLoginModal();
       
       showNotification(`Welcome back, ${name}!`, 'success');
@@ -752,7 +906,7 @@
       isLoggedIn = true;
       localStorage.setItem('pokerUser', JSON.stringify(mockUser));
       
-      updateNavbarForLoggedInUser();
+      // Navbar is handled by nav-shared.js NavbarController
       closeLoginModal();
       
       showNotification(`Welcome to PokerGeek, ${firstName}!`, 'success');
@@ -771,7 +925,7 @@
         currentUser = user;
         isLoggedIn = true;
         
-        updateNavbarForLoggedInUser();
+        // Navbar is handled by nav-shared.js NavbarController
         closeLoginModal();
         showNotification(`Welcome ${user.username}! (Guest users can join rooms but cannot create them)`, 'info');
       } catch (error) {
@@ -908,15 +1062,6 @@
     }
 
     // Notification system
-    // Modal helper functions
-    function closeLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (modal) {
-        modal.classList.remove('show');
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    }
 
     function switchModalTab(tab) {
       document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
@@ -1354,22 +1499,7 @@
       }
     });
 
-    // Game modal functions
-    function openQuickPlayModal() {
-      // Quick Play = Create Room with default settings
-      openCreateModal();
-    }
-
-    async function openJoinModal() {
-      document.getElementById('joinRoomModal').classList.add('show');
-      document.getElementById('joinRoomModal').style.display = 'flex';
-      await loadAvailableRooms();
-    }
-
-    function closeJoinModal() {
-      document.getElementById('joinRoomModal').classList.remove('show');
-      document.getElementById('joinRoomModal').style.display = 'none';
-    }
+    // Modal functions already defined earlier in the file
 
     async function loadAvailableRooms() {
       try {
@@ -1403,7 +1533,8 @@
       }
     }
 
-    async function joinRoomFromModal() {
+    window.joinRoomFromModal = async function() {
+      console.log('joinRoomFromModal called');
       const roomCode = document.getElementById('joinRoomCode').value.trim();
       if (!roomCode) {
         showNotification('Please enter a room code', 'error');
@@ -1446,13 +1577,14 @@
       }
     }
 
-    function openCreateModal() {
+    window.openCreateModal = function() {
+      console.log('openCreateModal called');
       // Check if user is logged in with Google (not guest)
       const user = getCurrentUser();
       
       if (!user) {
         showNotification('Please log in to create a room', 'error');
-        openLoginModal();
+        if (window.openLoginModal) window.openLoginModal();
         return;
       }
       
@@ -1463,14 +1595,16 @@
       
       document.getElementById('createRoomModal').classList.add('show');
       document.getElementById('createRoomModal').style.display = 'flex';
-    }
+    };
 
-    function closeCreateModal() {
+    window.closeCreateModal = function() {
       document.getElementById('createRoomModal').classList.remove('show');
       document.getElementById('createRoomModal').style.display = 'none';
-    }
+    };
 
-    async function createRoomFromModal() {
+    // Real implementation - overwrite the stub
+    window.createRoomFromModal = async function() {
+      console.log('✅ REAL createRoomFromModal called');
       try {
         // Check if user is authenticated, if not prompt them
         if (!currentUser) {
@@ -1491,8 +1625,14 @@
         
         // Get auth headers (includes JWT token)
         const headers = await window.authManager.getAuthHeaders();
+        
+        // Add idempotency key (required for mutations)
+        const idempotencyKey = makeIdempotencyKey('room', user.id, Date.now());
+        headers['X-Idempotency-Key'] = idempotencyKey;
+        
         console.log('🔐 [Room Creation] Headers:', headers);
         console.log('🔐 [Room Creation] Token present:', !!headers.Authorization);
+        console.log('🔐 [Room Creation] Idempotency key:', idempotencyKey);
         
         const response = await fetch('/api/rooms', {
           method: 'POST',
@@ -1545,62 +1685,7 @@
     }
     
     // ===== START GAME FUNCTION =====
-    async function startGame() {
-      if (!currentRoom || !isHost) {
-        showNotification('Only the host can start the game', 'error');
-        return;
-      }
-      
-      try {
-        console.log('🎮 Host starting game for room:', currentRoom.id);
-        showNotification('Starting game...', 'info');
-        
-        // STEP 1: Create game object via API
-        const response = await fetch('/api/games', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            small_blind: currentRoom.small_blind || 5,
-            big_blind: currentRoom.big_blind || 10,
-            max_players: currentRoom.max_players || 9,
-            roomId: currentRoom.id
-          })
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to create game: ${errorText}`);
-        }
-        
-        const gameData = await response.json();
-        const gameId = gameData.gameId || gameData.id;
-        console.log('✅ Game created with ID:', gameId);
-        
-        // STEP 2: Emit start_game event to all players in the WebSocket room
-        if (socket && socket.connected) {
-          console.log('📡 Broadcasting game start to room:', currentRoom.id);
-          socket.emit('start_game', { 
-            roomId: currentRoom.id,
-            game: { 
-              gameId: gameId, 
-              id: gameId,
-              roomId: currentRoom.id
-            }
-          });
-        } else {
-          console.warn('⚠️ Socket not connected, only host will be redirected');
-        }
-        
-        // STEP 3: Redirect host to zoom-lock poker table (guests will be redirected via game_started event)
-        const url = `/game/${currentRoom.id}?gameId=${gameId}`;
-        console.log('🚀 Redirecting host to zoom-lock table:', url);
-        window.location.href = url;
-        
-      } catch (error) {
-        console.error('❌ Start game error:', error);
-        showNotification('Failed to start game: ' + error.message, 'error');
-      }
-    }
+    // REMOVED: Duplicate startGame function - using the correct one below at line ~1880
 
     // ===== STATE MANAGEMENT =====
     function setState(newState, data = {}) {
@@ -1612,6 +1697,12 @@
       const gameLobby = document.getElementById('gameLobbySection');
       const pokerTable = document.getElementById('pokerTableSection');
       
+      console.log('🔍 Elements found:', { 
+        gameSelections: !!gameSelections, 
+        gameLobby: !!gameLobby, 
+        pokerTable: !!pokerTable 
+      });
+      
       if (gameSelections) gameSelections.style.display = 'none';
       if (gameLobby) gameLobby.style.display = 'none';
       if (pokerTable) pokerTable.style.display = 'none';
@@ -1619,11 +1710,18 @@
       // Show appropriate section
       switch(newState) {
         case AppState.GAME_SELECTION:
+          console.log('✅ Showing game selection');
           if (gameSelections) gameSelections.style.display = 'grid';
           break;
           
         case AppState.LOBBY_WAITING:
-          if (gameLobby) gameLobby.style.display = 'block';
+          console.log('✅ Showing lobby, data:', data);
+          if (gameLobby) {
+            gameLobby.style.display = 'block';
+            console.log('✅ Lobby display set to block');
+          } else {
+            console.error('❌ gameLobby element not found!');
+          }
           initializeLobby(data.room, data.isHost);
           
       // ✅ CRITICAL: Join WebSocket room so we receive player_approved and game_started
@@ -1656,8 +1754,25 @@
       currentRoom = room;
       isHost = isHostUser;
       
+      // ✅ Populate host settings if host
+      if (isHost && room) {
+        const sbInput = document.getElementById('smallBlindInput');
+        const bbInput = document.getElementById('bigBlindInput');
+        const buyInInput = document.getElementById('buyInInput');
+        
+        if (sbInput) sbInput.value = room.small_blind || 10;
+        if (bbInput) bbInput.value = room.big_blind || 20;
+        if (buyInInput) buyInInput.value = room.min_buy_in || 1000;
+      }
+      
       // Display room code
-      document.getElementById('roomCodeDisplay').textContent = room.invite_code || '------';
+      const roomCodeEl = document.getElementById('roomCodeDisplay');
+      if (roomCodeEl) {
+        roomCodeEl.textContent = room.invite_code || '------';
+        console.log('✅ Room code set:', room.invite_code);
+      } else {
+        console.error('❌ roomCodeDisplay element not found!');
+      }
       
       // Show appropriate view
       if (isHost) {
@@ -1680,6 +1795,9 @@
       try {
         // Get auth headers (includes JWT token)
         const headers = await window.authManager.getAuthHeaders();
+        
+        // Add idempotency key (required for mutations)
+        headers['X-Idempotency-Key'] = makeIdempotencyKey('lobby', currentUser.id, roomId, Date.now());
         
         const response = await fetch(`/api/rooms/${roomId}/lobby/join`, {
           method: 'POST',
@@ -1757,6 +1875,9 @@
         // Get auth headers (includes JWT token)
         const headers = await window.authManager.getAuthHeaders();
         
+        // Add idempotency key
+        headers['X-Idempotency-Key'] = makeIdempotencyKey('approve', currentRoom.id, userId, Date.now());
+        
         const response = await fetch(`/api/rooms/${currentRoom.id}/lobby/approve`, {
           method: 'POST',
           headers: headers,
@@ -1783,7 +1904,7 @@
       });
     }
 
-    // START GAME - Create game object and show poker table
+    // START GAME - Create game in DB, then redirect all players to table
     async function startGame() {
       if (!currentRoom || !isHost) {
         showNotification('Only the host can start the game', 'error');
@@ -1791,47 +1912,64 @@
       }
       
       try {
-        console.log('🎮 Starting game for room:', currentRoom.id);
-        showNotification('🎲 Creating game...', 'info');
+        console.log('🎮 Creating game for room:', currentRoom.id);
+        showNotification('Creating game...', 'info');
         
-        // CRITICAL: Create the game object first
+        // Get settings from host inputs or room defaults
+        const small_blind = parseInt(document.getElementById('smallBlindInput')?.value) || currentRoom.small_blind || 10;
+        const big_blind = parseInt(document.getElementById('bigBlindInput')?.value) || currentRoom.big_blind || 20;
+        const max_players = currentRoom.max_players || 9;
+        const table_color = document.getElementById('tableColorInput')?.value || 'green';
+        
+        // Store table color for later
+        sessionStorage.setItem('tableColor', table_color);
+      
+        // Get auth headers
+        const headers = await window.authManager.getAuthHeaders();
+        headers['X-Idempotency-Key'] = makeIdempotencyKey('create-game', currentRoom.id, Date.now());
+        
+        // ✅ CRITICAL: Create game in database FIRST
         const response = await fetch('/api/games', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: headers,
           body: JSON.stringify({
-            small_blind: currentRoom.small_blind || 5,
-            big_blind: currentRoom.big_blind || 10,
-            max_players: currentRoom.max_players || 9,
-            roomId: currentRoom.id
+            roomId: currentRoom.id,
+            hostUserId: currentUser.id,
+            small_blind: small_blind,
+            big_blind: big_blind,
+            max_players: max_players
           })
         });
         
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to create game');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to create game');
         }
         
         const gameData = await response.json();
-        const gameId = gameData.gameId || gameData.id;
-        currentGame = gameData; // Store game globally
+        // Backend returns {gameId, status, playerCount}, not {game: {...}}
+        currentGame = { id: gameData.gameId, status: gameData.status };
+        console.log('✅ Game created:', currentGame);
         
-        console.log('✅ Game created:', gameId);
+        showNotification('Game created! Starting...', 'success');
         
-        // Emit game start via WebSocket to notify all players (WITH GAME ID)
-        if (socket) {
+        // Broadcast game_started to all players
+      if (socket && socket.connected) {
+          console.log('📡 Broadcasting game_started to room:', currentRoom.id);
           socket.emit('start_game', { 
             roomId: currentRoom.id,
-            gameId: gameId,
-            hostId: currentUser.id
-          });
-        }
+            gameId: gameData.gameId,
+            game: currentGame
+        });
+      }
+      
+        // Redirect to table
+      const url = `/game/${currentRoom.id}`;
+      console.log('🚀 Redirecting to table:', url);
         
-        showNotification('🎮 Game started! Loading table...', 'success');
-        
-        // ✅ FIXED: Redirect to WORKING poker table
-        const url = `/game?room=${currentRoom.id}&gameId=${gameId}`;
-        console.log('🚀 Redirecting host to WORKING poker table:', url);
-        window.location.href = url;
+        setTimeout(() => {
+      window.location.href = url;
+        }, 500); // Small delay for WebSocket broadcast
         
       } catch (error) {
         console.error('❌ Start game error:', error);
@@ -1981,8 +2119,23 @@
           return;
         }
         
+        // ✅ Ask for nickname first
+        const nickname = await promptForNickname(seatIndex);
+        if (!nickname) {
+          showNotification('Seat claiming cancelled', 'info');
+          return;
+        }
+        
         // Get auth headers (includes JWT token)
         const headers = await window.authManager.getAuthHeaders();
+        
+        // Add idempotency key
+        headers['X-Idempotency-Key'] = makeIdempotencyKey('seat', currentRoom.id, currentUser.id, seatIndex);
+        
+        showNotification('Claiming seat...', 'info');
+        
+        // Get buy-in amount from host settings or room default
+        const buyInAmount = parseInt(document.getElementById('buyInInput')?.value) || currentRoom.min_buy_in || 500;
         
         const response = await fetch(`/api/rooms/${currentRoom.id}/join`, {
           method: 'POST',
@@ -1990,7 +2143,8 @@
           body: JSON.stringify({
             user_id: currentUser.id,
             seat_index: seatIndex,
-            buy_in_amount: 500
+            buy_in_amount: buyInAmount,
+            username: nickname
           })
         });
         
@@ -1999,21 +2153,53 @@
           throw new Error(errorData.error || 'Failed to claim seat');
         }
         
-        showNotification(`Seat ${seatIndex + 1} claimed!`, 'success');
-        await loadSeats(); // Reload to show updated seats
+        const data = await response.json();
+        console.log('✅ Seat claimed:', data);
+        
+        showNotification(`Seat ${seatIndex + 1} claimed as "${nickname}"!`, 'success');
+        
+        // Reload seats to show update
+        await loadSeats();
+        
+        // Broadcast to other players
+        if (socket && socket.connected) {
+          socket.emit('seat_claimed', {
+            roomId: currentRoom.id,
+            seatIndex: seatIndex,
+            userId: currentUser.id,
+            username: nickname
+          });
+        }
+        
       } catch (error) {
         console.error('❌ Claim seat error:', error);
         showNotification('Failed to claim seat: ' + error.message, 'error');
       }
+    }
+    
+    // ✅ Prompt for nickname before claiming seat
+    function promptForNickname(seatIndex) {
+      return new Promise((resolve) => {
+        const nickname = window.prompt(
+          `Enter your table nickname for Seat ${seatIndex + 1}:`,
+          currentUser.username || currentUser.email?.split('@')[0] || 'Player'
+        );
+        resolve(nickname ? nickname.trim() : null);
+      });
     }
 
     async function adminStartHand() {
       if (!currentGame || !isHost) return;
       
       try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': makeIdempotencyKey('hand', currentGame.id, Date.now())
+        };
+        
         const response = await fetch(`/api/games/${currentGame.id}/start-hand`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: headers
         });
         
         if (!response.ok) throw new Error('Failed to start hand');

@@ -29,9 +29,9 @@ class TimerService {
     
     console.log(`⏱️ Starting ${turnTimeSeconds}s timer for player ${playerId} in game ${gameId}`);
     
-    // Record timer start in database
+    // Record timer start in database (pass roomId to avoid UUID lookup)
     if (dbV2) {
-      await dbV2.startTurn(gameId, playerId, turnTimeSeconds);
+      await dbV2.startTurn(gameId, playerId, turnTimeSeconds, roomId);
     }
     
     // Store the timeout callback for this timer

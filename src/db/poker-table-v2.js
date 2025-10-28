@@ -14,6 +14,13 @@ class PokerTableV2DB {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
     });
+    
+    // ✅ CRITICAL: Handle pool errors gracefully (don't crash server)
+    this.pool.on('error', (err) => {
+      console.error('❌ Database pool error:', err.message);
+      console.log('⚠️ Connection will retry automatically');
+      // Don't throw - just log
+    });
   }
 
   /**
@@ -31,7 +38,9 @@ class PokerTableV2DB {
       );
       
       if (result.rows.length === 0) {
-        throw new Error(`No game state found for room ${roomId}`);
+        // No game state yet (room in lobby phase) - use timestamp instead
+        console.log(`⚠️ No game state for room ${roomId}, using timestamp for seq`);
+        return Date.now();
       }
       
       return result.rows[0].seq;
@@ -46,6 +55,7 @@ class PokerTableV2DB {
       [roomId]
     );
     
+    // Return 0 if no game state (lobby phase)
     return result.rows[0]?.seq || 0;
   }
 
@@ -133,17 +143,20 @@ class PokerTableV2DB {
    * REJOIN TOKEN MANAGEMENT
    */
   async createRejoinToken(roomId, userId, seatIndex, tokenHash) {
-    await this.pool.query(
-      `INSERT INTO rejoin_tokens 
-       (token_hash, room_id, user_id, seat_index, expires_at)
-       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '4 hours')
-       ON CONFLICT (room_id, user_id) 
-       DO UPDATE SET 
-         token_hash = EXCLUDED.token_hash,
-         seat_index = EXCLUDED.seat_index,
-         expires_at = EXCLUDED.expires_at`,
-      [tokenHash, roomId, userId, seatIndex]
-    );
+    try {
+      await this.pool.query(
+        `INSERT INTO rejoin_tokens 
+         (token_hash, room_id, user_id, seat_index, expires_at)
+         VALUES ($1, $2, $3, $4, NOW() + INTERVAL '4 hours')
+         ON CONFLICT (token_hash) 
+         DO UPDATE SET 
+           expires_at = EXCLUDED.expires_at`,
+        [tokenHash, roomId, userId, seatIndex]
+      );
+    } catch (error) {
+      // Non-critical - rejoin tokens are optional feature
+      console.warn('⚠️ Failed to create rejoin token (non-critical):', error.message);
+    }
   }
 
   async validateRejoinToken(tokenHash, roomId) {
@@ -162,26 +175,38 @@ class PokerTableV2DB {
   /**
    * TIMER MANAGEMENT
    */
-  async startTurn(gameId, playerId, turnTimeSeconds) {
+  async startTurn(gameId, playerId, turnTimeSeconds, roomId = null) {
     const turnStartedAt = Date.now();
     
-    await this.pool.query(
-      `UPDATE game_states 
-       SET actor_turn_started_at = $1,
-           actor_timebank_remaining = COALESCE(actor_timebank_remaining, 60)
-       WHERE room_id = (SELECT room_id FROM games WHERE id = $2)`,
-      [turnStartedAt, gameId]
-    );
+    // Use roomId if provided, otherwise look it up from game_states (not games which is UUID-based)
+    if (roomId) {
+      await this.pool.query(
+        `UPDATE game_states 
+         SET actor_turn_started_at = $1,
+             actor_timebank_remaining = COALESCE(actor_timebank_remaining, 60)
+         WHERE room_id = $2`,
+        [turnStartedAt, roomId]
+      );
+    } else {
+      await this.pool.query(
+        `UPDATE game_states 
+         SET actor_turn_started_at = $1,
+             actor_timebank_remaining = COALESCE(actor_timebank_remaining, 60)
+         WHERE id = $2`,
+        [turnStartedAt, gameId]
+      );
+    }
     
     return { turnStartedAt, turnTimeSeconds };
   }
 
-  async getTurnTimer(gameId) {
+  async getTurnTimer(gameId, roomId = null) {
+    // Query by game_states.id (TEXT) not games.id (UUID)
     const result = await this.pool.query(
       `SELECT gs.actor_turn_started_at, gs.actor_timebank_remaining, r.turn_time_seconds
        FROM game_states gs
        JOIN rooms r ON gs.room_id = r.id
-       WHERE gs.room_id = (SELECT room_id FROM games WHERE id = $1)`,
+       WHERE gs.id = $1`,
       [gameId]
     );
     

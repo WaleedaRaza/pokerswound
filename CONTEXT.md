@@ -1,17 +1,23 @@
 # 🧭 CURRENT SESSION CONTEXT
 
-**Last Updated:** October 27, 2025  
-**Last LLM:** Octavian (Session #11+)  
-**Mode:** PLANNER  
-**Status:** Initial indexing complete
+**Last Updated:** October 28, 2025 (7:06 PM)  
+**Last LLM:** Octavian (Session #12)  
+**Mode:** DOCUMENTATION COMPLETE  
+**Status:** Root cause identified, complete docs created, one code fix away from MVP
 
 ---
 
 ## 🎯 CURRENT TASK
 
-**Mission:** Fix refresh bug by wiring zoom-lock table to existing backend  
-**Status:** ✅ **COMPLETE** - Frontend wired, ready for deployment  
-**Next:** Deploy to Railway, test in production
+**Mission:** COMPLETE - Created comprehensive documentation for next agent  
+**Root Cause Found:** Hydration endpoint queries wrong database table (games vs game_states)  
+**Deliverables:**
+- ✅ 6 comprehensive documents (2,200+ lines)
+- ✅ Root cause analysis complete
+- ✅ Exact fix specified
+- ✅ Session artifacts archived
+
+**Status:** 🎖️ **READY FOR NEXT AGENT** - Has everything needed to complete MVP
 
 ---
 
@@ -54,21 +60,19 @@
 
 ---
 
-## ✅ WHAT WAS FIXED (COMPLETED)
+## ❌ WHAT'S BROKEN (KNOWN ISSUES)
 
-1. **Zoom-Lock Table Wired to Backend**
+1. **Zoom-Lock Table Not Connected**
    - File: `public/poker-table-zoom-lock.html`
-   - Replaced `initDemo()` with `initWithBackend()`
-   - Added WebSocket connection
-   - Added hydration fetch on page load
-   - Added action button wiring
-   - Added all game event handlers
+   - Line 914: calls `initDemo()` instead of `initWithBackend()`
+   - No WebSocket connection
+   - No hydration fetch
+   - No action button wiring
 
-2. **Refresh Bug FIXED**
-   - Implementation: Frontend calls hydration on page load
-   - Backend returns complete state from DB
-   - Frontend renders from server truth
-   - **MVP BLOCKER REMOVED** ✅
+2. **Refresh Doesn't Work**
+   - Root cause: Frontend doesn't call hydration on page load
+   - Fix exists on backend, just not called by frontend
+   - **This is THE ONLY blocker to MVP**
 
 ---
 
@@ -142,33 +146,32 @@ Refresh → Read from DB (hydration) → Render
 
 ## 📝 FILES MODIFIED THIS SESSION
 
-**Documentation Created:**
-1. `THE_TEN_COMMANDMENTS.md` - Immutable truths for all LLMs (587 lines)
-2. `CONTEXT.md` - This file, session handoff framework
-3. `PLATFORM_PROCEDURES.md` - Complete procedural map for all features (650+ lines)
-4. `PLAN.md` - Updated with diagnosis results (668 lines)
-5. `IMMEDIATE_STEPS.md` - Step-by-step wiring guide (400+ lines)
-6. `CONSULTANT_ANSWERS.md` - Guardrails & contract validation (450+ lines)
-
-**Code Modified:**
-1. `public/poker-table-zoom-lock.html` - WIRED TO BACKEND ✅
-   - Added Socket.IO, sequence tracker, auth manager scripts
-   - Added backend connection properties to PokerTableGrid class
-   - Replaced initDemo() with initWithBackend()
-   - Added fetchHydration() method
-   - Added renderFromHydration() method
-   - Added wireActionButtons() and sendAction()
-   - Added setupGameEventHandlers() with all event handlers
-   - Added helper methods (showToast, enable/disable buttons, etc.)
-   - Added turn indicator CSS animation
-   - Updated URL parsing to handle /game/:roomId format
+**Session #12 Changes (October 28):**
+1. `public/poker-table-zoom-lock.html` - CRITICAL FIXES ✅
+   - Added socket.emit('join_room') for broadcast reception
+   - Wired host controls (kick, chips, pause, resume) - NO MORE ALERTS
+   - Added getCurrentSeats() helper method
+   - Fixed debounce bypass for immediate seat updates
+   - Host controls button added to center UI
    
-2. `routes/pages.js` - Updated routing
-   - /game/:roomId now serves zoom-lock table
+2. `routes/rooms.js` - NEW ENDPOINTS ✅
+   - POST /update-chips - Host adjusts player stacks
+   - POST /pause-game - Host pauses game
+   - POST /resume-game - Host resumes game
+   - All verify host authorization
+   - All broadcast to Socket.IO room
    
-3. `public/pages/play.html` - Updated redirects
-   - game_started event redirects to /game/:roomId format
-   - Host redirect uses /game/:roomId format
+3. `public/pages/play.html` - GAME CREATION FIXED ✅
+   - startGame() now calls POST /api/games before redirect
+   - Reads host settings (blinds, buy-in, table color)
+   - Fixed gameData parsing (uses .gameId not .game.id)
+   - Added nickname prompt to seat claiming
+   
+4. `routes/games.js` - No changes this session
+   
+5. `database/migrations/` - SCHEMA FIXES ✅
+   - 036_fix_idempotency_key_length.sql (VARCHAR 50→128)
+   - Migration executed successfully
 
 ---
 

@@ -505,19 +505,11 @@ app.get('/poker-today', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/pages/poker-today.html'));
 });
 
-// Game table route (existing poker.html - full game interface)
-app.get('/game', (req, res) => {
-  // Always serve poker.html - it will handle ?room= parameter and auto-join
-  res.sendFile(path.join(__dirname, 'public/poker.html'));
-});
-
-// 🎯 WEEK 2 DAY 1: URL-based room routing
-// Direct room access via /game/:roomId (cleaner than query params)
-app.get('/game/:roomId', (req, res) => {
-  console.log(`🎮 Direct room access: /game/${req.params.roomId}`);
-  // Serve poker.html - it will extract roomId from URL path
-  res.sendFile(path.join(__dirname, 'public/poker.html'));
-});
+// ⚔️ REMOVED: Duplicate /game routes - now handled by routes/pages.js
+// These OLD routes were overriding the modular router!
+// Correct routes are in routes/pages.js:
+//   - /game/:roomId → poker-table-zoom-lock.html (PRODUCTION)
+//   - /game → poker.html (legacy fallback)
 
 // Legacy route - redirect to game
 app.get('/poker', (req, res) => {

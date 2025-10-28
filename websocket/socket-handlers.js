@@ -166,6 +166,20 @@ module.exports = function setupSocketIO(io, getDb) {
       }
     });
     
+    // GO TO TABLE (for seat selection)
+    socket.on('go_to_table', (data) => {
+      const { roomId } = data;
+      if (!roomId) return;
+      console.log(`🎰 Broadcasting go_to_table to room:${roomId}`);
+      io.to(`room:${roomId}`).emit('go_to_table', {
+        type: 'go_to_table',
+        version: '1.0.0',
+        seq: Date.now(), // Use timestamp as seq for compatibility
+        timestamp: Date.now(),
+        payload: { roomId }
+      });
+    });
+    
     // START GAME
     socket.on('start_game', (data) => {
       const { roomId, gameId, game } = data;

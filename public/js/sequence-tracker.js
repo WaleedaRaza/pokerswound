@@ -31,15 +31,20 @@ class SequenceTracker {
       return false;
     }
 
-    // Check for gaps
-    if (message.seq > this.currentSeq + 1) {
-      const gap = [];
+    // Check for gaps (but only if gap is reasonable - not timestamp jumps)
+    const gap = message.seq - this.currentSeq - 1;
+    if (gap > 0 && gap < 1000) {
+      // Reasonable gap - track missing sequences
+      const missing = [];
       for (let i = this.currentSeq + 1; i < message.seq; i++) {
-        gap.push(i);
+        missing.push(i);
       }
-      console.warn(`⚠️  Sequence gap detected: missing ${gap.join(', ')}`);
-      this.missedSequences.push(...gap);
-      this.notifyListeners('gap', { missing: gap, received: message.seq });
+      console.warn(`⚠️  Sequence gap detected: missing ${missing.length} messages`);
+      this.missedSequences.push(...missing);
+      this.notifyListeners('gap', { missing, received: message.seq });
+    } else if (gap >= 1000) {
+      // Large jump (probably timestamp-based seq in lobby phase) - just accept it
+      console.log(`📈 Large sequence jump (${this.currentSeq} → ${message.seq}), accepting...`);
     }
 
     // Update current sequence
@@ -66,15 +71,18 @@ class SequenceTracker {
    * Set sequence to specific value (e.g., after hydration)
    */
   setSequence(seq) {
-    if (typeof seq !== 'number' || seq < 0) {
+    // Accept both numbers and string numbers
+    const numSeq = typeof seq === 'string' ? parseInt(seq) : seq;
+    
+    if (typeof numSeq !== 'number' || isNaN(numSeq)) {
       console.error('Invalid sequence number:', seq);
       return;
     }
 
     const oldSeq = this.currentSeq;
-    this.currentSeq = seq;
-    console.log(`📍 Sequence set: ${oldSeq} → ${seq}`);
-    this.notifyListeners('set', { from: oldSeq, to: seq });
+    this.currentSeq = numSeq;
+    console.log(`📍 Sequence set: ${oldSeq} → ${numSeq}`);
+    this.notifyListeners('set', { from: oldSeq, to: numSeq });
   }
 
   /**

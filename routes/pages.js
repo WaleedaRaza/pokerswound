@@ -40,17 +40,19 @@ router.get('/poker-today', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/pages/poker-today.html'));
 });
 
-// Game table route (poker.html - full game interface)
-router.get('/game', (req, res) => {
-  // Always serve poker.html - it will handle ?room= parameter and auto-join
-  res.sendFile(path.join(__dirname, '../public/poker.html'));
-});
-
-// Direct room access via /game/:roomId
+// ✅ CRITICAL: Specific route MUST come BEFORE general route in Express!
+// Direct room access via /game/:roomId - ZOOM-LOCK TABLE (PRODUCTION)
 router.get('/game/:roomId', (req, res) => {
   console.log(`🎮 Direct room access: /game/${req.params.roomId}`);
-  // Serve zoom-lock table (wired to backend)
+  // Serve zoom-lock table (production UI)
   res.sendFile(path.join(__dirname, '../public/poker-table-zoom-lock.html'));
+});
+
+// Game table route with query params (OLD - for backwards compatibility)
+router.get('/game', (req, res) => {
+  console.log('⚠️ OLD route hit: /game - serving poker.html');
+  // Legacy route - serves old poker.html
+  res.sendFile(path.join(__dirname, '../public/poker.html'));
 });
 
 // NEW: Test route for modern poker table UI

@@ -424,37 +424,21 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
     result.newState.roomId = roomId;
     games.set(gameId, result.newState);
     
-    // Persist hand to database
-    const metadata = gameMetadata.get(gameId);
-    if (fullGameRepository && metadata && metadata.gameUuid) {
-      try {
-        const handId = await fullGameRepository.startHand({
-          gameUuid: metadata.gameUuid,
-          handNumber,
-          dealerSeat: result.newState.handState.dealerPosition,
-          smallBlindSeat: result.newState.handState.dealerPosition,
-          bigBlindSeat: result.newState.handState.dealerPosition,
-          deckState: { shuffled: true }
-        });
-        
-        metadata.currentHandId = handId;
-        metadata.currentHandNumber = handNumber;
-        metadata.actionSequence = 0;
-        gameMetadata.set(gameId, metadata);
-        
-        Logger.success(LogCategory.PERSIST, 'Hand persisted to database', { 
-          gameId, 
-          handId, 
-          handNumber 
-        });
-      } catch (error) {
-        Logger.error(LogCategory.PERSIST, 'Failed to persist hand', { 
+    // Persist hand to database (DISABLED - UUID system broken, using game_states only)
+    // const metadata = gameMetadata.get(gameId);
+    // if (fullGameRepository && metadata && metadata.gameUuid) {
+    //   try {
+    //     const handId = await fullGameRepository.startHand({...});
+    //   } catch (error) {
+    //     Logger.error(LogCategory.PERSIST, 'Failed to persist hand', { gameId, handNumber, error: error.message });
+    //   }
+    // }
+    
+    Logger.info(LogCategory.PERSIST, 'Hand started (using in-memory + game_states only)', { 
           gameId, 
           handNumber, 
-          error: error.message 
+      playerCount: result.newState.players.size
         });
-      }
-    }
     
     // Broadcast via WebSocket
     if (io && roomId) {
@@ -580,11 +564,11 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
         }
       };
       
-      // Start the timer
+      // Start the timer (pass roomId explicitly to avoid UUID lookup)
       await timerService.startTurnTimer({
         gameId,
         playerId: firstPlayer,
-        roomId,
+        roomId: roomId, // Explicitly pass roomId
         turnTimeSeconds,
         dbV2,
         io,
@@ -622,6 +606,30 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
 // NOTE: This is the most complex endpoint (~700 lines)
 // Handles all game actions, all-in runout animations, hand completion, database persistence
 // TODO: Extract to GameActionService in Phase 3
+// Helper function for available actions
+function getAvailableActions(gameState, playerId) {
+  const player = gameState.getPlayer(playerId);
+  if (!player || !player.isActive || player.hasFolded) return [];
+  
+  const actions = ['FOLD'];
+  const currentBet = gameState.bettingRound.currentBet;
+  const playerBet = player.betThisStreet;
+  const callAmount = currentBet - playerBet;
+  
+  if (callAmount === 0) {
+    actions.push('CHECK');
+  } else if (player.stack >= callAmount) {
+    actions.push('CALL');
+  }
+  
+  if (player.stack > callAmount) {
+    actions.push('RAISE');
+  }
+  
+  actions.push('ALL_IN');
+  return actions;
+}
+
 router.post('/:id/actions', withIdempotency, async (req, res) => {
   const {
     games, playerUserIds, gameMetadata, stateMachine, fullGameRepository,
@@ -738,8 +746,8 @@ router.post('/:id/actions', withIdempotency, async (req, res) => {
     games.set(gameId, result.newState);
     
     // Start timer for next player (if any)
-    const nextPlayer = result.newState.toAct;
-    if (nextPlayer && !result.newState.isHandComplete()) {
+    const nextPlayerToAct = result.newState.toAct;
+    if (nextPlayerToAct && !result.newState.isHandComplete()) {
       const { dbV2 } = req.app.locals;
       
       // Get room's turn time setting
@@ -838,7 +846,7 @@ router.post('/:id/actions', withIdempotency, async (req, res) => {
       // Start the timer
       await timerService.startTurnTimer({
         gameId,
-        playerId: nextPlayer,
+        playerId: nextPlayerToAct,
         roomId,
         turnTimeSeconds,
         dbV2,
@@ -847,22 +855,102 @@ router.post('/:id/actions', withIdempotency, async (req, res) => {
       });
     }
     
+    // ⚔️ BROADCAST ACTION REQUIRED (next player's turn)
+    const nextPlayerForAction = result.newState.toAct;
+    if (nextPlayerForAction && io && roomId) {
+      const { dbV2 } = req.app.locals;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      const userIdMap = playerUserIds.get(gameId);
+      const nextUserId = userIdMap ? userIdMap.get(nextPlayerForAction) : null;
+      const nextPlayerModel = result.newState.getPlayer(nextPlayerForAction);
+      
+      if (nextUserId && nextPlayerModel) {
+        io.to(`room:${roomId}`).emit('action_required', {
+          type: 'action_required',
+          version: '1.0.0',
+          seq: seq,
+          timestamp: Date.now(),
+          payload: {
+            gameId,
+            playerId: nextUserId,
+            seatIndex: nextPlayerModel.seatIndex,
+            callAmount: result.newState.bettingRound.currentBet,
+            minRaise: result.newState.bettingRound.minRaise,
+            availableActions: getAvailableActions(result.newState, nextPlayerForAction)
+          }
+        });
+        
+        console.log(`📡 Broadcasted action_required for player ${nextUserId} (seq: ${seq})`);
+      }
+    }
+    
     Logger.debug(LogCategory.GAME, 'Broadcasting update', { roomId, ioExists: !!io });
+    
+    // ⚔️ BROADCAST BOARD CARDS if street advanced
+    const streetAdvanced = result.events.find(e => e.type === 'STREET_ADVANCED');
+    if (streetAdvanced && io && roomId) {
+      const { dbV2 } = req.app.locals;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
+      io.to(`room:${roomId}`).emit('board_dealt', {
+        type: 'board_dealt',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          gameId,
+          street: result.newState.currentStreet,
+          board: result.newState.handState.communityCards.map(c => c.toString()),
+          pot: result.newState.pot.totalPot
+        }
+      });
+      
+      console.log(`📡 Broadcasted board_dealt: ${result.newState.currentStreet} (seq: ${seq})`);
+    }
     
     // Check for hand completion
     const isHandComplete = result.newState.isHandComplete();
     const handCompletedEvent = result.events.find(e => e.type === 'HAND_COMPLETED');
     const willBeAllInRunout = isHandComplete && result.events.filter(e => e.type === 'STREET_ADVANCED').length > 1;
     
+    // Capture pot amount before clearing timers
+    let potAmount = result.newState.pot.totalPot;
+    if (handCompletedEvent && handCompletedEvent.data && handCompletedEvent.data.pot) {
+      potAmount = handCompletedEvent.data.pot;
+    }
+    
+    // ⚔️ BROADCAST HAND COMPLETE
+    if (isHandComplete && io && roomId) {
+      const { dbV2 } = req.app.locals;
+      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      
+      const winners = handCompletedEvent?.data?.winners || [];
+      
+      io.to(`room:${roomId}`).emit('hand_complete', {
+        type: 'hand_complete',
+        version: '1.0.0',
+        seq: seq,
+        timestamp: Date.now(),
+        payload: {
+          gameId,
+          winners: winners.map(w => ({
+            playerId: w.id,
+            username: w.name,
+            amount: w.winnings,
+            hand: w.handRank
+          })),
+          finalPot: potAmount,
+          board: result.newState.handState.communityCards.map(c => c.toString())
+        }
+      });
+      
+      console.log(`📡 Broadcasted hand_complete (seq: ${seq})`);
+    }
+    
     // Clear all timers if hand is complete
     if (isHandComplete) {
       timerService.clearGameTimers(gameId);
       console.log(`🏁 Hand complete, cleared all timers for game ${gameId}`);
-    }
-    
-    let potAmount = result.newState.pot.totalPot;
-    if (handCompletedEvent && handCompletedEvent.data && handCompletedEvent.data.pot) {
-      potAmount = handCompletedEvent.data.pot;
     }
     
     // Full game state persistence and completion logic omitted for brevity
