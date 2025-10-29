@@ -2,6 +2,7 @@ import type { UUID, Chips, Hole2 } from '../../types';
 
 export class PlayerModel {
   public readonly uuid: UUID;
+  public userId?: string; // Link to user_profiles for hydration matching
   public name: string;
   public stack: Chips;
   public seatIndex: number;
@@ -86,6 +87,7 @@ export class PlayerModel {
   public toSnapshot(): any {
     return {
       uuid: this.uuid,
+      userId: this.userId, // Link to user for hole cards matching
       name: this.name,
       stack: this.stack,
       seatIndex: this.seatIndex,
@@ -94,7 +96,8 @@ export class PlayerModel {
       isActive: this.isActive,
       hasLeft: this.hasLeft,
       betThisStreet: this.betThisStreet,
-      hole: this.hole
+      hole: this.hole,
+      holeCards: this.hole // Alias for hydration compatibility
     };
   }
 
@@ -105,12 +108,13 @@ export class PlayerModel {
       stack: data.stack,
       seatIndex: data.seatIndex
     });
+    player.userId = data.userId; // Restore userId link
     player.hasFolded = data.hasFolded || false;
     player.isAllIn = data.isAllIn || false;
     player.isActive = data.isActive !== undefined ? data.isActive : true;
     player.hasLeft = data.hasLeft || false;
     player.betThisStreet = data.betThisStreet || 0;
-    player.hole = data.hole;
+    player.hole = data.hole || data.holeCards; // Support both property names
     return player;
   }
 }

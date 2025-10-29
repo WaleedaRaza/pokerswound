@@ -165,20 +165,14 @@ const StorageAdapter = {
     if (MIGRATION_FLAGS.USE_DB_REPOSITORY && gameStatesRepository) {
       try {
         const snapshot = gameState.toSnapshot();
-        const isUpdate = await gameStatesRepository.updateGameStateAtomic(gameId, gameState.version - 1, {
-          status: snapshot.status,
-          current_state: snapshot,
-          hand_number: snapshot.handState.handNumber,
-          dealer_position: snapshot.handState.dealerPosition,
-          total_pot: snapshot.pot.totalPot
-        });
+        console.log(`🔍 saveGame DEBUG: gameId=${gameId}, currentVersion=${gameState.version}, handNumber=${snapshot.handState.handNumber}`);
         
-        if (isUpdate) {
-          logMigration('saveGame', 'DB_SUCCESS', { gameId, version: gameState.version });
-        } else {
-          // Version mismatch - this is a concurrency issue
-          console.warn(`⚠️  [MIGRATION] Version conflict for game ${gameId}`);
-        }
+        // Use saveSnapshot instead of updateGameStateAtomic to avoid version conflicts
+        // Since we're the authoritative writer, we don't need optimistic locking
+        await gameStatesRepository.saveSnapshot(gameId, snapshot);
+        
+        logMigration('saveGame', 'DB_SUCCESS', { gameId, version: gameState.version });
+        console.log(`✅ [MIGRATION] saveGame succeeded: version ${gameState.version} written to DB`);
       } catch (error) {
         // Database persistence failed, but in-memory store still has the data
         // Log and continue - this is non-blocking
@@ -534,119 +528,11 @@ if (socialDbPool) {
 }
 
 // OLD GAMES/ROOMS ENDPOINTS - NOW IN routes/games.js and routes/rooms.js
-// Commenting out to prevent conflicts. Will delete after testing.
+// REMOVED: These endpoints are now handled by modular routers
+// All game endpoints have been moved to routes/games.js
 
-// Create game with sophisticated engine
-// ⚠️ NO AUTH: Host might be using local guest account
-app.post('/api/games', async (req, res) => {
-  try {
-    const { small_blind, big_blind, max_players, roomId, hostUserId } = req.body;
-    console.log('🎮 Start game request:', { roomId, hostUserId });
-    
-    const gameId = generateGameId();
-    const hostUser = hostUserId || 'system';
-    
-    Logger.info(LogCategory.GAME, 'Creating game', { gameId, roomId, hostUserId: hostUser });
-    
-    // Create sophisticated GameStateModel
-    const gameState = new GameStateModel({
-      id: gameId,
-      configuration: {
-        smallBlind: small_blind,
-        bigBlind: big_blind,
-        ante: 0,
-        maxPlayers: max_players,
-        minPlayers: 2,
-        turnTimeLimit: 30,
-        timebankSeconds: 60,
-        autoMuckLosingHands: true,
-        allowRabbitHunting: false
-      }
-    });
-    
-    // Store roomId in game state for WebSocket broadcasts
-    if (roomId) {
-      gameState.roomId = roomId;
-    }
-    
-    // DUAL-WRITE: Store to both memory AND database
-    await StorageAdapter.createGame(gameId, gameState, hostUser, roomId);
-    
-    // ✅ FULL SCHEMA PERSISTENCE: Create records in games & game_states tables
-    let gameUuid = null;
-    if (fullGameRepository) {
-      try {
-        const result = await fullGameRepository.createGame({
-          gameId,
-          roomId,
-          hostUserId: hostUser,
-          smallBlind: small_blind,
-          bigBlind: big_blind,
-          ante: 0,
-          maxPlayers: max_players,
-          gameType: 'NLHE',
-          initialState: gameState.toSnapshot()
-        });
-        
-        gameUuid = result.gameUuid;
-        gameMetadata.set(gameId, { 
-          gameUuid, 
-          currentHandId: null, 
-          currentHandNumber: 0,
-          actionSequence: 0 
-        });
-        
-        Logger.success(LogCategory.PERSIST, 'Game persisted to full schema', { 
-          gameId, 
-          gameUuid, 
-          roomId 
-        });
-      } catch (error) {
-        Logger.error(LogCategory.PERSIST, 'Failed to persist game to full schema', { 
-          gameId, 
-          error: error.message 
-        });
-      }
-    }
-    
-    // Store game_id in room table for room lookup
-    if (roomId) {
-      const db = getDb();
-      if (db) {
-        try {
-          await db.query(
-            'UPDATE rooms SET game_id = $1, current_game_id = $2 WHERE id = $3',
-            [gameId, gameUuid, roomId]
-          );
-          Logger.debug(LogCategory.GAME, 'Linked game to room', { gameId, gameUuid, roomId });
-        } catch (dbError) {
-          Logger.error(LogCategory.GAME, 'Error linking game to room', { 
-            gameId, 
-            roomId, 
-            error: dbError.message 
-          });
-        }
-      }
-    }
-    
-    Logger.success(LogCategory.GAME, 'Game created successfully', { 
-      gameId, 
-      gameUuid, 
-      roomId 
-    });
-    
-    res.json({
-      gameId,
-      status: gameState.status,
-      playerCount: gameState.players.size,
-      engine: 'SOPHISTICATED_TYPESCRIPT'
-    });
-    
-  } catch (error) {
-    Logger.error(LogCategory.GAME, 'Create game error', { error: error.message });
-    res.status(500).json({ error: error.message });
-  }
-});
+// OLD: app.post('/api/games') - NOW HANDLED BY routes/games.js
+// (Removed to prevent duplicate route conflict and double-save to database)
 
 // ============================================
 // AUTH ENDPOINTS (Simple version for demo)

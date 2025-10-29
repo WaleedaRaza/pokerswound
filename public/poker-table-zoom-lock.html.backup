@@ -865,44 +865,6 @@ html,body{
  * Uses fixed virtual canvas with uniform scaling
  */
 
-// 🎴 CARD MAPPING SYSTEM - Convert server format to image filenames
-const CARD_MAPPING = {
-  // Spades
-  'SA': 'spades_A', 'S2': 'spades_2', 'S3': 'spades_3', 'S4': 'spades_4',
-  'S5': 'spades_5', 'S6': 'spades_6', 'S7': 'spades_7', 'S8': 'spades_8',
-  'S9': 'spades_9', 'ST': 'spades_10', 'SJ': 'spades_J', 'SQ': 'spades_Q', 'SK': 'spades_K',
-  
-  // Hearts
-  'HA': 'hearts_A', 'H2': 'hearts_2', 'H3': 'hearts_3', 'H4': 'hearts_4',
-  'H5': 'hearts_5', 'H6': 'hearts_6', 'H7': 'hearts_7', 'H8': 'hearts_8',
-  'H9': 'hearts_9', 'HT': 'hearts_10', 'HJ': 'hearts_J', 'HQ': 'hearts_Q', 'HK': 'hearts_K',
-  
-  // Diamonds
-  'DA': 'diamonds_A', 'D2': 'diamonds_2', 'D3': 'diamonds_3', 'D4': 'diamonds_4',
-  'D5': 'diamonds_5', 'D6': 'diamonds_6', 'D7': 'diamonds_7', 'D8': 'diamonds_8',
-  'D9': 'diamonds_9', 'DT': 'diamonds_10', 'DJ': 'diamonds_J', 'DQ': 'diamonds_Q', 'DK': 'diamonds_K',
-  
-  // Clubs
-  'CA': 'clubs_A', 'C2': 'clubs_2', 'C3': 'clubs_3', 'C4': 'clubs_4',
-  'C5': 'clubs_5', 'C6': 'clubs_6', 'C7': 'clubs_7', 'C8': 'clubs_8',
-  'C9': 'clubs_9', 'CT': 'clubs_10', 'CJ': 'clubs_J', 'CQ': 'clubs_Q', 'CK': 'clubs_K'
-};
-
-// Get card image URL
-function getCardImageUrl(cardCode) {
-  // Backend already converts to format like "clubs_4", but handle both
-  if (cardCode.includes('_')) {
-    return cardCode; // Already in correct format
-  }
-  
-  const imageName = CARD_MAPPING[cardCode];
-  if (!imageName) {
-    console.warn(`No mapping for card: ${cardCode}`);
-    return 'back';
-  }
-  return imageName;
-}
-
 class PokerTableGrid {
   constructor() {
     this.roomId = null;
@@ -1065,7 +1027,38 @@ class PokerTableGrid {
     console.log(`✅ Positioned ${positioned}/${seats.length} seats`);
   }
 
-  // initDemo() REMOVED - using real backend via initWithBackend()
+  initDemo() {
+    console.log('🎬 Demo mode');
+    
+    // Show host button in demo
+    const hostBtn = document.getElementById('hostControlsBtn');
+    if (hostBtn) {
+      hostBtn.style.display = 'block';
+      hostBtn.addEventListener('click', () => {
+        document.getElementById('hostModal').classList.add('show');
+      });
+    }
+
+    const demoData = {
+      seats: [
+        { index: 0, name: 'WALEED', chips: 5280, avatar: '🦈', cards: ['hearts_A', 'diamonds_A'], isMe: true },
+        { index: 1, name: 'ProPlayer', chips: 3750, avatar: '🎯', cards: ['back', 'back'] },
+        { index: 3, name: 'RocketMan', chips: 8875, avatar: '🚀', cards: ['back', 'back'] },
+        { index: 5, name: 'DiamondH', chips: 11200, avatar: '💎', cards: ['back', 'back'] },
+        { index: 7, name: 'LuckyAce', chips: 2100, avatar: '🎲', cards: ['back', 'back'] }
+      ],
+      board: ['hearts_A', 'spades_K', 'hearts_Q', 'clubs_J', 'back'],
+      pot: 3450,
+      room: 'DEMO',
+      hand: 42
+    };
+
+    this.applySeatPositions(); // Apply fixed positions first
+    this.renderSeats(demoData.seats);
+    this.renderBoard(demoData.board);
+    this.renderPot(demoData.pot);
+    this.renderHudInfo(demoData);
+  }
 
   async getCurrentSeats() {
     try {
@@ -1670,12 +1663,7 @@ class PokerTableGrid {
         throw new Error(error.error || 'Action failed');
       }
       
-      console.log('✅ Action sent successfully');
-      this.showToast(`${action} successful!`, 'success');
-      
-      // Refresh game state to show updates
-      this.lastHydrationTime = 0;
-      setTimeout(() => this.fetchHydration(), 200);
+      console.log('✅ Action sent');
       
     } catch (error) {
       console.error('❌ Action failed:', error);
@@ -1739,46 +1727,25 @@ class PokerTableGrid {
   }
 
   onHandStarted(data) {
-    console.log('🃏 Hand started event received');
-    const payload = data.payload || data;
-    
-    // Set gameId if not set (for guests)
-    if (!this.gameId && payload.gameId) {
-      this.gameId = payload.gameId;
-      console.log('✅ Game ID set from hand_started:', this.gameId);
-    }
-    
-    // Clear board and reset state
+    const payload = data.payload || data; // Handle both wrapped and unwrapped
     this.renderBoard([]);
     this.renderPot(payload.pot || 0);
     if (payload.dealerSeat !== undefined) this.updateDealerButton(payload.dealerSeat);
+    if (payload.myCards && payload.mySeat !== undefined) {
+      this.renderMyCards(payload.myCards, payload.mySeat);
+    }
     this.myTurn = false;
     this.disableActionButtons();
-    
-    // Fetch complete game state via hydration (includes private hole cards)
-    console.log('🌊 Fetching hydration after hand start...');
-    this.lastHydrationTime = 0; // Bypass debounce
-    this.fetchHydration();
+    console.log('🃏 Hand started - rendering initial state');
   }
 
   onPlayerAction(data) {
-    console.log('👤 Player action event received');
-    const payload = data.payload || data;
-    
-    // Update pot immediately
-    if (payload.pot !== undefined) this.renderPot(payload.pot);
-    if (payload.currentBet !== undefined) this.currentBet = payload.currentBet;
-    
-    // If this was my action, disable buttons
-    if (payload.playerId === this.userId) {
+    if (data.pot !== undefined) this.renderPot(data.pot);
+    if (data.currentBet !== undefined) this.currentBet = data.currentBet;
+    if (data.playerId === this.userId) {
       this.myTurn = false;
       this.disableActionButtons();
     }
-    
-    // Refresh full state to show chip changes
-    console.log('🌊 Fetching hydration after player action...');
-    this.lastHydrationTime = 0;
-    this.fetchHydration();
   }
 
   onActionRequired(data) {

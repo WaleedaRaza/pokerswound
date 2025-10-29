@@ -61,42 +61,9 @@ router.post('/', withIdempotency, async (req, res) => {
     await StorageAdapter.createGame(gameId, gameState, hostUser, roomId);
     console.log('🔍 BACKEND: StorageAdapter.createGame succeeded');
     
-    // FULL SCHEMA PERSISTENCE: Create records in games & game_states tables
+    // NOTE: fullGameRepository persistence disabled - StorageAdapter already handles game_states
+    // Using TEXT gameId system (sophisticated_*) instead of UUID system
     let gameUuid = null;
-    if (fullGameRepository) {
-      try {
-        const result = await fullGameRepository.createGame({
-          gameId,
-          roomId,
-          hostUserId: hostUser,
-          smallBlind: small_blind,
-          bigBlind: big_blind,
-          ante: 0,
-          maxPlayers: max_players,
-          gameType: 'NLHE',
-          initialState: gameState.toSnapshot()
-        });
-        
-        gameUuid = result.gameUuid;
-        gameMetadata.set(gameId, { 
-          gameUuid, 
-          currentHandId: null, 
-          currentHandNumber: 0,
-          actionSequence: 0 
-        });
-        
-        Logger.success(LogCategory.PERSIST, 'Game persisted to full schema', { 
-          gameId, 
-          gameUuid, 
-          roomId 
-        });
-      } catch (error) {
-        Logger.error(LogCategory.PERSIST, 'Failed to persist game to full schema', { 
-          gameId, 
-          error: error.message 
-        });
-      }
-    }
     
     // Store game_id in room table for room lookup
     if (roomId) {
@@ -124,7 +91,6 @@ router.post('/', withIdempotency, async (req, res) => {
     
     Logger.success(LogCategory.GAME, 'Game created successfully', { 
       gameId, 
-      gameUuid, 
       roomId 
     });
     
@@ -417,6 +383,9 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
             seatIndex: seat.seat_index
           });
           
+          // CRITICAL: Add userId to player model so hydration can match hole cards
+          player.userId = seat.user_id;
+          
           userIdMap.set(playerId, seat.user_id);
           gameState.addPlayer(player);
           console.log(`  ✅ Added ${seat.username} (seat ${seat.seat_index}, chips: ${seat.chips_in_play}, userId: ${seat.user_id})`);
@@ -443,36 +412,13 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
     result.newState.roomId = roomId;
     games.set(gameId, result.newState);
     
-    // Persist updated game state to database
-    try {
-      await StorageAdapter.saveGame(gameId, result.newState);
-      console.log('✅ Game state persisted to database after hand start');
-    } catch (error) {
-      console.error('⚠️ Failed to persist game state:', error.message);
-      // Continue anyway - in-memory state is updated
-    }
-    
-    // Persist hand to database (DISABLED - UUID system broken, using game_states only)
-    // const metadata = gameMetadata.get(gameId);
-    // if (fullGameRepository && metadata && metadata.gameUuid) {
-    //   try {
-    //     const handId = await fullGameRepository.startHand({...});
-    //   } catch (error) {
-    //     Logger.error(LogCategory.PERSIST, 'Failed to persist hand', { gameId, handNumber, error: error.message });
-    //   }
-    // }
-    
-    Logger.info(LogCategory.PERSIST, 'Hand started (using in-memory + game_states only)', { 
-          gameId, 
-          handNumber, 
-      playerCount: result.newState.players.size
-        });
-    
-    // Broadcast via WebSocket
+    // Broadcast via WebSocket IMMEDIATELY (before persistence to ensure clients get update)
+    console.log(`🔍 BROADCAST CHECK: io=${!!io}, roomId=${roomId}`);
     if (io && roomId) {
       // Increment sequence number
       const dbV2 = req.app.locals.dbV2;
-      const seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      let seq = dbV2 ? await dbV2.incrementSequence(roomId) : Date.now();
+      seq = parseInt(seq); // Ensure it's a number, not string
       
       const userIdMap = playerUserIds.get(gameId);
       io.to(`room:${roomId}`).emit('hand_started', {
@@ -481,18 +427,52 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
         seq: seq,
         timestamp: Date.now(),
         payload: {
-        gameId,
-        handNumber: result.newState.handState.handNumber,
-        players: Array.from(result.newState.players.values()).map(p => ({
-          id: p.uuid,
-          name: p.name,
-          stack: p.stack,
-          seatIndex: p.seatIndex,
-          userId: userIdMap ? userIdMap.get(p.uuid) : null
-        }))
+          gameId,
+          handNumber: result.newState.handState.handNumber,
+          dealerSeat: result.newState.handState.dealerPosition,
+          pot: result.newState.pot.totalPot,
+          players: Array.from(result.newState.players.values()).map(p => ({
+            id: p.uuid,
+            name: p.name,
+            stack: p.stack,
+            seatIndex: p.seatIndex,
+            userId: userIdMap ? userIdMap.get(p.uuid) : null
+          }))
         }
       });
+      
+      console.log(`📡 Broadcast hand_started to room:${roomId} (seq: ${seq})`);
+      
+      // Also send state_sync to tell clients to refetch hydration
+      io.to(`room:${roomId}`).emit('state_sync', {
+        type: 'state_sync',
+        version: '1.0.0',
+        seq: seq + 1,
+        timestamp: Date.now(),
+        payload: {
+          fetchViaHttp: true,
+          reason: 'hand_started'
+        }
+      });
+      
+      console.log(`📡 Broadcast state_sync to room:${roomId} - clients should refetch hydration`);
     }
+    
+    // Persist updated game state to database (after broadcast)
+    try {
+      console.log(`🔍 PERSIST DEBUG: Attempting to save gameId=${gameId}, version=${result.newState.version}, handNumber=${result.newState.handState.handNumber}`);
+      await StorageAdapter.saveGame(gameId, result.newState);
+      console.log('✅ Game state persisted to database after hand start');
+    } catch (error) {
+      console.error('⚠️ Failed to persist game state:', error.message);
+      // Continue anyway - in-memory state is updated
+    }
+    
+    Logger.info(LogCategory.PERSIST, 'Hand started (using in-memory + game_states only)', { 
+      gameId, 
+      handNumber, 
+      playerCount: result.newState.players.size
+    });
     
     // Start timer for first player to act
     const firstPlayer = result.newState.toAct;

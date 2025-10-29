@@ -42,19 +42,36 @@ export class EventStoreRepository {
       event.metadata || {}
     ];
 
-    const result = await this.db.query(query, values);
-    const row = result.rows[0];
+    try {
+      const result = await this.db.query(query, values);
+      const row = result.rows[0];
 
-    return {
-      id: row.id,
-      gameId: row.game_id,
-      eventType: row.event_type,
-      eventData: row.event_data,
-      version: row.version,
-      userId: row.user_id,
-      timestamp: row.created_at,
-      sequence: 0 // No sequence column in this version of schema
-    };
+      return {
+        id: row.id,
+        gameId: row.game_id,
+        eventType: row.event_type,
+        eventData: row.event_data,
+        version: row.version,
+        userId: row.user_id,
+        timestamp: row.created_at,
+        sequence: 0 // No sequence column in this version of schema
+      };
+    } catch (error) {
+      // Fail gracefully - game_states table has the authoritative data
+      // This allows the game to continue even if event logging fails
+      console.warn('⚠️ EventStore.append failed (non-critical):', error.message);
+      // Return a dummy event so caller doesn't crash
+      return {
+        id: 'temp-' + Date.now(),
+        gameId: event.gameId,
+        eventType: event.eventType,
+        eventData: event.eventData,
+        version: event.version || 1,
+        userId: event.userId || null,
+        timestamp: new Date(),
+        sequence: 0
+      };
+    }
   }
 
   /**

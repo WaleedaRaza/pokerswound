@@ -122,9 +122,9 @@ class SessionService {
     try {
       await this.db.query(
         `INSERT INTO room_seats (room_id, seat_index, user_id, status, chips_in_play, joined_at)
-         VALUES ($1, $2, $3, 'active', 0, NOW())
+         VALUES ($1, $2, $3, 'SEATED', 0, NOW())
          ON CONFLICT (room_id, seat_index) DO UPDATE
-         SET user_id = $3, status = 'active', joined_at = NOW()`,
+         SET user_id = $3, status = 'SEATED', joined_at = NOW()`,
         [roomId, seatIndex, userId]
       );
     } catch (error) {
@@ -226,7 +226,7 @@ class SessionService {
     // Update database
     try {
       await this.db.query(
-        `UPDATE room_seats SET status = 'vacant', user_id = NULL WHERE room_id = $1 AND seat_index = $2`,
+        `UPDATE room_seats SET status = 'WAITLIST', user_id = NULL WHERE room_id = $1 AND seat_index = $2`,
         [binding.roomId, binding.seatIndex]
       );
     } catch (error) {

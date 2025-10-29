@@ -1949,6 +1949,7 @@
           body: JSON.stringify({
             roomId: currentRoom.id,
             hostUserId: currentUser.id,
+            user_id: currentUser.id, // Required by idempotency middleware
             small_blind: small_blind,
             big_blind: big_blind,
             max_players: max_players

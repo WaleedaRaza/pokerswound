@@ -24,7 +24,7 @@ class GameStatesRepository {
             hostUserId,
             initialState.status,
             initialState,
-            1,
+            initialState.version,
             initialState.handState.handNumber,
             initialState.handState.dealerPosition,
             initialState.pot.totalPot
@@ -59,8 +59,10 @@ class GameStatesRepository {
                 throw new Error(`Game ${gameId} not found`);
             }
             const currentVersion = lockCheck.rows[0].version;
+            console.log(`🔍 DB VERSION CHECK: gameId=${gameId}, dbVersion=${currentVersion}, expectedVersion=${expectedVersion}, match=${currentVersion === expectedVersion}`);
             if (currentVersion !== expectedVersion) {
                 await client.query('ROLLBACK');
+                console.error(`❌ VERSION MISMATCH: DB has version ${currentVersion}, expected ${expectedVersion}`);
                 return false;
             }
             const setClauses = ['version = version + 1', 'updated_at = NOW()'];
@@ -104,22 +106,42 @@ class GameStatesRepository {
         }
     }
     async saveSnapshot(gameId, snapshot) {
-        await this.db.query(`UPDATE game_states 
-       SET current_state = $1, 
-           status = $2,
-           hand_number = $3,
-           dealer_position = $4,
-           total_pot = $5,
-           version = version + 1,
-           updated_at = NOW()
-       WHERE id = $6`, [
-            snapshot,
-            snapshot.status,
-            snapshot.handState.handNumber,
-            snapshot.handState.dealerPosition,
-            snapshot.pot.totalPot,
-            gameId
-        ]);
+        console.log(`🔍 saveSnapshot: Updating ${gameId} with handNumber=${snapshot.handState.handNumber}`);
+        const client = await this.db.connect();
+        try {
+            await client.query('BEGIN');
+            const result = await client.query(`UPDATE game_states 
+         SET current_state = $1, 
+             status = $2,
+             hand_number = $3,
+             dealer_position = $4,
+             total_pot = $5,
+             version = $6,
+             updated_at = NOW()
+         WHERE id = $7`, [
+                snapshot,
+                snapshot.status,
+                snapshot.handState.handNumber,
+                snapshot.handState.dealerPosition,
+                snapshot.pot.totalPot,
+                snapshot.version,
+                gameId
+            ]);
+            console.log(`🔍 saveSnapshot: UPDATE affected ${result.rowCount} rows`);
+            if (result.rowCount === 0) {
+                await client.query('ROLLBACK');
+                throw new Error(`Game ${gameId} not found in database - UPDATE affected 0 rows`);
+            }
+            await client.query('COMMIT');
+            console.log(`✅ saveSnapshot: Transaction COMMITTED for ${gameId}`);
+        }
+        catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        }
+        finally {
+            client.release();
+        }
     }
     async findActiveGamesByUserId(userId) {
         const result = await this.db.query(`SELECT * FROM game_states 

@@ -335,7 +335,7 @@ router.get('/:roomId/hydrate', async (req, res) => {
     // Get room details
     const roomResult = await db.query(
       `SELECT id, invite_code, host_user_id, max_players, status, turn_time_seconds, timebank_seconds, 
-              small_blind, big_blind, created_at
+              small_blind, big_blind, game_id, created_at
        FROM rooms WHERE id = $1`,
       [req.params.roomId]
     );
@@ -346,15 +346,16 @@ router.get('/:roomId/hydrate', async (req, res) => {
     
     const room = roomResult.rows[0];
     
-    // Get active game from game_states table (TEXT gameId system)
-    const gameResult = await db.query(
+    // Get current game_id from rooms table
+    const currentGameId = room.game_id;
+    
+    // Get active game from game_states table using exact game_id
+    const gameResult = currentGameId ? await db.query(
       `SELECT id, current_state, seq, version, updated_at, room_id
        FROM game_states
-       WHERE room_id = $1
-       ORDER BY updated_at DESC 
-       LIMIT 1`,
-      [req.params.roomId]
-    );
+       WHERE id = $1`,
+      [currentGameId]
+    ) : { rowCount: 0, rows: [] };
     
     let game = null;
     let hand = null;
@@ -376,12 +377,31 @@ router.get('/:roomId/hydrate', async (req, res) => {
       game.bettingRound = currentState.bettingRound || {};
       game.toAct = currentState.toAct;
       
+      console.log(`🔍 HYDRATION: Extracted handState:`, {
+        hasHandState: !!game.handState,
+        handNumber: game.handState?.handNumber,
+        checkPasses: !!(game.handState && game.handState.handNumber > 0)
+      });
+      
       // Get current hand details from handState (in-memory game state)
       if (game.handState && game.handState.handNumber > 0) {
+        // Convert board cards from "C4" format to "clubs_4" format
+        const suitMap = { 'C': 'clubs', 'D': 'diamonds', 'H': 'hearts', 'S': 'spades' };
+        const rankMap = { 'T': '10', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
+        const convertCard = (card) => {
+          const cardStr = typeof card === 'string' ? card : (card.toString ? card.toString() : card);
+          if (cardStr && cardStr.length >= 2) {
+            const suit = suitMap[cardStr[0]] || 'clubs';
+            const rank = rankMap[cardStr[1]] || cardStr.substring(1);
+            return `${suit}_${rank}`;
+          }
+          return cardStr;
+        };
+        
         hand = {
           hand_number: game.handState.handNumber,
           phase: game.currentStreet || 'PREFLOP',
-          board: game.handState.communityCards || [],
+          board: (game.handState.communityCards || []).map(convertCard),
           pot_total: game.pot.totalPot || 0,
           current_bet: game.bettingRound.currentBet || 0,
           dealer_seat: game.handState.dealerSeat,
@@ -408,11 +428,21 @@ router.get('/:roomId/hydrate', async (req, res) => {
             };
             
             // Only include hole cards for the requesting user
+            console.log(`🔍 Checking hole cards for player ${player.name}: userId=${player.userId}, requestingUserId=${userId}, match=${player.userId === userId}, hasCards=${!!player.holeCards}`);
             if (player.userId === userId && player.holeCards) {
               myHoleCards = player.holeCards.map(card => {
-                if (typeof card === 'string') return card;
-                return card.toString ? card.toString() : card;
+                const cardStr = typeof card === 'string' ? card : (card.toString ? card.toString() : card);
+                // Convert format: "C4" → "clubs_4", "H7" → "hearts_7"
+                const suitMap = { 'C': 'clubs', 'D': 'diamonds', 'H': 'hearts', 'S': 'spades' };
+                const rankMap = { 'T': '10', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
+                if (cardStr && cardStr.length >= 2) {
+                  const suit = suitMap[cardStr[0]] || 'clubs';
+                  const rank = rankMap[cardStr[1]] || cardStr.substring(1);
+                  return `${suit}_${rank}`;
+                }
+                return cardStr;
               });
+              console.log(`✅ Extracted ${myHoleCards.length} hole cards for user ${userId}:`, myHoleCards);
             }
             
             return playerData;

@@ -75,6 +75,7 @@ class PlayerModel {
     toSnapshot() {
         return {
             uuid: this.uuid,
+            userId: this.userId,
             name: this.name,
             stack: this.stack,
             seatIndex: this.seatIndex,
@@ -83,7 +84,8 @@ class PlayerModel {
             isActive: this.isActive,
             hasLeft: this.hasLeft,
             betThisStreet: this.betThisStreet,
-            hole: this.hole
+            hole: this.hole,
+            holeCards: this.hole
         };
     }
     static fromSnapshot(data) {
@@ -93,12 +95,13 @@ class PlayerModel {
             stack: data.stack,
             seatIndex: data.seatIndex
         });
+        player.userId = data.userId;
         player.hasFolded = data.hasFolded || false;
         player.isAllIn = data.isAllIn || false;
         player.isActive = data.isActive !== undefined ? data.isActive : true;
         player.hasLeft = data.hasLeft || false;
         player.betThisStreet = data.betThisStreet || 0;
-        player.hole = data.hole;
+        player.hole = data.hole || data.holeCards;
         return player;
     }
 }
