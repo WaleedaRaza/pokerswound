@@ -346,13 +346,13 @@ router.get('/:roomId/hydrate', async (req, res) => {
     
     const room = roomResult.rows[0];
     
-    // Get active game with full state (LEFT JOIN so it works even if game_states empty)
+    // Get active game from game_states table (TEXT gameId system)
     const gameResult = await db.query(
-      `SELECT g.id, g.status, g.current_hand_id, gs.current_state, gs.seq, gs.version
-       FROM games g
-       LEFT JOIN game_states gs ON g.id::text = gs.id
-       WHERE g.room_id = $1::uuid AND g.status != 'completed'
-       ORDER BY g.created_at DESC LIMIT 1`,
+      `SELECT id, current_state, seq, version, updated_at, room_id
+       FROM game_states
+       WHERE room_id = $1
+       ORDER BY updated_at DESC 
+       LIMIT 1`,
       [req.params.roomId]
     );
     
@@ -365,65 +365,70 @@ router.get('/:roomId/hydrate', async (req, res) => {
     if (gameResult.rowCount > 0) {
       game = gameResult.rows[0];
       
-      // Get current hand details
-      if (game.current_hand_id) {
-        const handResult = await db.query(
-          `SELECT id, hand_number, phase, board, pot_total, current_bet,
-                  dealer_seat, current_actor_seat, created_at
-           FROM hands WHERE id = $1`,
-          [game.current_hand_id]
-        );
+      // Extract game data from JSONB current_state
+      const currentState = game.current_state;
+      game.id = game.id; // Keep TEXT gameId
+      game.status = currentState.status || 'ACTIVE';
+      game.players = currentState.players || {};
+      game.pot = currentState.pot || {};
+      game.handState = currentState.handState || {};
+      game.currentStreet = currentState.currentStreet;
+      game.bettingRound = currentState.bettingRound || {};
+      game.toAct = currentState.toAct;
+      
+      // Get current hand details from handState (in-memory game state)
+      if (game.handState && game.handState.handNumber > 0) {
+        hand = {
+          hand_number: game.handState.handNumber,
+          phase: game.currentStreet || 'PREFLOP',
+          board: game.handState.communityCards || [],
+          pot_total: game.pot.totalPot || 0,
+          current_bet: game.bettingRound.currentBet || 0,
+          dealer_seat: game.handState.dealerSeat,
+          current_actor_seat: null // Will be computed from toAct
+        };
         
-        if (handResult.rowCount > 0) {
-          hand = handResult.rows[0];
+        // Convert game.players object to array
+        // game.players is a Map serialized as object: {"player_xyz_0": {...}, ...}
+        if (game.players && typeof game.players === 'object') {
+          const playerEntries = Object.entries(game.players);
           
-          // Get players in this hand
-          const playersResult = await db.query(
-            `SELECT p.user_id, p.seat_index, p.stack, p.status, p.current_bet,
-                    p.has_acted, p.is_all_in, p.has_folded, p.hole_cards,
-                    p.contributed_to_pot, up.username
-             FROM players p
-             JOIN user_profiles up ON p.user_id = up.id
-             WHERE p.game_id = $1
-             ORDER BY p.seat_index`,
-            [game.id]
-          );
-          
-          players = playersResult.rows.map(p => {
+          players = playerEntries.map(([playerId, player]) => {
             const playerData = {
-              user_id: p.user_id,
-              username: p.username,
-              seat_index: p.seat_index,
-              stack: p.stack,
-              status: p.status,
-              current_bet: p.current_bet || 0,
-              has_acted: p.has_acted,
-              is_all_in: p.is_all_in,
-              has_folded: p.has_folded,
-              contributed_to_pot: p.contributed_to_pot || 0
+              user_id: player.userId || null,
+              username: player.name,
+              seat_index: player.seatIndex,
+              stack: player.stack,
+              status: player.isActive ? 'ACTIVE' : 'INACTIVE',
+              current_bet: player.betThisStreet || 0,
+              has_acted: !player.isActive || player.hasFolded,
+              is_all_in: player.isAllIn,
+              has_folded: player.hasFolded,
+              contributed_to_pot: 0
             };
             
             // Only include hole cards for the requesting user
-            if (p.user_id === userId && p.hole_cards) {
-              myHoleCards = p.hole_cards;
+            if (player.userId === userId && player.holeCards) {
+              myHoleCards = player.holeCards.map(card => {
+                if (typeof card === 'string') return card;
+                return card.toString ? card.toString() : card;
+              });
             }
             
             return playerData;
           });
           
-          // Get recent actions for context
-          const actionsResult = await db.query(
-            `SELECT a.seq, a.action_type, a.amount, a.player_id, up.username
-             FROM actions a
-             JOIN user_profiles up ON a.player_id = up.id
-             WHERE a.hand_id = $1
-             ORDER BY a.seq DESC
-             LIMIT 5`,
-            [hand.id]
-          );
-          
-          recentActions = actionsResult.rows.reverse();
+          // Find current actor seat from toAct
+          if (game.toAct) {
+            const actorPlayer = playerEntries.find(([pid]) => pid === game.toAct);
+            if (actorPlayer) {
+              hand.current_actor_seat = actorPlayer[1].seatIndex;
+            }
+          }
         }
+        
+        // Recent actions - skip for now (not stored in game state)
+        recentActions = [];
       }
       
       // Get turn timer if active
@@ -519,11 +524,9 @@ router.get('/:roomId/hydrate', async (req, res) => {
       game: game ? {
         id: game.id,
         status: game.status,
-        current_hand_id: game.current_hand_id,
         state: game.current_state // Full game state for compatibility
       } : null,
       hand: hand ? {
-        id: hand.id,
         number: hand.hand_number,
         phase: hand.phase,
         board: hand.board || [],

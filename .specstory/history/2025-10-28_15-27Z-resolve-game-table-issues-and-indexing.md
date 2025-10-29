@@ -25657,3 +25657,153 @@ _**Assistant (default)**_
 
 ---
 
+I'll commit and push all the documentation work to git:
+
+
+---
+
+Tool use: **run_terminal_cmd**
+
+```bash
+git add .
+```
+
+```
+warning: in the working copy of '.cursor/rules/derived-cursor-rules.mdc', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CONTEXT.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pages/play.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/poker-table-zoom-lock.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'routes/games.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'routes/pages.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'routes/rooms.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'archive/session-docs/IMMEDIATE_STEPS.md', LF will be replaced by CRLF the next time Git touches it
+
+```
+
+---
+
+Tool use: **run_terminal_cmd**
+
+```bash
+git commit -m "docs: Complete comprehensive documentation overhaul
+
+- Created 6 core numbered guides (01-06) covering goals, current state, history, commandments, file directory, and system architecture
+- Added 00_START_HERE.md as master entry point for all agents
+- Organized root directory: archived 50+ session docs to archive/session-docs/
+- Created documentation index and navigation guides
+- Documented exact fix needed: routes/rooms.js hydration query (30min fix)
+- Preserved all historical work while cleaning root structure
+- Added _ROOT_DOCUMENTATION_GUIDE.md for maintenance
+
+Total: 2,500+ lines of comprehensive documentation
+Status: Ready for next agent with clear path to MVP completion"
+```
+
+```
+[main ab99d29] docs: Complete comprehensive documentation overhaul
+ 96 files changed, 96734 insertions(+), 2228 deletions(-)
+ delete mode 100644 .railwayignore
+ create mode 100644 .specstory/history/2025-10-28_10-56Z-implement-game-lobby-with-database-persistence.md
+ create mode 100644 .specstory/history/2025-10-28_15-27Z-resolve-game-table-issues-and-indexing.md
+ create mode 100644 .specstory/history/2025-10-28_17-39Z-claiming-seats-issue-on-poker-tables.md
+ create mode 100644 00_START_HERE.md
+ create mode 100644 01_GOALS_AND_FEATURES.md
+ create mode 100644 02_CURRENT_STATE_ANALYSIS.md
+ create mode 100644 03_HISTORY_AND_FAILURES.md
+ create mode 100644 04_COMMANDMENTS_AND_PATH_FORWARD.md
+ create mode 100644 05_COMPLETE_FILE_DIRECTORY.md
+ create mode 100644 06_SYSTEM_ARCHITECTURE.md
+ delete mode 100644 DEPLOYMENT.md
+ delete mode 100644 DEPLOY_NOW.md
+ create mode 100644 PROJECT_FILE_TREE.md
+ delete mode 100644 Procfile
+ delete mode 100644 RAILWAY_QUICK_START.md
+ create mode 100644 README_FOR_NEXT_AGENT.md
+ create mode 100644 SESSION_12_FINAL_SUMMARY.md
+ delete mode 100644 SESSION_SUMMARY.md
+ create mode 100644 _ROOT_DOCUMENTATION_GUIDE.md
+ create mode 100644 archive/session-12/BUG_FIXES_COMPLETE.md
+ create mode 100644 archive/session-12/CURRENT_STATUS.md
+ create mode 100644 archive/session-12/FINAL_FIXES_APPLIED.md
+ create mode 100644 archive/session-12/FIXES_SESSION_12.md
+ create mode 100644 archive/session-12/FLOW_FIXES_COMPLETE.md
+ create mode 100644 archive/session-12/HONEST_STATUS.md
+ create mode 100644 archive/session-12/OCTAVIAN_SESSION_SUMMARY.md
+ create mode 100644 archive/session-12/SYSTEM_DIAGNOSIS.md
+ create mode 100644 archive/session-12/TESTING_STATUS.md
+ create mode 100644 archive/session-12/URGENT_FIXES.md
+ create mode 100644 archive/session-12/UUID_FIX_COMPLETE.md
+ create mode 100644 archive/session-12/WIRING_COMPLETE.md
+ rename CODEBASE_INDEX_FOR_HANDOFF.md => archive/session-docs/CODEBASE_INDEX_FOR_HANDOFF.md (100%)
+ rename CONSULTANT_ANSWERS.md => archive/session-docs/CONSULTANT_ANSWERS.md (100%)
+ rename CONTRIBUTION_TEST.md => archive/session-docs/CONTRIBUTION_TEST.md (100%)
+ rename DAY_1_CHECKLIST.md => archive/session-docs/DAY_1_CHECKLIST.md (100%)
+ rename DAY_1_FINAL_STATUS.md => archive/session-docs/DAY_1_FINAL_STATUS.md (100%)
+ rename DAY_1_VICTORY_REPORT.md => archive/session-docs/DAY_1_VICTORY_REPORT.md (100%)
+ rename DAY_2_BATTLE_PLAN.md => archive/session-docs/DAY_2_BATTLE_PLAN.md (100%)
+ rename DAY_2_BATTLE_STATUS.md => archive/session-docs/DAY_2_BATTLE_STATUS.md (100%)
+ rename DAY_2_CLIENT_INTEGRATION.md => archive/session-docs/DAY_2_CLIENT_INTEGRATION.md (100%)
+ rename DAY_2_PROGRESS_REPORT.md => archive/session-docs/DAY_2_PROGRESS_REPORT.md (100%)
+ rename DAY_2_VICTORY_REPORT.md => archive/session-docs/DAY_2_VICTORY_REPORT.md (100%)
+ rename DAY_3_HYDRATION_BATTLE_PLAN.md => archive/session-docs/DAY_3_HYDRATION_BATTLE_PLAN.md (100%)
+ rename DAY_3_TEST_CHECKLIST.md => archive/session-docs/DAY_3_TEST_CHECKLIST.md (100%)
+ rename DAY_3_VICTORY_REPORT.md => archive/session-docs/DAY_3_VICTORY_REPORT.md (100%)
+ rename DAY_4_TEST_CHECKLIST.md => archive/session-docs/DAY_4_TEST_CHECKLIST.md (100%)
+ rename DAY_4_TIMER_BATTLE_PLAN.md => archive/session-docs/DAY_4_TIMER_BATTLE_PLAN.md (100%)
+ rename DAY_4_VICTORY_REPORT.md => archive/session-docs/DAY_4_VICTORY_REPORT.md (100%)
+ rename DAY_5_PREVIEW.md => archive/session-docs/DAY_5_PREVIEW.md (100%)
+ rename DOCUMENTATION_ORGANIZATION_COMPLETE.md => archive/session-docs/DOCUMENTATION_ORGANIZATION_COMPLETE.md (100%)
+ rename FINAL_ADJUSTMENTS.md => archive/session-docs/FINAL_ADJUSTMENTS.md (100%)
+ create mode 100644 archive/session-docs/FINAL_DELIVERABLES.md
+ rename FINAL_INTEGRATION_PLAN.md => archive/session-docs/FINAL_INTEGRATION_PLAN.md (100%)
+ rename FINAL_TABLE_LAYOUT.md => archive/session-docs/FINAL_TABLE_LAYOUT.md (100%)
+ rename GIT_PUSH_SUMMARY.md => archive/session-docs/GIT_PUSH_SUMMARY.md (100%)
+ rename GRID_TABLE_COMPLETE.md => archive/session-docs/GRID_TABLE_COMPLETE.md (100%)
+ rename HANDOFF_TO_NEXT_AGENT.md => archive/session-docs/HANDOFF_TO_NEXT_AGENT.md (100%)
+ rename IMMEDIATE_STEPS.md => archive/session-docs/IMMEDIATE_STEPS.md (100%)
+ rename JOURNEY_SO_FAR.md => archive/session-docs/JOURNEY_SO_FAR.md (100%)
+ rename MAC_QUICK_START.md => archive/session-docs/MAC_QUICK_START.md (100%)
+ rename MAC_SETUP_GUIDE.md => archive/session-docs/MAC_SETUP_GUIDE.md (100%)
+ rename MVP_ROADMAP_FINAL.md => archive/session-docs/MVP_ROADMAP_FINAL.md (100%)
+ rename POKER_TABLE_EVOLUTION_EXECUTION_PLAN.md => archive/session-docs/POKER_TABLE_EVOLUTION_EXECUTION_PLAN.md (100%)
+ rename PRODUCTION_TABLE_READY.md => archive/session-docs/PRODUCTION_TABLE_READY.md (100%)
+ rename PROPER_TABLE_REBUILD_PLAN.md => archive/session-docs/PROPER_TABLE_REBUILD_PLAN.md (100%)
+ rename PROPORTIONAL_SCALING_COMPLETE.md => archive/session-docs/PROPORTIONAL_SCALING_COMPLETE.md (100%)
+ rename QUICK_NEXT_STEPS.md => archive/session-docs/QUICK_NEXT_STEPS.md (100%)
+ rename SEAT_POSITIONING_TOOL.md => archive/session-docs/SEAT_POSITIONING_TOOL.md (100%)
+ rename SESSION_HANDOFF_MIRA.md => archive/session-docs/SESSION_HANDOFF_MIRA.md (100%)
+ create mode 100644 archive/session-docs/SESSION_SUMMARY.md
+ rename SYSTEM_ARCHITECTURE_MAP.md => archive/session-docs/SYSTEM_ARCHITECTURE_MAP.md (100%)
+ rename TABLE_REDESIGN_PLAN.md => archive/session-docs/TABLE_REDESIGN_PLAN.md (100%)
+ rename TABLE_SPACING_IMPROVEMENTS.md => archive/session-docs/TABLE_SPACING_IMPROVEMENTS.md (100%)
+ create mode 100644 archive/session-docs/TEST_INSTRUCTIONS.md
+ rename UI_V3_TESTING_GUIDE.md => archive/session-docs/UI_V3_TESTING_GUIDE.md (100%)
+ rename ZOOM_LOCK_COMPLETE.md => archive/session-docs/ZOOM_LOCK_COMPLETE.md (100%)
+ rename ZOOM_LOCK_CRITICAL_FIX.md => archive/session-docs/ZOOM_LOCK_CRITICAL_FIX.md (100%)
+ rename ZOOM_LOCK_IMPLEMENTATION.md => archive/session-docs/ZOOM_LOCK_IMPLEMENTATION.md (100%)
+ create mode 100644 database/migrations/036_fix_idempotency_key_length.sql
+ create mode 100644 project-tree.txt
+ delete mode 100644 railway.json
+
+```
+
+---
+
+Tool use: **run_terminal_cmd**
+
+```bash
+git push origin main
+```
+
+```
+To https://github.com/WaleedaRaza/pokerswound.git
+   3a11f1a..ab99d29  main -> main
+
+```
+
+---
+
+
+
+---
+

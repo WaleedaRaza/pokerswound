@@ -154,21 +154,9 @@ class TimerService {
     
     console.log(`⏱️ Using ${timebankToUse}ms of timebank for player ${playerId}`);
     
-    // Update database
-    if (dbV2) {
-      const result = await dbV2.pool.query(
-        `UPDATE players 
-         SET timebank_remaining_ms = timebank_remaining_ms - $1
-         WHERE game_id = $2 AND user_id = $3
-         RETURNING timebank_remaining_ms`,
-        [timebankToUse, gameId, playerId]
-      );
-      
-      if (result.rowCount === 0) {
-        console.error('Failed to update timebank');
-        return false;
-      }
-    }
+    // NOTE: Skipping database update - using in-memory game state
+    // The players table (UUID system) doesn't exist - we use game_states (TEXT system)
+    // TODO: Track timebank in game state when timebank feature is fully implemented
     
     // Extend the timer
     this.clearTimer(key);
@@ -225,16 +213,13 @@ class TimerService {
 
   /**
    * Get remaining timebank for a player
+   * NOTE: Using default timebank since we're using in-memory game state
+   * The players table (UUID system) doesn't exist - we use game_states (TEXT system)
    */
   async getTimebankRemaining(gameId, playerId, dbV2) {
-    if (!dbV2) return 0;
-    
-    const result = await dbV2.pool.query(
-      'SELECT timebank_remaining_ms FROM players WHERE game_id = $1 AND user_id = $2',
-      [gameId, playerId]
-    );
-    
-    return result.rows[0]?.timebank_remaining_ms || 0;
+    // Return default timebank of 30 seconds
+    // TODO: Read from room settings or game state when timebank is implemented
+    return 30000; // 30 seconds in milliseconds
   }
 
   /**

@@ -1906,6 +1906,12 @@
 
     // START GAME - Create game in DB, then redirect all players to table
     async function startGame() {
+      console.log('🔍 START GAME DEBUG:', {
+        currentRoom: currentRoom,
+        isHost: isHost,
+        currentUser: currentUser
+      });
+      
       if (!currentRoom || !isHost) {
         showNotification('Only the host can start the game', 'error');
         return;
@@ -1928,6 +1934,14 @@
         const headers = await window.authManager.getAuthHeaders();
         headers['X-Idempotency-Key'] = makeIdempotencyKey('create-game', currentRoom.id, Date.now());
         
+        console.log('🔍 Sending POST /api/games with body:', {
+          roomId: currentRoom.id,
+          hostUserId: currentUser.id,
+          small_blind: small_blind,
+          big_blind: big_blind,
+          max_players: max_players
+        });
+        
         // ✅ CRITICAL: Create game in database FIRST
         const response = await fetch('/api/games', {
           method: 'POST',
@@ -1941,12 +1955,16 @@
           })
         });
         
+        console.log('🔍 Backend response status:', response.status);
+        
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          console.log('🔍 Backend response data (ERROR):', errorData);
           throw new Error(errorData.error || 'Failed to create game');
         }
         
         const gameData = await response.json();
+        console.log('🔍 Backend response data (SUCCESS):', gameData);
         // Backend returns {gameId, status, playerCount}, not {game: {...}}
         currentGame = { id: gameData.gameId, status: gameData.status };
         console.log('✅ Game created:', currentGame);

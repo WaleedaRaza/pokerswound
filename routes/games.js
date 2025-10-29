@@ -22,6 +22,14 @@ router.post('/', withIdempotency, async (req, res) => {
     const { small_blind, big_blind, max_players, roomId, hostUserId } = req.body;
     console.log('🎮 Start game request:', { roomId, hostUserId });
     
+    console.log('🔍 BACKEND: Received game creation request:', {
+      roomId,
+      hostUserId,
+      small_blind,
+      big_blind,
+      max_players
+    });
+    
     const gameId = generateGameId();
     const hostUser = hostUserId || 'system';
     
@@ -49,7 +57,9 @@ router.post('/', withIdempotency, async (req, res) => {
     }
     
     // DUAL-WRITE: Store to both memory AND database
+    console.log('🔍 BACKEND: About to call StorageAdapter.createGame with gameId:', gameId);
     await StorageAdapter.createGame(gameId, gameState, hostUser, roomId);
+    console.log('🔍 BACKEND: StorageAdapter.createGame succeeded');
     
     // FULL SCHEMA PERSISTENCE: Create records in games & game_states tables
     let gameUuid = null;
@@ -93,17 +103,21 @@ router.post('/', withIdempotency, async (req, res) => {
       const db = getDb();
       if (db) {
         try {
+          console.log('🔍 BACKEND: About to UPDATE rooms table, linking game_id:', gameId, 'to room:', roomId);
           await db.query(
             'UPDATE rooms SET game_id = $1 WHERE id = $2',
             [gameId, roomId]
           );
+          console.log('🔍 BACKEND: UPDATE rooms succeeded');
           Logger.debug(LogCategory.GAME, 'Linked game to room', { gameId, roomId });
         } catch (dbError) {
+          console.error('❌ BACKEND: UPDATE rooms FAILED:', dbError.message);
           Logger.error(LogCategory.GAME, 'Error linking game to room', { 
             gameId, 
             roomId, 
             error: dbError.message 
           });
+          throw dbError; // Re-throw to fail the request
         }
       }
     }
@@ -114,12 +128,16 @@ router.post('/', withIdempotency, async (req, res) => {
       roomId 
     });
     
-    res.json({
+    const responsePayload = {
       gameId,
       status: gameState.status,
       playerCount: gameState.players.size,
       engine: 'SOPHISTICATED_TYPESCRIPT'
-    });
+    };
+    
+    console.log('🔍 BACKEND: Sending success response:', responsePayload);
+    
+    res.json(responsePayload);
     
   } catch (error) {
     const Logger = req.app.locals.Logger;
@@ -311,7 +329,8 @@ router.get('/:id/legal-actions', (req, res) => {
 router.post('/:id/start-hand', withIdempotency, async (req, res) => {
   const {
     games, playerUserIds, gameMetadata, getDb, PlayerModel,
-    stateMachine, fullGameRepository, Logger, LogCategory, io
+    stateMachine, fullGameRepository, Logger, LogCategory, io,
+    StorageAdapter
   } = req.app.locals;
   
   try {
@@ -423,6 +442,15 @@ router.post('/:id/start-hand', withIdempotency, async (req, res) => {
     
     result.newState.roomId = roomId;
     games.set(gameId, result.newState);
+    
+    // Persist updated game state to database
+    try {
+      await StorageAdapter.saveGame(gameId, result.newState);
+      console.log('✅ Game state persisted to database after hand start');
+    } catch (error) {
+      console.error('⚠️ Failed to persist game state:', error.message);
+      // Continue anyway - in-memory state is updated
+    }
     
     // Persist hand to database (DISABLED - UUID system broken, using game_states only)
     // const metadata = gameMetadata.get(gameId);
@@ -633,7 +661,7 @@ function getAvailableActions(gameState, playerId) {
 router.post('/:id/actions', withIdempotency, async (req, res) => {
   const {
     games, playerUserIds, gameMetadata, stateMachine, fullGameRepository,
-    getDb, displayStateManager, Logger, LogCategory, io
+    getDb, displayStateManager, Logger, LogCategory, io, StorageAdapter
   } = req.app.locals;
   
   try {
@@ -744,6 +772,15 @@ router.post('/:id/actions', withIdempotency, async (req, res) => {
     }
     
     games.set(gameId, result.newState);
+    
+    // Persist updated game state to database
+    try {
+      await StorageAdapter.saveGame(gameId, result.newState);
+      console.log('✅ Game state persisted to database after action');
+    } catch (error) {
+      console.error('⚠️ Failed to persist game state:', error.message);
+      // Continue anyway - in-memory state is updated
+    }
     
     // Start timer for next player (if any)
     const nextPlayerToAct = result.newState.toAct;
