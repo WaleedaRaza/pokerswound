@@ -146,6 +146,113 @@ router.post('/join-room', async (req, res) => {
 });
 
 // ============================================
+// GET /api/sandbox/my-rooms
+// ============================================
+router.get('/my-rooms', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    console.log('🗂️ [SANDBOX] My rooms request:', { userId });
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing required query param: userId' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Fetch all rooms where user is the host
+    const result = await db.query(
+      `SELECT id, name, invite_code as code, status, created_at, updated_at
+       FROM rooms 
+       WHERE host_user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [userId]
+    );
+    
+    console.log(`✅ [SANDBOX] Found ${result.rows.length} rooms for user ${userId.substr(0, 8)}`);
+    
+    res.json({ 
+      rooms: result.rows 
+    });
+    
+  } catch (error) {
+    console.error('❌ [SANDBOX] My rooms error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch rooms',
+      details: error.message 
+    });
+  }
+});
+
+// ============================================
+// DELETE /api/sandbox/delete-room
+// ============================================
+router.delete('/delete-room', async (req, res) => {
+  try {
+    const { roomId, userId, forceDelete } = req.body;
+    
+    console.log('🗑️ [SANDBOX] Delete room request:', { roomId, userId, forceDelete });
+    
+    if (!roomId || !userId) {
+      return res.status(400).json({ error: 'Missing required fields: roomId, userId' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Verify ownership
+    const roomCheck = await db.query(
+      'SELECT host_user_id, status FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const room = roomCheck.rows[0];
+    
+    if (room.host_user_id !== userId) {
+      return res.status(403).json({ error: 'Only the host can delete this room' });
+    }
+    
+    // Block deletion of active games unless force flag is set
+    if (room.status === 'ACTIVE' && !forceDelete) {
+      return res.status(400).json({ error: 'Cannot delete an active game without force flag' });
+    }
+    
+    // Delete related records first (foreign key constraints)
+    await db.query('DELETE FROM room_seats WHERE room_id = $1', [roomId]);
+    await db.query('DELETE FROM game_states WHERE room_id = $1', [roomId]);
+    
+    // Delete the room
+    await db.query('DELETE FROM rooms WHERE id = $1', [roomId]);
+    
+    console.log(`✅ [SANDBOX] Room deleted: ${roomId}${forceDelete ? ' (FORCED)' : ''}`);
+    
+    res.json({ 
+      success: true,
+      message: 'Room deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ [SANDBOX] Delete room error:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete room',
+      details: error.message 
+    });
+  }
+});
+
+// ============================================
 // HEALTH CHECK
 // ============================================
 router.get('/health', (req, res) => {
@@ -154,7 +261,9 @@ router.get('/health', (req, res) => {
     message: 'Sandbox API is running',
     endpoints: [
       'POST /api/sandbox/create-room',
-      'POST /api/sandbox/join-room'
+      'POST /api/sandbox/join-room',
+      'GET /api/sandbox/my-rooms',
+      'DELETE /api/sandbox/delete-room'
     ]
   });
 });

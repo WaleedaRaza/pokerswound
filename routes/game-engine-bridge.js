@@ -401,12 +401,32 @@ router.post('/deal-cards', async (req, res) => {
     
     console.log('🎴 Dealt hole cards to all players');
     
-    // ===== STEP 3: DETERMINE POSITIONS =====
-    // Dealer button: first player (for now, later we'll rotate)
-    // Small blind: next player after dealer
-    // Big blind: next player after small blind
+    // ===== STEP 3: DETERMINE POSITIONS WITH ROTATION =====
+    // Fetch last hand's dealer position to rotate properly
+    let dealerPosition = 0;
     
-    const dealerPosition = 0;
+    try {
+      const lastHandResult = await db.query(
+        `SELECT current_state->>'dealerPosition' as last_dealer 
+         FROM game_states 
+         WHERE room_id = $1 AND status = 'completed' 
+         ORDER BY created_at DESC 
+         LIMIT 1`,
+        [roomId]
+      );
+      
+      if (lastHandResult.rows.length > 0 && lastHandResult.rows[0].last_dealer !== null) {
+        const lastDealer = parseInt(lastHandResult.rows[0].last_dealer);
+        // Rotate dealer to next active seat
+        dealerPosition = (lastDealer + 1) % players.length;
+        console.log(`🔄 Dealer rotated from seat ${lastDealer} → ${dealerPosition}`);
+      } else {
+        console.log('🆕 First hand, dealer starts at seat 0');
+      }
+    } catch (rotationError) {
+      console.warn('⚠️ Could not fetch last dealer, defaulting to 0:', rotationError.message);
+      dealerPosition = 0;
+    }
     const sbPosition = (dealerPosition + 1) % players.length;
     const bbPosition = (dealerPosition + 2) % players.length;
     
@@ -482,7 +502,18 @@ router.post('/deal-cards', async (req, res) => {
     // ===== STEP 7: BROADCAST PUBLIC STATE =====
     const io = req.app.locals.io;
     if (io) {
-      // Public state (no hole cards)
+      // Fetch nicknames from room_seats
+      const seatsResult = await db.query(
+        `SELECT user_id, nickname FROM room_seats WHERE room_id = $1 AND left_at IS NULL`,
+        [roomId]
+      );
+      
+      const nicknameMap = {};
+      seatsResult.rows.forEach(row => {
+        nicknameMap[row.user_id] = row.nickname;
+      });
+      
+      // Public state (no hole cards, but WITH nicknames)
       const publicState = {
         ...gameState,
         players: gameState.players.map(p => ({
@@ -491,7 +522,8 @@ router.post('/deal-cards', async (req, res) => {
           chips: p.chips,
           bet: p.bet,
           folded: p.folded,
-          status: p.status
+          status: p.status,
+          nickname: nicknameMap[p.userId] || `Player_${p.seatIndex}`
           // holeCards intentionally omitted
         }))
       };
@@ -738,7 +770,18 @@ router.post('/action', async (req, res) => {
     // ===== STEP 4: BROADCAST TO ALL PLAYERS =====
     const io = req.app.locals.io;
     if (io) {
-      // Public state (no hole cards)
+      // Fetch nicknames from room_seats
+      const seatsResult = await db.query(
+        `SELECT user_id, nickname FROM room_seats WHERE room_id = $1 AND left_at IS NULL`,
+        [roomId]
+      );
+      
+      const nicknameMap = {};
+      seatsResult.rows.forEach(row => {
+        nicknameMap[row.user_id] = row.nickname;
+      });
+      
+      // Public state (no hole cards, but WITH nicknames)
       const publicState = {
         ...updatedState,
         players: updatedState.players.map(p => ({
@@ -747,7 +790,8 @@ router.post('/action', async (req, res) => {
           chips: p.chips,
           bet: p.bet,
           folded: p.folded,
-          status: p.status
+          status: p.status,
+          nickname: nicknameMap[p.userId] || `Player_${p.seatIndex}`
           // holeCards intentionally omitted
         }))
       };
@@ -824,7 +868,18 @@ router.get('/game/:roomId', async (req, res) => {
     
     console.log(`✅ [MINIMAL] Game state retrieved: ${gameStateRow.id}`);
     
-    // Return public game state (no hole cards)
+    // Fetch nicknames from room_seats
+    const seatsResult = await db.query(
+      `SELECT user_id, nickname FROM room_seats WHERE room_id = $1 AND left_at IS NULL`,
+      [roomId]
+    );
+    
+    const nicknameMap = {};
+    seatsResult.rows.forEach(row => {
+      nicknameMap[row.user_id] = row.nickname;
+    });
+    
+    // Return public game state (no hole cards, but WITH nicknames)
     res.json({
       gameStateId: gameStateRow.id,
       pot: gameState.pot,
@@ -841,7 +896,8 @@ router.get('/game/:roomId', async (req, res) => {
         chips: p.chips,
         bet: p.bet,
         folded: p.folded,
-        status: p.status
+        status: p.status,
+        nickname: nicknameMap[p.userId] || `Player_${p.seatIndex}` // Add nickname!
         // holeCards intentionally omitted
       })),
       handNumber: gameState.handNumber,
@@ -1116,6 +1172,17 @@ router.post('/next-hand', async (req, res) => {
     // ===== STEP 11: BROADCAST =====
     const io = req.app.locals.io;
     if (io) {
+      // Fetch nicknames from room_seats
+      const seatsResult = await db.query(
+        `SELECT user_id, nickname FROM room_seats WHERE room_id = $1 AND left_at IS NULL`,
+        [roomId]
+      );
+      
+      const nicknameMap = {};
+      seatsResult.rows.forEach(row => {
+        nicknameMap[row.user_id] = row.nickname;
+      });
+      
       const publicState = {
         ...gameState,
         players: gameState.players.map(p => ({
@@ -1124,7 +1191,8 @@ router.post('/next-hand', async (req, res) => {
           chips: p.chips,
           bet: p.bet,
           folded: p.folded,
-          status: p.status
+          status: p.status,
+          nickname: nicknameMap[p.userId] || `Player_${p.seatIndex}`
           // holeCards omitted
         }))
       };
@@ -1379,6 +1447,111 @@ router.patch('/host-controls/update-blinds', async (req, res) => {
   } catch (error) {
     console.error('❌ [HOST] Update blinds error:', error);
     res.status(500).json({ error: 'Failed to update blinds', details: error.message });
+  }
+});
+
+// ============================================
+// ENDPOINT: SHOWDOWN ACTION (SHOW/MUCK)
+// ============================================
+// POST /api/engine/showdown-action
+// Body: { roomId, userId, action: 'SHOW' | 'MUCK' }
+// Purpose: Let players show or muck their cards at showdown
+
+router.post('/showdown-action', async (req, res) => {
+  try {
+    const { roomId, userId, action } = req.body;
+    
+    console.log(`🃏 [SHOWDOWN] ${action} cards:`, { roomId, userId });
+    
+    if (!roomId || !userId || !action) {
+      return res.status(400).json({ error: 'Missing roomId, userId, or action' });
+    }
+    
+    if (action !== 'SHOW' && action !== 'MUCK') {
+      return res.status(400).json({ error: 'Action must be SHOW or MUCK' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Get most recent game state (can be active OR completed during showdown window)
+    const result = await db.query(
+      `SELECT id, current_state, status as db_status FROM game_states 
+       WHERE room_id = $1 
+       ORDER BY created_at DESC LIMIT 1`,
+      [roomId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No game found' });
+    }
+    
+    const gameStateRow = result.rows[0];
+    const gameState = gameStateRow.current_state;
+    
+    // Can only show/muck at showdown
+    if (gameState.street !== 'SHOWDOWN' || gameState.status !== 'COMPLETED') {
+      return res.status(400).json({ 
+        error: 'Can only show/muck at showdown',
+        currentStreet: gameState.street,
+        currentStatus: gameState.status
+      });
+    }
+    
+    // Find the player
+    const player = gameState.players.find(p => p.userId === userId);
+    if (!player) {
+      return res.status(404).json({ error: 'Player not in game' });
+    }
+    
+    // Track the action
+    player.showdownAction = action;
+    
+    // Update game state in DB
+    await db.query(
+      `UPDATE game_states SET current_state = $1 WHERE id = $2`,
+      [JSON.stringify(gameState), gameStateRow.id]
+    );
+    
+    console.log(`✅ [SHOWDOWN] Player ${userId.substr(0, 8)} chose to ${action}`);
+    
+    // Broadcast to all players
+    const io = req.app.locals.io;
+    if (io) {
+      // Fetch nicknames
+      const seatsResult = await db.query(
+        `SELECT user_id, nickname FROM room_seats WHERE room_id = $1 AND left_at IS NULL`,
+        [roomId]
+      );
+      
+      const nicknameMap = {};
+      seatsResult.rows.forEach(row => {
+        nicknameMap[row.user_id] = row.nickname;
+      });
+      
+      io.to(`room:${roomId}`).emit('showdown_action', {
+        userId,
+        action,
+        seatIndex: player.seatIndex,
+        nickname: nicknameMap[userId] || `Player_${player.seatIndex}`,
+        // Only include hole cards if SHOW
+        holeCards: action === 'SHOW' ? player.holeCards : null
+      });
+      
+      console.log(`📡 [SHOWDOWN] Broadcast ${action} action to room:${roomId}`);
+    }
+    
+    res.json({ success: true, action });
+    
+  } catch (error) {
+    console.error('❌ [SHOWDOWN] Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to process showdown action',
+      details: error.message 
+    });
   }
 });
 

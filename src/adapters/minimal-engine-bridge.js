@@ -53,6 +53,17 @@ class MinimalBettingAdapter {
     // 3. APPLY ACTION (production logic)
     const updatedState = this.applyAction(gameState, player, action, amount);
 
+    // 3B. CHECK FOR FOLD WIN (Critical: If only 1 player left, end immediately)
+    if (action === 'FOLD') {
+      const activePlayers = updatedState.players.filter(p => !p.folded && p.status !== 'ALL_IN');
+      
+      if (activePlayers.length === 1) {
+        console.log('🏆 [FOLD WIN] Only 1 player remaining, ending hand immediately');
+        this.handleFoldWin(updatedState, activePlayers[0]);
+        return { success: true, gameState: updatedState };
+      }
+    }
+
     // 4. CHECK BETTING ROUND COMPLETE (production logic)
     if (this.isBettingRoundComplete(updatedState)) {
       this.progressToNextStreet(updatedState);
@@ -318,6 +329,32 @@ class MinimalBettingAdapter {
       nextIndex = (nextIndex + 1) % gameState.players.length;
       attempts++;
     }
+  }
+
+  /**
+   * HANDLE FOLD WIN
+   * When all players fold except one
+   */
+  static handleFoldWin(gameState, winner) {
+    console.log(`🏆 [FOLD WIN] Player ${winner.userId.substr(0, 8)} (Seat ${winner.seatIndex}) wins $${gameState.pot} by fold`);
+    
+    // Award pot to winner
+    winner.chips += gameState.pot;
+    
+    // Set winner info
+    gameState.winners = [{
+      userId: winner.userId,
+      seatIndex: winner.seatIndex,
+      amount: gameState.pot,
+      handDescription: 'Win by fold'
+    }];
+    
+    // Mark hand as complete
+    gameState.pot = 0;
+    gameState.status = 'COMPLETED';
+    gameState.street = 'SHOWDOWN'; // Set to showdown so UI knows hand is over
+    
+    console.log('✅ [FOLD WIN] Hand complete');
   }
 
   /**

@@ -5,6 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PokerGeek - Minimal Table</title>
   <style>
+    /* Design Tokens */
+    :root {
+      --bg: #0b0b12;
+      --text: #e9eef7;
+      --muted: #9aa3b2;
+      --accent: #ff5100;
+      --teal: #00d4aa;
+      --error: #ff3b3b;
+      --felt-current: #197a45;
+      --font-main: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --shadow-md: 0 8px 18px rgba(0,0,0,.35);
+      --shadow-lg: 0 12px 28px rgba(0,0,0,.45);
+      --shadow-xl: 0 18px 44px rgba(0,0,0,.55);
+    }
+
+    /* Felt color presets */
+    body[data-felt="green"] { --felt-current: #197a45; }
+    body[data-felt="red"] { --felt-current: #6b1414; }
+    body[data-felt="black"] { --felt-current: #1a1a1a; }
+    body[data-felt="blue"] { --felt-current: #0f2942; }
+    body[data-felt="grey"] { --felt-current: #2a2a2a; }
+    body[data-felt="tan"] { --felt-current: #6b5642; }
+    body[data-felt="purple"] { --felt-current: #3a1450; }
+
     * {
       margin: 0;
       padding: 0;
@@ -21,6 +46,153 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
+    }
+    
+    /* ============================================ */
+    /* ZOOM LOCK TABLE WRAPPER */
+    /* ============================================ */
+    .table-wrapper {
+      width: 100%;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .poker-table {
+      position: absolute;
+      width: 1680px;
+      height: 800px;
+      transform-origin: top left;
+      pointer-events: auto;
+    }
+
+    /* Oval Felt Background */
+    .table-felt {
+      position: absolute;
+      inset: 24px;
+      border-radius: 360px;
+      border: 2px solid #0d1117;
+      background: var(--felt-current);
+      box-shadow: 
+        inset 0 0 0 16px rgba(0,0,0,.35), 
+        inset 0 0 80px rgba(0,0,0,.45);
+      z-index: 0;
+    }
+
+    .table-felt::after {
+      content: "";
+      position: absolute;
+      inset: -24px;
+      border-radius: inherit;
+      box-shadow: 0 16px 56px rgba(0,0,0,.55);
+      pointer-events: none;
+    }
+
+    /* Board Center (Community Cards + Pot) */
+    .board-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .community-cards-center {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    /* Community card styling */
+    .community-cards-center .card-img {
+      width: 110px;
+      aspect-ratio: 5/7;
+      border-radius: 10px;
+      box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.15),
+        0 12px 40px rgba(0, 0, 0, 0.8);
+      object-fit: cover;
+      border: 2px solid rgba(255,255,255,0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .community-cards-center .card-img:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 0 40px rgba(255, 255, 255, 0.25),
+        0 16px 50px rgba(0, 0, 0, 0.9);
+    }
+    
+    /* Card entrance animation */
+    @keyframes cardFlip {
+      0% {
+        transform: rotateY(90deg) scale(0.8);
+        opacity: 0;
+      }
+      50% {
+        transform: rotateY(45deg) scale(1.05);
+      }
+      100% {
+        transform: rotateY(0deg) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .community-cards-center .card-img {
+      animation: cardFlip 0.5s ease-out forwards;
+    }
+
+    .pot-display-center {
+      padding: 28px 56px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(0,0,0,.98) 0%, rgba(20,20,30,.98) 100%);
+      border: 3px solid rgba(255,215,0,.6);
+      text-align: center;
+      box-shadow: 
+        inset 0 0 40px -10px rgba(255, 215, 0, 0.3),
+        0 0 0 1px rgba(255,215,0,.3),
+        0 0 60px rgba(255,215,0,.4),
+        var(--shadow-xl);
+      pointer-events: auto;
+      backdrop-filter: blur(10px);
+    }
+
+    .pot-label {
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: .2em;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .pot-amount {
+      font-family: var(--font-mono);
+      font-size: 52px;
+      color: #ffd700;
+      font-weight: 900;
+      text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 4px 12px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.05em;
+    }
+
+    /* Seats Layer */
+    .seats-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
     }
     
     h1 {
@@ -42,33 +214,65 @@
     }
     
     .seats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 30px;
+      position: relative;
+      width: 100%;
+      height: 100%;
     }
     
     .seat {
-      background: rgba(255,255,255,0.03);
-      border: 3px solid #333;
-      border-radius: 12px;
-      padding: 20px;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, rgba(20,20,40,0.95) 0%, rgba(30,30,50,0.95) 100%);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px;
+      padding: 24px;
+      width: 220px;
+      min-height: 180px;
       transition: all 0.3s ease;
+      backdrop-filter: blur(20px) saturate(120%);
+      box-shadow: 
+        inset 0 0 20px -5px rgba(255, 255, 255, 0.1),
+        0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+    
+    /* YOUR seat - wider for better card display */
+    .seat.me {
+      width: 320px;
+      min-height: 200px;
+      padding: 28px;
+      border: 3px solid var(--teal);
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 180, 140, 0.15) 100%);
+      box-shadow: 
+        inset 0 0 30px -6px rgba(0, 212, 170, 0.3), 
+        0 0 0 3px rgba(0,212,170,.5),
+        0 0 50px rgba(0,212,170,.6),
+        0 12px 40px rgba(0, 0, 0, 0.8);
     }
     
     .seat.empty {
-      border-color: #00d4aa;
+      border: 2px dashed rgba(0, 212, 170, 0.5);
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.03) 0%, rgba(0, 180, 140, 0.03) 100%);
       cursor: pointer;
+      transition: all 0.3s ease;
     }
     
     .seat.empty:hover {
-      background: rgba(0,212,170,0.1);
-      transform: translateY(-2px);
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 180, 140, 0.15) 100%);
+      border: 2px solid var(--teal);
+      box-shadow: 
+        inset 0 0 30px -6px rgba(0, 212, 170, 0.25),
+        0 0 0 2px rgba(0,212,170,.4),
+        0 0 40px rgba(0, 212, 170, 0.5),
+        0 12px 35px rgba(0, 0, 0, 0.7);
+      transform: scale(1.02);
     }
     
     .seat.taken {
-      border-color: gold;
-      background: rgba(255,215,0,0.05);
+      border: 2px solid rgba(255,215,0,0.6);
+      background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, rgba(255,195,0,0.08) 100%);
+      box-shadow: 
+        inset 0 0 20px -5px rgba(255, 215, 0, 0.15),
+        0 10px 30px rgba(0, 0, 0, 0.6);
     }
     
     .seat.me {
@@ -76,21 +280,200 @@
       background: rgba(255,81,0,0.1);
     }
     
+    .seat.winner {
+      border-color: gold;
+      background: rgba(255,215,0,0.2);
+      box-shadow: 0 0 20px rgba(255,215,0,0.5);
+      animation: winnerPulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes winnerPulse {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(255,215,0,0.5);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(255,215,0,0.8);
+      }
+    }
+    
     .seat-label {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: #9aa3b2;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      letter-spacing: 0.3px;
     }
     
     .seat-player {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 5px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--teal);
+      text-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
+      letter-spacing: 0.5px;
     }
     
     .seat-chips {
-      color: #FFC107;
-      font-weight: 500;
+      color: #ffd700;
+      font-weight: 600;
+      font-size: 1.2rem;
+      text-shadow: 0 2px 6px rgba(255, 215, 0, 0.5);
+      letter-spacing: 0.5px;
+    }
+    
+    /* 🃏 SEAT CARD BACKINGS */
+    .seat-cards {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+      justify-content: center;
+      min-height: 98px;
+    }
+    
+    .seat-card-back, .seat-card-front {
+      width: 70px;
+      height: 98px;
+      border-radius: 6px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      transition: all 0.3s;
+      object-fit: cover;
+    }
+    
+    .seat-card-back.folded, .seat-card-front.folded {
+      opacity: 0.3;
+      filter: grayscale(100%);
+    }
+    
+    .seat-card-back.hidden {
+      display: none;
+    }
+    
+    /* 🎰 DEALER & BLIND BADGES */
+    .position-badges {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+      justify-content: center;
+    }
+    
+    .position-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      border: 1px solid;
+    }
+    
+    .position-badge.dealer {
+      background: linear-gradient(135deg, #ffaa00, #ff8800);
+      color: #0b0b12;
+      border-color: #ffcc44;
+    }
+    
+    .position-badge.sb {
+      background: linear-gradient(135deg, #00aaff, #0088ff);
+      color: white;
+      border-color: #44ccff;
+    }
+    
+    .position-badge.bb {
+      background: linear-gradient(135deg, #ff3b3b, #ff0000);
+      color: white;
+      border-color: #ff6666;
+    }
+    
+    /* 🏆 WINNER BANNER */
+    .winner-banner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95));
+      border: 3px solid gold;
+      border-radius: 16px;
+      padding: 30px 50px;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0b0b12;
+      box-shadow: 0 10px 40px rgba(255,215,0,0.6);
+      z-index: 1000;
+      animation: winnerBannerPop 0.5s ease-out;
+      display: none;
+    }
+    
+    @keyframes winnerBannerPop {
+      0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .winner-banner.show {
+      display: block;
+    }
+    
+    /* 🃏 SHOW/MUCK CONTROLS */
+    .showdown-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(15,15,25,0.95), rgba(20,20,30,0.95));
+      border: 2px solid #ff5100;
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+      z-index: 999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    
+    .showdown-controls.show {
+      display: block;
+    }
+    
+    .showdown-controls h3 {
+      margin: 0 0 12px 0;
+      color: #ff5100;
+      font-size: 1rem;
+      text-align: center;
+    }
+    
+    .showdown-controls .button-group {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .showdown-controls button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    
+    .showdown-controls button.show-btn {
+      background: linear-gradient(135deg, #00dd88, #00aa66);
+      color: white;
+    }
+    
+    .showdown-controls button.show-btn:hover {
+      background: linear-gradient(135deg, #00ff99, #00cc77);
+      transform: scale(1.05);
+    }
+    
+    .showdown-controls button.muck-btn {
+      background: linear-gradient(135deg, #666, #444);
+      color: white;
+    }
+    
+    .showdown-controls button.muck-btn:hover {
+      background: linear-gradient(135deg, #777, #555);
+      transform: scale(1.05);
     }
     
     /* 🎛️ HOST CONTROLS PANEL */
@@ -301,26 +684,48 @@
     }
     
     .btn {
-      background: #ff5100;
+      background: linear-gradient(135deg, #ff5100, #ff6a1f);
       color: white;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      font-weight: 600;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 18px 40px;
+      border-radius: 14px;
+      font-size: 1.2rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 
+        inset 0 0 20px -5px rgba(255, 255, 255, 0.3),
+        0 8px 24px rgba(255, 81, 0, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
     }
     
     .btn:hover {
-      background: #ff6a1f;
-      transform: translateY(-2px);
+      background: linear-gradient(135deg, #ff6a1f, #ff8438);
+      transform: translateY(-3px);
+      box-shadow: 
+        inset 0 0 25px -5px rgba(255, 255, 255, 0.4),
+        0 12px 32px rgba(255, 81, 0, 0.6),
+        0 6px 16px rgba(0, 0, 0, 0.7);
+    }
+    
+    .btn:active {
+      transform: translateY(-1px);
+      box-shadow: 
+        inset 0 0 20px -5px rgba(255, 255, 255, 0.3),
+        0 6px 20px rgba(255, 81, 0, 0.4),
+        0 3px 10px rgba(0, 0, 0, 0.6);
     }
     
     .btn:disabled {
-      background: #555;
+      background: linear-gradient(135deg, #333, #444);
+      border-color: rgba(255, 255, 255, 0.1);
       cursor: not-allowed;
       transform: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      opacity: 0.5;
     }
     
     .my-cards {
@@ -385,6 +790,18 @@
   </style>
 </head>
 <body>
+  <!-- 🏆 WINNER BANNER (hidden by default) -->
+  <div class="winner-banner" id="winnerBanner"></div>
+  
+  <!-- 🃏 SHOW/MUCK CONTROLS (showdown only) -->
+  <div class="showdown-controls" id="showdownControls">
+    <h3>🃏 Show your cards or muck?</h3>
+    <div class="button-group">
+      <button class="show-btn" onclick="showCards()">SHOW CARDS</button>
+      <button class="muck-btn" onclick="muckCards()">MUCK</button>
+    </div>
+  </div>
+  
   <div class="container">
     <h1>🎰 PokerGeek Minimal Table</h1>
     
@@ -436,43 +853,53 @@
       <button class="btn" id="refreshBtn">🔄 REFRESH</button>
     </div>
     
-    <!-- COMMUNITY CARDS + POT -->
-    <div class="my-cards" id="communitySection" style="display:none">
-      <h3>Community Cards</h3>
-      <div style="display: flex; gap: 20px; align-items: center;">
-        <div class="cards-display" id="communityCards"></div>
-        <div style="flex: 1;">
-          <div style="font-size: 1.5rem; color: #FFC107; font-weight: bold;">
-            POT: $<span id="potAmount">0</span>
-          </div>
-          <div style="font-size: 0.9rem; color: #9aa3b2; margin-top: 5px;">
-            Current Bet: $<span id="currentBet">0</span>
-          </div>
+    <!-- HIDDEN: Old top sections (deprecated - info now on table) -->
+    <div style="display: none !important;">
+      <div class="my-cards" id="communitySection">
+        <div class="cards-display"></div>
+        <span id="currentBet">0</span>
+        <span id="currentBetDisplay">0</span>
+      </div>
+      
+      <div class="my-cards" id="myCardsSection">
+        <span id="turnIndicator"></span>
+        <div class="cards-display" id="myCards"></div>
+        <div id="handStrength">
+          <div id="handStrengthText"></div>
         </div>
       </div>
     </div>
     
-    <!-- YOUR CARDS + ACTIONS -->
-    <div class="my-cards" id="myCardsSection" style="display:none">
-      <h3>Your Hole Cards <span id="turnIndicator" style="display:none; color: #ff5100; font-weight: bold; margin-left: 10px;">← YOUR TURN</span></h3>
-      <div class="cards-display" id="myCards"></div>
-      
-      <!-- HAND STRENGTH DISPLAY -->
-      <div id="handStrength" style="display:none; margin-top: 15px; padding: 10px; background: rgba(0,212,170,0.2); border-radius: 8px; text-align: center;">
-        <div style="font-size: 0.9rem; color: #888; margin-bottom: 3px;">Your Hand:</div>
-        <div id="handStrengthText" style="font-size: 1.2rem; font-weight: bold; color: #00d4aa;"></div>
-      </div>
-      
-      <!-- ACTION BUTTONS -->
-      <div id="actionButtons" style="display:none; margin-top: 20px; display: flex; gap: 10px;">
-        <button class="btn" id="foldBtn" style="background: #ff3b3b;">FOLD</button>
-        <button class="btn" id="callBtn" style="background: #00d4aa;"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
-        <button class="btn" id="raiseBtn" style="background: #ff5100;">RAISE</button>
+    <h2 style="margin-bottom: 15px;">Seats <span id="currentActor" style="font-size: 0.9rem; color: #ff5100; font-weight: normal;"></span></h2>
+    
+    <!-- 🎰 POKER TABLE (Zoom-Locked) -->
+    <div class="table-wrapper" id="tableWrapper">
+      <div class="poker-table" id="pokerTable">
+        <!-- Oval Felt Background -->
+        <div class="table-felt"></div>
+        
+        <!-- Board Center (Community Cards + Pot) -->
+        <div class="board-center">
+          <div class="community-cards-center" id="communityCards"></div>
+          <div class="pot-display-center">
+            <div class="pot-label">POT</div>
+            <div class="pot-amount" id="potAmount">$0</div>
+          </div>
+        </div>
+        
+        <!-- Seats Layer -->
+        <div class="seats-layer">
+          <div class="seats-grid" id="seats"></div>
+        </div>
       </div>
     </div>
     
-    <h2 style="margin-bottom: 15px;">Seats <span id="currentActor" style="font-size: 0.9rem; color: #ff5100; font-weight: normal;"></span></h2>
-    <div class="seats-grid" id="seats"></div>
+    <!-- ACTION BUTTONS (Below Table) -->
+    <div id="actionButtons" style="display:none; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
+      <button class="btn" id="foldBtn" style="background: #ff3b3b;">FOLD</button>
+      <button class="btn" id="callBtn" style="background: #00d4aa;"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
+      <button class="btn" id="raiseBtn" style="background: #ff5100;">RAISE</button>
+    </div>
     
     <div class="debug">
       <h4>Debug Console</h4>
@@ -490,6 +917,9 @@
     let gameId = null;
     let socket = null;
     let isHost = false; // Track if current user is host
+    let isClaimingSeat = false; // Prevent duplicate seat claims
+    let currentGameState = null; // Track current game state for UI logic
+    let myHoleCards = null; // Track user's hole cards to show on their seat tile
     
     // ============================================
     // UTILITY: DEBUG LOGGING
@@ -505,6 +935,33 @@
       }
       log.appendChild(entry);
       log.scrollTop = log.scrollHeight;
+    }
+    
+    // ============================================
+    // UTILITY: CARD IMAGE PATH CONVERTER
+    // ============================================
+    function getCardImagePath(card) {
+      // Convert "Ah" → "hearts_A.png", "Ks" → "spades_K.png", "Td" → "diamonds_10.png"
+      if (!card || card.length < 2) return '/cards/back.png';
+      
+      const rank = card.slice(0, -1); // "A", "K", "T", "2", etc.
+      const suitChar = card.slice(-1); // "h", "s", "d", "c"
+      
+      const suitMap = {
+        'h': 'hearts',
+        's': 'spades',
+        'd': 'diamonds',
+        'c': 'clubs'
+      };
+      
+      const rankMap = {
+        'T': '10'
+      };
+      
+      const suit = suitMap[suitChar] || 'hearts';
+      const finalRank = rankMap[rank] || rank;
+      
+      return `/cards/${suit}_${finalRank}.png`;
     }
     
     // ============================================
@@ -640,6 +1097,7 @@
         });
         
         gameId = data.gameId;
+        currentGameState = data.gameState; // Store for UI logic
         
         // Show community section
         document.getElementById('communitySection').style.display = 'block';
@@ -662,6 +1120,7 @@
         
         // Render my hole cards
         if (data.myHoleCards && data.myHoleCards.length === 2) {
+          myHoleCards = data.myHoleCards; // Store globally
           renderMyCards(data.myHoleCards);
         }
         
@@ -676,6 +1135,12 @@
         
         // Hide START button (game is active)
         document.getElementById('startBtn').style.display = 'none';
+        
+        // Update seat card backings (pass myHoleCards to show on my seat)
+        updateSeatCardBackings(data.gameState, myHoleCards);
+        
+        // Update position badges (dealer, SB, BB)
+        updatePositionBadges(data.gameState);
         
         debug('✅ Game state restored successfully');
         
@@ -737,6 +1202,7 @@
         // Display public game state
         if (data.gameState) {
           const gs = data.gameState;
+          currentGameState = gs; // Store for UI logic
           
           // Show community section
           document.getElementById('communitySection').style.display = 'block';
@@ -751,6 +1217,12 @@
           }
           
           debug('✅ Game state updated', { pot: gs.pot, currentBet: gs.currentBet, street: gs.street });
+          
+          // Update seat card backings (pass myHoleCards to show on my seat)
+          updateSeatCardBackings(gs, myHoleCards);
+          
+          // Update position badges (dealer, SB, BB)
+          updatePositionBadges(gs);
         }
         
         // Fetch my hole cards (for guests who didn't initiate the hand)
@@ -767,6 +1239,7 @@
         // Update game state display
         if (data.gameState) {
           const gs = data.gameState;
+          currentGameState = gs; // Store for UI logic
           
           document.getElementById('potAmount').textContent = gs.pot || 0;
           document.getElementById('currentBet').textContent = gs.currentBet || 0;
@@ -800,10 +1273,57 @@
           if (gs.status === 'COMPLETED') {
             handleHandComplete(gs);
           }
+          
+          // Update seat card backings (show folds, etc) (pass myHoleCards to show on my seat)
+          updateSeatCardBackings(gs, myHoleCards);
+          
+          // Update position badges (dealer, SB, BB)
+          updatePositionBadges(gs);
+          
+          // Update chips in real-time (CRITICAL: show chip stacks decreasing as players bet)
+          updateSeatChips(gs.players);
         }
+      });
+      
+      // Listen for showdown actions (show/muck)
+      socket.on('showdown_action', (data) => {
+        debug('🃏 Showdown action received:', data);
         
-        // Reload seats to show updated chips
-        setTimeout(loadRoom, 300);
+        const { action, seatIndex, nickname, holeCards } = data;
+        
+        if (action === 'SHOW' && holeCards) {
+          // REPLACE card backs with actual card images
+          const cardBacksContainer = document.querySelector(`.seat-cards[data-seat-index="${seatIndex}"]`);
+          if (cardBacksContainer) {
+            cardBacksContainer.innerHTML = ''; // Clear card backs
+            
+            // Display actual cards using images
+            holeCards.forEach(card => {
+              const cardImg = document.createElement('img');
+              cardImg.className = 'seat-card-front';
+              cardImg.src = getCardImagePath(card);
+              cardImg.alt = card;
+              cardImg.onerror = function() {
+                // Fallback if image doesn't exist
+                this.src = '/cards/back.png';
+              };
+              cardBacksContainer.appendChild(cardImg);
+            });
+            
+            debug(`✅ @${nickname} showed cards: ${holeCards.join(' ')}`);
+          }
+        } else if (action === 'MUCK') {
+          // Grey out card backs (already folded styling)
+          const cardBacksContainer = document.querySelector(`.seat-cards[data-seat-index="${seatIndex}"]`);
+          if (cardBacksContainer) {
+            const cardBacks = cardBacksContainer.querySelectorAll('.seat-card-back');
+            cardBacks.forEach(back => {
+              back.classList.add('folded'); // Grey them out
+            });
+            
+            debug(`✅ @${nickname} mucked cards`);
+          }
+        }
       });
       
       // NOTE: Private hole cards are sent via HTTP response in startHand()
@@ -820,9 +1340,7 @@
       // Host control events
       socket.on('blinds_updated', (data) => {
         debug('💰 Blinds updated by host', data);
-        if (!isHost) {
-          alert(`💰 Blinds updated to $${data.smallBlind}/$${data.bigBlind}`);
-        }
+        // No blocking alert - blinds update will show in next hand
       });
       
       socket.on('player_kicked', (data) => {
@@ -913,15 +1431,25 @@
       const seatsDiv = document.getElementById('seats');
       seatsDiv.innerHTML = '';
       
+      // Check if game is active (hide empty seats during game)
+      const isGameActive = currentGameState && (currentGameState.status === 'IN_PROGRESS' || currentGameState.status === 'COMPLETED');
+      
       // Create 9 seats (0-8)
       for (let i = 0; i < 9; i++) {
         const seat = seats ? seats[i] : null;
-        const div = document.createElement('div');
-        
-        const isMe = seat && seat.userId === userId;
         const isEmpty = !seat || !seat.userId;
         
+        // Skip empty seats if game is active
+        if (isEmpty && isGameActive) {
+          debug(`⏩ Skipping empty seat ${i} (game active)`);
+          continue;
+        }
+        
+        const div = document.createElement('div');
+        const isMe = seat && seat.userId === userId;
+        
         div.className = 'seat';
+        div.dataset.seatIndex = i; // Add data attribute for positioning
         if (isEmpty) {
           div.className += ' empty';
         } else if (isMe) {
@@ -940,6 +1468,16 @@
         const chips = document.createElement('div');
         chips.className = 'seat-chips';
         
+        // Card backings container
+        const cardBacksContainer = document.createElement('div');
+        cardBacksContainer.className = 'seat-cards';
+        cardBacksContainer.dataset.seatIndex = i;
+        
+        // Position badges container (dealer, SB, BB)
+        const positionBadges = document.createElement('div');
+        positionBadges.className = 'position-badges';
+        positionBadges.dataset.seatIndex = i;
+        
         if (isEmpty) {
           player.textContent = '🪑 EMPTY';
           chips.textContent = 'Click to claim';
@@ -955,17 +1493,189 @@
         div.appendChild(label);
         div.appendChild(player);
         div.appendChild(chips);
+        div.appendChild(cardBacksContainer); // Add card backs container
+        div.appendChild(positionBadges); // Add position badges
         
         seatsDiv.appendChild(div);
+      }
+      
+      // Apply circular positions
+      applySeatPositions();
+      
+      // Update card backings if game is active (pass myHoleCards to show on my seat)
+      if (currentGameState) {
+        updateSeatCardBackings(currentGameState, myHoleCards);
       }
       
       debug('✅ Seats rendered');
     }
     
     // ============================================
+    // STEP 4B: UPDATE SEAT CHIPS IN REAL-TIME
+    // ============================================
+    function updateSeatChips(players) {
+      if (!players) return;
+      
+      debug('💰 Updating seat chips', { playerCount: players.length });
+      
+      players.forEach(player => {
+        // Find the seat element
+        const seatsDiv = document.getElementById('seats');
+        const seatDivs = seatsDiv.querySelectorAll('.seat');
+        
+        seatDivs.forEach(seatDiv => {
+          const label = seatDiv.querySelector('.seat-label');
+          if (label && label.textContent === `Seat ${player.seatIndex}`) {
+            // Update chips display
+            const chipsDiv = seatDiv.querySelector('.seat-chips');
+            if (chipsDiv && !chipsDiv.textContent.includes('Click to claim')) {
+              chipsDiv.textContent = `$${(player.chips || 0).toLocaleString()}`;
+            }
+          }
+        });
+      });
+    }
+    
+    // ============================================
+    // STEP 4B2: UPDATE POSITION BADGES (DEALER, SB, BB)
+    // ============================================
+    function updatePositionBadges(gameState) {
+      if (!gameState) return;
+      
+      debug('🎰 Updating position badges', { 
+        dealer: gameState.dealerPosition, 
+        sb: gameState.sbPosition, 
+        bb: gameState.bbPosition 
+      });
+      
+      // Clear all existing badges first
+      document.querySelectorAll('.position-badges').forEach(container => {
+        container.innerHTML = '';
+      });
+      
+      // Show badges during active game or showdown
+      if (gameState.status !== 'IN_PROGRESS' && gameState.status !== 'COMPLETED') return;
+      
+      // Add dealer badge
+      if (gameState.dealerPosition !== undefined) {
+        const dealerContainer = document.querySelector(`.position-badges[data-seat-index="${gameState.dealerPosition}"]`);
+        if (dealerContainer) {
+          const badge = document.createElement('span');
+          badge.className = 'position-badge dealer';
+          badge.textContent = 'D';
+          badge.title = 'Dealer';
+          dealerContainer.appendChild(badge);
+        }
+      }
+      
+      // Add small blind badge
+      if (gameState.sbPosition !== undefined) {
+        const sbContainer = document.querySelector(`.position-badges[data-seat-index="${gameState.sbPosition}"]`);
+        if (sbContainer) {
+          const badge = document.createElement('span');
+          badge.className = 'position-badge sb';
+          badge.textContent = 'SB';
+          badge.title = 'Small Blind';
+          sbContainer.appendChild(badge);
+        }
+      }
+      
+      // Add big blind badge
+      if (gameState.bbPosition !== undefined) {
+        const bbContainer = document.querySelector(`.position-badges[data-seat-index="${gameState.bbPosition}"]`);
+        if (bbContainer) {
+          const badge = document.createElement('span');
+          badge.className = 'position-badge bb';
+          badge.textContent = 'BB';
+          badge.title = 'Big Blind';
+          bbContainer.appendChild(badge);
+        }
+      }
+    }
+    
+    // ============================================
+    // STEP 4C: UPDATE CARD BACKINGS ON SEATS
+    // ============================================
+    function updateSeatCardBackings(gameState, myHoleCards = null) {
+      if (!gameState || !gameState.players) {
+        debug('⚠️ No gameState or players for card backings');
+        return;
+      }
+      
+      debug('🃏 Updating seat card backings', { 
+        players: gameState.players.length, 
+        status: gameState.status,
+        playerSeats: gameState.players.map(p => p.seatIndex),
+        myHoleCards: myHoleCards
+      });
+      
+      // Loop through all seats
+      for (let i = 0; i < 9; i++) {
+        const cardBacksContainer = document.querySelector(`.seat-cards[data-seat-index="${i}"]`);
+        if (!cardBacksContainer) {
+          debug(`⚠️ No card backs container found for seat ${i}`);
+          continue;
+        }
+        
+        // Find player in this seat
+        const player = gameState.players.find(p => p.seatIndex === i);
+        
+        // Clear existing card backs
+        cardBacksContainer.innerHTML = '';
+        
+        // Show card backs for IN_PROGRESS or COMPLETED (showdown)
+        const shouldShowCards = player && (gameState.status === 'IN_PROGRESS' || gameState.status === 'COMPLETED');
+        
+        if (shouldShowCards) {
+          const isMe = player.userId === userId;
+          
+          // If it's MY seat and I have hole cards, show actual cards
+          if (isMe && myHoleCards && myHoleCards.length === 2) {
+            debug(`✅ Adding MY actual cards for seat ${i}`, { cards: myHoleCards });
+            myHoleCards.forEach(card => {
+              const cardImg = document.createElement('img');
+              cardImg.className = 'seat-card-front';
+              cardImg.src = getCardImagePath(card);
+              cardImg.alt = card;
+              cardImg.onerror = function() {
+                this.src = '/cards/back.png';
+              };
+              cardBacksContainer.appendChild(cardImg);
+            });
+          } else {
+            // Other players - show card backs
+            debug(`✅ Adding card backs for seat ${i} (folded: ${player.folded}, status: ${gameState.status})`);
+            for (let j = 0; j < 2; j++) {
+              const cardBack = document.createElement('img');
+              cardBack.className = 'seat-card-back';
+              cardBack.src = '/cards/back.png';
+              cardBack.alt = 'Card';
+              
+              // Grey out if folded
+              if (player.folded) {
+                cardBack.classList.add('folded');
+              }
+              
+              cardBacksContainer.appendChild(cardBack);
+            }
+          }
+        } else {
+          debug(`❌ Not showing cards for seat ${i} (hasPlayer: ${!!player}, status: ${gameState.status})`);
+        }
+      }
+    }
+    
+    // ============================================
     // STEP 5: CLAIM SEAT
     // ============================================
     async function claimSeat(seatIndex) {
+      // Prevent duplicate calls
+      if (isClaimingSeat) {
+        debug('⏸️  Already claiming a seat, ignoring duplicate call');
+        return;
+      }
+      
+      isClaimingSeat = true;
       debug(`🪑 Attempting to claim seat ${seatIndex}...`);
       
       // Prompt for nickname
@@ -978,17 +1688,20 @@
       
       // User cancelled
       if (nickname === null) {
+        isClaimingSeat = false;
         return;
       }
       
       // Validate nickname if provided
       if (nickname && (nickname.length < 3 || nickname.length > 15)) {
-        alert('❌ Nickname must be 3-15 characters');
+        console.error('Nickname must be 3-15 characters');
+        isClaimingSeat = false;
         return;
       }
       
       if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
-        alert('❌ Nickname can only contain letters, numbers, and underscores');
+        console.error('Nickname can only contain letters, numbers, and underscores');
+        isClaimingSeat = false;
         return;
       }
       
@@ -1011,15 +1724,18 @@
         
         const data = await response.json();
         const displayName = data.seat.nickname || `Guest_${userId.substring(0, 6)}`;
-        debug('✅ Seat claimed successfully', data);
-        alert(`✅ Welcome, ${displayName}! Seat ${seatIndex} claimed.`);
+        debug('✅ Seat claimed successfully', { displayName, seatIndex });
         
         // Reload room state
-        setTimeout(loadRoom, 500);
+        setTimeout(() => {
+          loadRoom();
+          isClaimingSeat = false; // Reset flag after reload
+        }, 500);
         
       } catch (error) {
         debug('❌ Claim seat error', { error: error.message });
-        alert('❌ Failed to claim seat: ' + error.message);
+        console.error('Failed to claim seat:', error.message);
+        isClaimingSeat = false; // Reset flag on error
       }
     }
     
@@ -1034,6 +1750,7 @@
       
       try {
         // Clear UI before starting new hand
+        myHoleCards = null; // Clear stored hole cards
         document.getElementById('communityCards').innerHTML = '';
         document.getElementById('myCards').innerHTML = '';
         document.getElementById('potAmount').textContent = '0';
@@ -1091,6 +1808,7 @@
         
         // Show cards
         if (data.cards && data.cards.length === 2) {
+          myHoleCards = data.cards; // Store globally
           renderMyCards(data.cards);
         }
         
@@ -1120,24 +1838,15 @@
       cardsDiv.innerHTML = '';
       
       cards.forEach(card => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        
-        // Convert new format (Ah, Kd) to old format (hearts_A, diamonds_K) for image path
-        // Format: 2-9, T, J, Q, K, A + h/d/c/s
-        const rank = card.substr(0, card.length - 1); // e.g., "A" or "10" or "T"
-        const suitChar = card.substr(-1); // e.g., "h"
-        
-        const suitMap = { h: 'hearts', d: 'diamonds', c: 'clubs', s: 'spades' };
-        const rankMap = { T: '10' }; // T = 10
-        
-        const suit = suitMap[suitChar] || 'hearts';
-        const displayRank = rankMap[rank] || rank;
-        
-        const imagePath = `/cards/${suit}_${displayRank}.png`;
-        cardDiv.style.backgroundImage = `url('${imagePath}')`;
-        
-        cardsDiv.appendChild(cardDiv);
+        const cardImg = document.createElement('img');
+        cardImg.className = 'card card-img';
+        cardImg.src = getCardImagePath(card);
+        cardImg.alt = card;
+        cardImg.onerror = function() {
+          // Fallback if image doesn't exist
+          this.src = '/cards/back.png';
+        };
+        cardsDiv.appendChild(cardImg);
       });
       
       // Show action buttons
@@ -1217,6 +1926,7 @@
         debug('✅ My cards fetched', data);
         
         if (data.cards && data.cards.length === 2) {
+          myHoleCards = data.cards; // Store globally
           renderMyCards(data.cards);
         }
         
@@ -1255,7 +1965,13 @@
         
       } catch (error) {
         debug('❌ Action error', { error: error.message });
-        alert('❌ Failed: ' + error.message);
+        // Silently ignore "Hand is complete" errors - this is expected at showdown
+        if (error.message.includes('Hand is complete')) {
+          debug('ℹ️ Hand already complete - ignoring action');
+          return;
+        }
+        // For other errors, just log them (no blocking alert)
+        console.error('Action failed:', error.message);
       }
     }
     
@@ -1291,6 +2007,9 @@
         callBtn.onclick = () => performAction('CALL', callAmount);
       }
       
+      // Update fold button
+      document.getElementById('foldBtn').onclick = () => performAction('FOLD', 0);
+      
       // Update raise button
       document.getElementById('raiseBtn').onclick = () => {
         const minRaise = currentBet * 2 || 20;
@@ -1310,24 +2029,68 @@
       document.getElementById('handStrength').style.display = 'none';
       
       if (gameState.winners && gameState.winners.length > 0) {
-        // Show updated chip stacks immediately (no popup blocking)
+        const winner = gameState.winners[0];
+        const potAmount = winner.amount;
+        
+        debug(`🏆 Winner: Seat ${winner.seatIndex} wins $${potAmount}`);
+        
+        // 1. KEEP POT VISIBLE (don't zero it yet)
+        document.getElementById('potAmount').textContent = potAmount;
+        
+        // 2. HIGHLIGHT WINNER'S SEAT
+        highlightWinnerSeat(winner.seatIndex);
+        
+        // 3. SHOW WINNER BANNER
+        const banner = document.getElementById('winnerBanner');
+        const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
+        const winnerNickname = winnerPlayer ? `@${winnerPlayer.nickname || 'Player'}` : `Seat ${winner.seatIndex}`;
+        
+        banner.innerHTML = `🏆 ${winnerNickname} WINS $${potAmount.toLocaleString()}<br><small style="font-size:1.2rem;">${winner.handDescription}</small>`;
+        banner.classList.add('show');
+        
+        // 4. SHOW/MUCK CONTROLS FOR NON-WINNERS
+        // Keep controls visible for ENTIRE 5-second countdown
         const myPlayer = gameState.players?.find(p => p.userId === userId);
-        const myChips = myPlayer ? myPlayer.chips : 0;
+        const didIWin = myPlayer && myPlayer.seatIndex === winner.seatIndex;
+        const didIFold = myPlayer && myPlayer.folded;
         
-        debug(`💰 Your chips: $${myChips}`);
+        debug('🃏 Show/muck check:', {
+          hasMyPlayer: !!myPlayer,
+          myUserId: userId,
+          mySeatIndex: myPlayer?.seatIndex,
+          winnerSeatIndex: winner.seatIndex,
+          didIWin,
+          didIFold
+        });
         
-        // Reload seats to show updated chips immediately
-        loadRoom();
+        // Only show controls if: I didn't win, I didn't fold, and I'm in the hand
+        if (myPlayer && !didIWin && !didIFold) {
+          debug('🃏 Showing show/muck controls (you didn\'t win)');
+          document.getElementById('showdownControls').classList.add('show');
+        } else {
+          debug('🃏 NOT showing controls', { myPlayer: !!myPlayer, didIWin, didIFold });
+        }
         
-        // AUTO-START NEXT HAND AFTER 5 SECONDS (no blocking popup)
+        // 5. AFTER 3 SECONDS: Hide banner, transfer chips, START COUNTDOWN
         setTimeout(() => {
+          // Hide banner only (keep show/muck controls visible)
+          banner.classList.remove('show');
+          
+          // Clear winner highlight
+          clearWinnerHighlight();
+          
+          // Update all seat chips (show final amounts)
+          updateSeatChips(gameState.players);
+          
+          // Zero the pot (chips now in winner's stack)
+          document.getElementById('potAmount').textContent = '0';
+          
+          // START COUNTDOWN FOR NEXT HAND
           const startBtn = document.getElementById('startBtn');
           startBtn.style.display = 'inline-block';
-          startBtn.disabled = true; // Disable manual click during countdown
+          startBtn.disabled = true;
           
           let countdown = 5;
-          
-          // BOTH host and guest see countdown
           startBtn.textContent = `⏰ NEXT HAND (${countdown}s)`;
           
           const countdownInterval = setInterval(() => {
@@ -1337,21 +2100,114 @@
             } else {
               clearInterval(countdownInterval);
               
-              // ONLY HOST starts the hand
+              // Hide show/muck controls when countdown finishes
+              document.getElementById('showdownControls').classList.remove('show');
+              
               if (isHost) {
                 startBtn.textContent = '▶️ STARTING...';
                 debug('🎬 Auto-starting next hand (HOST)...');
                 startHand();
               } else {
-                // Guest sees "starting" briefly, then gets cards via WebSocket
                 startBtn.textContent = '⏳ STARTING...';
                 debug('⏳ Waiting for host to start next hand (GUEST)');
-                // Button will be hidden when hand_started WebSocket event fires
               }
             }
           }, 1000);
           
-        }, 500);
+        }, 3000); // 3 second delay to show winner
+      }
+    }
+    
+    // Helper: Highlight winner's seat
+    function highlightWinnerSeat(seatIndex) {
+      const seatsDiv = document.getElementById('seats');
+      const seatDivs = seatsDiv.querySelectorAll('.seat');
+      
+      seatDivs.forEach(seatDiv => {
+        const label = seatDiv.querySelector('.seat-label');
+        if (label && label.textContent === `Seat ${seatIndex}`) {
+          seatDiv.classList.add('winner');
+        }
+      });
+    }
+    
+    // Helper: Clear winner highlight
+    function clearWinnerHighlight() {
+      const seatsDiv = document.getElementById('seats');
+      const seatDivs = seatsDiv.querySelectorAll('.seat.winner');
+      seatDivs.forEach(seatDiv => {
+        seatDiv.classList.remove('winner');
+      });
+    }
+    
+    // ============================================
+    // SHOW/MUCK FUNCTIONALITY
+    // ============================================
+    async function showCards() {
+      debug('🃏 Player chose to SHOW cards');
+      
+      try {
+        const response = await fetch('/api/engine/showdown-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: roomId,
+            userId: userId,
+            action: 'SHOW'
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('❌ Show cards error:', error);
+          debug('❌ Show cards failed', error);
+          return;
+        }
+        
+        const result = await response.json();
+        debug('✅ Cards shown to table', result);
+        
+        // Hide controls
+        document.getElementById('showdownControls').classList.remove('show');
+        
+        // NO NEED to manually display - WebSocket will handle it for all players
+        
+      } catch (error) {
+        console.error('❌ Show cards network error:', error);
+        debug('❌ Show cards network error', { error: error.message });
+      }
+    }
+    
+    async function muckCards() {
+      debug('🗑️ Player chose to MUCK cards');
+      
+      try {
+        const response = await fetch('/api/engine/showdown-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: roomId,
+            userId: userId,
+            action: 'MUCK'
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('❌ Muck cards error:', error);
+          debug('❌ Muck cards failed', error);
+          return;
+        }
+        
+        const result = await response.json();
+        debug('✅ Cards mucked', result);
+        
+        // Hide controls
+        document.getElementById('showdownControls').classList.remove('show');
+        
+      } catch (error) {
+        console.error('❌ Muck cards network error:', error);
+        debug('❌ Muck cards network error', { error: error.message });
       }
     }
     
@@ -1365,21 +2221,15 @@
       communityDiv.innerHTML = '';
       
       cards.forEach(card => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        
-        // Convert format (Ah, Kd) → (/cards/hearts_A.png)
-        const rank = card.substr(0, card.length - 1);
-        const suitChar = card.substr(-1);
-        
-        const suitMap = { h: 'hearts', d: 'diamonds', c: 'clubs', s: 'spades' };
-        const rankMap = { T: '10' };
-        
-        const suit = suitMap[suitChar] || 'hearts';
-        const displayRank = rankMap[rank] || rank;
-        
-        cardDiv.style.backgroundImage = `url('/cards/${suit}_${displayRank}.png')`;
-        communityDiv.appendChild(cardDiv);
+        const cardImg = document.createElement('img');
+        cardImg.className = 'card-img';
+        cardImg.src = getCardImagePath(card);
+        cardImg.alt = card;
+        cardImg.onerror = function() {
+          // Fallback if image doesn't exist
+          this.src = '/cards/back.png';
+        };
+        communityDiv.appendChild(cardImg);
       });
       
       document.getElementById('communitySection').style.display = 'block';
@@ -1699,12 +2549,96 @@
     }
     
     // ============================================
+    // CIRCULAR SEAT POSITIONING (Proper Ellipse)
+    // ============================================
+    function calculateSeatPositions() {
+      const centerX = 840;  // Center of 1680px canvas
+      const centerY = 400;  // Center of 800px canvas
+      const radiusX = 620;  // Horizontal radius
+      const radiusY = 260;  // Vertical radius
+      
+      const positions = [];
+      const totalSeats = 9;
+      
+      for (let i = 0; i < totalSeats; i++) {
+        // Start from bottom (seat 0 = you) and go counter-clockwise
+        const angle = (Math.PI / 2) - (2 * Math.PI * i / totalSeats);
+        
+        positions.push({
+          index: i,
+          x: Math.round(centerX + radiusX * Math.cos(angle)),
+          y: Math.round(centerY - radiusY * Math.sin(angle))
+        });
+      }
+      
+      return positions;
+    }
+    
+    const SEAT_POSITIONS = calculateSeatPositions();
+
+    function applySeatPositions() {
+      SEAT_POSITIONS.forEach(pos => {
+        const seat = document.querySelector(`.seat[data-seat-index="${pos.index}"]`);
+        if (seat) {
+          seat.style.left = `${pos.x}px`;
+          seat.style.top = `${pos.y}px`;
+        }
+      });
+      debug('📍 Applied circular seat positions');
+    }
+    
+    // ============================================
+    // ZOOM LOCK SYSTEM
+    // ============================================
+    function setupZoomLock() {
+      const wrapper = document.getElementById('tableWrapper');
+      const table = document.getElementById('pokerTable');
+      
+      if (!wrapper || !table) {
+        console.warn('⚠️ Zoom lock elements not found');
+        return;
+      }
+
+      const updateScale = () => {
+        const containerWidth = wrapper.clientWidth;
+        const containerHeight = wrapper.clientHeight;
+        const stageWidth = 1680;
+        const stageHeight = 800;
+
+        const scaleX = containerWidth / stageWidth;
+        const scaleY = containerHeight / stageHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        const scaledWidth = stageWidth * scale;
+        const scaledHeight = stageHeight * scale;
+        const offsetX = (containerWidth - scaledWidth) / 2;
+        const offsetY = (containerHeight - scaledHeight) / 2;
+
+        table.style.left = `${offsetX}px`;
+        table.style.top = `${offsetY}px`;
+        table.style.transform = `scale(${scale})`;
+        
+        debug('🔍 Zoom lock updated', { scale, offsetX, offsetY });
+      };
+
+      updateScale();
+      window.addEventListener('resize', updateScale);
+      new ResizeObserver(updateScale).observe(wrapper);
+      
+      debug('✅ Zoom lock initialized');
+    }
+    
+    // ============================================
     // INITIALIZE ON LOAD
     // ============================================
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
+      document.addEventListener('DOMContentLoaded', () => {
+        init();
+        setupZoomLock();
+      });
     } else {
       init();
+      setupZoomLock();
     }
   </script>
 </body>
