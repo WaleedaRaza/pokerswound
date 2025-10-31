@@ -816,6 +816,21 @@
         }
         setTimeout(loadRoom, 1000);
       });
+      
+      // Host control events
+      socket.on('blinds_updated', (data) => {
+        debug('💰 Blinds updated by host', data);
+        if (!isHost) {
+          alert(`💰 Blinds updated to $${data.smallBlind}/$${data.bigBlind}`);
+        }
+      });
+      
+      socket.on('player_kicked', (data) => {
+        if (data.userId === userId) {
+          alert('❌ You have been removed from the game by the host.');
+          window.location.href = '/';
+        }
+      });
     }
     
     // ============================================
@@ -1295,20 +1310,17 @@
       document.getElementById('handStrength').style.display = 'none';
       
       if (gameState.winners && gameState.winners.length > 0) {
-        // Show winner(s) with hand description
-        const winnerText = gameState.winners.map(w => 
-          `Seat ${w.seatIndex} wins $${w.amount} - ${w.handDescription}`
-        ).join('\n');
-        
-        // Show updated chip stacks
+        // Show updated chip stacks immediately (no popup blocking)
         const myPlayer = gameState.players?.find(p => p.userId === userId);
         const myChips = myPlayer ? myPlayer.chips : 0;
         
-        // Show modal with winner info
+        debug(`💰 Your chips: $${myChips}`);
+        
+        // Reload seats to show updated chips immediately
+        loadRoom();
+        
+        // AUTO-START NEXT HAND AFTER 5 SECONDS (no blocking popup)
         setTimeout(() => {
-          alert(`🏆 Hand Complete!\n\n${winnerText}\n\nYour chips: $${myChips}`);
-          
-          // AUTO-START NEXT HAND AFTER 5 SECONDS
           const startBtn = document.getElementById('startBtn');
           startBtn.style.display = 'inline-block';
           startBtn.disabled = true; // Disable manual click during countdown
@@ -1685,22 +1697,6 @@
         alert('Failed to update blinds');
       }
     }
-    
-    // WebSocket listener for blinds updates
-    socket.on('blinds_updated', (data) => {
-      debug('💰 Blinds updated by host', data);
-      if (!isHost) {
-        alert(`💰 Blinds updated to $${data.smallBlind}/$${data.bigBlind}`);
-      }
-    });
-    
-    // WebSocket listener for player kicked
-    socket.on('player_kicked', (data) => {
-      if (data.userId === userId) {
-        alert('❌ You have been removed from the game by the host.');
-        window.location.href = '/';
-      }
-    });
     
     // ============================================
     // INITIALIZE ON LOAD
