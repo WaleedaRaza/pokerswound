@@ -1163,5 +1163,224 @@ router.post('/next-hand', async (req, res) => {
   }
 });
 
+// ============================================
+// HOST CONTROLS ENDPOINTS
+// ============================================
+
+// GET /api/engine/host-controls/:roomId/:userId
+// Returns: Current game state for host controls panel
+router.get('/host-controls/:roomId/:userId', async (req, res) => {
+  try {
+    const { roomId, userId } = req.params;
+    
+    console.log('🎛️ [HOST] Get controls data:', { roomId: roomId.substr(0, 8), userId: userId.substr(0, 8) });
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Verify host
+    const roomResult = await db.query(
+      `SELECT host_user_id, small_blind, big_blind, status FROM rooms WHERE id = $1`,
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const room = roomResult.rows[0];
+    
+    if (room.host_user_id !== userId) {
+      return res.status(403).json({ error: 'Not authorized - host only' });
+    }
+    
+    // Get all seated players
+    const seatsResult = await db.query(
+      `SELECT 
+         seat_index,
+         user_id,
+         chips_in_play,
+         status,
+         nickname,
+         joined_at
+       FROM room_seats
+       WHERE room_id = $1 AND left_at IS NULL
+       ORDER BY seat_index`,
+      [roomId]
+    );
+    
+    const players = seatsResult.rows.map(row => ({
+      seatIndex: row.seat_index,
+      userId: row.user_id,
+      chips: parseInt(row.chips_in_play || 1000),
+      status: row.status,
+      nickname: row.nickname || `Guest_${row.user_id.substring(0, 6)}`,
+      joinedAt: row.joined_at
+    }));
+    
+    console.log(`✅ [HOST] Controls data retrieved: ${players.length} players`);
+    
+    res.json({
+      room: {
+        smallBlind: parseInt(room.small_blind || 10),
+        bigBlind: parseInt(room.big_blind || 20),
+        status: room.status
+      },
+      players,
+      pendingRequests: [] // TODO: Sprint 1.3
+    });
+    
+  } catch (error) {
+    console.error('❌ [HOST] Get controls error:', error);
+    res.status(500).json({ error: 'Failed to get host controls', details: error.message });
+  }
+});
+
+// POST /api/engine/host-controls/kick-player
+// Body: { roomId, hostId, targetUserId }
+router.post('/host-controls/kick-player', async (req, res) => {
+  try {
+    const { roomId, hostId, targetUserId } = req.body;
+    
+    console.log('🚫 [HOST] Kick player:', { roomId: roomId.substr(0, 8), targetUserId: targetUserId.substr(0, 8) });
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Verify host
+    const roomResult = await db.query(
+      `SELECT host_user_id, status FROM rooms WHERE id = $1`,
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomResult.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Not authorized - host only' });
+    }
+    
+    // Cannot kick during active game (Sprint 1.4 will handle this properly)
+    if (roomResult.rows[0].status === 'ACTIVE') {
+      return res.status(400).json({ error: 'Cannot kick players during active game' });
+    }
+    
+    // Remove player from seat
+    const result = await db.query(
+      `UPDATE room_seats
+       SET left_at = NOW(), status = 'LEFT'
+       WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL
+       RETURNING seat_index`,
+      [roomId, targetUserId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Player not found in room' });
+    }
+    
+    const seatIndex = result.rows[0].seat_index;
+    
+    console.log(`✅ [HOST] Player kicked from seat ${seatIndex}`);
+    
+    // Broadcast seat update to all clients in room
+    const io = req.app.locals.io;
+    if (io) {
+      io.to(`room:${roomId}`).emit('seat_update', {
+        seatIndex,
+        userId: targetUserId,
+        action: 'kicked'
+      });
+      
+      // Send kick notification to kicked player
+      io.to(`room:${roomId}`).emit('player_kicked', {
+        userId: targetUserId,
+        reason: 'Host removed you from the game'
+      });
+    }
+    
+    res.json({ success: true, seatIndex });
+    
+  } catch (error) {
+    console.error('❌ [HOST] Kick player error:', error);
+    res.status(500).json({ error: 'Failed to kick player', details: error.message });
+  }
+});
+
+// PATCH /api/engine/host-controls/update-blinds
+// Body: { roomId, hostId, smallBlind, bigBlind }
+router.patch('/host-controls/update-blinds', async (req, res) => {
+  try {
+    const { roomId, hostId, smallBlind, bigBlind } = req.body;
+    
+    console.log('💰 [HOST] Update blinds:', { roomId: roomId.substr(0, 8), smallBlind, bigBlind });
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Verify host
+    const roomResult = await db.query(
+      `SELECT host_user_id, status FROM rooms WHERE id = $1`,
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomResult.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Not authorized - host only' });
+    }
+    
+    // Cannot update blinds during active game
+    if (roomResult.rows[0].status === 'ACTIVE') {
+      return res.status(400).json({ error: 'Cannot update blinds during active game' });
+    }
+    
+    // Validate blinds
+    if (bigBlind <= smallBlind) {
+      return res.status(400).json({ error: 'Big blind must be greater than small blind' });
+    }
+    
+    if (smallBlind < 1 || bigBlind < 2) {
+      return res.status(400).json({ error: 'Blinds must be positive integers' });
+    }
+    
+    // Update blinds
+    await db.query(
+      `UPDATE rooms
+       SET small_blind = $1, big_blind = $2
+       WHERE id = $3`,
+      [smallBlind, bigBlind, roomId]
+    );
+    
+    console.log(`✅ [HOST] Blinds updated: $${smallBlind}/$${bigBlind}`);
+    
+    // Broadcast blinds update
+    const io = req.app.locals.io;
+    if (io) {
+      io.to(`room:${roomId}`).emit('blinds_updated', {
+        smallBlind,
+        bigBlind
+      });
+    }
+    
+    res.json({ success: true, smallBlind, bigBlind });
+    
+  } catch (error) {
+    console.error('❌ [HOST] Update blinds error:', error);
+    res.status(500).json({ error: 'Failed to update blinds', details: error.message });
+  }
+});
+
 module.exports = router;
 

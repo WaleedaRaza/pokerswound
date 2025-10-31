@@ -93,6 +93,206 @@
       font-weight: 500;
     }
     
+    /* 🎛️ HOST CONTROLS PANEL */
+    .host-controls-panel {
+      background: linear-gradient(135deg, rgba(255,81,0,0.1), rgba(255,81,0,0.05));
+      border: 2px solid #ff5100;
+      border-radius: 12px;
+      padding: 0;
+      margin-bottom: 20px;
+      display: none; /* Hidden by default, shown for host only */
+      overflow: hidden;
+    }
+    
+    .host-controls-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(255,81,0,0.15);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    
+    .host-controls-header:hover {
+      background: rgba(255,81,0,0.2);
+    }
+    
+    .host-controls-header h3 {
+      color: #ff5100;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .host-badge {
+      background: #ff5100;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    
+    .host-controls-content {
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .host-controls-content.expanded {
+      max-height: 600px;
+      opacity: 1;
+      pointer-events: auto;
+      padding: 20px;
+    }
+    
+    .host-section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .host-section:last-child {
+      margin-bottom: 0;
+    }
+    
+    .host-section h4 {
+      color: #00d4aa;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .player-item {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .player-item-info {
+      flex: 1;
+    }
+    
+    .player-item-name {
+      color: #e9eef7;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    
+    .player-item-details {
+      color: #999;
+      font-size: 0.85rem;
+      display: flex;
+      gap: 15px;
+    }
+    
+    .player-item-chips {
+      color: gold;
+    }
+    
+    .host-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .host-btn.kick {
+      background: #ff3b3b;
+      color: white;
+    }
+    
+    .host-btn.kick:hover {
+      background: #ff5555;
+      transform: scale(1.05);
+    }
+    
+    .blinds-controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .blind-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .blind-input-group label {
+      color: #9aa3b2;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .blind-input-group input {
+      width: 90px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 2px solid #333;
+      background: rgba(0,0,0,0.4);
+      color: #e9eef7;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    
+    .blind-input-group input:focus {
+      outline: none;
+      border-color: #00d4aa;
+    }
+    
+    .host-btn.update {
+      background: #00d4aa;
+      color: #0b0b12;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+    }
+    
+    .host-btn.update:hover {
+      background: #00ffcc;
+      transform: translateY(-2px);
+    }
+    
+    .empty-state {
+      color: #666;
+      font-style: italic;
+      text-align: center;
+      padding: 15px;
+    }
+    
+    .toggle-icon {
+      color: #ff5100;
+      font-size: 1.2rem;
+      transition: transform 0.3s;
+    }
+    
+    .toggle-icon.expanded {
+      transform: rotate(180deg);
+    }
+    
     .controls {
       background: rgba(255,255,255,0.05);
       padding: 20px;
@@ -193,6 +393,42 @@
       <div>Room ID: <span id="roomId">-</span></div>
       <div>Your ID: <span id="userId">-</span> <span id="authBadge"></span></div>
       <div class="status disconnected" id="socketStatus">🔴 Disconnected</div>
+    </div>
+    
+    <!-- 🎛️ HOST CONTROLS PANEL -->
+    <div class="host-controls-panel" id="hostControlsPanel">
+      <div class="host-controls-header" onclick="toggleHostControls()">
+        <h3>
+          🎛️ HOST CONTROLS
+          <span class="host-badge">ONLY YOU</span>
+        </h3>
+        <span class="toggle-icon" id="hostToggleIcon">▼</span>
+      </div>
+      <div class="host-controls-content" id="hostControlsContent">
+        <!-- CURRENT PLAYERS -->
+        <div class="host-section">
+          <h4>👥 Current Players (<span id="hostPlayerCount">0</span>/9)</h4>
+          <div class="player-list" id="hostPlayerList">
+            <div class="empty-state">No players seated</div>
+          </div>
+        </div>
+        
+        <!-- BLIND CONTROLS -->
+        <div class="host-section">
+          <h4>💰 Blind Controls</h4>
+          <div class="blinds-controls">
+            <div class="blind-input-group">
+              <label>Small Blind:</label>
+              <input type="number" id="hostSmallBlindInput" value="10" min="1">
+            </div>
+            <div class="blind-input-group">
+              <label>Big Blind:</label>
+              <input type="number" id="hostBigBlindInput" value="20" min="2">
+            </div>
+            <button class="host-btn update" onclick="updateBlinds()">UPDATE BLINDS</button>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div class="controls">
@@ -640,6 +876,11 @@
           debug('⏳ Waiting for host to start', { hostId: roomData.room?.hostId });
         } else {
           document.getElementById('startBtn').style.display = 'none';
+        }
+        
+        // Load host controls if user is host
+        if (isHost) {
+          loadHostControls();
         }
         
       } catch (error) {
@@ -1294,6 +1535,172 @@
       // TODO: Properly detect if current actor is us
       // indicator.style.display = 'inline';
     }
+    
+    // ============================================
+    // 🎛️ HOST CONTROLS FUNCTIONS
+    // ============================================
+    function toggleHostControls() {
+      const content = document.getElementById('hostControlsContent');
+      const icon = document.getElementById('hostToggleIcon');
+      content.classList.toggle('expanded');
+      icon.classList.toggle('expanded');
+    }
+    
+    async function loadHostControls() {
+      if (!isHost) {
+        document.getElementById('hostControlsPanel').style.display = 'none';
+        return;
+      }
+      
+      debug('🎛️ Loading host controls...');
+      document.getElementById('hostControlsPanel').style.display = 'block';
+      
+      try {
+        const response = await fetch(`/api/engine/host-controls/${roomId}/${userId}`);
+        if (!response.ok) {
+          console.error('Failed to load host controls');
+          return;
+        }
+        
+        const data = await response.json();
+        debug('✅ Host controls loaded', data);
+        
+        // Update blinds inputs
+        document.getElementById('hostSmallBlindInput').value = data.room.smallBlind;
+        document.getElementById('hostBigBlindInput').value = data.room.bigBlind;
+        
+        // Render players
+        renderHostPlayerList(data.players);
+        
+      } catch (error) {
+        console.error('Error loading host controls:', error);
+      }
+    }
+    
+    function renderHostPlayerList(players) {
+      const container = document.getElementById('hostPlayerList');
+      const countEl = document.getElementById('hostPlayerCount');
+      
+      countEl.textContent = players.length;
+      
+      if (players.length === 0) {
+        container.innerHTML = '<div class="empty-state">No players seated</div>';
+        return;
+      }
+      
+      container.innerHTML = players.map(player => `
+        <div class="player-item">
+          <div class="player-item-info">
+            <div class="player-item-name">
+              @${player.nickname}
+              ${player.userId === userId ? ' (YOU)' : ''}
+            </div>
+            <div class="player-item-details">
+              <span>Seat ${player.seatIndex}</span>
+              <span class="player-item-chips">$${player.chips}</span>
+            </div>
+          </div>
+          ${player.userId !== userId ? `
+            <button class="host-btn kick" onclick="kickPlayer('${player.userId}')">
+              🚫 KICK
+            </button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+    
+    async function kickPlayer(targetUserId) {
+      if (!confirm('Are you sure you want to kick this player? They will be removed from their seat.')) {
+        return;
+      }
+      
+      debug('🚫 Kicking player:', targetUserId);
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/kick-player', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId,
+            hostId: userId,
+            targetUserId
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          alert(`Failed to kick player: ${error.error}`);
+          return;
+        }
+        
+        debug('✅ Player kicked');
+        loadHostControls(); // Refresh panel
+        loadRoom(); // Refresh seats
+        
+      } catch (error) {
+        console.error('Error kicking player:', error);
+        alert('Failed to kick player');
+      }
+    }
+    
+    async function updateBlinds() {
+      const smallBlind = parseInt(document.getElementById('hostSmallBlindInput').value);
+      const bigBlind = parseInt(document.getElementById('hostBigBlindInput').value);
+      
+      if (bigBlind <= smallBlind) {
+        alert('Big blind must be greater than small blind!');
+        return;
+      }
+      
+      if (smallBlind < 1 || bigBlind < 2) {
+        alert('Blinds must be positive integers!');
+        return;
+      }
+      
+      debug('💰 Updating blinds:', { smallBlind, bigBlind });
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/update-blinds', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId,
+            hostId: userId,
+            smallBlind,
+            bigBlind
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          alert(`Failed to update blinds: ${error.error}`);
+          return;
+        }
+        
+        debug('✅ Blinds updated');
+        alert(`✅ Blinds updated to $${smallBlind}/$${bigBlind}\n\nWill take effect on next hand.`);
+        
+      } catch (error) {
+        console.error('Error updating blinds:', error);
+        alert('Failed to update blinds');
+      }
+    }
+    
+    // WebSocket listener for blinds updates
+    socket.on('blinds_updated', (data) => {
+      debug('💰 Blinds updated by host', data);
+      if (!isHost) {
+        alert(`💰 Blinds updated to $${data.smallBlind}/$${data.bigBlind}`);
+      }
+    });
+    
+    // WebSocket listener for player kicked
+    socket.on('player_kicked', (data) => {
+      if (data.userId === userId) {
+        alert('❌ You have been removed from the game by the host.');
+        window.location.href = '/';
+      }
+    });
     
     // ============================================
     // INITIALIZE ON LOAD
