@@ -1,24 +1,6 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
-CREATE TABLE public.actions (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  hand_id uuid NOT NULL,
-  game_id uuid NOT NULL,
-  user_id uuid NOT NULL,
-  action_type character varying NOT NULL CHECK (action_type::text = ANY (ARRAY['FOLD'::character varying, 'CHECK'::character varying, 'CALL'::character varying, 'BET'::character varying, 'RAISE'::character varying, 'ALL_IN'::character varying]::text[])),
-  amount bigint DEFAULT 0 CHECK (amount >= 0),
-  street character varying NOT NULL,
-  seat_index integer NOT NULL CHECK (seat_index >= 0 AND seat_index < 10),
-  pot_before bigint,
-  pot_after bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  sequence_number integer NOT NULL,
-  CONSTRAINT actions_pkey PRIMARY KEY (id),
-  CONSTRAINT actions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT actions_hand_id_fkey FOREIGN KEY (hand_id) REFERENCES public.hands(id),
-  CONSTRAINT actions_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
-);
 CREATE TABLE public.admin_actions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   admin_user_id uuid NOT NULL,
@@ -249,26 +231,9 @@ CREATE TABLE public.game_states (
   version integer NOT NULL DEFAULT 1,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  seq integer DEFAULT 0,
   CONSTRAINT game_states_pkey PRIMARY KEY (id),
   CONSTRAINT game_states_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
-);
-CREATE TABLE public.games (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  room_id uuid NOT NULL,
-  game_type character varying NOT NULL DEFAULT 'TEXAS_HOLDEM'::character varying,
-  small_blind integer NOT NULL,
-  big_blind integer NOT NULL,
-  ante integer DEFAULT 0,
-  status character varying DEFAULT 'WAITING'::character varying CHECK (status::text = ANY (ARRAY['WAITING'::character varying, 'ACTIVE'::character varying, 'PAUSED'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying]::text[])),
-  current_hand_id uuid,
-  dealer_seat integer CHECK (dealer_seat >= 0 AND dealer_seat < 10),
-  shuffle_seed character varying,
-  entropy_source text,
-  started_at timestamp with time zone,
-  ended_at timestamp with time zone,
-  created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT games_pkey PRIMARY KEY (id),
-  CONSTRAINT games_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
 );
 CREATE TABLE public.gto_solutions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -352,23 +317,6 @@ CREATE TABLE public.hand_history (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT hand_history_pkey PRIMARY KEY (id),
   CONSTRAINT hand_history_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
-);
-CREATE TABLE public.hands (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  game_id uuid NOT NULL,
-  hand_number integer NOT NULL,
-  dealer_seat integer NOT NULL CHECK (dealer_seat >= 0 AND dealer_seat < 10),
-  small_blind_seat integer CHECK (small_blind_seat >= 0 AND small_blind_seat < 10),
-  big_blind_seat integer CHECK (big_blind_seat >= 0 AND big_blind_seat < 10),
-  status character varying DEFAULT 'ACTIVE'::character varying CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying]::text[])),
-  current_street character varying DEFAULT 'PREFLOP'::character varying CHECK (current_street::text = ANY (ARRAY['PREFLOP'::character varying, 'FLOP'::character varying, 'TURN'::character varying, 'RIVER'::character varying, 'SHOWDOWN'::character varying]::text[])),
-  pot_total bigint DEFAULT 0 CHECK (pot_total >= 0),
-  community_cards jsonb DEFAULT '[]'::jsonb,
-  deck_state jsonb,
-  started_at timestamp with time zone DEFAULT now(),
-  ended_at timestamp with time zone,
-  CONSTRAINT hands_pkey PRIMARY KEY (id),
-  CONSTRAINT hands_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
 );
 CREATE TABLE public.message_flags (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -583,30 +531,17 @@ CREATE TABLE public.player_statistics (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT player_statistics_pkey PRIMARY KEY (id)
 );
-CREATE TABLE public.players (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  game_id uuid NOT NULL,
+CREATE TABLE public.processed_actions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  idempotency_key character varying NOT NULL UNIQUE,
+  room_id uuid,
   user_id uuid NOT NULL,
-  seat_index integer NOT NULL CHECK (seat_index >= 0 AND seat_index < 10),
-  stack bigint NOT NULL CHECK (stack >= 0),
-  status character varying DEFAULT 'ACTIVE'::character varying CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying, 'SITTING_OUT'::character varying, 'FOLDED'::character varying, 'ALL_IN'::character varying, 'OUT'::character varying]::text[])),
-  hole_cards jsonb DEFAULT '[]'::jsonb,
-  joined_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT players_pkey PRIMARY KEY (id),
-  CONSTRAINT players_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT players_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
-);
-CREATE TABLE public.pots (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  hand_id uuid NOT NULL,
-  pot_type character varying NOT NULL CHECK (pot_type::text = ANY (ARRAY['MAIN'::character varying, 'SIDE'::character varying]::text[])),
-  amount bigint NOT NULL CHECK (amount >= 0),
-  eligible_players jsonb DEFAULT '[]'::jsonb,
-  winner_ids jsonb DEFAULT '[]'::jsonb,
-  distributed_at timestamp with time zone,
+  action_type character varying NOT NULL,
+  result jsonb NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT pots_pkey PRIMARY KEY (id),
-  CONSTRAINT pots_hand_id_fkey FOREIGN KEY (hand_id) REFERENCES public.hands(id)
+  CONSTRAINT processed_actions_pkey PRIMARY KEY (id),
+  CONSTRAINT processed_actions_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
 );
 CREATE TABLE public.profiles (
   id uuid NOT NULL,

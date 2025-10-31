@@ -95,6 +95,11 @@ router.get('/table-old', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/poker-table-final.html'));
 });
 
+// SANDBOX TABLE - Iterative test environment
+router.get('/sandbox-table', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/minimal-table.html'));
+});
+
 // Legacy routes - redirect to game
 router.get('/poker', (req, res) => {
   res.redirect('/game');

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokerGeek - Minimal Table</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: #0b0b12;
+      color: #e9eef7;
+      font-family: 'Inter', system-ui, -apple-system, Arial, sans-serif;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #ff5100;
+      margin-bottom: 10px;
+    }
+    
+    .room-info {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .room-code {
+      color: #00d4aa;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    
+    .seats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .seat {
+      background: rgba(255,255,255,0.03);
+      border: 3px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .seat.empty {
+      border-color: #00d4aa;
+      cursor: pointer;
+    }
+    
+    .seat.empty:hover {
+      background: rgba(0,212,170,0.1);
+      transform: translateY(-2px);
+    }
+    
+    .seat.taken {
+      border-color: gold;
+      background: rgba(255,215,0,0.05);
+    }
+    
+    .seat.me {
+      border-color: #ff5100;
+      background: rgba(255,81,0,0.1);
+    }
+    
+    .seat-label {
+      font-size: 0.8rem;
+      color: #9aa3b2;
+      margin-bottom: 8px;
+    }
+    
+    .seat-player {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .seat-chips {
+      color: #FFC107;
+      font-weight: 500;
+    }
+    
+    .controls {
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      background: #ff5100;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn:hover {
+      background: #ff6a1f;
+      transform: translateY(-2px);
+    }
+    
+    .btn:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .my-cards {
+      background: rgba(0,212,170,0.1);
+      border: 2px solid #00d4aa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .my-cards h3 {
+      color: #00d4aa;
+      margin-bottom: 15px;
+    }
+    
+    .cards-display {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .card {
+      width: 80px;
+      height: 112px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    .debug {
+      background: rgba(255,255,255,0.03);
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #9aa3b2;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .debug h4 {
+      color: #ff5100;
+      margin-bottom: 10px;
+    }
+    
+    .status {
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 10px;
+    }
+    
+    .status.connected {
+      background: rgba(0,212,170,0.2);
+      color: #00d4aa;
+    }
+    
+    .status.disconnected {
+      background: rgba(255,59,59,0.2);
+      color: #ff3b3b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎰 PokerGeek Minimal Table</h1>
+    
+    <div class="room-info">
+      <div>Room Code: <span class="room-code" id="roomCode">Loading...</span></div>
+      <div>Room ID: <span id="roomId">-</span></div>
+      <div>Your ID: <span id="userId">-</span> <span id="authBadge"></span></div>
+      <div class="status disconnected" id="socketStatus">🔴 Disconnected</div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" id="startBtn" style="display:none">🎮 START HAND</button>
+      <button class="btn" id="refreshBtn">🔄 REFRESH</button>
+    </div>
+    
+    <!-- COMMUNITY CARDS + POT -->
+    <div class="my-cards" id="communitySection" style="display:none">
+      <h3>Community Cards</h3>
+      <div style="display: flex; gap: 20px; align-items: center;">
+        <div class="cards-display" id="communityCards"></div>
+        <div style="flex: 1;">
+          <div style="font-size: 1.5rem; color: #FFC107; font-weight: bold;">
+            POT: $<span id="potAmount">0</span>
+          </div>
+          <div style="font-size: 0.9rem; color: #9aa3b2; margin-top: 5px;">
+            Current Bet: $<span id="currentBet">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- YOUR CARDS + ACTIONS -->
+    <div class="my-cards" id="myCardsSection" style="display:none">
+      <h3>Your Hole Cards <span id="turnIndicator" style="display:none; color: #ff5100; font-weight: bold; margin-left: 10px;">← YOUR TURN</span></h3>
+      <div class="cards-display" id="myCards"></div>
+      
+      <!-- HAND STRENGTH DISPLAY -->
+      <div id="handStrength" style="display:none; margin-top: 15px; padding: 10px; background: rgba(0,212,170,0.2); border-radius: 8px; text-align: center;">
+        <div style="font-size: 0.9rem; color: #888; margin-bottom: 3px;">Your Hand:</div>
+        <div id="handStrengthText" style="font-size: 1.2rem; font-weight: bold; color: #00d4aa;"></div>
+      </div>
+      
+      <!-- ACTION BUTTONS -->
+      <div id="actionButtons" style="display:none; margin-top: 20px; display: flex; gap: 10px;">
+        <button class="btn" id="foldBtn" style="background: #ff3b3b;">FOLD</button>
+        <button class="btn" id="callBtn" style="background: #00d4aa;"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
+        <button class="btn" id="raiseBtn" style="background: #ff5100;">RAISE</button>
+      </div>
+    </div>
+    
+    <h2 style="margin-bottom: 15px;">Seats <span id="currentActor" style="font-size: 0.9rem; color: #ff5100; font-weight: normal;"></span></h2>
+    <div class="seats-grid" id="seats"></div>
+    
+    <div class="debug">
+      <h4>Debug Console</h4>
+      <div id="debugLog"></div>
+    </div>
+  </div>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // ============================================
+    // GLOBAL STATE
+    // ============================================
+    let roomId = null;
+    let userId = null;
+    let gameId = null;
+    let socket = null;
+    
+    // ============================================
+    // UTILITY: DEBUG LOGGING
+    // ============================================
+    function debug(message, data = null) {
+      console.log(message, data);
+      const log = document.getElementById('debugLog');
+      const time = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.textContent = `[${time}] ${message}`;
+      if (data) {
+        entry.textContent += ' ' + JSON.stringify(data, null, 2);
+      }
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+    
+    // ============================================
+    // STEP 1: INITIALIZE
+    // ============================================
+    function init() {
+      debug('🎬 Initializing minimal table...');
+      
+      // Get room ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      roomId = urlParams.get('room');
+      
+      // PRIORITY 1: Check if user is authenticated via Supabase
+      let isAuthenticated = false;
+      
+      try {
+        // Check localStorage for Supabase session (standard location)
+        const supabaseAuth = localStorage.getItem('sb-ztqcpuktihltfepnexcx-auth-token');
+        if (supabaseAuth) {
+          const authData = JSON.parse(supabaseAuth);
+          if (authData && authData.user && authData.user.id) {
+            userId = authData.user.id;
+            isAuthenticated = true;
+            sessionStorage.setItem('userId', userId);
+            sessionStorage.setItem('userEmail', authData.user.email || 'Unknown');
+            debug('✅ Authenticated user detected:', { userId, email: authData.user.email });
+          }
+        }
+      } catch (e) {
+        debug('⚠️ Could not read Supabase auth:', e.message);
+      }
+      
+      // PRIORITY 2: Try window.currentUser (if available)
+      if (!userId && window.currentUser && window.currentUser.id) {
+        userId = window.currentUser.id;
+        isAuthenticated = true;
+        sessionStorage.setItem('userId', userId);
+        debug('✅ Found window.currentUser:', userId);
+      }
+      
+      // PRIORITY 3: Check sessionStorage
+      if (!userId) {
+        userId = sessionStorage.getItem('userId');
+        
+        // Validate UUID format (check if it's actually a UUID)
+        const isValidUUID = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+        
+        if (!isValidUUID) {
+          // Clear invalid ID
+          if (userId) {
+            debug('⚠️ Invalid UUID detected, clearing:', userId);
+            sessionStorage.removeItem('userId');
+            userId = null;
+          }
+        }
+      }
+      
+      // LAST RESORT: Generate guest UUID
+      if (!userId) {
+        userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+        sessionStorage.setItem('userId', userId);
+        sessionStorage.setItem('isGuest', 'true');
+        debug('⚠️ No auth found, generated guest UUID:', userId);
+      }
+      
+      // Validate
+      if (!roomId) {
+        alert('❌ No room ID in URL. Redirecting to lobby...');
+        window.location.href = '/play';
+        return;
+      }
+      
+      debug('✅ Initialized', { roomId, userId });
+      
+      // Display IDs and auth status
+      document.getElementById('roomId').textContent = roomId;
+      document.getElementById('userId').textContent = userId;
+      
+      const authBadge = document.getElementById('authBadge');
+      if (isAuthenticated) {
+        const email = sessionStorage.getItem('userEmail');
+        authBadge.textContent = `✅ Authenticated (${email})`;
+        authBadge.style.color = '#00d4aa';
+        authBadge.style.fontWeight = 'bold';
+      } else {
+        authBadge.textContent = '👤 Guest';
+        authBadge.style.color = '#FFC107';
+      }
+      
+      // Wire up buttons
+      document.getElementById('startBtn').onclick = startHand;
+      document.getElementById('refreshBtn').onclick = loadRoom;
+      
+      // Connect WebSocket
+      connectWebSocket();
+      
+      // CRITICAL: Hydrate game state before loading room
+      hydrateGameState();
+    }
+    
+    // ============================================
+    // CRITICAL: HYDRATE GAME STATE ON REFRESH
+    // ============================================
+    async function hydrateGameState() {
+      debug('💧 Hydrating game state...');
+      
+      try {
+        const response = await fetch(`/api/engine/hydrate/${roomId}/${userId}`);
+        
+        if (!response.ok) {
+          debug('⚠️ Hydration failed, loading lobby state');
+          loadRoom();
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (!data.hasActiveGame) {
+          debug('⏸️  No active game - loading lobby');
+          loadRoom();
+          return;
+        }
+        
+        // ACTIVE GAME FOUND - RESTORE STATE
+        debug('🎮 ACTIVE GAME FOUND - RESTORING STATE', {
+          handNumber: data.gameState.handNumber,
+          street: data.gameState.street,
+          pot: data.gameState.pot
+        });
+        
+        gameId = data.gameId;
+        
+        // Show community section
+        document.getElementById('communitySection').style.display = 'block';
+        
+        // Render community cards
+        if (data.gameState.communityCards && data.gameState.communityCards.length > 0) {
+          renderCommunityCards(data.gameState.communityCards);
+        }
+        
+        // Update pot and bet
+        document.getElementById('potAmount').textContent = data.gameState.pot || 0;
+        document.getElementById('currentBet').textContent = data.gameState.currentBet || 0;
+        
+        // Show current actor
+        const actorText = document.getElementById('currentActor');
+        if (data.gameState.currentActorSeat !== undefined) {
+          actorText.textContent = `(Seat ${data.gameState.currentActorSeat}'s turn)`;
+          actorText.style.display = 'inline';
+        }
+        
+        // Render my hole cards
+        if (data.myHoleCards && data.myHoleCards.length === 2) {
+          renderMyCards(data.myHoleCards);
+        }
+        
+        // Show/hide action buttons based on turn
+        const actionButtons = document.getElementById('actionButtons');
+        if (data.isMyTurn && data.gameState.status === 'IN_PROGRESS') {
+          actionButtons.style.display = 'flex';
+          updateActionButtons(data.gameState);
+        } else {
+          actionButtons.style.display = 'none';
+        }
+        
+        // Hide START button (game is active)
+        document.getElementById('startBtn').style.display = 'none';
+        
+        debug('✅ Game state restored successfully');
+        
+        // Still load room to get seat info
+        loadRoom();
+        
+      } catch (error) {
+        debug('❌ Hydration error', { error: error.message });
+        console.error('Hydration error:', error);
+        loadRoom(); // Fallback to normal flow
+      }
+    }
+    
+    // ============================================
+    // STEP 2: WEBSOCKET CONNECTION
+    // ============================================
+    function connectWebSocket() {
+      debug('🔌 Connecting WebSocket...');
+      
+      socket = io();
+      
+      socket.on('connect', () => {
+        debug('✅ Socket connected', { socketId: socket.id });
+        document.getElementById('socketStatus').textContent = '🟢 Connected';
+        document.getElementById('socketStatus').className = 'status connected';
+        
+        // Join room
+        socket.emit('join_room', { roomId, userId });
+        debug('📡 Sent join_room event', { roomId, userId });
+      });
+      
+      socket.on('disconnect', (reason) => {
+        debug('🔴 Socket disconnected', { reason });
+        document.getElementById('socketStatus').textContent = '🔴 Disconnected';
+        document.getElementById('socketStatus').className = 'status disconnected';
+      });
+      
+      socket.on('seat_update', (data) => {
+        debug('🪑 Seat update received', data);
+        loadRoom();
+      });
+      
+      socket.on('hand_started', (data) => {
+        debug('🃏 Hand started event', data);
+        
+        // Store game state ID
+        if (data.gameStateId) {
+          gameId = data.gameStateId;
+        }
+        
+        // Display public game state
+        if (data.gameState) {
+          const gs = data.gameState;
+          
+          // Show community section
+          document.getElementById('communitySection').style.display = 'block';
+          document.getElementById('potAmount').textContent = gs.pot || 0;
+          document.getElementById('currentBet').textContent = gs.currentBet || 0;
+          
+          // Show current actor
+          const actorText = document.getElementById('currentActor');
+          if (gs.currentActorSeat !== undefined) {
+            actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
+            actorText.style.display = 'inline';
+          }
+          
+          debug('✅ Game state updated', { pot: gs.pot, currentBet: gs.currentBet, street: gs.street });
+        }
+        
+        // Fetch my hole cards (for guests who didn't initiate the hand)
+        fetchMyCards();
+        
+        // Reload to show updated seats/chips
+        setTimeout(loadRoom, 500);
+      });
+      
+      // Listen for action processed events
+      socket.on('action_processed', (data) => {
+        debug('🎮 Action processed', data);
+        
+        // Update game state display
+        if (data.gameState) {
+          const gs = data.gameState;
+          
+          document.getElementById('potAmount').textContent = gs.pot || 0;
+          document.getElementById('currentBet').textContent = gs.currentBet || 0;
+          
+          // Update current actor
+          const actorText = document.getElementById('currentActor');
+          if (gs.currentActorSeat !== undefined) {
+            actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
+          }
+          
+          // Show community cards if any
+          if (gs.communityCards && gs.communityCards.length > 0) {
+            renderCommunityCards(gs.communityCards);
+          }
+          
+          // CRITICAL: Show/hide action buttons based on whose turn it is
+          const actionButtons = document.getElementById('actionButtons');
+          const myPlayer = gs.players?.find(p => p.userId === userId);
+          const isMyTurn = myPlayer && gs.currentActorSeat === myPlayer.seatIndex;
+          
+          if (isMyTurn && gs.status === 'IN_PROGRESS') {
+            actionButtons.style.display = 'flex';
+            updateActionButtons(gs);
+            debug('✅ Your turn - action buttons shown');
+          } else {
+            actionButtons.style.display = 'none';
+            debug('⏸️  Not your turn - action buttons hidden');
+          }
+          
+          // Check if hand is over
+          if (gs.status === 'COMPLETED') {
+            handleHandComplete(gs);
+          }
+        }
+        
+        // Reload seats to show updated chips
+        setTimeout(loadRoom, 300);
+      });
+      
+      // NOTE: Private hole cards are sent via HTTP response in startHand()
+      // We'll add WebSocket private emit in Phase 2b
+      
+      socket.on('game_started', (data) => {
+        debug('🎮 Game started event', data);
+        if (data.gameId) {
+          gameId = data.gameId;
+        }
+        setTimeout(loadRoom, 1000);
+      });
+    }
+    
+    // ============================================
+    // STEP 3: LOAD ROOM STATE
+    // ============================================
+    async function loadRoom() {
+      debug('🌊 Fetching room state...');
+      
+      try {
+        // Get room info
+        const roomResponse = await fetch(`/api/engine/room/${roomId}`);
+        if (!roomResponse.ok) {
+          throw new Error(`Failed to get room: ${roomResponse.status}`);
+        }
+        const roomData = await roomResponse.json();
+        debug('✅ Room data received', roomData);
+        
+        // Get seats
+        const seatsResponse = await fetch(`/api/engine/seats/${roomId}`);
+        if (!seatsResponse.ok) {
+          throw new Error(`Failed to get seats: ${seatsResponse.status}`);
+        }
+        const seatsData = await seatsResponse.json();
+        debug('✅ Seats data received', seatsData);
+        
+        // Update room code
+        document.getElementById('roomCode').textContent = roomData.room?.code || 'N/A';
+        
+        // Store game ID if exists
+        if (roomData.room?.gameId) {
+          gameId = roomData.room.gameId;
+        }
+        
+        // Render seats
+        renderSeats(seatsData.seats, roomData.room);
+        
+        // Show START button ONLY if:
+        // 1. Room status is NOT ACTIVE (no game in progress)
+        // 2. 2+ players seated
+        // 3. User is host (or show "waiting" if not host)
+        const seatedCount = seatsData.occupiedCount || 0;
+        const isHost = roomData.room?.hostId === userId;
+        const roomIsActive = roomData.room?.status === 'ACTIVE';
+        
+        // CRITICAL: If room is ACTIVE, NEVER show START button (game is in progress)
+        if (roomIsActive) {
+          document.getElementById('startBtn').style.display = 'none';
+          debug('🎮 Game active - START button hidden');
+        } else if (isHost && seatedCount >= 2) {
+          document.getElementById('startBtn').style.display = 'inline-block';
+          document.getElementById('startBtn').disabled = false;
+          document.getElementById('startBtn').textContent = '🎮 START HAND';
+          debug('🎮 START HAND button enabled (HOST)', { seatedCount });
+        } else if (!isHost && seatedCount >= 2) {
+          document.getElementById('startBtn').style.display = 'inline-block';
+          document.getElementById('startBtn').disabled = true;
+          document.getElementById('startBtn').textContent = '⏳ WAITING FOR HOST';
+          debug('⏳ Waiting for host to start', { hostId: roomData.room?.hostId });
+        } else {
+          document.getElementById('startBtn').style.display = 'none';
+        }
+        
+      } catch (error) {
+        debug('❌ Load room error', { error: error.message });
+        console.error('Load room error:', error);
+      }
+    }
+    
+    // ============================================
+    // STEP 4: RENDER SEATS
+    // ============================================
+    function renderSeats(seats, room) {
+      debug('🎨 Rendering seats...', { seatCount: seats ? seats.length : 0 });
+      
+      const seatsDiv = document.getElementById('seats');
+      seatsDiv.innerHTML = '';
+      
+      // Create 9 seats (0-8)
+      for (let i = 0; i < 9; i++) {
+        const seat = seats ? seats[i] : null;
+        const div = document.createElement('div');
+        
+        const isMe = seat && seat.userId === userId;
+        const isEmpty = !seat || !seat.userId;
+        
+        div.className = 'seat';
+        if (isEmpty) {
+          div.className += ' empty';
+        } else if (isMe) {
+          div.className += ' taken me';
+        } else {
+          div.className += ' taken';
+        }
+        
+        const label = document.createElement('div');
+        label.className = 'seat-label';
+        label.textContent = `Seat ${i}`;
+        
+        const player = document.createElement('div');
+        player.className = 'seat-player';
+        
+        const chips = document.createElement('div');
+        chips.className = 'seat-chips';
+        
+        if (isEmpty) {
+          player.textContent = '🪑 EMPTY';
+          chips.textContent = 'Click to claim';
+          div.onclick = () => claimSeat(i);
+        } else {
+          player.textContent = `Player ${i}`;
+          if (isMe) player.textContent += ' (YOU)';
+          chips.textContent = `$${(seat.chips || 1000).toLocaleString()}`;
+        }
+        
+        div.appendChild(label);
+        div.appendChild(player);
+        div.appendChild(chips);
+        
+        seatsDiv.appendChild(div);
+      }
+      
+      debug('✅ Seats rendered');
+    }
+    
+    // ============================================
+    // STEP 5: CLAIM SEAT
+    // ============================================
+    async function claimSeat(seatIndex) {
+      debug(`🪑 Attempting to claim seat ${seatIndex}...`);
+      
+      try {
+        const response = await fetch(`/api/engine/claim-seat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: roomId,
+            userId: userId,
+            seatIndex: seatIndex
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to claim seat');
+        }
+        
+        const data = await response.json();
+        debug('✅ Seat claimed successfully', data);
+        alert(`✅ Seat ${seatIndex} claimed!`);
+        
+        // Reload room state
+        setTimeout(loadRoom, 500);
+        
+      } catch (error) {
+        debug('❌ Claim seat error', { error: error.message });
+        alert('❌ Failed to claim seat: ' + error.message);
+      }
+    }
+    
+    // ============================================
+    // STEP 6: START HAND / NEXT HAND
+    // ============================================
+    async function startHand() {
+      const btn = document.getElementById('startBtn');
+      const isNextHand = btn.textContent.includes('NEXT');
+      
+      debug(isNextHand ? '🎬 Starting NEXT hand...' : '🎮 Starting FIRST hand...');
+      
+      try {
+        // Clear UI before starting new hand
+        document.getElementById('communityCards').innerHTML = '';
+        document.getElementById('myCards').innerHTML = '';
+        document.getElementById('potAmount').textContent = '0';
+        document.getElementById('currentBet').textContent = '0';
+        document.getElementById('actionButtons').style.display = 'none';
+        document.getElementById('handStrength').style.display = 'none';
+        document.getElementById('myCardsSection').style.display = 'none';
+        
+        // Use correct endpoint
+        const endpoint = isNextHand ? '/api/engine/next-hand' : '/api/engine/deal-cards';
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: roomId,
+            userId: userId
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to start hand');
+        }
+        
+        const data = await response.json();
+        debug('✅ Hand started', data);
+        
+        // Store game state ID
+        if (data.gameStateId) {
+          gameId = data.gameStateId;
+        }
+        
+        // Show game state immediately
+        if (data.gameState) {
+          const gs = data.gameState;
+          
+          document.getElementById('communitySection').style.display = 'block';
+          document.getElementById('potAmount').textContent = gs.pot || 0;
+          document.getElementById('currentBet').textContent = gs.currentBet || 0;
+          
+          const actorText = document.getElementById('currentActor');
+          if (gs.currentActorSeat !== undefined) {
+            actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
+            actorText.style.display = 'inline';
+          }
+          
+          // Show hand number
+          if (gs.handNumber) {
+            debug(`📊 Hand #${gs.handNumber}`);
+          }
+          
+          debug('✅ Game state displayed', { pot: gs.pot, currentBet: gs.currentBet, handNumber: gs.handNumber });
+        }
+        
+        // Show cards
+        if (data.cards && data.cards.length === 2) {
+          renderMyCards(data.cards);
+        }
+        
+        // Reset button text
+        btn.textContent = '🎮 START HAND';
+        btn.style.display = 'none';
+        
+        // Reload seats to show updated chips
+        setTimeout(loadRoom, 500);
+        
+      } catch (error) {
+        debug('❌ Start hand error', { error: error.message });
+        alert('❌ Failed to start hand: ' + error.message);
+      }
+    }
+    
+    // ============================================
+    // STEP 7: RENDER MY CARDS
+    // ============================================
+    async function renderMyCards(cards) {
+      debug('🃏 Rendering hole cards', { cards });
+      
+      const section = document.getElementById('myCardsSection');
+      const cardsDiv = document.getElementById('myCards');
+      
+      section.style.display = 'block';
+      cardsDiv.innerHTML = '';
+      
+      cards.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        
+        // Convert new format (Ah, Kd) to old format (hearts_A, diamonds_K) for image path
+        // Format: 2-9, T, J, Q, K, A + h/d/c/s
+        const rank = card.substr(0, card.length - 1); // e.g., "A" or "10" or "T"
+        const suitChar = card.substr(-1); // e.g., "h"
+        
+        const suitMap = { h: 'hearts', d: 'diamonds', c: 'clubs', s: 'spades' };
+        const rankMap = { T: '10' }; // T = 10
+        
+        const suit = suitMap[suitChar] || 'hearts';
+        const displayRank = rankMap[rank] || rank;
+        
+        const imagePath = `/cards/${suit}_${displayRank}.png`;
+        cardDiv.style.backgroundImage = `url('${imagePath}')`;
+        
+        cardsDiv.appendChild(cardDiv);
+      });
+      
+      // Show action buttons
+      document.getElementById('actionButtons').style.display = 'flex';
+      
+      // Fetch game state to calculate correct call amount
+      try {
+        const gameStateResponse = await fetch(`/api/engine/game/${roomId}`);
+        if (gameStateResponse.ok) {
+          const gameData = await gameStateResponse.json();
+          
+          // Find my player
+          const myPlayer = gameData.players?.find(p => p.userId === userId);
+          const currentBet = gameData.currentBet || 0;
+          const myBet = myPlayer?.bet || 0;
+          const callAmount = currentBet - myBet;
+          
+          // Update call button text - CHECK or CALL
+          const callBtn = document.getElementById('callBtn');
+          const callBtnText = document.getElementById('callBtnText');
+          const callAmountSpan = document.getElementById('callAmount');
+          
+          if (callAmount === 0) {
+            // It's a check
+            callBtnText.textContent = 'CHECK';
+            callAmountSpan.style.display = 'none';
+            callBtn.onclick = () => performAction('CHECK', 0);
+          } else {
+            // It's a call
+            callBtnText.textContent = 'CALL';
+            callAmountSpan.style.display = 'inline';
+            callAmountSpan.textContent = callAmount;
+            callBtn.onclick = () => performAction('CALL', callAmount);
+          }
+          
+          // Wire up other buttons
+          document.getElementById('foldBtn').onclick = () => performAction('FOLD', 0);
+          document.getElementById('raiseBtn').onclick = () => {
+            const minRaise = currentBet * 2 || 20;
+            const amount = prompt(`Raise to how much? (min: $${minRaise})`, minRaise.toString());
+            if (amount) performAction('RAISE', parseInt(amount));
+          };
+          
+          // Evaluate and display hand strength
+          evaluateHandStrength(cards, gameData.communityCards || []);
+        }
+      } catch (error) {
+        debug('⚠️ Could not fetch game state for call amount', error);
+        // Fallback
+        document.getElementById('foldBtn').onclick = () => performAction('FOLD', 0);
+        document.getElementById('callBtn').onclick = () => performAction('CHECK', 0);
+        document.getElementById('raiseBtn').onclick = () => {
+          const amount = prompt('Raise to how much?', '20');
+          if (amount) performAction('RAISE', parseInt(amount));
+        };
+      }
+      
+      debug('✅ Cards rendered, actions enabled');
+    }
+    
+    // ============================================
+    // STEP 7B: FETCH MY HOLE CARDS
+    // ============================================
+    async function fetchMyCards() {
+      debug('🔒 Fetching my hole cards...');
+      
+      try {
+        const response = await fetch(`/api/engine/my-cards/${roomId}/${userId}`);
+        
+        if (!response.ok) {
+          const error = await response.json();
+          console.log('⚠️ Could not fetch cards:', error.error);
+          return; // Not an error - might not be in this hand
+        }
+        
+        const data = await response.json();
+        debug('✅ My cards fetched', data);
+        
+        if (data.cards && data.cards.length === 2) {
+          renderMyCards(data.cards);
+        }
+        
+      } catch (error) {
+        debug('⚠️ Fetch my cards error', { error: error.message });
+      }
+    }
+    
+    // ============================================
+    // STEP 8: PERFORM ACTION
+    // ============================================
+    async function performAction(action, amount) {
+      debug(`🎮 Performing action: ${action} $${amount}`);
+      
+      try {
+        const response = await fetch('/api/engine/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: roomId,
+            userId: userId,
+            action: action,
+            amount: amount
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to perform action');
+        }
+        
+        const data = await response.json();
+        debug('✅ Action performed', data);
+        
+        // UI will update via WebSocket broadcast automatically
+        
+      } catch (error) {
+        debug('❌ Action error', { error: error.message });
+        alert('❌ Failed: ' + error.message);
+      }
+    }
+    
+    // ============================================
+    // STEP 8A: UPDATE ACTION BUTTONS
+    // ============================================
+    function updateActionButtons(gameState) {
+      // Find my player
+      const myPlayer = gameState.players?.find(p => p.userId === userId);
+      if (!myPlayer) return;
+      
+      const currentBet = gameState.currentBet || 0;
+      const myBet = myPlayer.bet || 0;
+      const callAmount = currentBet - myBet;
+      
+      debug('🔄 Updating buttons', { currentBet, myBet, callAmount, isMyTurn: gameState.currentActorSeat === myPlayer.seatIndex });
+      
+      // Update call button text - CHECK or CALL
+      const callBtn = document.getElementById('callBtn');
+      const callBtnText = document.getElementById('callBtnText');
+      const callAmountSpan = document.getElementById('callAmount');
+      
+      if (callAmount === 0) {
+        // It's a check
+        callBtnText.textContent = 'CHECK';
+        callAmountSpan.style.display = 'none';
+        callBtn.onclick = () => performAction('CHECK', 0);
+      } else {
+        // It's a call
+        callBtnText.textContent = 'CALL';
+        callAmountSpan.style.display = 'inline';
+        callAmountSpan.textContent = callAmount;
+        callBtn.onclick = () => performAction('CALL', callAmount);
+      }
+      
+      // Update raise button
+      document.getElementById('raiseBtn').onclick = () => {
+        const minRaise = currentBet * 2 || 20;
+        const amount = prompt(`Raise to how much? (min: $${minRaise})`, minRaise.toString());
+        if (amount) performAction('RAISE', parseInt(amount));
+      };
+    }
+    
+    // ============================================
+    // STEP 8B: HANDLE HAND COMPLETE
+    // ============================================
+    function handleHandComplete(gameState) {
+      debug('🏆 Hand complete', gameState);
+      
+      // Hide action buttons
+      document.getElementById('actionButtons').style.display = 'none';
+      document.getElementById('handStrength').style.display = 'none';
+      
+      if (gameState.winners && gameState.winners.length > 0) {
+        // Show winner(s) with hand description
+        const winnerText = gameState.winners.map(w => 
+          `Seat ${w.seatIndex} wins $${w.amount} - ${w.handDescription}`
+        ).join('\n');
+        
+        // Show updated chip stacks
+        const myPlayer = gameState.players?.find(p => p.userId === userId);
+        const myChips = myPlayer ? myPlayer.chips : 0;
+        
+        setTimeout(() => {
+          alert(`🏆 Hand Complete!\n\n${winnerText}\n\nYour chips: $${myChips}`);
+          
+          // Show "NEXT HAND" button
+          const startBtn = document.getElementById('startBtn');
+          startBtn.style.display = 'inline-block';
+          startBtn.disabled = false;
+          startBtn.textContent = '▶️ NEXT HAND';
+        }, 500);
+      }
+    }
+    
+    // ============================================
+    // STEP 8C: RENDER COMMUNITY CARDS
+    // ============================================
+    function renderCommunityCards(cards) {
+      debug('🃏 Rendering community cards', { cards });
+      
+      const communityDiv = document.getElementById('communityCards');
+      communityDiv.innerHTML = '';
+      
+      cards.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        
+        // Convert format (Ah, Kd) → (/cards/hearts_A.png)
+        const rank = card.substr(0, card.length - 1);
+        const suitChar = card.substr(-1);
+        
+        const suitMap = { h: 'hearts', d: 'diamonds', c: 'clubs', s: 'spades' };
+        const rankMap = { T: '10' };
+        
+        const suit = suitMap[suitChar] || 'hearts';
+        const displayRank = rankMap[rank] || rank;
+        
+        cardDiv.style.backgroundImage = `url('/cards/${suit}_${displayRank}.png')`;
+        communityDiv.appendChild(cardDiv);
+      });
+      
+      document.getElementById('communitySection').style.display = 'block';
+      
+      // Re-evaluate hand strength when community cards change
+      const myCardsDiv = document.getElementById('myCards');
+      if (myCardsDiv && myCardsDiv.dataset.cards) {
+        const myCards = JSON.parse(myCardsDiv.dataset.cards);
+        evaluateHandStrength(myCards, cards);
+      }
+    }
+    
+    // ============================================
+    // STEP 8D: EVALUATE AND DISPLAY HAND STRENGTH
+    // ============================================
+    function evaluateHandStrength(holeCards, communityCards) {
+      // Store cards for re-evaluation
+      const myCardsDiv = document.getElementById('myCards');
+      myCardsDiv.dataset.cards = JSON.stringify(holeCards);
+      
+      if (!holeCards || holeCards.length !== 2) return;
+      if (!communityCards) communityCards = [];
+      
+      const allCards = [...holeCards, ...communityCards];
+      
+      // Simple hand evaluation (client-side approximation)
+      const handDescription = getSimpleHandDescription(allCards);
+      
+      // Display
+      const strengthDiv = document.getElementById('handStrength');
+      const textDiv = document.getElementById('handStrengthText');
+      
+      if (handDescription) {
+        textDiv.textContent = handDescription;
+        strengthDiv.style.display = 'block';
+        debug('🎴 Hand strength:', handDescription);
+      }
+    }
+    
+    /**
+     * Simple client-side hand evaluation
+     * Returns description like "Pair of AA", "Two Pair - QQ33"
+     */
+    function getSimpleHandDescription(cards) {
+      if (cards.length < 2) return 'Incomplete Hand';
+      
+      // Parse ranks
+      const rankMap = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+      const rankCharMap = { 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: 'T', 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
+      
+      const ranks = cards.map(card => rankMap[card[0]]);
+      const suits = cards.map(card => card[1]);
+      
+      // Count frequencies
+      const rankCounts = {};
+      ranks.forEach(r => rankCounts[r] = (rankCounts[r] || 0) + 1);
+      
+      const pairs = [];
+      const trips = [];
+      const quads = [];
+      
+      for (const [rank, count] of Object.entries(rankCounts)) {
+        if (count === 4) quads.push(parseInt(rank));
+        if (count === 3) trips.push(parseInt(rank));
+        if (count === 2) pairs.push(parseInt(rank));
+      }
+      
+      // Sort descending
+      pairs.sort((a, b) => b - a);
+      trips.sort((a, b) => b - a);
+      quads.sort((a, b) => b - a);
+      
+      // Check flush
+      const suitCounts = {};
+      suits.forEach(s => suitCounts[s] = (suitCounts[s] || 0) + 1);
+      const isFlush = Object.values(suitCounts).some(c => c >= 5);
+      
+      // Check straight (simplified)
+      const uniqueRanks = [...new Set(ranks)].sort((a, b) => b - a);
+      let isStraight = false;
+      if (uniqueRanks.length >= 5) {
+        for (let i = 0; i <= uniqueRanks.length - 5; i++) {
+          if (uniqueRanks[i] - uniqueRanks[i + 4] === 4) {
+            isStraight = true;
+            break;
+          }
+        }
+      }
+      
+      // Determine hand
+      if (quads.length > 0) {
+        return `Four of a Kind (${rankCharMap[quads[0]]}s)`;
+      }
+      if (trips.length > 0 && pairs.length > 0) {
+        return `Full House (${rankCharMap[trips[0]]}${rankCharMap[trips[0]]}${rankCharMap[trips[0]]} over ${rankCharMap[pairs[0]]}${rankCharMap[pairs[0]]})`;
+      }
+      if (isFlush) {
+        return 'Flush';
+      }
+      if (isStraight) {
+        return 'Straight';
+      }
+      if (trips.length > 0) {
+        return `Three of a Kind (${rankCharMap[trips[0]]}s)`;
+      }
+      if (pairs.length >= 2) {
+        return `Two Pair (${rankCharMap[pairs[0]]}${rankCharMap[pairs[0]]} ${rankCharMap[pairs[1]]}${rankCharMap[pairs[1]]})`;
+      }
+      if (pairs.length === 1) {
+        return `Pair (${rankCharMap[pairs[0]]}${rankCharMap[pairs[0]]})`;
+      }
+      
+      // High card
+      const highCard = Math.max(...ranks);
+      return `High Card (${rankCharMap[highCard]})`;
+    }
+    
+    // ============================================
+    // STEP 9: RENDER COMMUNITY CARDS + POT
+    // ============================================
+    function renderCommunity(communityCards, pot, currentBet) {
+      if (!communityCards || communityCards.length === 0) {
+        document.getElementById('communitySection').style.display = 'none';
+        return;
+      }
+      
+      debug('🎴 Rendering community cards', { communityCards, pot, currentBet });
+      
+      const section = document.getElementById('communitySection');
+      const cardsDiv = document.getElementById('communityCards');
+      
+      section.style.display = 'block';
+      cardsDiv.innerHTML = '';
+      
+      communityCards.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        cardDiv.style.backgroundImage = `url('/cards/${card}.png')`;
+        cardsDiv.appendChild(cardDiv);
+      });
+      
+      document.getElementById('potAmount').textContent = pot || 0;
+      document.getElementById('currentBet').textContent = currentBet || 0;
+      
+      debug('✅ Community cards rendered');
+    }
+    
+    // ============================================
+    // STEP 10: UPDATE TURN INDICATOR
+    // ============================================
+    function updateTurnIndicator(currentActorSeat) {
+      const indicator = document.getElementById('turnIndicator');
+      const actorText = document.getElementById('currentActor');
+      
+      if (currentActorSeat === null || currentActorSeat === undefined) {
+        indicator.style.display = 'none';
+        actorText.textContent = '';
+        return;
+      }
+      
+      // Check if it's our turn
+      // (This is simplified - need to map userId to seat)
+      actorText.textContent = `(Waiting for Seat ${currentActorSeat})`;
+      
+      // TODO: Properly detect if current actor is us
+      // indicator.style.display = 'inline';
+    }
+    
+    // ============================================
+    // INITIALIZE ON LOAD
+    // ============================================
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
+

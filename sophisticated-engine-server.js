@@ -626,6 +626,10 @@ app.locals.LogCategory = LogCategory;
 // app.locals.io will be set below
 
 // Mount the modularized routers
+const gameEngineBridgeRouter = require('./routes/game-engine-bridge');
+const sandboxRouter = require('./routes/sandbox');
+app.use('/api/engine', gameEngineBridgeRouter); // Production game engine (avoid conflict with /api/game display routes)
+app.use('/api/sandbox', sandboxRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/auth', authRouter);
@@ -633,12 +637,14 @@ app.use('/api/v2', v2Router);
 app.use('/', pagesRouter); // Mount pages router last (catch-all routes)
 
 console.log('⚔️ COMPLETE MODULARIZATION - ALL ROUTERS MOUNTED:');
+console.log('   ✅ /api/minimal - 4 endpoints (CLEAN, NO BROKEN DEPS)');
+console.log('   ✅ /api/sandbox - 2 endpoints (ITERATIVE TEST ENV)');
 console.log('   ✅ /api/rooms  - 22 endpoints (1,072 lines)');
 console.log('   ✅ /api/games  - 7 endpoints (630 lines)');
 console.log('   ✅ /api/auth   - 3 endpoints (~100 lines)');
 console.log('   ✅ /api/v2     - 3 endpoints (117 lines)');
 console.log('   ✅ /          - 13 page routes (74 lines)');
-console.log('   📊 TOTAL: 45 endpoints, 1,893 lines extracted');
+console.log('   📊 TOTAL: 51 endpoints, 2,300+ lines extracted');
 
 // ============================================
 // MODULARIZATION COMPLETE
@@ -961,8 +967,8 @@ async function initializeRedisInfrastructure() {
     
     return { client, subscriber };
   } catch (error) {
-    Logger.error(LogCategory.STARTUP, 'Redis initialization failed', { error: error.message });
-    throw error;
+    Logger.warn(LogCategory.STARTUP, 'Redis not available - running in local mode without sessions', { error: error.message });
+    return { client: null, subscriber: null };
   }
 }
 
@@ -1021,16 +1027,18 @@ async function recoverIncompleteGames() {
 // ============================================
 
 async function initializeServices() {
-  // Initialize Redis (MUST be first for sessions)
+  // Initialize Redis (Optional - gracefully degrades if not available)
   const { client, subscriber } = await initializeRedisInfrastructure();
   
   // Initialize Supabase Auth
   initializeSupabase();
   
-  // Attach Redis adapter to Socket.IO for horizontal scaling
+  // Attach Redis adapter to Socket.IO for horizontal scaling (only if Redis available)
   if (io && client && subscriber) {
     io.adapter(createAdapter(client, subscriber));
     Logger.success(LogCategory.STARTUP, 'Socket.IO Redis adapter attached');
+  } else {
+    Logger.warn(LogCategory.STARTUP, 'Socket.IO running without Redis adapter (single-server mode)');
   }
   
   // Make sessionService directly accessible to Socket.IO

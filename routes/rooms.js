@@ -146,6 +146,60 @@ router.get('/:roomId/seats', async (req, res) => {
 
 // POST /api/rooms/:roomId/join - Claim seat
 // ⚠️ NO AUTH: Guests need to join without JWT tokens
+// POST /api/rooms/:roomId/claim-seat - MINIMAL TABLE: Simple seat claiming
+router.post('/:roomId/claim-seat', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { userId, seatIndex, username } = req.body;
+    
+    console.log('🪑 Claim seat request:', { roomId, userId, seatIndex, username });
+    
+    if (!userId || seatIndex === undefined) {
+      return res.status(400).json({ error: 'Missing userId or seatIndex' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Check if seat is available
+    const existing = await db.query(
+      'SELECT * FROM room_seats WHERE room_id = $1 AND seat_index = $2',
+      [roomId, seatIndex]
+    );
+    
+    if (existing.rows.length > 0 && existing.rows[0].user_id !== userId) {
+      return res.status(409).json({ error: 'Seat already taken' });
+    }
+    
+    // Claim the seat (1000 starting chips by default)
+    await db.query(`
+      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status)
+      VALUES ($1, $2, $3, 1000, 'SEATED')
+      ON CONFLICT (room_id, seat_index) 
+      DO UPDATE SET user_id = $2, chips_in_play = 1000, status = 'SEATED', left_at = NULL
+    `, [roomId, userId, seatIndex]);
+    
+    console.log('✅ Seat claimed:', { roomId, userId, seatIndex });
+    
+    // Broadcast seat update
+    const io = req.app.locals.io;
+    if (io) {
+      io.to(`room:${roomId}`).emit('seat_update', {
+        type: 'seat_claimed',
+        roomId,
+        seatIndex,
+        userId
+      });
+    }
+    
+    res.json({ success: true, seatIndex });
+  } catch (error) {
+    console.error('❌ Claim seat error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/rooms/:roomId/session - Get session info for current user
 router.get('/:roomId/session', async (req, res) => {
   try {
@@ -334,7 +388,7 @@ router.get('/:roomId/hydrate', async (req, res) => {
     
     // Get room details
     const roomResult = await db.query(
-      `SELECT id, invite_code, host_user_id, max_players, status, turn_time_seconds, timebank_seconds, 
+      `SELECT id, invite_code, host_user_id, max_players, status, 
               small_blind, big_blind, game_id, created_at
        FROM rooms WHERE id = $1`,
       [req.params.roomId]
@@ -546,8 +600,6 @@ router.get('/:roomId/hydrate', async (req, res) => {
         host_id: room.host_user_id,
         capacity: room.max_players,
         status: room.status,
-        turn_time_seconds: room.turn_time_seconds,
-        timebank_seconds: room.timebank_seconds,
         small_blind: room.small_blind,
         big_blind: room.big_blind
       },

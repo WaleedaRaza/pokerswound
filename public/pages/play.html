@@ -166,6 +166,18 @@
         </div>
       </section>
       
+      <section class="game-section liquid-glass-tile" style="border: 2px solid #10b981;">
+        <div class="tile-content">
+          <div class="tile-icon">🧪</div>
+          <h3 class="tile-title">Sandbox Table <span style="font-size: 0.7rem; color: #10b981; font-weight: bold;">TESTING</span></h3>
+          <p class="tile-description">Iterative test environment - build features one at a time</p>
+          <div class="tile-actions">
+            <button class="btn btn-primary" style="background: #10b981;" onclick="createSandboxRoom()">Create Sandbox</button>
+            <button class="btn btn-secondary" onclick="joinSandboxRoom()">Join Sandbox</button>
+          </div>
+        </div>
+      </section>
+      
       <section class="game-section liquid-glass-tile">
         <div class="tile-content">
           <div class="tile-icon">🏆</div>
@@ -2702,5 +2714,80 @@
       </div>
     </div>
   </div>
+
+  <!-- Sandbox Functions -->
+  <script>
+    // Create Sandbox Room
+    async function createSandboxRoom() {
+      try {
+        // Get current user
+        const userId = window.currentUser?.id || localStorage.getItem('guestUserId');
+        
+        if (!userId) {
+          alert('Please sign in or continue as guest first');
+          openLoginModal();
+          return;
+        }
+        
+        const roomName = prompt('Enter room name:', `${window.currentUser?.user_metadata?.username || 'Guest'}'s Sandbox`);
+        if (!roomName) return;
+        
+        console.log('Creating sandbox room...', { userId, roomName });
+        
+        const response = await fetch('/api/sandbox/create-room', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, name: roomName })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create room');
+        }
+        
+        console.log('✅ Room created:', data);
+        alert(`Room created! Code: ${data.code}\n\nShare this code with others to join.`);
+        
+        // Redirect to sandbox table
+        window.location.href = `/sandbox-table?room=${data.roomId}`;
+        
+      } catch (error) {
+        console.error('❌ Create sandbox error:', error);
+        alert(`Failed to create sandbox: ${error.message}`);
+      }
+    }
+    
+    // Join Sandbox Room
+    async function joinSandboxRoom() {
+      try {
+        const code = prompt('Enter room code:');
+        if (!code) return;
+        
+        console.log('Joining sandbox room with code:', code);
+        
+        const response = await fetch('/api/sandbox/join-room', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code.toUpperCase() })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to join room');
+        }
+        
+        console.log('✅ Joined room:', data);
+        
+        // Redirect to sandbox table
+        window.location.href = `/sandbox-table?room=${data.room.id}`;
+        
+      } catch (error) {
+        console.error('❌ Join sandbox error:', error);
+        alert(`Failed to join sandbox: ${error.message}`);
+      }
+    }
+  </script>
 </body>
 </html>
