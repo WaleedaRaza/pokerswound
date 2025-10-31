@@ -253,6 +253,7 @@
     let userId = null;
     let gameId = null;
     let socket = null;
+    let isHost = false; // Track if current user is host
     
     // ============================================
     // UTILITY: DEBUG LOGGING
@@ -484,6 +485,14 @@
       socket.on('hand_started', (data) => {
         debug('🃏 Hand started event', data);
         
+        // CRITICAL: Clear UI from previous hand (especially for guests)
+        document.getElementById('communityCards').innerHTML = '';
+        document.getElementById('myCards').innerHTML = '';
+        document.getElementById('actionButtons').style.display = 'none';
+        document.getElementById('handStrength').style.display = 'none';
+        document.getElementById('myCardsSection').style.display = 'none';
+        document.getElementById('startBtn').style.display = 'none';
+        
         // Store game state ID
         if (data.gameStateId) {
           gameId = data.gameStateId;
@@ -612,7 +621,7 @@
         // 2. 2+ players seated
         // 3. User is host (or show "waiting" if not host)
         const seatedCount = seatsData.occupiedCount || 0;
-        const isHost = roomData.room?.hostId === userId;
+        isHost = roomData.room?.hostId === userId; // Update global isHost
         const roomIsActive = roomData.room?.status === 'ACTIVE';
         
         // CRITICAL: If room is ACTIVE, NEVER show START button (game is in progress)
@@ -680,7 +689,9 @@
           chips.textContent = 'Click to claim';
           div.onclick = () => claimSeat(i);
         } else {
-          player.textContent = `Player ${i}`;
+          // Display nickname with @ symbol
+          const displayName = seat.nickname || `Guest_${seat.userId.substring(0, 6)}`;
+          player.textContent = `@${displayName}`;
           if (isMe) player.textContent += ' (YOU)';
           chips.textContent = `$${(seat.chips || 1000).toLocaleString()}`;
         }
@@ -701,6 +712,30 @@
     async function claimSeat(seatIndex) {
       debug(`🪑 Attempting to claim seat ${seatIndex}...`);
       
+      // Prompt for nickname
+      const nickname = prompt(
+        '🎮 Choose your nickname (3-15 characters):\n\n' +
+        'Letters, numbers, and underscores only.\n' +
+        'Leave blank for auto-generated name.',
+        ''
+      );
+      
+      // User cancelled
+      if (nickname === null) {
+        return;
+      }
+      
+      // Validate nickname if provided
+      if (nickname && (nickname.length < 3 || nickname.length > 15)) {
+        alert('❌ Nickname must be 3-15 characters');
+        return;
+      }
+      
+      if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
+        alert('❌ Nickname can only contain letters, numbers, and underscores');
+        return;
+      }
+      
       try {
         const response = await fetch(`/api/engine/claim-seat`, {
           method: 'POST',
@@ -708,7 +743,8 @@
           body: JSON.stringify({
             roomId: roomId,
             userId: userId,
-            seatIndex: seatIndex
+            seatIndex: seatIndex,
+            nickname: nickname || undefined
           })
         });
         
@@ -718,8 +754,9 @@
         }
         
         const data = await response.json();
+        const displayName = data.seat.nickname || `Guest_${userId.substring(0, 6)}`;
         debug('✅ Seat claimed successfully', data);
-        alert(`✅ Seat ${seatIndex} claimed!`);
+        alert(`✅ Welcome, ${displayName}! Seat ${seatIndex} claimed.`);
         
         // Reload room state
         setTimeout(loadRoom, 500);
@@ -1026,14 +1063,41 @@
         const myPlayer = gameState.players?.find(p => p.userId === userId);
         const myChips = myPlayer ? myPlayer.chips : 0;
         
+        // Show modal with winner info
         setTimeout(() => {
           alert(`🏆 Hand Complete!\n\n${winnerText}\n\nYour chips: $${myChips}`);
           
-          // Show "NEXT HAND" button
+          // AUTO-START NEXT HAND AFTER 5 SECONDS
           const startBtn = document.getElementById('startBtn');
           startBtn.style.display = 'inline-block';
-          startBtn.disabled = false;
-          startBtn.textContent = '▶️ NEXT HAND';
+          startBtn.disabled = true; // Disable manual click during countdown
+          
+          let countdown = 5;
+          
+          // BOTH host and guest see countdown
+          startBtn.textContent = `⏰ NEXT HAND (${countdown}s)`;
+          
+          const countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+              startBtn.textContent = `⏰ NEXT HAND (${countdown}s)`;
+            } else {
+              clearInterval(countdownInterval);
+              
+              // ONLY HOST starts the hand
+              if (isHost) {
+                startBtn.textContent = '▶️ STARTING...';
+                debug('🎬 Auto-starting next hand (HOST)...');
+                startHand();
+              } else {
+                // Guest sees "starting" briefly, then gets cards via WebSocket
+                startBtn.textContent = '⏳ STARTING...';
+                debug('⏳ Waiting for host to start next hand (GUEST)');
+                // Button will be hidden when hand_started WebSocket event fires
+              }
+            }
+          }, 1000);
+          
         }, 500);
       }
     }

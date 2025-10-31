@@ -115,9 +115,9 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
 
 router.post('/claim-seat', async (req, res) => {
   try {
-    const { roomId, userId, seatIndex } = req.body;
+    const { roomId, userId, seatIndex, nickname } = req.body;
     
-    console.log('🪑 [MINIMAL] Claim seat:', { roomId, userId, seatIndex });
+    console.log('🪑 [MINIMAL] Claim seat:', { roomId, userId, seatIndex, nickname });
     
     // Validate input
     if (!roomId || !userId || seatIndex === undefined) {
@@ -129,6 +129,20 @@ router.post('/claim-seat', async (req, res) => {
     if (seatIndex < 0 || seatIndex > 8) {
       return res.status(400).json({ 
         error: 'seatIndex must be 0-8' 
+      });
+    }
+    
+    // Validate nickname if provided
+    if (nickname && (nickname.length < 3 || nickname.length > 15)) {
+      return res.status(400).json({
+        error: 'Nickname must be 3-15 characters'
+      });
+    }
+    
+    // Validate nickname format (alphanumeric + underscore only)
+    if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
+      return res.status(400).json({
+        error: 'Nickname can only contain letters, numbers, and underscores'
       });
     }
     
@@ -165,19 +179,23 @@ router.post('/claim-seat', async (req, res) => {
       console.warn('⚠️ Could not create user profile (non-critical):', profileError.message);
     }
     
-    // Claim the seat (ONLY use columns that exist)
+    // Generate default nickname if not provided
+    const finalNickname = nickname || `Guest_${userId.substring(0, 6)}`;
+    
+    // Claim the seat with nickname
     const insertResult = await db.query(
-      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, joined_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())
+      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, nickname, joined_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
        ON CONFLICT (room_id, seat_index) 
        DO UPDATE SET 
          user_id = $2,
          chips_in_play = $4,
          status = $5,
+         nickname = $6,
          joined_at = NOW(),
          left_at = NULL
        RETURNING *`,
-      [roomId, userId, seatIndex, 1000, 'SEATED']
+      [roomId, userId, seatIndex, 1000, 'SEATED', finalNickname]
     );
     
     const seat = insertResult.rows[0];
@@ -233,13 +251,14 @@ router.get('/seats/:roomId', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
-    // Get all seats (ONLY use columns that exist)
+    // Get all seats with nicknames
     const result = await db.query(
       `SELECT 
          seat_index,
          user_id,
          chips_in_play,
          status,
+         nickname,
          joined_at
        FROM room_seats
        WHERE room_id = $1 AND left_at IS NULL
@@ -254,6 +273,7 @@ router.get('/seats/:roomId', async (req, res) => {
       seatsArray[row.seat_index] = {
         seatIndex: row.seat_index,
         userId: row.user_id,
+        nickname: row.nickname || `Guest_${row.user_id.substring(0, 6)}`,
         chips: row.chips_in_play,
         status: row.status,
         joinedAt: row.joined_at
