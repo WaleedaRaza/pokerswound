@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PokerGeek - Minimal Table</title>
+  
+  <!-- Global Navbar Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/pokergeek.css">
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     /* Design Tokens */
     :root {
@@ -41,6 +50,7 @@
       color: #e9eef7;
       font-family: 'Inter', system-ui, -apple-system, Arial, sans-serif;
       padding: 20px;
+      padding-top: 100px; /* Space for fixed navbar */
     }
     
     .container {
@@ -53,22 +63,23 @@
     /* ============================================ */
     .table-wrapper {
       width: 100%;
-      min-height: 600px;
+      min-height: 1000px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--bg);
       position: relative;
-      overflow: hidden;
+      overflow: visible;
       margin-bottom: 30px;
     }
 
     .poker-table {
       position: absolute;
-      width: 1680px;
-      height: 800px;
+      width: 1600px;
+      height: 1200px;
       transform-origin: top left;
       pointer-events: auto;
+      z-index: 1;
     }
 
     /* Oval Felt Background */
@@ -148,7 +159,7 @@
       }
     }
     
-    .community-cards-center .card-img {
+    .community-cards-center .card-img.new-card {
       animation: cardFlip 0.5s ease-out forwards;
     }
 
@@ -200,17 +211,58 @@
       margin-bottom: 10px;
     }
     
-    .room-info {
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 30px;
+    /* Clean Table Header */
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .room-code-display {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    
+    .room-code-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
     }
     
     .room-code {
       color: #00d4aa;
-      font-size: 1.5rem;
-      font-weight: bold;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .connection-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .connection-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ff3b3b;
+      box-shadow: 0 0 12px rgba(255, 59, 59, 0.6);
+      transition: all 0.3s ease;
+    }
+    
+    .connection-indicator.connected .connection-dot {
+      background: #00d4aa;
+      box-shadow: 0 0 12px rgba(0, 212, 170, 0.6);
     }
     
     .seats-grid {
@@ -225,21 +277,25 @@
       background: linear-gradient(135deg, rgba(20,20,40,0.95) 0%, rgba(30,30,50,0.95) 100%);
       border: 2px solid rgba(255,255,255,0.2);
       border-radius: 16px;
-      padding: 24px;
+      padding: 16px 14px;
       width: 220px;
-      min-height: 180px;
-      transition: all 0.3s ease;
+      aspect-ratio: 1 / 1;
       backdrop-filter: blur(20px) saturate(120%);
       box-shadow: 
         inset 0 0 20px -5px rgba(255, 255, 255, 0.1),
         0 10px 30px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      align-items: center;
+      gap: 4px;
     }
     
-    /* YOUR seat - wider for better card display */
+    /* YOUR seat - same aspect ratio, just bigger */
     .seat.me {
-      width: 320px;
-      min-height: 200px;
-      padding: 28px;
+      width: 260px;
+      aspect-ratio: 1 / 1;
+      padding: 18px 16px;
       border: 3px solid var(--teal);
       background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 180, 140, 0.15) 100%);
       box-shadow: 
@@ -247,13 +303,14 @@
         0 0 0 3px rgba(0,212,170,.5),
         0 0 50px rgba(0,212,170,.6),
         0 12px 40px rgba(0, 0, 0, 0.8);
+      gap: 8px;
     }
     
     .seat.empty {
       border: 2px dashed rgba(0, 212, 170, 0.5);
       background: linear-gradient(135deg, rgba(0, 212, 170, 0.03) 0%, rgba(0, 180, 140, 0.03) 100%);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
     }
     
     .seat.empty:hover {
@@ -264,7 +321,7 @@
         0 0 0 2px rgba(0,212,170,.4),
         0 0 40px rgba(0, 212, 170, 0.5),
         0 12px 35px rgba(0, 0, 0, 0.7);
-      transform: scale(1.02);
+      transform: translate(-50%, -50%) scale(1.02);
     }
     
     .seat.taken {
@@ -273,11 +330,6 @@
       box-shadow: 
         inset 0 0 20px -5px rgba(255, 215, 0, 0.15),
         0 10px 30px rgba(0, 0, 0, 0.6);
-    }
-    
-    .seat.me {
-      border-color: #ff5100;
-      background: rgba(255,81,0,0.1);
     }
     
     .seat.winner {
@@ -296,46 +348,77 @@
       }
     }
     
+    /* Current turn indicator - glowing border */
+    @keyframes seatTurnGlow {
+      0%, 100% {
+        box-shadow: 0 0 0 3px #ffd700, 0 0 30px rgba(255, 215, 0, 0.6);
+      }
+      50% {
+        box-shadow: 0 0 0 5px #ffd700, 0 0 50px rgba(255, 215, 0, 1);
+      }
+    }
+    
+    .seat.current-turn {
+      border: 3px solid #ffd700;
+      animation: seatTurnGlow 1.5s ease-in-out infinite;
+    }
+    
     .seat-label {
-      font-size: 0.9rem;
+      font-size: clamp(0.7rem, 1.8vw, 0.9rem);
       color: #9aa3b2;
-      margin-bottom: 10px;
+      margin-bottom: 0.5em;
       letter-spacing: 0.3px;
+      width: 100%;
+      text-align: center;
     }
     
     .seat-player {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      font-weight: 800;
+      margin-bottom: 0.4em;
       color: var(--teal);
-      text-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
+      text-shadow: 0 2px 10px rgba(0, 212, 170, 0.6);
       letter-spacing: 0.5px;
+      width: 100%;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
     }
     
     .seat-chips {
       color: #ffd700;
       font-weight: 600;
-      font-size: 1.2rem;
+      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
       text-shadow: 0 2px 6px rgba(255, 215, 0, 0.5);
       letter-spacing: 0.5px;
+      width: 100%;
+      text-align: center;
+      flex-shrink: 0;
     }
     
     /* 🃏 SEAT CARD BACKINGS */
     .seat-cards {
       display: flex;
-      gap: 12px;
-      margin-top: 15px;
+      gap: 8px;
+      margin-top: 8px;
       justify-content: center;
-      min-height: 98px;
+      min-height: 70px;
+      flex-shrink: 1;
     }
     
     .seat-card-back, .seat-card-front {
-      width: 70px;
-      height: 98px;
+      width: 60px;
+      height: 84px;
       border-radius: 6px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
       object-fit: cover;
+    }
+    
+    .seat-card-back:hover, .seat-card-front:hover {
+      transform: translateY(-4px);
     }
     
     .seat-card-back.folded, .seat-card-front.folded {
@@ -676,6 +759,554 @@
       transform: rotate(180deg);
     }
     
+    /* Section hints */
+    .section-hint {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      margin: -8px 0 12px 0;
+      font-style: italic;
+    }
+    
+    /* Form elements */
+    .form-select, .form-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+    
+    .form-select:focus, .form-input:focus {
+      outline: none;
+      border-color: var(--teal);
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+    }
+    
+    .chip-adjustment-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    /* Player Settings Panel (Non-Hosts) */
+    #playerSettingsPanel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    #playerSettingsPanel .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      padding-bottom: 16px;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+      margin-bottom: 20px;
+    }
+    
+    #playerSettingsPanel .panel-header h2 {
+      color: var(--teal);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    
+    #playerSettingsPanel .collapse-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+    }
+    
+    #playerSettingsPanel .panel-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    
+    #playerSettingsPanel .panel-content.expanded {
+      max-height: 1000px;
+    }
+    
+    .color-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .color-btn {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .color-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--teal);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+    }
+    
+    .color-btn.active {
+      border-color: var(--accent);
+      background: rgba(255, 81, 0, 0.1);
+      box-shadow: 0 0 20px rgba(255, 81, 0, 0.4);
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    
+    .toggle-switch input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 13px;
+      transition: all 0.3s;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 2px;
+      top: 2px;
+      background: #e9eef7;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+      background: #00d4aa;
+      border-color: #00d4aa;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider::after {
+      transform: translateX(24px);
+    }
+    
+    .toggle-label {
+      color: #e9eef7;
+      font-size: 0.9rem;
+    }
+    
+    /* Settings Select */
+    .settings-select {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: #e9eef7;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .settings-select:hover {
+      border-color: #00d4aa;
+      background: rgba(255,255,255,0.08);
+    }
+    
+    .settings-select:focus {
+      outline: none;
+      border-color: #00d4aa;
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+    }
+    
+    /* Setting Note */
+    .setting-note {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #9aa3b2;
+      font-style: italic;
+    }
+    
+    /* ============================================ */
+    /* HOST CONTROLS PANEL - MATCHES PLAYER SETTINGS */
+    /* ============================================ */
+    
+    #hostControlsPanel {
+      max-width: 900px;
+      margin: 20px auto;
+      background: rgba(20, 20, 40, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+    
+    #hostControlsPanel .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      padding-bottom: 16px;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+      margin-bottom: 20px;
+    }
+    
+    #hostControlsPanel .panel-header h2 {
+      color: var(--accent);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .host-badge {
+      font-size: 0.7rem;
+      background: rgba(255, 81, 0, 0.2);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    #hostControlsPanel .collapse-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+    }
+    
+    #hostControlsPanel .panel-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    
+    #hostControlsPanel .panel-content.expanded {
+      max-height: 2000px;
+    }
+    
+    .host-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .host-control-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 12px;
+      border-radius: 10px;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid;
+      background: rgba(255,255,255,0.03);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .host-control-btn .btn-icon {
+      font-size: 1.5rem;
+    }
+    
+    .host-control-btn .btn-text {
+      font-size: 0.8rem;
+      line-height: 1.2;
+      text-align: center;
+    }
+    
+    .host-control-btn.action {
+      color: #00d4aa;
+      border-color: #00d4aa;
+    }
+    
+    .host-control-btn.action:hover {
+      background: rgba(0, 212, 170, 0.2);
+      border-color: #00ffcc;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+    }
+    
+    .host-control-btn.update {
+      color: #00d4aa;
+      border-color: #00d4aa;
+      width: 100%;
+      margin-top: 12px;
+    }
+    
+    .host-control-btn.update:hover {
+      background: rgba(0, 212, 170, 0.2);
+      border-color: #00ffcc;
+      transform: translateY(-2px);
+    }
+    
+    .host-control-btn.danger {
+      color: #ff5151;
+      border-color: #ff5151;
+    }
+    
+    .host-control-btn.danger:hover {
+      background: rgba(255, 81, 81, 0.2);
+      border-color: #ff6666;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(255, 81, 81, 0.4);
+    }
+    
+    .host-control-btn.paused {
+      background: rgba(249, 115, 22, 0.2);
+      color: #f97316;
+      border-color: #f97316;
+    }
+    
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 12px;
+    }
+    
+    .setting-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .setting-label span {
+      color: #e9eef7;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    
+    .setting-label small {
+      color: #9aa3b2;
+      font-size: 0.8rem;
+    }
+    
+    .timer-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    
+    .timer-btn {
+      flex: 1;
+      min-width: 60px;
+      padding: 10px 15px;
+      background: rgba(255,255,255,0.05);
+      color: #e9eef7;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: "Courier New", monospace;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .timer-btn:hover {
+      background: rgba(0, 212, 170, 0.15);
+      border-color: #00d4aa;
+      color: #00d4aa;
+      transform: translateY(-2px);
+    }
+    
+    .timer-btn.active {
+      background: #00d4aa;
+      color: #0b0b12;
+      border-color: #00d4aa;
+      font-weight: 700;
+      box-shadow: 0 0 15px rgba(0, 212, 170, 0.5);
+    }
+    
+    .timer-status {
+      text-align: center;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      font-family: "Courier New", monospace;
+      color: #9aa3b2;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+    
+    .timer-status span {
+      color: #00d4aa;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    
+    .blinds-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .blind-input-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    
+    .blind-input-group label {
+      color: #e9eef7;
+      font-size: 0.9rem;
+      font-weight: 500;
+      min-width: 100px;
+    }
+    
+    .blind-input-group input,
+    .blind-input-group select {
+      flex: 1;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: #e9eef7;
+      font-size: 0.9rem;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .blind-input-group input:focus,
+    .blind-input-group select:focus {
+      outline: none;
+      border-color: #00d4aa;
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+      background: rgba(255,255,255,0.08);
+    }
+    
+    .form-input {
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: #e9eef7;
+      font-size: 0.9rem;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #00d4aa;
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+      background: rgba(255,255,255,0.08);
+    }
+    
+    .danger-zone {
+      border: 2px solid rgba(255, 81, 81, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      background: rgba(255, 81, 81, 0.05);
+      margin-top: 24px;
+    }
+    
+    .danger-zone h4 {
+      color: #ff5151;
+      margin-bottom: 8px;
+    }
+    
+    .danger-zone .section-hint {
+      color: #ff8888;
+    }
+    
+    /* Hotkey List */
+    .hotkey-list div {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .hotkey-list div:last-child {
+      border-bottom: none;
+    }
+    
+    kbd {
+      display: inline-block;
+      padding: 3px 8px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      font-family: "Courier New", monospace;
+      font-size: 0.85rem;
+      color: #00d4aa;
+      margin-right: 8px;
+    }
+    
+    .color-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 2px 8px rgba(255,255,255,0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .color-btn:hover .color-preview {
+      transform: scale(1.1);
+    }
+    
+    .color-btn span {
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: "Courier New", monospace;
+    }
+    
     .controls {
       background: rgba(255,255,255,0.05);
       padding: 20px;
@@ -683,50 +1314,264 @@
       margin-bottom: 30px;
     }
     
+    /* Subtle blink animation for active buttons */
+    @keyframes subtlePulse {
+      0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+      }
+      50% {
+        opacity: 0.85;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+      }
+    }
+    
     .btn {
-      background: linear-gradient(135deg, #ff5100, #ff6a1f);
-      color: white;
-      border: 2px solid rgba(255, 255, 255, 0.3);
       padding: 18px 40px;
-      border-radius: 14px;
-      font-size: 1.2rem;
-      font-weight: 700;
+      background: #0b0b12;
+      color: #e9eef7;
+      border: 3px solid;
+      border-radius: 8px;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      font-size: 20px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      box-shadow: 
-        inset 0 0 20px -5px rgba(255, 255, 255, 0.3),
-        0 8px 24px rgba(255, 81, 0, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
     }
     
-    .btn:hover {
-      background: linear-gradient(135deg, #ff6a1f, #ff8438);
-      transform: translateY(-3px);
-      box-shadow: 
-        inset 0 0 25px -5px rgba(255, 255, 255, 0.4),
-        0 12px 32px rgba(255, 81, 0, 0.6),
-        0 6px 16px rgba(0, 0, 0, 0.7);
+    /* YOUR TURN - Pulse animation */
+    .btn.active {
+      animation: subtlePulse 2s ease-in-out infinite;
     }
     
-    .btn:active {
-      transform: translateY(-1px);
-      box-shadow: 
-        inset 0 0 20px -5px rgba(255, 255, 255, 0.3),
-        0 6px 20px rgba(255, 81, 0, 0.4),
-        0 3px 10px rgba(0, 0, 0, 0.6);
-    }
-    
-    .btn:disabled {
-      background: linear-gradient(135deg, #333, #444);
-      border-color: rgba(255, 255, 255, 0.1);
+    /* NOT YOUR TURN - Blurred */
+    .btn.not-your-turn {
+      filter: blur(2px);
+      opacity: 0.3;
+      pointer-events: none;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      opacity: 0.5;
     }
+    
+    .btn:hover:not(:disabled):not(.not-your-turn) {
+      transform: translateY(-1px);
+      animation: none;
+    }
+    
+    .btn:active:not(:disabled):not(.not-your-turn) {
+      transform: translateY(0);
+    }
+    
+    /* Force white text on start button */
+    #startBtn, #refreshBtn {
+      color: #ffffff !important;
+    }
+    
+    /* ============================================ */
+    /* RAISE PANEL (Below Buttons - No Box) */
+    /* ============================================ */
+    .raise-panel {
+      margin: 30px auto 0;
+      max-width: 800px;
+      padding: 20px 0;
+      animation: panelSlideDown 0.3s ease-out;
+    }
+    
+    @keyframes panelSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .raise-slider-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .raise-info {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+      margin-top: 20px;
+    }
+    
+    .raise-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .raise-info-label {
+      font-size: 13px;
+      color: #9aa3b2;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .raise-info-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #00d4aa;
+      font-family: "Courier New", monospace;
+    }
+    
+    .raise-presets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .raise-preset-btn {
+      padding: 12px;
+      background: #0b0b12;
+      color: #e9eef7;
+      border: 2px solid #00d4aa;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+    
+    .raise-preset-btn:hover {
+      background: #00d4aa;
+      color: #0b0b12;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 212, 170, 0.4);
+    }
+    
+    
+    .raise-input {
+      padding: 12px 16px;
+      background: #0b0b12;
+      border: 2px solid rgba(0, 212, 170, 0.5);
+      border-radius: 8px;
+      color: #e9eef7;
+      font-size: 18px;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      text-align: center;
+      width: 200px;
+      margin: 0 auto;
+    }
+    
+    .raise-input:focus {
+      outline: none;
+      border-color: #00d4aa;
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+    }
+    
+    .raise-slider {
+      width: 100%;
+      height: 8px;
+      background: rgba(0, 212, 170, 0.2);
+      border-radius: 4px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .raise-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #00d4aa;
+      cursor: pointer;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 212, 170, 0.5);
+    }
+    
+    .raise-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #00d4aa;
+      cursor: pointer;
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 212, 170, 0.5);
+    }
+    
+    .raise-slider-value {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: #00d4aa;
+      font-family: "Courier New", monospace;
+      margin-bottom: 8px;
+    }
+    
+    .raise-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .raise-actions .btn {
+      min-width: 140px;
+    }
+    
+    #raiseSubmitBtn {
+      color: #00d4aa;
+      border-color: #00d4aa;
+    }
+    
+    #raiseSubmitBtn:hover {
+      background: #00d4aa;
+      color: #0b0b12;
+    }
+    
+    /* ============================================ */
+    
+    /* FOLD - Red outline */
+    #foldBtn {
+      color: #dc2626;
+      border-color: #dc2626;
+    }
+    
+    #foldBtn:hover:not(:disabled) {
+      background: #dc2626;
+      color: #0b0b12;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+    
+    /* CALL - Teal outline */
+    #callBtn {
+      color: #00d4aa;
+      border-color: #00d4aa;
+    }
+    
+    #callBtn:hover:not(:disabled) {
+      background: #00d4aa;
+      color: #0b0b12;
+      box-shadow: 0 4px 12px rgba(0, 212, 170, 0.4);
+    }
+    
+    /* RAISE - Orange outline */
+    #raiseBtn {
+      color: #f97316;
+      border-color: #f97316;
+    }
+    
+    #raiseBtn:hover:not(:disabled) {
+      background: #f97316;
+      color: #0b0b12;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+    }
+    
     
     .my-cards {
       background: rgba(0,212,170,0.1);
@@ -771,25 +1616,67 @@
       margin-bottom: 10px;
     }
     
-    .status {
-      padding: 8px 12px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-top: 10px;
+    /* Calming UI Adjustments */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
     }
     
-    .status.connected {
-      background: rgba(0,212,170,0.2);
-      color: #00d4aa;
+    h2 {
+      color: rgba(255,255,255,0.9);
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     
-    .status.disconnected {
-      background: rgba(255,59,59,0.2);
-      color: #ff3b3b;
+    #currentActor {
+      color: var(--accent);
+      font-weight: 700;
     }
   </style>
 </head>
 <body>
+  <!-- UNIFIED NAVBAR -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">PokerGeek.ai</a>
+    <ul class="navbar-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/play">Play Now</a></li>
+      <li><a href="/friends">Friends</a></li>
+      <li><a href="/ai-solver">AI Solver</a></li>
+      <li><a href="/analysis">Analysis</a></li>
+      <li><a href="/learning">Learning</a></li>
+      <li><a href="/poker-today">Poker Today</a></li>
+    </ul>
+    <div class="navbar-auth" id="navbarAuth">
+      <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
+      <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
+    </div>
+    
+    <!-- User Profile Tile (shown when logged in) -->
+    <div class="navbar-user" id="navbarUser" style="display: none;">
+      <div class="user-profile-tile" onclick="toggleUserDropdown()">
+        <div class="user-avatar" id="userNavAvatar">👤</div>
+        <div class="user-info">
+          <div class="user-name" id="userNavName">Username</div>
+          <div class="user-status">Online</div>
+        </div>
+        <div class="user-menu-icon">⚙️</div>
+      </div>
+      
+      <!-- User Dropdown Menu -->
+      <div id="userDropdown" class="user-dropdown" style="display: none;">
+        <a href="#" class="dropdown-item" onclick="openProfileModal()">👤 My Profile</a>
+        <a href="/friends" class="dropdown-item">👥 Friends</a>
+        <a href="#" class="dropdown-item" onclick="openSettingsModal()">⚙️ Settings</a>
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item" onclick="handleLogout()">🚪 Logout</a>
+      </div>
+    </div>
+  </nav>
+
   <!-- 🏆 WINNER BANNER (hidden by default) -->
   <div class="winner-banner" id="winnerBanner"></div>
   
@@ -803,46 +1690,260 @@
   </div>
   
   <div class="container">
-    <h1>🎰 PokerGeek Minimal Table</h1>
-    
-    <div class="room-info">
-      <div>Room Code: <span class="room-code" id="roomCode">Loading...</span></div>
-      <div>Room ID: <span id="roomId">-</span></div>
-      <div>Your ID: <span id="userId">-</span> <span id="authBadge"></span></div>
-      <div class="status disconnected" id="socketStatus">🔴 Disconnected</div>
+    <!-- CLEAN HEADER -->
+    <div class="table-header">
+      <div class="room-code-display">
+        <span class="room-code-label">Room</span>
+        <span class="room-code" id="roomCode">---</span>
+      </div>
+      <div class="connection-indicator" id="socketStatus">
+        <span class="connection-dot"></span>
+      </div>
     </div>
     
     <!-- 🎛️ HOST CONTROLS PANEL -->
-    <div class="host-controls-panel" id="hostControlsPanel">
-      <div class="host-controls-header" onclick="toggleHostControls()">
-        <h3>
-          🎛️ HOST CONTROLS
-          <span class="host-badge">ONLY YOU</span>
-        </h3>
-        <span class="toggle-icon" id="hostToggleIcon">▼</span>
+    <div id="hostControlsPanel">
+      <div class="panel-header">
+        <h2>🎛️ HOST CONTROLS <span class="host-badge">ONLY YOU</span></h2>
+        <button class="collapse-btn" onclick="toggleHostControls()">
+          <span class="toggle-icon" id="hostToggleIcon">▼</span>
+        </button>
       </div>
-      <div class="host-controls-content" id="hostControlsContent">
-        <!-- CURRENT PLAYERS -->
+      
+      <div class="panel-content" id="hostControlsContent">
+        <!-- ESSENTIAL ACTIONS -->
         <div class="host-section">
-          <h4>👥 Current Players (<span id="hostPlayerCount">0</span>/9)</h4>
-          <div class="player-list" id="hostPlayerList">
-            <div class="empty-state">No players seated</div>
+          <h4>⚡ Essential Actions</h4>
+          <p class="section-hint">Quick controls for managing your game</p>
+          <div class="host-actions-grid">
+            <button class="host-control-btn action" onclick="toggleRoomLock()">
+              <span class="btn-icon">🔒</span>
+              <span class="btn-text" id="lockBtnText">LOCK ROOM</span>
+            </button>
+            <button class="host-control-btn action" onclick="openKickPlayerModal()">
+              <span class="btn-icon">👢</span>
+              <span class="btn-text">KICK PLAYER</span>
+            </button>
+            <button class="host-control-btn action" onclick="togglePauseGame()" id="pauseGameBtn">
+              <span class="btn-icon">⏸️</span>
+              <span class="btn-text">PAUSE GAME</span>
+            </button>
+            <button class="host-control-btn action" onclick="forceNextHand()">
+              <span class="btn-icon">⏭️</span>
+              <span class="btn-text">NEXT HAND</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- GAME SETTINGS -->
+        <div class="host-section">
+          <h4>⚙️ Game Settings</h4>
+          
+          <!-- Action Timer -->
+          <div class="setting-group">
+            <div class="setting-label">
+              <span>⏱️ Action Timer</span>
+              <small>Set time limit per decision (0 = unlimited)</small>
+            </div>
+            <div class="timer-buttons">
+              <button class="timer-btn" onclick="setActionTimer(0)">OFF</button>
+              <button class="timer-btn" onclick="setActionTimer(15)">15s</button>
+              <button class="timer-btn" onclick="setActionTimer(30)">30s</button>
+              <button class="timer-btn" onclick="setActionTimer(45)">45s</button>
+              <button class="timer-btn" onclick="setActionTimer(60)">60s</button>
+            </div>
+            <div class="timer-status">
+              Current: <span id="actionTimerDisplay">OFF</span>
+            </div>
+          </div>
+          
+          <!-- Auto-Start Toggle -->
+          <div class="setting-row">
+            <div class="setting-label">
+              <span>🔄 Auto-Start Hands</span>
+              <small>Automatically begin next hand when ready</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoStartToggle" onchange="toggleAutoStart()" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <!-- Spectator Mode Toggle -->
+          <div class="setting-row">
+            <div class="setting-label">
+              <span>👁️ Spectator Mode</span>
+              <small>Allow kicked players to watch game</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="spectatorToggle" onchange="toggleSpectatorMode()" checked>
+              <span class="toggle-slider"></span>
+            </label>
           </div>
         </div>
         
         <!-- BLIND CONTROLS -->
         <div class="host-section">
           <h4>💰 Blind Controls</h4>
+          <p class="section-hint">Adjust blinds between hands</p>
           <div class="blinds-controls">
             <div class="blind-input-group">
               <label>Small Blind:</label>
-              <input type="number" id="hostSmallBlindInput" value="10" min="1">
+              <input type="number" id="hostSmallBlindInput" value="10" min="1" class="form-input">
             </div>
             <div class="blind-input-group">
               <label>Big Blind:</label>
-              <input type="number" id="hostBigBlindInput" value="20" min="2">
+              <input type="number" id="hostBigBlindInput" value="20" min="2" class="form-input">
             </div>
-            <button class="host-btn update" onclick="updateBlinds()">UPDATE BLINDS</button>
+            <button class="host-control-btn update" onclick="updateBlinds()">UPDATE BLINDS</button>
+          </div>
+        </div>
+        
+        <!-- DANGER ZONE -->
+        <div class="host-section danger-zone">
+          <h4>⚠️ Danger Zone</h4>
+          <p class="section-hint">Destructive actions - use with caution</p>
+          <div class="host-actions-grid">
+            <button class="host-control-btn danger" onclick="resetAllStacks()">
+              <span class="btn-icon">🔄</span>
+              <span class="btn-text">RESET STACKS</span>
+            </button>
+            <button class="host-control-btn danger" onclick="endGame()">
+              <span class="btn-icon">🛑</span>
+              <span class="btn-text">END GAME</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ⚙️ PLAYER SETTINGS (Non-Host Players) -->
+    <div id="playerSettingsPanel">
+      <div class="panel-header">
+        <h2>⚙️ Player Settings</h2>
+        <button class="collapse-btn" onclick="togglePlayerSettings()">
+          <span class="toggle-icon" id="playerSettingsToggle">▼</span>
+        </button>
+      </div>
+      
+      <div class="panel-content" id="playerSettingsContent">
+        <!-- TABLE COLOR -->
+        <div class="host-section">
+          <h4>🎨 Table Color</h4>
+          <p class="section-hint">Choose your preferred felt color (saved locally)</p>
+          <div class="color-picker-grid">
+            <button class="color-btn" data-color="green" onclick="changeFeltColor('green')" title="Classic Green">
+              <div class="color-preview" style="background: #197a45;"></div>
+              <span>Green</span>
+            </button>
+            <button class="color-btn" data-color="red" onclick="changeFeltColor('red')" title="Ruby Red">
+              <div class="color-preview" style="background: #6b1414;"></div>
+              <span>Red</span>
+            </button>
+            <button class="color-btn" data-color="blue" onclick="changeFeltColor('blue')" title="Ocean Blue">
+              <div class="color-preview" style="background: #0f2942;"></div>
+              <span>Blue</span>
+            </button>
+            <button class="color-btn" data-color="black" onclick="changeFeltColor('black')" title="Midnight Black">
+              <div class="color-preview" style="background: #1a1a1a;"></div>
+              <span>Black</span>
+            </button>
+            <button class="color-btn" data-color="grey" onclick="changeFeltColor('grey')" title="Steel Grey">
+              <div class="color-preview" style="background: #2a2a2a;"></div>
+              <span>Grey</span>
+            </button>
+            <button class="color-btn" data-color="tan" onclick="changeFeltColor('tan')" title="Desert Tan">
+              <div class="color-preview" style="background: #6b5642;"></div>
+              <span>Tan</span>
+            </button>
+            <button class="color-btn" data-color="purple" onclick="changeFeltColor('purple')" title="Royal Purple">
+              <div class="color-preview" style="background: #3a1450;"></div>
+              <span>Purple</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- 4-COLOR DECK -->
+        <div class="host-section">
+          <h4>🃏 4-Color Deck</h4>
+          <p class="section-hint">Easier suit distinction (accessibility)</p>
+          <label class="toggle-switch">
+            <input type="checkbox" id="fourColorDeck" onchange="toggleFourColorDeck(this.checked)">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Enable 4-Color Deck</span>
+          </label>
+          <p class="setting-note">Coming soon - will use distinct colors for each suit</p>
+        </div>
+        
+        <!-- CARD BACK DESIGN -->
+        <div class="host-section">
+          <h4>🎴 Card Back Design</h4>
+          <p class="section-hint">Choose your card back style</p>
+          <select id="cardBackSelect" onchange="changeCardBack(this.value)" class="settings-select">
+            <option value="default">Classic</option>
+            <option value="modern">Modern (Coming Soon)</option>
+            <option value="minimal">Minimal (Coming Soon)</option>
+            <option value="geometric">Geometric (Coming Soon)</option>
+          </select>
+        </div>
+        
+        <!-- ANIMATION SPEED -->
+        <div class="host-section">
+          <h4>⚡ Animation Speed</h4>
+          <p class="section-hint">Card dealing and chip animations</p>
+          <select id="animSpeedSelect" onchange="changeAnimSpeed(this.value)" class="settings-select">
+            <option value="fast">Fast (200ms)</option>
+            <option value="normal" selected>Normal (400ms)</option>
+            <option value="slow">Slow (600ms)</option>
+          </select>
+        </div>
+        
+        <!-- AUTO-MUCK -->
+        <div class="host-section">
+          <h4>🙈 Auto-Muck</h4>
+          <p class="section-hint">Automatically hide losing hands at showdown</p>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autoMuck" onchange="toggleAutoMuck(this.checked)">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Enable Auto-Muck</span>
+          </label>
+        </div>
+        
+        <!-- CHIP DISPLAY FORMAT -->
+        <div class="host-section">
+          <h4>💰 Chip Display</h4>
+          <p class="section-hint">How chips are shown</p>
+          <select id="chipFormatSelect" onchange="changeChipFormat(this.value)" class="settings-select">
+            <option value="full" selected>Full ($1,500)</option>
+            <option value="compact">Compact ($1.5K)</option>
+          </select>
+        </div>
+        
+        <!-- ACTION CONFIRMATION -->
+        <div class="host-section">
+          <h4>⚠️ Action Confirmation</h4>
+          <p class="section-hint">Confirm before big actions</p>
+          <label class="toggle-switch">
+            <input type="checkbox" id="actionConfirm" onchange="toggleActionConfirm(this.checked)">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Confirm Big Bets/Folds</span>
+          </label>
+        </div>
+        
+        <!-- HOTKEYS -->
+        <div class="host-section">
+          <h4>⌨️ Keyboard Shortcuts</h4>
+          <p class="section-hint">Quick actions with keyboard</p>
+          <label class="toggle-switch">
+            <input type="checkbox" id="hotkeysEnabled" onchange="toggleHotkeys(this.checked)">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Enable Hotkeys</span>
+          </label>
+          <div class="hotkey-list" style="margin-top: 12px; font-size: 0.85rem; color: #9aa3b2;">
+            <div><kbd>F</kbd> = Fold</div>
+            <div><kbd>C</kbd> = Check/Call</div>
+            <div><kbd>R</kbd> = Raise</div>
+            <div><kbd>Space</kbd> = Confirm Action</div>
           </div>
         </div>
       </div>
@@ -895,10 +1996,52 @@
     </div>
     
     <!-- ACTION BUTTONS (Below Table) -->
-    <div id="actionButtons" style="display:none; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
-      <button class="btn" id="foldBtn" style="background: #ff3b3b;">FOLD</button>
-      <button class="btn" id="callBtn" style="background: #00d4aa;"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
-      <button class="btn" id="raiseBtn" style="background: #ff5100;">RAISE</button>
+    <div id="actionButtons" style="display:none; margin-top: 30px; display: flex; justify-content: center; gap: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+      <button class="btn" id="foldBtn">FOLD</button>
+      <button class="btn" id="callBtn"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
+      <button class="btn" id="raiseBtn">RAISE</button>
+    </div>
+    
+    <!-- RAISE PANEL (Below Buttons) -->
+    <div id="raisePanel" class="raise-panel" style="display: none;">
+      <!-- Slider + Display Value (Top) -->
+      <div class="raise-slider-section">
+        <input type="range" id="raiseSlider" class="raise-slider" min="0" max="1000" step="1" />
+        <div class="raise-slider-value" id="raiseSliderValue">$0</div>
+        <input type="number" id="raiseAmount" class="raise-input" placeholder="Enter amount" />
+      </div>
+      
+      <!-- Preset Buttons (Middle) -->
+      <div class="raise-presets">
+        <button class="raise-preset-btn" onclick="setRaisePreset('quarter')">1/4 Pot</button>
+        <button class="raise-preset-btn" onclick="setRaisePreset('half')">1/2 Pot</button>
+        <button class="raise-preset-btn" onclick="setRaisePreset('threequarter')">3/4 Pot</button>
+        <button class="raise-preset-btn" onclick="setRaisePreset('pot')">Pot</button>
+        <button class="raise-preset-btn" onclick="setRaisePreset('double')">2x Pot</button>
+        <button class="raise-preset-btn" onclick="setRaisePreset('allin')">All-In</button>
+      </div>
+      
+      <!-- Pot Info (Bottom) -->
+      <div class="raise-info">
+        <div class="raise-info-item">
+          <span class="raise-info-label">Pot:</span>
+          <span class="raise-info-value" id="raiseModalPot">$0</span>
+        </div>
+        <div class="raise-info-item">
+          <span class="raise-info-label">Your Stack:</span>
+          <span class="raise-info-value" id="raiseModalStack">$0</span>
+        </div>
+        <div class="raise-info-item">
+          <span class="raise-info-label">Min Raise:</span>
+          <span class="raise-info-value" id="raiseModalMin">$0</span>
+        </div>
+      </div>
+      
+      <!-- Submit Actions -->
+      <div class="raise-actions">
+        <button class="btn" style="background: #666; color: #fff; border-color: #666;" onclick="closeRaisePanel()">Cancel</button>
+        <button class="btn" id="raiseSubmitBtn" onclick="submitRaise()">Raise</button>
+      </div>
     </div>
     
     <div class="debug">
@@ -962,6 +2105,102 @@
       const finalRank = rankMap[rank] || rank;
       
       return `/cards/${suit}_${finalRank}.png`;
+    }
+    
+    // ============================================
+    // NAVBAR FUNCTIONS
+    // ============================================
+    
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('userDropdown');
+      const profileTile = document.querySelector('.user-profile-tile');
+      
+      if (dropdown && profileTile && 
+          !dropdown.contains(event.target) && 
+          !profileTile.contains(event.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+    
+    function openLoginModal() {
+      alert('🔒 Login Modal - Coming Soon!\n\nThis will open the authentication modal.');
+      // TODO: Implement login modal
+    }
+    
+    function openProfileModal() {
+      alert('👤 Profile Modal - Coming Soon!\n\nThis will show your stats:\n- Best Hand\n- Hands Played\n- Games Played\n- Win Rate');
+      // TODO: Implement profile modal
+    }
+    
+    function openSettingsModal() {
+      alert('⚙️ Settings Modal - Coming Soon!\n\nThis will allow you to:\n- Change username\n- Update email\n- Manage notifications');
+      // TODO: Implement settings modal
+    }
+    
+    async function handleLogout() {
+      const confirmed = confirm('🚪 Are you sure you want to logout?');
+      if (!confirmed) return;
+      
+      try {
+        // Clear Supabase session
+        const supabaseAuth = localStorage.getItem('sb-ztqcpuktihltfepnexcx-auth-token');
+        if (supabaseAuth) {
+          localStorage.removeItem('sb-ztqcpuktihltfepnexcx-auth-token');
+        }
+        
+        // Clear session storage
+        sessionStorage.clear();
+        
+        alert('✅ Logged out successfully!');
+        window.location.href = '/';
+        
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('❌ Logout failed. Please try again.');
+      }
+    }
+    
+    // Update navbar based on auth state
+    function updateNavbar() {
+      const navbarAuth = document.getElementById('navbarAuth');
+      const navbarUser = document.getElementById('navbarUser');
+      
+      // Check if user is authenticated
+      const supabaseAuth = localStorage.getItem('sb-ztqcpuktihltfepnexcx-auth-token');
+      
+      if (supabaseAuth) {
+        try {
+          const authData = JSON.parse(supabaseAuth);
+          if (authData && authData.user) {
+            // Show user profile, hide auth buttons
+            navbarAuth.style.display = 'none';
+            navbarUser.style.display = 'block';
+            
+            // Update user info
+            const userName = authData.user.email?.split('@')[0] || 'Player';
+            document.getElementById('userNavName').textContent = userName;
+            
+            // Generate avatar emoji based on user ID
+            const avatarEmojis = ['😎', '🎮', '🎯', '🚀', '⭐', '💎', '🔥', '⚡'];
+            const avatarIndex = authData.user.id?.charCodeAt(0) % avatarEmojis.length || 0;
+            document.getElementById('userNavAvatar').textContent = avatarEmojis[avatarIndex];
+            
+            debug('✅ Navbar updated for authenticated user');
+          }
+        } catch (error) {
+          console.error('Error parsing auth data:', error);
+        }
+      } else {
+        // Show auth buttons, hide user profile
+        navbarAuth.style.display = 'flex';
+        navbarUser.style.display = 'none';
+      }
     }
     
     // ============================================
@@ -1038,32 +2277,68 @@
         return;
       }
       
-      debug('✅ Initialized', { roomId, userId });
-      
-      // Display IDs and auth status
-      document.getElementById('roomId').textContent = roomId;
-      document.getElementById('userId').textContent = userId;
-      
-      const authBadge = document.getElementById('authBadge');
-      if (isAuthenticated) {
-        const email = sessionStorage.getItem('userEmail');
-        authBadge.textContent = `✅ Authenticated (${email})`;
-        authBadge.style.color = '#00d4aa';
-        authBadge.style.fontWeight = 'bold';
-      } else {
-        authBadge.textContent = '👤 Guest';
-        authBadge.style.color = '#FFC107';
-      }
+      debug('✅ Initialized', { roomId, userId, isAuthenticated });
       
       // Wire up buttons
       document.getElementById('startBtn').onclick = startHand;
       document.getElementById('refreshBtn').onclick = loadRoom;
+      
+      // Initialize navbar state
+      updateNavbar();
+      
+      // Initialize host controls settings from localStorage
+      initializeHostSettings();
       
       // Connect WebSocket
       connectWebSocket();
       
       // CRITICAL: Hydrate game state before loading room
       hydrateGameState();
+    }
+    
+    // Initialize host settings from localStorage
+    function initializeHostSettings() {
+      // Restore action timer
+      const savedTimer = localStorage.getItem('pokergeek_action_timer');
+      if (savedTimer) {
+        actionTimerSeconds = parseInt(savedTimer);
+        const display = document.getElementById('actionTimerDisplay');
+        if (display) {
+          display.textContent = actionTimerSeconds === 0 ? 'OFF' : `${actionTimerSeconds}s`;
+          // Mark active button
+          document.querySelectorAll('.timer-btn').forEach(btn => {
+            const btnValue = btn.textContent.trim();
+            if ((actionTimerSeconds === 0 && btnValue === 'OFF') ||
+                (btnValue === `${actionTimerSeconds}s`)) {
+              btn.classList.add('active');
+            }
+          });
+        }
+      }
+      
+      // Restore auto-start setting
+      const autoStart = localStorage.getItem('pokergeek_auto_start');
+      if (autoStart === 'false') {
+        const checkbox = document.getElementById('autoStartToggle');
+        if (checkbox) checkbox.checked = false;
+      }
+      
+      // Restore spectator mode setting
+      const spectatorMode = localStorage.getItem('pokergeek_spectator_mode');
+      if (spectatorMode === 'false') {
+        const checkbox = document.getElementById('spectatorToggle');
+        if (checkbox) checkbox.checked = false;
+      }
+      
+      // Expand both panels by default
+      setTimeout(() => {
+        const hostContent = document.getElementById('hostControlsContent');
+        const playerContent = document.getElementById('playerSettingsContent');
+        if (hostContent) hostContent.classList.add('expanded');
+        if (playerContent) playerContent.classList.add('expanded');
+      }, 100);
+      
+      debug('⚙️ Host settings initialized from localStorage');
     }
     
     // ============================================
@@ -1164,8 +2439,7 @@
       
       socket.on('connect', () => {
         debug('✅ Socket connected', { socketId: socket.id });
-        document.getElementById('socketStatus').textContent = '🟢 Connected';
-        document.getElementById('socketStatus').className = 'status connected';
+        document.getElementById('socketStatus').classList.add('connected');
         
         // Join room
         socket.emit('join_room', { roomId, userId });
@@ -1174,8 +2448,7 @@
       
       socket.on('disconnect', (reason) => {
         debug('🔴 Socket disconnected', { reason });
-        document.getElementById('socketStatus').textContent = '🔴 Disconnected';
-        document.getElementById('socketStatus').className = 'status disconnected';
+        document.getElementById('socketStatus').classList.remove('connected');
       });
       
       socket.on('seat_update', (data) => {
@@ -1255,18 +2528,14 @@
             renderCommunityCards(gs.communityCards);
           }
           
-          // CRITICAL: Show/hide action buttons based on whose turn it is
+          // CRITICAL: Show/update action buttons based on game state
           const actionButtons = document.getElementById('actionButtons');
-          const myPlayer = gs.players?.find(p => p.userId === userId);
-          const isMyTurn = myPlayer && gs.currentActorSeat === myPlayer.seatIndex;
           
-          if (isMyTurn && gs.status === 'IN_PROGRESS') {
+          if (gs.status === 'IN_PROGRESS') {
             actionButtons.style.display = 'flex';
             updateActionButtons(gs);
-            debug('✅ Your turn - action buttons shown');
           } else {
             actionButtons.style.display = 'none';
-            debug('⏸️  Not your turn - action buttons hidden');
           }
           
           // Check if hand is over
@@ -1339,8 +2608,26 @@
       
       // Host control events
       socket.on('blinds_updated', (data) => {
-        debug('💰 Blinds updated by host', data);
-        // No blocking alert - blinds update will show in next hand
+        debug('💰 Blinds updated immediately', data);
+      });
+      
+      socket.on('blinds_queued', (data) => {
+        debug('⏳ Blinds queued for next hand', data);
+        // Show non-blocking notification to all players
+      });
+      
+      socket.on('chips_adjusted', (data) => {
+        debug('💵 Chips adjusted by host', data);
+        loadRoom(); // Refresh to show new chip amounts
+        if (isHost) loadHostControls(); // Update host dropdown
+      });
+      
+      socket.on('chips_queued', (data) => {
+        debug('⏳ Chips queued for next hand', data);
+        if (isHost) {
+          showToast('⏳ Chips will update at end of hand', 'info');
+        }
+        if (isHost) loadHostControls(); // Update host dropdown to show new values
       });
       
       socket.on('player_kicked', (data) => {
@@ -1434,8 +2721,8 @@
       // Check if game is active (hide empty seats during game)
       const isGameActive = currentGameState && (currentGameState.status === 'IN_PROGRESS' || currentGameState.status === 'COMPLETED');
       
-      // Create 9 seats (0-8)
-      for (let i = 0; i < 9; i++) {
+      // Create 10 seats (0-9)
+      for (let i = 0; i < 10; i++) {
         const seat = seats ? seats[i] : null;
         const isEmpty = !seat || !seat.userId;
         
@@ -1461,6 +2748,10 @@
         const label = document.createElement('div');
         label.className = 'seat-label';
         label.textContent = `Seat ${i}`;
+        // Hide seat label during games to save space for player name
+        if (isGameActive && !isEmpty) {
+          label.style.display = 'none';
+        }
         
         const player = document.createElement('div');
         player.className = 'seat-player';
@@ -1852,59 +3143,19 @@
       // Show action buttons
       document.getElementById('actionButtons').style.display = 'flex';
       
-      // Fetch game state to calculate correct call amount
+      // Fetch game state and let updateActionButtons handle everything
       try {
         const gameStateResponse = await fetch(`/api/engine/game/${roomId}`);
         if (gameStateResponse.ok) {
           const gameData = await gameStateResponse.json();
-          
-          // Find my player
-          const myPlayer = gameData.players?.find(p => p.userId === userId);
-          const currentBet = gameData.currentBet || 0;
-          const myBet = myPlayer?.bet || 0;
-          const callAmount = currentBet - myBet;
-          
-          // Update call button text - CHECK or CALL
-          const callBtn = document.getElementById('callBtn');
-          const callBtnText = document.getElementById('callBtnText');
-          const callAmountSpan = document.getElementById('callAmount');
-          
-          if (callAmount === 0) {
-            // It's a check
-            callBtnText.textContent = 'CHECK';
-            callAmountSpan.style.display = 'none';
-            callBtn.onclick = () => performAction('CHECK', 0);
-          } else {
-            // It's a call
-            callBtnText.textContent = 'CALL';
-            callAmountSpan.style.display = 'inline';
-            callAmountSpan.textContent = callAmount;
-            callBtn.onclick = () => performAction('CALL', callAmount);
-          }
-          
-          // Wire up other buttons
-          document.getElementById('foldBtn').onclick = () => performAction('FOLD', 0);
-          document.getElementById('raiseBtn').onclick = () => {
-            const minRaise = currentBet * 2 || 20;
-            const amount = prompt(`Raise to how much? (min: $${minRaise})`, minRaise.toString());
-            if (amount) performAction('RAISE', parseInt(amount));
-          };
-          
-          // Evaluate and display hand strength
+          updateActionButtons(gameData);
           evaluateHandStrength(cards, gameData.communityCards || []);
         }
       } catch (error) {
-        debug('⚠️ Could not fetch game state for call amount', error);
-        // Fallback
-        document.getElementById('foldBtn').onclick = () => performAction('FOLD', 0);
-        document.getElementById('callBtn').onclick = () => performAction('CHECK', 0);
-        document.getElementById('raiseBtn').onclick = () => {
-          const amount = prompt('Raise to how much?', '20');
-          if (amount) performAction('RAISE', parseInt(amount));
-        };
+        debug('⚠️ Could not fetch game state', error);
       }
       
-      debug('✅ Cards rendered, actions enabled');
+      debug('✅ Cards rendered');
     }
     
     // ============================================
@@ -1936,9 +3187,17 @@
     }
     
     // ============================================
-    // STEP 8: PERFORM ACTION
+    // STEP 8: PERFORM ACTION (with debounce)
     // ============================================
+    let actionInProgress = false;
+    
     async function performAction(action, amount) {
+      if (actionInProgress) {
+        debug('⚠️ Action in progress, blocking double-click');
+        return;
+      }
+      
+      actionInProgress = true;
       debug(`🎮 Performing action: ${action} $${amount}`);
       
       try {
@@ -1972,11 +3231,17 @@
         }
         // For other errors, just log them (no blocking alert)
         console.error('Action failed:', error.message);
+      } finally {
+        // Reset after 500ms
+        setTimeout(() => {
+          actionInProgress = false;
+          debug('🔓 Action debounce released');
+        }, 500);
       }
     }
     
     // ============================================
-    // STEP 8A: UPDATE ACTION BUTTONS
+    // STEP 8A: UPDATE ACTION BUTTONS (Single source of truth)
     // ============================================
     function updateActionButtons(gameState) {
       // Find my player
@@ -1986,36 +3251,68 @@
       const currentBet = gameState.currentBet || 0;
       const myBet = myPlayer.bet || 0;
       const callAmount = currentBet - myBet;
+      const isMyTurn = gameState.currentActorSeat === myPlayer.seatIndex;
       
-      debug('🔄 Updating buttons', { currentBet, myBet, callAmount, isMyTurn: gameState.currentActorSeat === myPlayer.seatIndex });
+      debug('🔄 Updating buttons', { currentBet, myBet, callAmount, isMyTurn });
       
-      // Update call button text - CHECK or CALL
+      const foldBtn = document.getElementById('foldBtn');
       const callBtn = document.getElementById('callBtn');
+      const raiseBtn = document.getElementById('raiseBtn');
       const callBtnText = document.getElementById('callBtnText');
       const callAmountSpan = document.getElementById('callAmount');
       
+      // SET ONCLICK HANDLERS ONCE
       if (callAmount === 0) {
-        // It's a check
         callBtnText.textContent = 'CHECK';
         callAmountSpan.style.display = 'none';
         callBtn.onclick = () => performAction('CHECK', 0);
       } else {
-        // It's a call
         callBtnText.textContent = 'CALL';
         callAmountSpan.style.display = 'inline';
         callAmountSpan.textContent = callAmount;
         callBtn.onclick = () => performAction('CALL', callAmount);
       }
       
-      // Update fold button
-      document.getElementById('foldBtn').onclick = () => performAction('FOLD', 0);
+      foldBtn.onclick = () => performAction('FOLD', 0);
+      raiseBtn.onclick = () => openRaiseModal(currentBet, myPlayer.chips);
       
-      // Update raise button
-      document.getElementById('raiseBtn').onclick = () => {
-        const minRaise = currentBet * 2 || 20;
-        const amount = prompt(`Raise to how much? (min: $${minRaise})`, minRaise.toString());
-        if (amount) performAction('RAISE', parseInt(amount));
-      };
+      // APPLY VISUAL STATE
+      if (isMyTurn) {
+        // YOUR TURN - active pulse
+        foldBtn.classList.add('active');
+        callBtn.classList.add('active');
+        raiseBtn.classList.add('active');
+        foldBtn.classList.remove('not-your-turn');
+        callBtn.classList.remove('not-your-turn');
+        raiseBtn.classList.remove('not-your-turn');
+        foldBtn.disabled = false;
+        callBtn.disabled = false;
+        raiseBtn.disabled = false;
+        debug('✅ Your turn - buttons active with pulse');
+      } else {
+        // NOT YOUR TURN - blur
+        foldBtn.classList.remove('active');
+        callBtn.classList.remove('active');
+        raiseBtn.classList.remove('active');
+        foldBtn.classList.add('not-your-turn');
+        callBtn.classList.add('not-your-turn');
+        raiseBtn.classList.add('not-your-turn');
+        foldBtn.disabled = true;
+        callBtn.disabled = true;
+        raiseBtn.disabled = true;
+        debug('⏸️ Not your turn - buttons blurred');
+      }
+      
+      // HIGHLIGHT CURRENT PLAYER SEAT
+      document.querySelectorAll('.seat').forEach(seat => {
+        seat.classList.remove('current-turn');
+      });
+      
+      const currentSeat = document.querySelector(`.seat[data-seat-index="${gameState.currentActorSeat}"]`);
+      if (currentSeat) {
+        currentSeat.classList.add('current-turn');
+        debug(`💡 Highlighted seat ${gameState.currentActorSeat}`);
+      }
     }
     
     // ============================================
@@ -2118,6 +3415,126 @@
       }
     }
     
+    // ============================================
+    // RAISE MODAL FUNCTIONS
+    // ============================================
+    let raiseModalData = {
+      currentBet: 0,
+      pot: 0,
+      stack: 0,
+      minRaise: 0,
+      maxRaise: 0
+    };
+    
+    function openRaiseModal(currentBet, playerStack) {
+      const pot = parseInt(document.getElementById('potAmount').textContent.replace(/\$/g, '')) || 0;
+      const minRaise = currentBet * 2 || 20;
+      const maxRaise = playerStack;
+      
+      raiseModalData = {
+        currentBet,
+        pot,
+        stack: playerStack,
+        minRaise,
+        maxRaise
+      };
+      
+      // Update panel info
+      document.getElementById('raiseModalPot').textContent = '$' + pot;
+      document.getElementById('raiseModalStack').textContent = '$' + playerStack;
+      document.getElementById('raiseModalMin').textContent = '$' + minRaise;
+      
+      // Setup slider
+      const slider = document.getElementById('raiseSlider');
+      slider.min = minRaise;
+      slider.max = maxRaise;
+      slider.value = minRaise;
+      
+      // Setup input
+      const input = document.getElementById('raiseAmount');
+      input.min = minRaise;
+      input.max = maxRaise;
+      input.value = minRaise;
+      
+      // Update display
+      document.getElementById('raiseSliderValue').textContent = '$' + minRaise;
+      
+      // Show panel
+      document.getElementById('raisePanel').style.display = 'block';
+      
+      // Wire up slider/input sync
+      slider.oninput = function() {
+        const value = parseInt(this.value);
+        input.value = value;
+        document.getElementById('raiseSliderValue').textContent = '$' + value;
+      };
+      
+      input.oninput = function() {
+        const value = parseInt(this.value) || minRaise;
+        const clamped = Math.max(minRaise, Math.min(maxRaise, value));
+        slider.value = clamped;
+        document.getElementById('raiseSliderValue').textContent = '$' + clamped;
+      };
+    }
+    
+    function closeRaisePanel() {
+      document.getElementById('raisePanel').style.display = 'none';
+    }
+    
+    function setRaisePreset(preset) {
+      const { pot, minRaise, maxRaise } = raiseModalData;
+      let amount;
+      
+      switch(preset) {
+        case 'quarter':
+          amount = Math.floor(pot * 0.25);
+          break;
+        case 'half':
+          amount = Math.floor(pot * 0.5);
+          break;
+        case 'threequarter':
+          amount = Math.floor(pot * 0.75);
+          break;
+        case 'pot':
+          amount = pot;
+          break;
+        case 'double':
+          amount = pot * 2;
+          break;
+        case 'allin':
+          amount = maxRaise;
+          break;
+        default:
+          amount = minRaise;
+      }
+      
+      // Clamp to valid range
+      amount = Math.max(minRaise, Math.min(maxRaise, amount));
+      
+      // Update UI
+      document.getElementById('raiseAmount').value = amount;
+      document.getElementById('raiseSlider').value = amount;
+      document.getElementById('raiseSliderValue').textContent = '$' + amount;
+    }
+    
+    function submitRaise() {
+      const amount = parseInt(document.getElementById('raiseAmount').value);
+      const { minRaise, maxRaise } = raiseModalData;
+      
+      if (amount < minRaise) {
+        alert(`Minimum raise is $${minRaise}`);
+        return;
+      }
+      
+      if (amount > maxRaise) {
+        alert(`Maximum raise is $${maxRaise} (your stack)`);
+        return;
+      }
+      
+      closeRaisePanel();
+      performAction('RAISE', amount);
+    }
+    
     // Helper: Highlight winner's seat
     function highlightWinnerSeat(seatIndex) {
       const seatsDiv = document.getElementById('seats');
@@ -2214,23 +3631,41 @@
     // ============================================
     // STEP 8C: RENDER COMMUNITY CARDS
     // ============================================
+    // Track previous community cards to avoid re-animating
+    let previousCommunityCards = [];
+
     function renderCommunityCards(cards) {
       debug('🃏 Rendering community cards', { cards });
       
       const communityDiv = document.getElementById('communityCards');
+      
+      // Determine which cards are NEW (not in previous render)
+      const newCards = cards.filter(card => !previousCommunityCards.includes(card));
+      
+      // Only clear and re-render if cards actually changed
+      if (newCards.length > 0 || cards.length < previousCommunityCards.length) {
       communityDiv.innerHTML = '';
       
       cards.forEach(card => {
         const cardImg = document.createElement('img');
         cardImg.className = 'card-img';
+          
+          // Only add 'new-card' class if this card wasn't in previous render
+          if (newCards.includes(card)) {
+            cardImg.classList.add('new-card');
+          }
+          
         cardImg.src = getCardImagePath(card);
         cardImg.alt = card;
         cardImg.onerror = function() {
-          // Fallback if image doesn't exist
           this.src = '/cards/back.png';
         };
         communityDiv.appendChild(cardImg);
       });
+        
+        // Update tracking
+        previousCommunityCards = [...cards];
+      }
       
       document.getElementById('communitySection').style.display = 'block';
       
@@ -2408,14 +3843,24 @@
       icon.classList.toggle('expanded');
     }
     
+    function togglePlayerSettings() {
+      const content = document.getElementById('playerSettingsContent');
+      const icon = document.getElementById('playerSettingsToggle');
+      content.classList.toggle('expanded');
+      icon.classList.toggle('expanded');
+    }
+    
     async function loadHostControls() {
       if (!isHost) {
         document.getElementById('hostControlsPanel').style.display = 'none';
+        // Show player settings for non-hosts
+        document.getElementById('playerSettingsPanel').style.display = 'block';
         return;
       }
       
       debug('🎛️ Loading host controls...');
       document.getElementById('hostControlsPanel').style.display = 'block';
+      document.getElementById('playerSettingsPanel').style.display = 'none';
       
       try {
         const response = await fetch(`/api/engine/host-controls/${roomId}/${userId}`);
@@ -2433,6 +3878,9 @@
         
         // Render players
         renderHostPlayerList(data.players);
+        
+        // Update chip adjustment dropdown
+        updateChipAdjustmentDropdown(data.players);
         
       } catch (error) {
         console.error('Error loading host controls:', error);
@@ -2539,8 +3987,14 @@
           return;
         }
         
-        debug('✅ Blinds updated');
-        alert(`✅ Blinds updated to $${smallBlind}/$${bigBlind}\n\nWill take effect on next hand.`);
+        const result = await response.json();
+        debug('✅ Blinds updated', result);
+        
+        if (result.applied === 'queued') {
+          alert(`⏳ Blinds queued: $${smallBlind}/$${bigBlind}\n\nWill apply after current hand ends.`);
+        } else {
+          alert(`✅ Blinds updated to $${smallBlind}/$${bigBlind}`);
+        }
         
       } catch (error) {
         console.error('Error updating blinds:', error);
@@ -2549,29 +4003,414 @@
     }
     
     // ============================================
+    // HOST: CHIP ADJUSTMENT
+    // ============================================
+    function updateChipAdjustmentDropdown(players) {
+      const chipAdjustSeat = document.getElementById('chipAdjustSeat');
+      if (!chipAdjustSeat) return;
+      
+      if (players.length === 0) {
+        chipAdjustSeat.innerHTML = '<option value="">No players seated</option>';
+        return;
+      }
+      
+      chipAdjustSeat.innerHTML = '<option value="">Select a player...</option>' + 
+        players.map(player => `
+          <option value="${player.seatIndex}">
+            Seat ${player.seatIndex}: @${player.nickname} ($${player.chips.toLocaleString()})
+          </option>
+        `).join('');
+    }
+    
+    async function adjustPlayerChips() {
+      const seatSelect = document.getElementById('chipAdjustSeat');
+      const amountInput = document.getElementById('chipAdjustAmount');
+      
+      const seatIndex = parseInt(seatSelect.value);
+      const newAmount = parseInt(amountInput.value);
+      
+      // Validation
+      if (isNaN(seatIndex) || seatIndex === '') {
+        alert('❌ Please select a player!');
+        return;
+      }
+      
+      if (isNaN(newAmount) || newAmount < 0) {
+        alert('❌ Please enter a valid amount (minimum $0)!');
+        return;
+      }
+      
+      const playerName = seatSelect.options[seatSelect.selectedIndex].text;
+      const confirmed = confirm(`💰 Adjust ${playerName}'s chips to $${newAmount.toLocaleString()}?`);
+      
+      if (!confirmed) return;
+      
+      debug('💵 Adjusting chips:', { seatIndex, newAmount });
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/adjust-chips', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId,
+            hostId: userId,
+            seatIndex,
+            newAmount
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to adjust chips');
+        }
+        
+        const result = await response.json();
+        
+        if (result.queued) {
+          debug('⏳ Chips queued for next hand');
+          alert(`⏳ ${playerName}'s chips will update to $${newAmount.toLocaleString()} at the end of this hand`);
+        } else {
+          debug('✅ Chips adjusted');
+          alert(`✅ ${playerName}'s chips updated to $${newAmount.toLocaleString()}`);
+        }
+        
+        // Refresh to show updated chips
+        loadRoom();
+        loadHostControls();
+        
+      } catch (error) {
+        console.error('Error adjusting chips:', error);
+        alert(`❌ Failed: ${error.message}`);
+      }
+    }
+    
+    // ============================================
+    // HOST CONTROL ENHANCEMENTS
+    // ============================================
+    
+    let gamePaused = false;
+    let actionTimerSeconds = 0;
+    let roomLocked = false;
+    
+    // Toggle Room Lock
+    async function toggleRoomLock() {
+      roomLocked = !roomLocked;
+      const btn = document.getElementById('lockBtnText');
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/room-lock', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            roomId, 
+            hostId: userId, 
+            locked: roomLocked 
+          })
+        });
+        
+        if (!response.ok) throw new Error('Failed to toggle room lock');
+        
+        if (roomLocked) {
+          btn.textContent = 'UNLOCK ROOM';
+          alert('🔒 Room locked. No new players can join.');
+        } else {
+          btn.textContent = 'LOCK ROOM';
+          alert('🔓 Room unlocked. Players can join again.');
+        }
+        
+        debug('🔒 Room lock toggled:', roomLocked);
+        
+      } catch (error) {
+        console.error('Error toggling room lock:', error);
+        alert('❌ Failed to toggle room lock.');
+        roomLocked = !roomLocked; // Revert
+      }
+    }
+    
+    // Open Kick Player Modal (simplified - just shows list in existing UI)
+    function openKickPlayerModal() {
+      alert('💡 Use the KICK buttons next to each player in the Current Players section below');
+      // Scroll to player list
+      document.getElementById('hostPlayerList')?.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Toggle Pause Game
+    async function togglePauseGame() {
+      const btn = document.getElementById('pauseGameBtn');
+      gamePaused = !gamePaused;
+      
+      if (gamePaused) {
+        btn.querySelector('.btn-text').textContent = 'RESUME GAME';
+        btn.classList.add('paused');
+        alert('⏸️ Game paused. Players cannot take actions.');
+      } else {
+        btn.querySelector('.btn-text').textContent = 'PAUSE GAME';
+        btn.classList.remove('paused');
+        alert('▶️ Game resumed. Players can continue.');
+      }
+      
+      // TODO: Implement backend pause/resume logic
+      // Will need to broadcast pause state to all players via socket
+      debug('⏸️ Game pause toggled:', gamePaused);
+    }
+    
+    // Force Next Hand
+    async function forceNextHand() {
+      const confirmed = confirm('⏭️ Skip to next hand?\n\nThis will end the current hand immediately and move to the next one.\n\nContinue?');
+      if (!confirmed) return;
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/force-next-hand', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, hostId: userId })
+        });
+        
+        if (!response.ok) throw new Error('Failed to force next hand');
+        
+        alert('⏭️ Moving to next hand...');
+        loadRoom();
+        
+      } catch (error) {
+        console.error('Error forcing next hand:', error);
+        alert('❌ Failed to skip hand. Ensure game is in progress.');
+      }
+    }
+    
+    // Set Action Timer
+    function setActionTimer(seconds) {
+      actionTimerSeconds = seconds;
+      
+      // Update display
+      const display = document.getElementById('actionTimerDisplay');
+      display.textContent = seconds === 0 ? 'OFF' : `${seconds}s`;
+      
+      // Update button states
+      document.querySelectorAll('.timer-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Save to localStorage
+      localStorage.setItem('pokergeek_action_timer', seconds);
+      
+      debug('⏱️ Action timer set to:', seconds === 0 ? 'OFF' : `${seconds}s`);
+      
+      // TODO: Implement backend timer logic
+      // Will need to track time per player action and auto-fold on timeout
+    }
+    
+    // Toggle Auto-Start
+    function toggleAutoStart() {
+      const checkbox = document.getElementById('autoStartToggle');
+      const autoStart = checkbox.checked;
+      
+      localStorage.setItem('pokergeek_auto_start', autoStart);
+      
+      if (autoStart) {
+        debug('🔄 Auto-start enabled');
+      } else {
+        debug('⏹️ Auto-start disabled');
+      }
+    }
+    
+    // Toggle Spectator Mode
+    function toggleSpectatorMode() {
+      const checkbox = document.getElementById('spectatorToggle');
+      const enabled = checkbox.checked;
+      
+      localStorage.setItem('pokergeek_spectator_mode', enabled);
+      
+      if (enabled) {
+        debug('👁️ Spectator mode enabled');
+      } else {
+        debug('🚫 Spectator mode disabled');
+      }
+    }
+    
+    // Reset All Stacks
+    async function resetAllStacks() {
+      const confirmed = confirm('🔄 RESET ALL STACKS?\n\nThis will:\n- Set all players back to starting chips\n- Keep players seated\n- Not affect current hand\n\nContinue?');
+      if (!confirmed) return;
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/reset-stacks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, hostId: userId })
+        });
+        
+        if (!response.ok) throw new Error('Failed to reset stacks');
+        
+        alert('🔄 All player stacks reset to starting amount!');
+        loadRoom();
+        loadHostControls();
+        
+      } catch (error) {
+        console.error('Error resetting stacks:', error);
+        alert('❌ Failed to reset stacks.');
+      }
+    }
+    
+    // End Game
+    async function endGame() {
+      const confirmed = confirm('🛑 END GAME?\n\nThis will:\n- End current game immediately\n- Clear all player seats\n- Return to lobby\n\nThis CANNOT be undone.\n\nContinue?');
+      if (!confirmed) return;
+      
+      const doubleCheck = confirm('⚠️ Are you ABSOLUTELY sure?\n\nAll game progress will be lost.');
+      if (!doubleCheck) return;
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/end-game', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, hostId: userId })
+        });
+        
+        if (!response.ok) throw new Error('Failed to end game');
+        
+        alert('🛑 Game ended. Returning to lobby...');
+        window.location.href = '/';
+        
+      } catch (error) {
+        console.error('Error ending game:', error);
+        alert('❌ Failed to end game.');
+      }
+    }
+    
+    // ============================================
+    // TABLE COLOR (All Players)
+    // ============================================
+    function changeFeltColor(color) {
+      document.body.setAttribute('data-felt', color);
+      localStorage.setItem('pokergeek_felt_color', color);
+      
+      // Update active button
+      document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.color === color) {
+          btn.classList.add('active');
+        }
+      });
+      
+      debug('🎨 Felt color changed:', color);
+    }
+    
+    // 4-Color Deck Toggle
+    function toggleFourColorDeck(enabled) {
+      localStorage.setItem('pokergeek_four_color', enabled);
+      debug('🃏 4-Color Deck:', enabled);
+      // Implementation will be added when designs are ready
+    }
+    
+    // Card Back Design
+    function changeCardBack(design) {
+      localStorage.setItem('pokergeek_card_back', design);
+      debug('🎴 Card back changed:', design);
+      // Implementation will be added when designs are ready
+    }
+    
+    // Animation Speed
+    function changeAnimSpeed(speed) {
+      const speeds = { fast: 200, normal: 400, slow: 600 };
+      document.documentElement.style.setProperty('--anim-speed', speeds[speed] + 'ms');
+      localStorage.setItem('pokergeek_anim_speed', speed);
+      debug('⚡ Animation speed:', speed);
+    }
+    
+    // Auto-Muck Toggle
+    function toggleAutoMuck(enabled) {
+      localStorage.setItem('pokergeek_auto_muck', enabled);
+      debug('🙈 Auto-muck:', enabled);
+    }
+    
+    // Chip Display Format
+    function changeChipFormat(format) {
+      localStorage.setItem('pokergeek_chip_format', format);
+      debug('💰 Chip format:', format);
+      // Refresh chip displays on seats
+      const gameState = currentGameState;
+      if (gameState && gameState.players) {
+        updateSeatChips(gameState.players);
+      }
+    }
+    
+    // Action Confirmation Toggle
+    function toggleActionConfirm(enabled) {
+      localStorage.setItem('pokergeek_action_confirm', enabled);
+      debug('⚠️ Action confirmation:', enabled);
+    }
+    
+    // Hotkeys Toggle
+    let hotkeysEnabled = false;
+    function toggleHotkeys(enabled) {
+      hotkeysEnabled = enabled;
+      localStorage.setItem('pokergeek_hotkeys', enabled);
+      debug('⌨️ Hotkeys:', enabled);
+      
+      if (enabled) {
+        document.addEventListener('keydown', handleHotkey);
+      } else {
+        document.removeEventListener('keydown', handleHotkey);
+      }
+    }
+    
+    // Hotkey Handler
+    function handleHotkey(e) {
+      if (!hotkeysEnabled) return;
+      
+      // Don't trigger if typing in input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      const key = e.key.toLowerCase();
+      const foldBtn = document.getElementById('foldBtn');
+      const callBtn = document.getElementById('callBtn');
+      const raiseBtn = document.getElementById('raiseBtn');
+      
+      if (key === 'f' && foldBtn && !foldBtn.disabled) {
+        e.preventDefault();
+        foldBtn.click();
+      } else if (key === 'c' && callBtn && !callBtn.disabled) {
+        e.preventDefault();
+        callBtn.click();
+      } else if (key === 'r' && raiseBtn && !raiseBtn.disabled) {
+        e.preventDefault();
+        raiseBtn.click();
+      }
+    }
+    
+    // Load all saved settings on page load
+    (function loadSavedFeltColor() {
+      const savedColor = localStorage.getItem('pokergeek_felt_color') || 'green';
+      document.body.setAttribute('data-felt', savedColor);
+      
+      // Set active button (wait for DOM to be ready)
+      setTimeout(() => {
+        const activeBtn = document.querySelector(`.color-btn[data-color="${savedColor}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+      }, 100);
+      
+      debug('🎨 Loaded saved felt color:', savedColor);
+    })();
+    
+    // ============================================
     // CIRCULAR SEAT POSITIONING (Proper Ellipse)
     // ============================================
     function calculateSeatPositions() {
-      const centerX = 840;  // Center of 1680px canvas
-      const centerY = 400;  // Center of 800px canvas
-      const radiusX = 620;  // Horizontal radius
-      const radiusY = 260;  // Vertical radius
-      
-      const positions = [];
-      const totalSeats = 9;
-      
-      for (let i = 0; i < totalSeats; i++) {
-        // Start from bottom (seat 0 = you) and go counter-clockwise
-        const angle = (Math.PI / 2) - (2 * Math.PI * i / totalSeats);
-        
-        positions.push({
-          index: i,
-          x: Math.round(centerX + radiusX * Math.cos(angle)),
-          y: Math.round(centerY - radiusY * Math.sin(angle))
-        });
-      }
-      
-      return positions;
+      // 🔒 LOCKED POSITIONS - Final layout optimized for 1600×1200 table
+      // Uniform 200×200px seats, perfectly balanced ellipse
+      return [
+        { index: 0, x: 805, y: 160, width: 200, height: 200 },   // Bottom center (YOU)
+        { index: 1, x: 1115, y: 230, width: 200, height: 200 },  // Bottom right
+        { index: 2, x: 1355, y: 410, width: 200, height: 200 },  // Right mid-upper
+        { index: 3, x: 1355, y: 730, width: 200, height: 200 },  // Right mid-lower
+        { index: 4, x: 1115, y: 970, width: 200, height: 200 },  // Bottom right lower
+        { index: 5, x: 805, y: 1040, width: 200, height: 200 },  // Bottom center-lower
+        { index: 6, x: 495, y: 970, width: 200, height: 200 },   // Bottom left lower
+        { index: 7, x: 255, y: 730, width: 200, height: 200 },   // Left mid-lower
+        { index: 8, x: 255, y: 410, width: 200, height: 200 },   // Left mid-upper
+        { index: 9, x: 495, y: 230, width: 200, height: 200 }    // Bottom left
+      ];
     }
     
     const SEAT_POSITIONS = calculateSeatPositions();
@@ -2582,9 +4421,11 @@
         if (seat) {
           seat.style.left = `${pos.x}px`;
           seat.style.top = `${pos.y}px`;
+          if (pos.width) seat.style.width = `${pos.width}px`;
+          if (pos.height) seat.style.height = `${pos.height}px`;
         }
       });
-      debug('📍 Applied circular seat positions');
+      debug('📍 Applied custom seat positions with sizes');
     }
     
     // ============================================
@@ -2602,8 +4443,8 @@
       const updateScale = () => {
         const containerWidth = wrapper.clientWidth;
         const containerHeight = wrapper.clientHeight;
-        const stageWidth = 1680;
-        const stageHeight = 800;
+        const stageWidth = 1600;
+        const stageHeight = 1200;
 
         const scaleX = containerWidth / stageWidth;
         const scaleY = containerHeight / stageHeight;

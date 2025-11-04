@@ -76,7 +76,7 @@ router.post('/create-room', async (req, res) => {
         name, invite_code, host_user_id, status,
         small_blind, big_blind, max_players, min_buy_in, max_buy_in,
         created_at, updated_at
-      ) VALUES ($1, $2, $3, 'WAITING', 5, 10, 9, 100, 5000, NOW(), NOW())
+      ) VALUES ($1, $2, $3, 'WAITING', 5, 10, 10, 100, 5000, NOW(), NOW())
       RETURNING id, invite_code`,
       [name, code, userId]
     );

@@ -688,16 +688,9 @@ async function startServer() {
     // Start HTTP server
     const httpServer = app.listen(PORT, () => {
       console.log(`\n${'='.repeat(60)}`);
-      console.log(`🚀 SOPHISTICATED POKER ENGINE running on port ${PORT}`);
-      console.log(`🎯 Using: GameStateMachine, BettingEngine, RoundManager, TurnManager`);
-      console.log(`🎰 Test at: http://localhost:${PORT}/poker`);
-      console.log(`✅ REAL poker rules with sophisticated betting round completion!`);
-      console.log(`\n📊 Migration Status:`);
-      console.log(`  - Database Repository: ${MIGRATION_FLAGS.USE_DB_REPOSITORY ? '✅ ENABLED' : '❌ DISABLED'}`);
-      console.log(`  - Input Validation: ${MIGRATION_FLAGS.USE_INPUT_VALIDATION ? '✅ ENABLED' : '❌ DISABLED'}`);
-      console.log(`  - Auth Middleware: ${MIGRATION_FLAGS.USE_AUTH_MIDDLEWARE ? '✅ ENABLED' : '❌ DISABLED'}`);
-      console.log(`  - Event Persistence: ${MIGRATION_FLAGS.USE_EVENT_PERSISTENCE ? '✅ ENABLED' : '❌ DISABLED'}`);
-      console.log(`${'='.repeat(60)}\n`);
+      console.log(`POKERGEEK running on port ${PORT}`);
+      console.log(`Test at: http://localhost:${PORT}`);
+   console.log(`${'='.repeat(60)}\n`);
     });
     
     return httpServer;
