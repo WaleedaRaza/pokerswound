@@ -980,15 +980,15 @@ router.get('/my-rooms', async (req, res) => {
       [userId]
     );
     
-    // Get ALL joined rooms (active + inactive, exclude closed)
+    // Get ALL joined rooms (if it exists, it's active)
     const joinedRooms = await db.query(
-      `SELECT r.id, r.name, r.invite_code, r.max_players, r.status, r.created_at,
+      `SELECT r.id, r.name, r.invite_code, r.max_players, r.created_at,
               r.host_user_id,
               COUNT(DISTINCT rs2.user_id) as player_count
        FROM room_seats rs
        JOIN rooms r ON rs.room_id = r.id
        LEFT JOIN room_seats rs2 ON r.id = rs2.room_id
-       WHERE rs.user_id = $1 AND r.host_user_id != $1 AND r.status != 'closed'
+       WHERE rs.user_id = $1 AND r.host_user_id != $1
        GROUP BY r.id, r.host_user_id
        ORDER BY r.created_at DESC`,
       [userId]
