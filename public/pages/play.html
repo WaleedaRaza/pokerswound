@@ -2629,7 +2629,10 @@
               'Content-Type': 'application/json',
               'X-Idempotency-Key': `delete-${room.id}-${Date.now()}`
             },
-            body: JSON.stringify({ hostId: window.currentUser.id })
+            body: JSON.stringify({ 
+              hostId: window.currentUser.id,
+              user_id: window.currentUser.id  // Required by idempotency middleware
+            })
           });
           
           if (response.ok) {
@@ -2702,8 +2705,14 @@
       try {
         const response = await fetch(`/api/rooms/${roomId}/close`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hostId: window.currentUser.id })
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Idempotency-Key': `close-${roomId}-${Date.now()}`
+          },
+          body: JSON.stringify({ 
+            hostId: window.currentUser.id,
+            user_id: window.currentUser.id  // Required by idempotency middleware
+          })
         });
         
         if (!response.ok) {
