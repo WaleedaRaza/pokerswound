@@ -231,7 +231,7 @@ router.delete('/delete-room', async (req, res) => {
     
     // Verify ownership
     const roomCheck = await db.query(
-      'SELECT host_user_id, status FROM rooms WHERE id = $1',
+      'SELECT host_user_id FROM rooms WHERE id = $1',
       [roomId]
     );
     

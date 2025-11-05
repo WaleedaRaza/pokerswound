@@ -31,9 +31,9 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
-    // First check if room is ACTIVE (has an ongoing game)
+    // Check if room has an active game
     const roomResult = await db.query(
-      `SELECT status, game_id FROM rooms WHERE id = $1`,
+      `SELECT game_id FROM rooms WHERE id = $1`,
       [roomId]
     );
     
@@ -43,12 +43,12 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
     
     const room = roomResult.rows[0];
     
-    // If room status is not ACTIVE, or no game_id, return lobby state
-    if (room.status !== 'ACTIVE' || !room.game_id) {
-      console.log('   ⏸️  Room not active or no game - lobby state');
+    // If no game_id, return lobby state
+    if (!room.game_id) {
+      console.log('   ⏸️  Room in lobby - no active game');
       return res.json({
         hasActiveGame: false,
-        roomStatus: room.status
+        roomStatus: 'WAITING'
       });
     }
     
@@ -491,9 +491,9 @@ router.post('/deal-cards', async (req, res) => {
       [gameStateId, roomId, host_user_id, JSON.stringify(gameState), 1, pot, 'active']
     );
     
-    // Update room status and link game
+    // Link game to room
     await db.query(
-      `UPDATE rooms SET status = 'ACTIVE', game_id = $1 WHERE id = $2`,
+      `UPDATE rooms SET game_id = $1 WHERE id = $2`,
       [gameStateId, roomId]
     );
     
@@ -601,7 +601,6 @@ router.get('/room/:roomId', async (req, res) => {
          max_players,
          small_blind,
          big_blind,
-         status,
          game_id
        FROM rooms
        WHERE id = $1`,
@@ -625,7 +624,6 @@ router.get('/room/:roomId', async (req, res) => {
         maxPlayers: room.max_players,
         smallBlind: room.small_blind,
         bigBlind: room.big_blind,
-        status: room.status,
         gameId: room.game_id
       }
     });
@@ -1161,9 +1159,9 @@ router.post('/next-hand', async (req, res) => {
       [gameStateId, roomId, host_user_id, JSON.stringify(gameState), handNumber, pot, 'active']
     );
     
-    // Update room status
+    // Link game to room
     await db.query(
-      `UPDATE rooms SET status = 'ACTIVE', game_id = $1 WHERE id = $2`,
+      `UPDATE rooms SET game_id = $1 WHERE id = $2`,
       [gameStateId, roomId]
     );
     
@@ -1251,7 +1249,7 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
     
     // Verify host
     const roomResult = await db.query(
-      `SELECT host_user_id, small_blind, big_blind, status FROM rooms WHERE id = $1`,
+      `SELECT host_user_id, small_blind, big_blind FROM rooms WHERE id = $1`,
       [roomId]
     );
     
@@ -1294,8 +1292,7 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
     res.json({
       room: {
         smallBlind: parseInt(room.small_blind || 10),
-        bigBlind: parseInt(room.big_blind || 20),
-        status: room.status
+        bigBlind: parseInt(room.big_blind || 20)
       },
       players,
       pendingRequests: [] // TODO: Sprint 1.3
@@ -1323,7 +1320,7 @@ router.post('/host-controls/kick-player', async (req, res) => {
     
     // Verify host
     const roomResult = await db.query(
-      `SELECT host_user_id, status FROM rooms WHERE id = $1`,
+      `SELECT host_user_id FROM rooms WHERE id = $1`,
       [roomId]
     );
     
@@ -1333,11 +1330,6 @@ router.post('/host-controls/kick-player', async (req, res) => {
     
     if (roomResult.rows[0].host_user_id !== hostId) {
       return res.status(403).json({ error: 'Not authorized - host only' });
-    }
-    
-    // Cannot kick during active game (Sprint 1.4 will handle this properly)
-    if (roomResult.rows[0].status === 'ACTIVE') {
-      return res.status(400).json({ error: 'Cannot kick players during active game' });
     }
     
     // Remove player from seat
@@ -1397,7 +1389,7 @@ router.patch('/host-controls/update-blinds', async (req, res) => {
     
     // Verify host
     const roomResult = await db.query(
-      `SELECT host_user_id, status FROM rooms WHERE id = $1`,
+      `SELECT host_user_id FROM rooms WHERE id = $1`,
       [roomId]
     );
     
@@ -1407,11 +1399,6 @@ router.patch('/host-controls/update-blinds', async (req, res) => {
     
     if (roomResult.rows[0].host_user_id !== hostId) {
       return res.status(403).json({ error: 'Not authorized - host only' });
-    }
-    
-    // Cannot update blinds during active game
-    if (roomResult.rows[0].status === 'ACTIVE') {
-      return res.status(400).json({ error: 'Cannot update blinds during active game' });
     }
     
     // Validate blinds
