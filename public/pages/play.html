@@ -2612,14 +2612,17 @@
       let successCount = 0;
       let failCount = 0;
       
-      console.log(`🗑️ Deleting ${roomsToDelete.length} rooms...`);
+      console.log(`🗑️ Deleting ${roomsToDelete.length} rooms in batches...`);
       
-      // Delete rooms one by one
-      for (const room of roomsToDelete) {
-        try {
-          console.log(`🔄 Deleting room ${room.id} (${room.name})...`);
-          
-          const response = await fetch(`/api/rooms/${room.id}/close`, {
+      // Delete in parallel batches of 5 to avoid overwhelming the server
+      const BATCH_SIZE = 5;
+      for (let i = 0; i < roomsToDelete.length; i += BATCH_SIZE) {
+        const batch = roomsToDelete.slice(i, i + BATCH_SIZE);
+        console.log(`🔄 Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(roomsToDelete.length / BATCH_SIZE)}...`);
+        
+        // Delete batch in parallel
+        const batchPromises = batch.map(room => 
+          fetch(`/api/rooms/${room.id}/close`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
@@ -2627,21 +2630,34 @@
             },
             body: JSON.stringify({ 
               hostId: window.currentUser.id,
-              user_id: window.currentUser.id  // Required by idempotency middleware
+              user_id: window.currentUser.id
             })
-          });
-          
-          if (response.ok) {
-            successCount++;
-            console.log(`✅ Deleted room: ${room.name}`);
-          } else {
-            const error = await response.json();
+          })
+          .then(res => ({ room, res }))
+          .catch(err => ({ room, error: err }))
+        );
+        
+        // Wait for batch to complete
+        const results = await Promise.all(batchPromises);
+        
+        // Process results
+        for (const { room, res, error } of results) {
+          if (error) {
             failCount++;
-            console.error(`❌ Failed to delete room: ${room.name}`, error);
+            console.error(`❌ Network error deleting ${room.name}:`, error);
+          } else if (res.ok) {
+            successCount++;
+            console.log(`✅ Deleted ${room.name}`);
+          } else {
+            failCount++;
+            const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+            console.error(`❌ Failed to delete ${room.name}:`, errorData);
           }
-        } catch (error) {
-          failCount++;
-          console.error(`❌ Error deleting room: ${room.name}`, error);
+        }
+        
+        // Small delay between batches to let server breathe
+        if (i + BATCH_SIZE < roomsToDelete.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
       }
       
