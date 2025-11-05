@@ -1618,26 +1618,9 @@
       }
     }
 
-    window.openCreateModal = function() {
-      console.log('openCreateModal called');
-      // Check if user is logged in with Google (not guest)
-      const user = getCurrentUser();
-      
-      if (!user) {
-        showNotification('Please log in to create a room', 'error');
-        if (window.openLoginModal) window.openLoginModal();
-        return;
-      }
-      
-      if (user.isGuest || user.isAnonymous) {
-        showNotification('Guest users cannot create rooms. Please sign in with Google to create a room.', 'warning');
-        return;
-      }
-      
-      document.getElementById('createRoomModal').classList.add('show');
-      document.getElementById('createRoomModal').style.display = 'flex';
-    };
-
+    // ❌ REMOVED DUPLICATE - Gate logic defined earlier in file (line ~539)
+    // window.openCreateModal is now defined at the top with room limit gate
+    
     window.closeCreateModal = function() {
       document.getElementById('createRoomModal').classList.remove('show');
       document.getElementById('createRoomModal').style.display = 'none';
