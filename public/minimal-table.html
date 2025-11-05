@@ -4,15 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PokerGeek - Minimal Table</title>
-  
-  <!-- Global Navbar Styles -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/pokergeek.css">
-  
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <style>
     /* Design Tokens */
     :root {
@@ -50,7 +41,6 @@
       color: #e9eef7;
       font-family: 'Inter', system-ui, -apple-system, Arial, sans-serif;
       padding: 20px;
-      padding-top: 100px; /* Space for fixed navbar */
     }
     
     .container {
@@ -79,7 +69,7 @@
       height: 1200px;
       transform-origin: top left;
       pointer-events: auto;
-      z-index: 1;
+      z-index: 0;
     }
 
     /* Oval Felt Background */
@@ -795,14 +785,13 @@
     
     /* Player Settings Panel (Non-Hosts) */
     #playerSettingsPanel {
-      background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 1400px;
+      margin: 20px auto;
+      background: rgba(20, 20, 40, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
     }
     
     #playerSettingsPanel .panel-header {
@@ -821,6 +810,9 @@
       font-size: 1.3rem;
       font-weight: 700;
       margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     
     #playerSettingsPanel .collapse-btn {
@@ -962,13 +954,14 @@
     /* ============================================ */
     
     #hostControlsPanel {
-      max-width: 900px;
+      max-width: 1400px;
       margin: 20px auto;
       background: rgba(20, 20, 40, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 16px;
       padding: 24px;
       backdrop-filter: blur(10px);
+      display: none; /* Hidden by default, shown only for hosts */
     }
     
     #hostControlsPanel .panel-header {
@@ -1635,48 +1628,31 @@
       color: var(--accent);
       font-weight: 700;
     }
+    
+    /* Add padding for fixed navbar */
+    body {
+      padding-top: 100px;
+    }
   </style>
+  
+  <!-- Global CSS for navbar -->
+  <link rel="stylesheet" href="/css/pokergeek.css">
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Unified Auth System -->
+  <script src="/js/auth-manager.js"></script>
+  <script src="/js/nav-shared.js"></script>
+  <script src="/js/navbar-template.js"></script>
+  
+  <!-- Social Features -->
+  <link rel="stylesheet" href="/css/social-modals.css">
+  <script src="/js/social-modals.js"></script>
 </head>
 <body>
-  <!-- UNIFIED NAVBAR -->
-  <nav class="navbar">
-    <a href="/" class="navbar-brand">PokerGeek.ai</a>
-    <ul class="navbar-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/play">Play Now</a></li>
-      <li><a href="/friends">Friends</a></li>
-      <li><a href="/ai-solver">AI Solver</a></li>
-      <li><a href="/analysis">Analysis</a></li>
-      <li><a href="/learning">Learning</a></li>
-      <li><a href="/poker-today">Poker Today</a></li>
-    </ul>
-    <div class="navbar-auth" id="navbarAuth">
-      <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
-      <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
-    </div>
-    
-    <!-- User Profile Tile (shown when logged in) -->
-    <div class="navbar-user" id="navbarUser" style="display: none;">
-      <div class="user-profile-tile" onclick="toggleUserDropdown()">
-        <div class="user-avatar" id="userNavAvatar">👤</div>
-        <div class="user-info">
-          <div class="user-name" id="userNavName">Username</div>
-          <div class="user-status">Online</div>
-        </div>
-        <div class="user-menu-icon">⚙️</div>
-      </div>
-      
-      <!-- User Dropdown Menu -->
-      <div id="userDropdown" class="user-dropdown" style="display: none;">
-        <a href="#" class="dropdown-item" onclick="openProfileModal()">👤 My Profile</a>
-        <a href="/friends" class="dropdown-item">👥 Friends</a>
-        <a href="#" class="dropdown-item" onclick="openSettingsModal()">⚙️ Settings</a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item" onclick="handleLogout()">🚪 Logout</a>
-      </div>
-    </div>
-  </nav>
-
+  <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
+  <div id="navbar-container"></div>
+  
   <!-- 🏆 WINNER BANNER (hidden by default) -->
   <div class="winner-banner" id="winnerBanner"></div>
   
@@ -1706,7 +1682,7 @@
       <div class="panel-header">
         <h2>🎛️ HOST CONTROLS <span class="host-badge">ONLY YOU</span></h2>
         <button class="collapse-btn" onclick="toggleHostControls()">
-          <span class="toggle-icon" id="hostToggleIcon">▼</span>
+        <span class="toggle-icon" id="hostToggleIcon">▼</span>
         </button>
       </div>
       
@@ -1812,7 +1788,7 @@
               <span class="btn-icon">🛑</span>
               <span class="btn-text">END GAME</span>
             </button>
-          </div>
+            </div>
         </div>
       </div>
     </div>
@@ -2065,6 +2041,35 @@
     let myHoleCards = null; // Track user's hole cards to show on their seat tile
     
     // ============================================
+    // NAVIGATION PROTECTION
+    // ============================================
+    // Warn user before leaving active game
+    window.addEventListener('beforeunload', (e) => {
+      if (gameId && currentGameState && currentGameState.status !== 'waiting') {
+        e.preventDefault();
+        e.returnValue = 'You are in an active game. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    });
+    
+    // Intercept navbar link clicks to confirm navigation
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const navLinks = document.querySelectorAll('.navbar-links a, .navbar-brand');
+        navLinks.forEach(link => {
+          link.addEventListener('click', (e) => {
+            if (gameId && currentGameState && currentGameState.status !== 'waiting') {
+              const confirmed = confirm('You are in an active game. Are you sure you want to leave?');
+              if (!confirmed) {
+                e.preventDefault();
+              }
+            }
+          });
+        });
+      }, 100); // Small delay to ensure navbar is rendered
+    });
+    
+    // ============================================
     // UTILITY: DEBUG LOGGING
     // ============================================
     function debug(message, data = null) {
@@ -2105,102 +2110,6 @@
       const finalRank = rankMap[rank] || rank;
       
       return `/cards/${suit}_${finalRank}.png`;
-    }
-    
-    // ============================================
-    // NAVBAR FUNCTIONS
-    // ============================================
-    
-    function toggleUserDropdown() {
-      const dropdown = document.getElementById('userDropdown');
-      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-      const dropdown = document.getElementById('userDropdown');
-      const profileTile = document.querySelector('.user-profile-tile');
-      
-      if (dropdown && profileTile && 
-          !dropdown.contains(event.target) && 
-          !profileTile.contains(event.target)) {
-        dropdown.style.display = 'none';
-      }
-    });
-    
-    function openLoginModal() {
-      alert('🔒 Login Modal - Coming Soon!\n\nThis will open the authentication modal.');
-      // TODO: Implement login modal
-    }
-    
-    function openProfileModal() {
-      alert('👤 Profile Modal - Coming Soon!\n\nThis will show your stats:\n- Best Hand\n- Hands Played\n- Games Played\n- Win Rate');
-      // TODO: Implement profile modal
-    }
-    
-    function openSettingsModal() {
-      alert('⚙️ Settings Modal - Coming Soon!\n\nThis will allow you to:\n- Change username\n- Update email\n- Manage notifications');
-      // TODO: Implement settings modal
-    }
-    
-    async function handleLogout() {
-      const confirmed = confirm('🚪 Are you sure you want to logout?');
-      if (!confirmed) return;
-      
-      try {
-        // Clear Supabase session
-        const supabaseAuth = localStorage.getItem('sb-ztqcpuktihltfepnexcx-auth-token');
-        if (supabaseAuth) {
-          localStorage.removeItem('sb-ztqcpuktihltfepnexcx-auth-token');
-        }
-        
-        // Clear session storage
-        sessionStorage.clear();
-        
-        alert('✅ Logged out successfully!');
-        window.location.href = '/';
-        
-      } catch (error) {
-        console.error('Logout error:', error);
-        alert('❌ Logout failed. Please try again.');
-      }
-    }
-    
-    // Update navbar based on auth state
-    function updateNavbar() {
-      const navbarAuth = document.getElementById('navbarAuth');
-      const navbarUser = document.getElementById('navbarUser');
-      
-      // Check if user is authenticated
-      const supabaseAuth = localStorage.getItem('sb-ztqcpuktihltfepnexcx-auth-token');
-      
-      if (supabaseAuth) {
-        try {
-          const authData = JSON.parse(supabaseAuth);
-          if (authData && authData.user) {
-            // Show user profile, hide auth buttons
-            navbarAuth.style.display = 'none';
-            navbarUser.style.display = 'block';
-            
-            // Update user info
-            const userName = authData.user.email?.split('@')[0] || 'Player';
-            document.getElementById('userNavName').textContent = userName;
-            
-            // Generate avatar emoji based on user ID
-            const avatarEmojis = ['😎', '🎮', '🎯', '🚀', '⭐', '💎', '🔥', '⚡'];
-            const avatarIndex = authData.user.id?.charCodeAt(0) % avatarEmojis.length || 0;
-            document.getElementById('userNavAvatar').textContent = avatarEmojis[avatarIndex];
-            
-            debug('✅ Navbar updated for authenticated user');
-          }
-        } catch (error) {
-          console.error('Error parsing auth data:', error);
-        }
-      } else {
-        // Show auth buttons, hide user profile
-        navbarAuth.style.display = 'flex';
-        navbarUser.style.display = 'none';
-      }
     }
     
     // ============================================
@@ -2282,9 +2191,6 @@
       // Wire up buttons
       document.getElementById('startBtn').onclick = startHand;
       document.getElementById('refreshBtn').onclick = loadRoom;
-      
-      // Initialize navbar state
-      updateNavbar();
       
       // Initialize host controls settings from localStorage
       initializeHostSettings();
@@ -3852,15 +3758,16 @@
     
     async function loadHostControls() {
       if (!isHost) {
+        // Non-hosts: hide host controls, show player settings
         document.getElementById('hostControlsPanel').style.display = 'none';
-        // Show player settings for non-hosts
         document.getElementById('playerSettingsPanel').style.display = 'block';
         return;
       }
       
+      // Hosts: show BOTH host controls AND player settings
       debug('🎛️ Loading host controls...');
       document.getElementById('hostControlsPanel').style.display = 'block';
-      document.getElementById('playerSettingsPanel').style.display = 'none';
+      document.getElementById('playerSettingsPanel').style.display = 'block';
       
       try {
         const response = await fetch(`/api/engine/host-controls/${roomId}/${userId}`);

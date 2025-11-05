@@ -628,11 +628,13 @@ app.locals.LogCategory = LogCategory;
 // Mount the modularized routers
 const gameEngineBridgeRouter = require('./routes/game-engine-bridge');
 const sandboxRouter = require('./routes/sandbox');
+const socialRouter = require('./routes/social');
 app.use('/api/engine', gameEngineBridgeRouter); // Production game engine (avoid conflict with /api/game display routes)
 app.use('/api/sandbox', sandboxRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/social', socialRouter); // Username, friends, profile, notifications
 app.use('/api/v2', v2Router);
 app.use('/', pagesRouter); // Mount pages router last (catch-all routes)
 
@@ -642,9 +644,10 @@ console.log('   ✅ /api/sandbox - 2 endpoints (ITERATIVE TEST ENV)');
 console.log('   ✅ /api/rooms  - 22 endpoints (1,072 lines)');
 console.log('   ✅ /api/games  - 7 endpoints (630 lines)');
 console.log('   ✅ /api/auth   - 3 endpoints (~100 lines)');
+console.log('   ✅ /api/social - 17 endpoints (username, friends, notifications)');
 console.log('   ✅ /api/v2     - 3 endpoints (117 lines)');
 console.log('   ✅ /          - 13 page routes (74 lines)');
-console.log('   📊 TOTAL: 51 endpoints, 2,300+ lines extracted');
+console.log('   📊 TOTAL: 68 endpoints, 3,000+ lines extracted');
 
 // ============================================
 // MODULARIZATION COMPLETE

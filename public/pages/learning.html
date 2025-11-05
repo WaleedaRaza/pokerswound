@@ -13,6 +13,7 @@
     <!-- Unified Auth System -->
     <script src="/js/auth-manager.js"></script>
     <script src="/js/nav-shared.js"></script>
+    <script src="/js/navbar-template.js"></script>
     
     <!-- SVG Filter for Liquid Glass Effect -->
     <svg width="0" height="0" class="svg-filter">
@@ -30,35 +31,8 @@
   <!-- Global floating animations container -->
   <div id="floating-cards" class="floating-cards"></div>
     
-    <!-- CONSOLIDATED NAVBAR - IDENTICAL TO OTHER PAGES -->
-    <nav class="navbar">
-        <a href="index.html" class="navbar-brand">PokerGeek.ai</a>
-        <ul class="navbar-links">
-            <li><a href="index_clean.html">Home</a></li>
-            <li><a href="play_clean.html">Play Now</a></li>
-            <li><a href="friends.html">Friends</a></li>
-            <li><a href="ai-solver.html">AI Solver</a></li>
-            <li><a href="analysis.html">Analysis</a></li>
-        <li><a href="learning.html">Learning</a></li>
-            <li><a href="poker-today.html">Poker Today</a></li>
-      </ul>
-    <div class="navbar-auth" id="navbarAuth">
-      <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
-      <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
-    </div>
-    
-    <!-- User Profile Tile (shown when logged in) -->
-    <div class="navbar-user" id="navbarUser" style="display: none;">
-      <div class="user-profile-tile liquid-glass-tile" onclick="openSettingsModal()">
-        <div class="user-avatar" id="userAvatar">👤</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">Username</div>
-          <div class="user-status">Online</div>
-        </div>
-        <div class="user-menu-icon">⚙️</div>
-      </div>
-    </div>
-  </nav>
+    <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
+    <div id="navbar-container"></div>
 
   <!-- Main Content -->
   <main class="main-content">

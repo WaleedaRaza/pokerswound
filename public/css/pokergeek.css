@@ -189,10 +189,7 @@ body {
 
 /* ===== CONSOLIDATED NAVBAR - SINGLE STYLE ===== */
 .navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   z-index: 1000;
   height: 80px;
   background: rgba(10, 8, 22, 0.95);
@@ -1147,6 +1144,118 @@ body {
   color: var(--text);
 }
 
+/* User Dropdown Menu */
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: rgba(20, 20, 40, 0.98);
+  border-radius: 10px;
+  padding: 1rem;
+  min-width: 250px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown.show {
+  display: block;
+}
+
+.dropdown-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dropdown-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dropdown-avatar {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.dropdown-user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.dropdown-username {
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.dropdown-email {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-btn {
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.dropdown-btn.logout {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.dropdown-btn.logout:hover {
+  background: rgba(220, 53, 69, 0.3);
+}
+
+/* Mobile responsive dropdown */
+@media (max-width: 768px) {
+  .user-dropdown {
+    right: 10px;
+    min-width: 200px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  .dropdown-username {
+    font-size: 1rem;
+  }
+  
+  .dropdown-email {
+    font-size: 0.85rem;
+  }
+}
 
 /* ===== SETTINGS MODAL STYLES ===== */
 .settings-modal {

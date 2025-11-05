@@ -108,5 +108,138 @@ router.post('/sync-user', withIdempotency, async (req, res) => {
   }
 });
 
+// POST /api/auth/check-username - Check if username is available
+router.post('/check-username', async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    // Validate format: 3-20 chars, alphanumeric + underscore
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({ 
+        error: 'Invalid username format',
+        message: 'Username must be 3-20 characters (letters, numbers, underscore only)'
+      });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Check if username exists (case-insensitive)
+    const result = await db.query(
+      'SELECT id FROM user_profiles WHERE LOWER(username) = LOWER($1)',
+      [username]
+    );
+    
+    const available = result.rowCount === 0;
+    
+    res.json({ 
+      available,
+      username,
+      message: available ? 'Username is available' : 'Username is already taken'
+    });
+    
+  } catch (error) {
+    console.error('❌ Check username error:', error);
+    res.status(500).json({ error: 'Failed to check username' });
+  }
+});
+
+// POST /api/auth/set-username - Set or update username for logged-in user
+router.post('/set-username', async (req, res) => {
+  try {
+    const { userId, username } = req.body;
+    
+    if (!userId || !username) {
+      return res.status(400).json({ error: 'userId and username are required' });
+    }
+    
+    // Validate format
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({ 
+        error: 'Invalid username format',
+        message: 'Username must be 3-20 characters (letters, numbers, underscore only)'
+      });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Check if username is already taken by another user
+    const existingUser = await db.query(
+      'SELECT id FROM user_profiles WHERE LOWER(username) = LOWER($1) AND id != $2',
+      [username, userId]
+    );
+    
+    if (existingUser.rowCount > 0) {
+      return res.status(409).json({ 
+        error: 'Username already taken',
+        message: 'This username is already in use. Please choose another.'
+      });
+    }
+    
+    // Update username
+    await db.query(
+      `UPDATE user_profiles 
+       SET username = $1, 
+           username_changed_at = NOW(),
+           username_change_count = COALESCE(username_change_count, 0) + 1,
+           updated_at = NOW()
+       WHERE id = $2`,
+      [username, userId]
+    );
+    
+    console.log(`✅ Username set for user ${userId}: ${username}`);
+    
+    res.json({ 
+      success: true,
+      username,
+      message: 'Username updated successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Set username error:', error);
+    res.status(500).json({ error: 'Failed to set username' });
+  }
+});
+
+// GET /api/auth/profile/:userId - Get user profile
+router.get('/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    const result = await db.query(
+      `SELECT 
+        id, username, display_name, avatar_url, bio,
+        total_games_played, total_winnings, best_hand,
+        created_at
+       FROM user_profiles 
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+    
+    res.json(result.rows[0]);
+    
+  } catch (error) {
+    console.error('❌ Get profile error:', error);
+    res.status(500).json({ error: 'Failed to get user profile' });
+  }
+});
+
 module.exports = router;
 

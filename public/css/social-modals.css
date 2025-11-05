@@ -1,0 +1,373 @@
+/**
+ * PokerGeek.ai - Social Modals Styles
+ * Username selection, profile modal, friends UI
+ */
+
+/* ===== MODAL OVERLAY ===== */
+.social-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== MODAL CONTAINER ===== */
+.social-modal {
+  background: linear-gradient(135deg, rgba(15, 15, 25, 0.95), rgba(20, 20, 30, 0.95));
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 32px;
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+.social-modal.large {
+  max-width: 700px;
+  min-width: 600px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== MODAL HEADER ===== */
+.social-modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.social-modal-header h2 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #00d4aa;
+  margin: 0 0 8px 0;
+}
+
+.social-modal-header p {
+  color: #9aa3b2;
+  font-size: 14px;
+  margin: 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #9aa3b2;
+  font-size: 32px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  color: #ff5100;
+  transform: rotate(90deg);
+}
+
+/* ===== MODAL BODY ===== */
+.social-modal-body {
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  color: #e9eef7;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.social-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(11, 11, 18, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #e9eef7;
+  font-size: 16px;
+  font-family: "JetBrains Mono", monospace;
+  transition: all 0.2s;
+}
+
+.social-input:focus {
+  outline: none;
+  border-color: #00d4aa;
+  background: rgba(11, 11, 18, 0.95);
+}
+
+.input-status {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.input-status.success {
+  color: #00d4aa;
+}
+
+.input-status.error {
+  color: #ff3b3b;
+}
+
+.input-status.checking {
+  color: #fbbf24;
+}
+
+.input-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9aa3b2;
+}
+
+/* ===== MODAL ACTIONS ===== */
+.social-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 12px 24px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #00d4aa;
+  color: #0b0b12;
+}
+
+.btn-primary:hover {
+  background: #00f5c4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e9eef7;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== PROFILE MODAL SPECIFIC ===== */
+.profile-section {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar-large {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5100, #00d4aa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin: 0 auto 16px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-section h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 24px;
+  color: #00d4aa;
+  margin: 0 0 4px 0;
+}
+
+.profile-display-name {
+  color: #9aa3b2;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: rgba(11, 11, 18, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  background: rgba(11, 11, 18, 0.8);
+  border-color: rgba(0, 212, 170, 0.3);
+  transform: translateY(-2px);
+}
+
+.stat-value {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: #00d4aa;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #9aa3b2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== BEST HAND SECTION ===== */
+.best-hand-section {
+  background: rgba(11, 11, 18, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.best-hand-section h4 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 18px;
+  color: #e9eef7;
+  margin: 0 0 16px 0;
+}
+
+.best-hand-display {
+  text-align: center;
+}
+
+.hand-rank {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 8px;
+}
+
+.hand-cards {
+  font-size: 16px;
+  color: #9aa3b2;
+}
+
+.text-muted {
+  color: #9aa3b2;
+  font-style: italic;
+}
+
+/* ===== NOTIFICATIONS ===== */
+.notification {
+  position: fixed;
+  top: 100px;
+  right: 24px;
+  background: linear-gradient(135deg, rgba(15, 15, 25, 0.95), rgba(20, 20, 30, 0.95));
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px 24px;
+  color: #e9eef7;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 10001;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s ease-out;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification-success {
+  border-left: 4px solid #00d4aa;
+}
+
+.notification-error {
+  border-left: 4px solid #ff3b3b;
+}
+
+.notification-info {
+  border-left: 4px solid #fbbf24;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .social-modal {
+    min-width: 300px;
+    max-width: 90vw;
+    padding: 24px;
+  }
+  
+  .social-modal.large {
+    min-width: 300px;
+    max-width: 90vw;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .social-modal-header h2 {
+    font-size: 24px;
+  }
+}
+

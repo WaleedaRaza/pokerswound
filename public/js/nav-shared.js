@@ -30,7 +30,7 @@ class NavbarController {
    * Update navbar for authenticated user
    * ROBUST VERSION - Always hides login buttons and shows user tile
    */
-  showUser(user) {
+  async showUser(user) {
     if (!user) {
       console.warn('⚠️ showUser called with no user, showing logged out instead');
       this.showLoggedOut();
@@ -38,6 +38,23 @@ class NavbarController {
     }
     
     console.log('👤 NavbarController: Showing user:', user.username);
+    
+    // Fetch actual username from backend if not a guest
+    let displayUsername = user.username;
+    if (!user.isGuest) {
+      try {
+        const response = await fetch(`/api/auth/profile/${user.id}`);
+        if (response.ok) {
+          const profile = await response.json();
+          displayUsername = profile.username;
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not fetch profile username, using cached:', error);
+      }
+    }
+    
+    // Format username with @ prefix for display
+    const formattedUsername = displayUsername.startsWith('@') ? displayUsername : `@${displayUsername}`;
     
     // Re-fetch elements in case they weren't initialized
     const navbarAuth = document.getElementById('navbarAuth');
@@ -65,8 +82,8 @@ class NavbarController {
       console.error('❌ navbarUser element not found!');
     }
     
-    // Update user info
-    if (userName) userName.textContent = user.username;
+    // Update user info with @username format
+    if (userName) userName.textContent = formattedUsername;
     if (userAvatar) userAvatar.textContent = user.avatar || (user.isGuest ? '👻' : '👤');
     
     // Update dropdown if exists
@@ -75,7 +92,7 @@ class NavbarController {
     const dropdownEmail = document.getElementById('dropdownEmail');
     
     if (dropdownAvatar) dropdownAvatar.textContent = user.avatar || (user.isGuest ? '👻' : '👤');
-    if (dropdownUsername) dropdownUsername.textContent = user.username;
+    if (dropdownUsername) dropdownUsername.textContent = formattedUsername;
     if (dropdownEmail) dropdownEmail.textContent = user.email || (user.isGuest ? 'Guest User' : 'No email');
     
     // Add visual indicator for guest users
@@ -443,6 +460,29 @@ async function initializeAuth() {
     return null;
   }
 }
+
+/**
+ * Refresh the navbar and auth display
+ * Call this after username changes or profile updates
+ */
+async function refreshAuthDisplay() {
+  console.log('🔄 Refreshing auth display...');
+  try {
+    const user = await window.authManager.checkAuth();
+    if (user) {
+      await window.navbarController.showUser(user);
+      console.log('✅ Auth display refreshed');
+    } else {
+      window.navbarController.showLoggedOut();
+    }
+  } catch (error) {
+    console.error('❌ Failed to refresh auth display:', error);
+  }
+}
+
+// Expose globally
+window.refreshAuthDisplay = refreshAuthDisplay;
+window.initializeAuth = initializeAuth;
 
 /**
  * Listen for auth state changes from other tabs/windows

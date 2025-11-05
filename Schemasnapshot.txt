@@ -607,6 +607,7 @@ CREATE TABLE public.room_seats (
   joined_at timestamp with time zone DEFAULT now(),
   last_action_at timestamp with time zone DEFAULT now(),
   left_at timestamp with time zone,
+  nickname character varying CHECK (nickname IS NULL OR length(nickname::text) >= 3 AND length(nickname::text) <= 15 AND nickname::text ~ '^[a-zA-Z0-9_]+$'::text),
   CONSTRAINT room_seats_pkey PRIMARY KEY (id),
   CONSTRAINT room_seats_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
 );
@@ -648,6 +649,8 @@ CREATE TABLE public.rooms (
   host_user_id uuid,
   lobby_status character varying DEFAULT 'lobby'::character varying,
   game_id character varying,
+  pending_small_blind integer,
+  pending_big_blind integer,
   CONSTRAINT rooms_pkey PRIMARY KEY (id),
   CONSTRAINT rooms_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id)
 );

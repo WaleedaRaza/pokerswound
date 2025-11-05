@@ -13,6 +13,7 @@
   <!-- Unified Auth System -->
   <script src="/js/auth-manager.js"></script>
   <script src="/js/nav-shared.js"></script>
+  <script src="/js/navbar-template.js"></script>
   
   <!-- SVG Filter for Liquid Glass Effect -->
   <svg width="0" height="0" style="position: absolute;">
@@ -30,66 +31,8 @@
   <!-- Global floating animations container -->
   <div id="floating-cards" class="floating-cards"></div>
 
-  <!-- CONSOLIDATED NAVBAR -->
-  <nav class="navbar">
-    <a href="/" class="navbar-brand">PokerGeek.ai</a>
-    <ul class="navbar-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/play">Play Now</a></li>
-      <li><a href="/friends">Friends</a></li>
-      <li><a href="/ai-solver">AI Solver</a></li>
-      <li><a href="/analysis">Analysis</a></li>
-      <li><a href="/learning">Learning</a></li>
-      <li><a href="/poker-today">Poker Today</a></li>
-    </ul>
-    <div class="navbar-auth" id="navbarAuth">
-      <a href="#" class="navbar-btn navbar-btn-login" onclick="openLoginModal()">Log In</a>
-      <a href="#" class="navbar-btn navbar-btn-signup" onclick="openLoginModal()">Sign Up</a>
-    </div>
-    
-    <!-- User Profile Tile (shown when logged in) -->
-    <div class="navbar-user" id="navbarUser" style="display: none;">
-      <div class="user-profile-tile liquid-glass-tile" onclick="toggleUserDropdown()">
-        <div class="user-avatar" id="userAvatar">👤</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">Username</div>
-          <div class="user-status">Online</div>
-        </div>
-        <div class="user-menu-icon">⚙️</div>
-      </div>
-      
-      <!-- User Dropdown Menu -->
-      <div id="userDropdown" class="user-dropdown" style="display: none; position: absolute; top: 60px; right: 20px; background: rgba(20,20,40,0.98); border-radius: 10px; padding: 1rem; min-width: 250px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1rem;">
-          <div style="display: flex; align-items: center; gap: 1rem;">
-            <div id="dropdownAvatar" style="font-size: 3rem;">👤</div>
-            <div>
-              <div id="dropdownUsername" style="color: #fff; font-weight: bold; font-size: 1.1rem;">Username</div>
-              <div id="dropdownEmail" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">user@example.com</div>
-            </div>
-          </div>
-        </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <button onclick="openProfileSettings()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            👤 Profile Settings
-          </button>
-          <button onclick="openChangeUsername()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            ✏️ Change Username
-          </button>
-          <button onclick="openChangePassword()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            🔒 Change Password
-          </button>
-          <button onclick="openAvatarPicker()" style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: none; border-radius: 5px; color: #fff; cursor: pointer; text-align: left; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            😊 Change Avatar
-          </button>
-          <button onclick="handleLogout()" style="padding: 0.75rem; background: rgba(220,53,69,0.2); border: none; border-radius: 5px; color: #dc3545; cursor: pointer; text-align: left; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='rgba(220,53,69,0.3)'" onmouseout="this.style.background='rgba(220,53,69,0.2)'">
-            🚪 Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
+  <div id="navbar-container"></div>
 
   <!-- Main Content -->
   <main class="main-content">
@@ -947,60 +890,7 @@
       }
     }
 
-    // Toggle User Dropdown
-    function toggleUserDropdown() {
-      const dropdown = document.getElementById('userDropdown');
-      const isVisible = dropdown.style.display !== 'none';
-      
-      if (isVisible) {
-        dropdown.style.display = 'none';
-      } else {
-        // Update dropdown content with current user data
-        document.getElementById('dropdownAvatar').textContent = currentUser?.avatar || '👤';
-        document.getElementById('dropdownUsername').textContent = currentUser?.username || 'Username';
-        document.getElementById('dropdownEmail').textContent = currentUser?.email || 'user@example.com';
-        dropdown.style.display = 'block';
-      }
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-      const dropdown = document.getElementById('userDropdown');
-      const profileTile = document.querySelector('.user-profile-tile');
-      
-      if (dropdown && !dropdown.contains(event.target) && !profileTile.contains(event.target)) {
-        dropdown.style.display = 'none';
-      }
-    });
-
-    // Logout Function
-    async function handleLogout() {
-      if (confirm('Are you sure you want to logout?')) {
-        // Use AuthManager for unified logout
-        await window.authManager.logout();
-        
-        // Clear user data
-        currentUser = null;
-        isLoggedIn = false;
-        localStorage.removeItem('pokerUser');
-        
-        // Hide dropdown
-        document.getElementById('userDropdown').style.display = 'none';
-        
-        // Update navbar
-        document.getElementById('navbarUser').style.display = 'none';
-        document.getElementById('navbarActions').style.display = 'flex';
-        
-        showNotification('Logged out successfully', 'success');
-        
-        // Redirect to home if on play page
-        if (window.location.pathname === '/play') {
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1000);
-        }
-      }
-    }
+    // Navbar functions (toggleUserDropdown, handleLogout) are now in nav-shared.js - removed duplicates
 
     // Profile Settings (placeholder)
     function openProfileSettings() {
@@ -2983,5 +2873,9 @@
       }
     }
   </script>
+
+  <!-- Social Features -->
+  <link rel="stylesheet" href="/css/social-modals.css">
+  <script src="/js/social-modals.js"></script>
 </body>
 </html>
