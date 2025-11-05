@@ -373,6 +373,13 @@
           </div>
         </div>
         
+        <!-- Invite Friends Button -->
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <button onclick="openInviteFriendsModal()" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            📧 Invite Friends to Game
+          </button>
+        </div>
+        
         <!-- Host Controls -->
         <div id="hostControls" style="display: none;">
           <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">👑 Host Controls</h3>
@@ -573,6 +580,98 @@
     
     window.openTableManageModal = function() {
       alert('Table management functionality coming soon!');
+    };
+    
+    // Friend Invite Modal Functions
+    window.openInviteFriendsModal = async function() {
+      const modal = document.getElementById('inviteFriendsModal');
+      const friendsList = document.getElementById('friendsListInvite');
+      
+      modal.classList.add('show');
+      modal.style.display = 'flex';
+      
+      // Load friends
+      try {
+        const token = await window.authManager.getAccessToken();
+        const response = await fetch('/api/social/friends', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const friends = await response.json();
+          
+          if (friends.length === 0) {
+            friendsList.innerHTML = `
+              <p style="text-align: center; opacity: 0.7; padding: 2rem;">
+                No friends yet. Add friends to invite them to games!
+              </p>
+            `;
+            return;
+          }
+          
+          friendsList.innerHTML = friends.map(friend => `
+            <div class="friend-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="avatar">${friend.avatar_url || '👤'}</div>
+                <div>
+                  <div style="font-weight: 600;">${friend.username}</div>
+                  <div style="font-size: 0.85rem; opacity: 0.7;">${friend.is_online ? '🟢 Online' : '⚫ Offline'}</div>
+                </div>
+              </div>
+              <button onclick="sendGameInvite('${friend.id}', '${friend.username}')" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                Invite
+              </button>
+            </div>
+          `).join('');
+        } else {
+          friendsList.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 2rem;">Failed to load friends</p>';
+        }
+      } catch (error) {
+        console.error('Error loading friends:', error);
+        friendsList.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 2rem;">Error loading friends</p>';
+      }
+    };
+    
+    window.closeInviteFriendsModal = function() {
+      const modal = document.getElementById('inviteFriendsModal');
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+      }
+    };
+    
+    window.sendGameInvite = async function(friendId, friendUsername) {
+      try {
+        const token = await window.authManager.getAccessToken();
+        const user = await window.authManager.checkAuth();
+        
+        if (!user || !currentRoomId) {
+          showNotification('Unable to send invite', 'error');
+          return;
+        }
+        
+        const response = await fetch(`/api/rooms/${currentRoomId}/invite`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            friendId: friendId,
+            hostId: user.id
+          })
+        });
+        
+        if (response.ok) {
+          showNotification(`Invite sent to ${friendUsername}!`, 'success');
+        } else {
+          const error = await response.json();
+          showNotification(error.error || 'Failed to send invite', 'error');
+        }
+      } catch (error) {
+        console.error('Error sending invite:', error);
+        showNotification('Failed to send invite', 'error');
+      }
     };
     
     // Stubs - will be overwritten by real implementations in main script
@@ -2489,6 +2588,20 @@
         <div id="roomsList" style="max-height: 300px; overflow-y: auto;">
           <p style="color: rgba(255,255,255,0.5);">Loading rooms...</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite Friends Modal -->
+  <div id="inviteFriendsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeInviteFriendsModal()">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">📧 Invite Friends</h2>
+        <p class="modal-subtitle">Select friends to invite to this game</p>
+      </div>
+      <div id="friendsListInvite" style="max-height: 400px; overflow-y: auto;">
+        <p style="text-align: center; opacity: 0.7; padding: 2rem;">Loading friends...</p>
       </div>
     </div>
   </div>
