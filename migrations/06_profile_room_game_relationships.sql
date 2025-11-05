@@ -219,7 +219,7 @@ BEGIN
     UPDATE user_profiles
     SET 
       is_playing = TRUE,
-      current_game_id = NEW.game_id,
+      current_game_id = NEW.id,  -- game_states.id, not game_id
       total_games_started = total_games_started + 1,
       last_active_at = NOW(),
       updated_at = NOW()
