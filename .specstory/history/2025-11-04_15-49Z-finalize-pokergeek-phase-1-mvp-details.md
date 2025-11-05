@@ -34516,3 +34516,462 @@ And the **red gate modal** will appear with all your rooms! 🚫
 
 ---
 
+_**User (2025-11-05 13:39Z)**_
+
+I think its important to consolidate the statuses into almost types. We mentioned earlier how its important to deepen the udnerstanding of a state type of a room, ie active(players in table, or in seats), inacitve(no one playing) thats a more accurate represntation of stutus
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user is making a very good architectural point. The current room status system is messy and inconsistent:
+- Some places use lowercase 'active', 'closed'
+- Some use uppercase 'WAITING', 'ACTIVE'
+- The semantics are unclear
+
+They want to consolidate into a clean type system that accurately represents the actual state:
+- `active` - players in seats, game may or may not be running
+- `inactive` - room exists but empty
+- `closed` - room terminated
+
+This is a good procedural/architectural discussion before we proceed. Let me think about the proper states and create a clear schema.
+
+Actually, I think they want even more granularity:
+- Room with players seated → active
+- Room with no one → inactive
+- Room terminated → closed
+
+And we need to standardize the casing and usage everywhere.
+
+Let me create a proper status enum definition and migration.</details></think>
+
+---
+
+**EXACTLY RIGHT.** The status system is a mess - lowercase/uppercase, unclear semantics. Let's define proper **room lifecycle states**:
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/ROOM_STATUS_SCHEMA.md</summary>
+
+**Chunk 1**
+Lines added: 170, lines removed: 1
+
+```diff
+@@ -1,1 +1,170 @@
+- 
++ # Room Status Schema - Clear Lifecycle Definition
++ 
++ ## Problem
++ Current status values are inconsistent:
++ - Backend uses: &#96;&#39;active&#39;&#96; (lowercase) in queries
++ - Database has: &#96;&#39;WAITING&#39;&#96;, &#96;&#39;ACTIVE&#39;&#96; (uppercase) in actual data
++ - Semantics unclear: What&#39;s the difference between a waiting room and an active room?
++ 
++ ## Solution: 3-State Lifecycle
++ 
++ ### Status Types (Enum)
++ 
++ &#96;&#96;&#96;sql
++ CREATE TYPE room_status AS ENUM (
++   &#39;active&#39;,    -- Room has players (in seats or playing)
++   &#39;inactive&#39;,  -- Room exists but empty (no players seated)
++   &#39;closed&#39;     -- Room terminated/deleted (cleanup complete)
++ );
++ &#96;&#96;&#96;
++ 
++ ### State Definitions
++ 
++ | Status | Meaning | Transition From | Transition To |
++ |--------|---------|-----------------|---------------|
++ | &#96;inactive&#96; | Room created, no players seated yet | N/A (initial) | &#96;active&#96; (first player joins) |
++ | &#96;active&#96; | ≥1 player seated (game may or may not be running) | &#96;inactive&#96; | &#96;closed&#96; (host closes) |
++ | &#96;closed&#96; | Room terminated, cleanup done | &#96;active&#96;, &#96;inactive&#96; | N/A (final) |
++ 
++ ### Key Insights
++ 
++ 1. **Game state ≠ Room state**
++    - Room &#96;active&#96; = players present
++    - Game &#96;active&#96; = hand in progress (tracked separately in &#96;game_states&#96; table)
++ 
++ 2. **Empty room = &#96;inactive&#96;, not &#96;closed&#96;**
++    - If all players leave → room becomes &#96;inactive&#96; (can be rejoined)
++    - Host explicitly closes → room becomes &#96;closed&#96; (permanent)
++ 
++ 3. **Room limit counts &#96;active&#96; + &#96;inactive&#96;**
++    - Query: &#96;WHERE status != &#39;closed&#39;&#96;
++    - Only &#96;closed&#96; rooms don&#39;t count toward limit
++ 
++ ### Migration Strategy
++ 
++ &#96;&#96;&#96;sql
++ -- Step 1: Add new enum type
++ CREATE TYPE room_status AS ENUM (&#39;active&#39;, &#39;inactive&#39;, &#39;closed&#39;);
++ 
++ -- Step 2: Add temp column
++ ALTER TABLE rooms ADD COLUMN status_new room_status;
++ 
++ -- Step 3: Migrate data
++ UPDATE rooms SET status_new = 
++   CASE 
++     WHEN UPPER(status) = &#39;WAITING&#39; THEN &#39;inactive&#39;::room_status
++     WHEN UPPER(status) = &#39;ACTIVE&#39; THEN &#39;active&#39;::room_status
++     WHEN UPPER(status) = &#39;CLOSED&#39; THEN &#39;closed&#39;::room_status
++     ELSE &#39;inactive&#39;::room_status  -- Default for unknown
++   END;
++ 
++ -- Step 4: Drop old, rename new
++ ALTER TABLE rooms DROP COLUMN status;
++ ALTER TABLE rooms RENAME COLUMN status_new TO status;
++ ALTER TABLE rooms ALTER COLUMN status SET DEFAULT &#39;inactive&#39;;
++ ALTER TABLE rooms ALTER COLUMN status SET NOT NULL;
++ &#96;&#96;&#96;
++ 
++ ## Triggers to Maintain Status
++ 
++ ### Auto-activate on player join
++ &#96;&#96;&#96;sql
++ CREATE OR REPLACE FUNCTION auto_activate_room()
++ RETURNS TRIGGER AS $$
++ BEGIN
++   -- When first player joins, mark room as active
++   UPDATE rooms 
++   SET status = &#39;active&#39;, updated_at = NOW()
++   WHERE id = NEW.room_id 
++     AND status = &#39;inactive&#39;;
++   RETURN NEW;
++ END;
++ $$ LANGUAGE plpgsql;
++ 
++ CREATE TRIGGER room_auto_activate
++ AFTER INSERT ON room_seats
++ FOR EACH ROW
++ EXECUTE FUNCTION auto_activate_room();
++ &#96;&#96;&#96;
++ 
++ ### Auto-deactivate on last player leave
++ &#96;&#96;&#96;sql
++ CREATE OR REPLACE FUNCTION auto_deactivate_room()
++ RETURNS TRIGGER AS $$
++ BEGIN
++   -- When last player leaves, mark room as inactive
++   IF NOT EXISTS (SELECT 1 FROM room_seats WHERE room_id = OLD.room_id) THEN
++     UPDATE rooms 
++     SET status = &#39;inactive&#39;, updated_at = NOW()
++     WHERE id = OLD.room_id 
++       AND status = &#39;active&#39;;
++   END IF;
++   RETURN OLD;
++ END;
++ $$ LANGUAGE plpgsql;
++ 
++ CREATE TRIGGER room_auto_deactivate
++ AFTER DELETE ON room_seats
++ FOR EACH ROW
++ EXECUTE FUNCTION auto_deactivate_room();
++ &#96;&#96;&#96;
++ 
++ ## Backend Usage
++ 
++ ### Room Creation
++ &#96;&#96;&#96;javascript
++ // New rooms start as &#39;inactive&#39;
++ await db.query(
++   &#96;INSERT INTO rooms (name, host_user_id, status, ...)
++    VALUES ($1, $2, &#39;inactive&#39;, ...)&#96;
++ );
++ &#96;&#96;&#96;
++ 
++ ### Room Limit Check
++ &#96;&#96;&#96;javascript
++ // Count all non-closed rooms
++ const result = await db.query(
++   &#96;SELECT COUNT(*) FROM rooms 
++    WHERE host_user_id = $1 AND status != &#39;closed&#39;&#96;
++ );
++ &#96;&#96;&#96;
++ 
++ ### Room List (My Rooms)
++ &#96;&#96;&#96;javascript
++ // Show active and inactive separately
++ const active = await db.query(
++   &#96;SELECT * FROM rooms 
++    WHERE host_user_id = $1 AND status = &#39;active&#39;&#96;
++ );
++ 
++ const inactive = await db.query(
++   &#96;SELECT * FROM rooms 
++    WHERE host_user_id = $1 AND status = &#39;inactive&#39;&#96;
++ );
++ &#96;&#96;&#96;
++ 
++ ### Close Room (Host Action)
++ &#96;&#96;&#96;javascript
++ await db.query(
++   &#96;UPDATE rooms 
++    SET status = &#39;closed&#39;, updated_at = NOW()
++    WHERE id = $1 AND host_user_id = $2&#96;
++ );
++ &#96;&#96;&#96;
++ 
++ ## Benefits
++ 
++ 1. ✅ **Clear semantics** - status name matches actual state
++ 2. ✅ **Type safety** - PostgreSQL enum prevents invalid values
++ 3. ✅ **Auto-management** - triggers keep status in sync with player count
++ 4. ✅ **Accurate limits** - counts all &quot;open&quot; rooms (active + inactive)
++ 5. ✅ **Case consistency** - lowercase everywhere, enforced by enum
++ 
++ ## Next Steps
++ 
++ 1. Run migration to convert existing data
++ 2. Update all backend queries to use new status values
++ 3. Update frontend to handle 3 states (instead of ambiguous WAITING/ACTIVE)
++ 4. Add triggers for auto status management
++ 5. Test room lifecycle (create → join → leave → close)
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/migrations/07_room_status_cleanup.sql</summary>
+
+**Chunk 1**
+Lines added: 141, lines removed: 1
+
+```diff
+@@ -1,1 +1,141 @@
+- 
++ -- ============================================
++ -- MIGRATION 07: Room Status Cleanup
++ -- Consolidate room status into clear 3-state lifecycle
++ -- ============================================
++ 
++ -- STEP 1: Create enum type for room status
++ DO $$ BEGIN
++   CREATE TYPE room_status AS ENUM (&#39;active&#39;, &#39;inactive&#39;, &#39;closed&#39;);
++ EXCEPTION
++   WHEN duplicate_object THEN null;
++ END $$;
++ 
++ -- STEP 2: Add new status column with enum type
++ ALTER TABLE rooms ADD COLUMN IF NOT EXISTS status_new room_status;
++ 
++ -- STEP 3: Migrate existing data
++ -- Map old status values to new clean states
++ UPDATE rooms SET status_new = 
++   CASE 
++     WHEN UPPER(status::text) = &#39;WAITING&#39; THEN &#39;inactive&#39;::room_status
++     WHEN UPPER(status::text) = &#39;ACTIVE&#39; THEN &#39;active&#39;::room_status
++     WHEN UPPER(status::text) = &#39;CLOSED&#39; THEN &#39;closed&#39;::room_status
++     WHEN LOWER(status::text) = &#39;active&#39; THEN &#39;active&#39;::room_status
++     WHEN LOWER(status::text) = &#39;closed&#39; THEN &#39;closed&#39;::room_status
++     ELSE &#39;inactive&#39;::room_status  -- Default for any unknown status
++   END
++ WHERE status_new IS NULL;
++ 
++ -- STEP 4: Drop old column and rename new one
++ ALTER TABLE rooms DROP COLUMN IF EXISTS status;
++ ALTER TABLE rooms RENAME COLUMN status_new TO status;
++ 
++ -- STEP 5: Set constraints
++ ALTER TABLE rooms ALTER COLUMN status SET DEFAULT &#39;inactive&#39;;
++ ALTER TABLE rooms ALTER COLUMN status SET NOT NULL;
++ 
++ -- Add index for faster queries
++ CREATE INDEX IF NOT EXISTS idx_rooms_status ON rooms(status);
++ CREATE INDEX IF NOT EXISTS idx_rooms_status_host ON rooms(host_user_id, status);
++ 
++ -- ============================================
++ -- TRIGGER 1: Auto-activate room on first player join
++ -- ============================================
++ CREATE OR REPLACE FUNCTION auto_activate_room()
++ RETURNS TRIGGER AS $$
++ BEGIN
++   -- When first player joins, mark room as active
++   UPDATE rooms 
++   SET status = &#39;active&#39;, updated_at = NOW()
++   WHERE id = NEW.room_id 
++     AND status = &#39;inactive&#39;;
++   
++   -- Log the activation
++   IF FOUND THEN
++     RAISE NOTICE &#39;🟢 Room % auto-activated (first player joined)&#39;, NEW.room_id;
++   END IF;
++   
++   RETURN NEW;
++ END;
++ $$ LANGUAGE plpgsql;
++ 
++ DROP TRIGGER IF EXISTS room_auto_activate ON room_seats;
++ CREATE TRIGGER room_auto_activate
++ AFTER INSERT ON room_seats
++ FOR EACH ROW
++ EXECUTE FUNCTION auto_activate_room();
++ 
++ -- ============================================
++ -- TRIGGER 2: Auto-deactivate room on last player leave
++ -- ============================================
++ CREATE OR REPLACE FUNCTION auto_deactivate_room()
++ RETURNS TRIGGER AS $$
++ DECLARE
++   remaining_players INTEGER;
++ BEGIN
++   -- Count remaining players in the room
++   SELECT COUNT(*) INTO remaining_players
++   FROM room_seats 
++   WHERE room_id = OLD.room_id;
++   
++   -- If no players left, mark room as inactive
++   IF remaining_players = 0 THEN
++     UPDATE rooms 
++     SET status = &#39;inactive&#39;, updated_at = NOW()
++     WHERE id = OLD.room_id 
++       AND status = &#39;active&#39;;
++     
++     IF FOUND THEN
++       RAISE NOTICE &#39;⚪ Room % auto-deactivated (last player left)&#39;, OLD.room_id;
++     END IF;
++   END IF;
++   
++   RETURN OLD;
++ END;
++ $$ LANGUAGE plpgsql;
++ 
++ DROP TRIGGER IF EXISTS room_auto_deactivate ON room_seats;
++ CREATE TRIGGER room_auto_deactivate
++ AFTER DELETE ON room_seats
++ FOR EACH ROW
++ EXECUTE FUNCTION auto_deactivate_room();
++ 
++ -- ============================================
++ -- VERIFICATION QUERIES
++ -- ============================================
++ 
++ -- Show current distribution of room statuses
++ SELECT 
++   status,
++   COUNT(*) as count,
++   COUNT(DISTINCT host_user_id) as unique_hosts
++ FROM rooms
++ GROUP BY status
++ ORDER BY status;
++ 
++ -- Show any rooms with players but marked inactive (should be 0)
++ SELECT 
++   r.id,
++   r.name,
++   r.status,
++   COUNT(rs.user_id) as player_count
++ FROM rooms r
++ LEFT JOIN room_seats rs ON rs.room_id = r.id
++ WHERE r.status = &#39;inactive&#39;
++ GROUP BY r.id, r.name, r.status
++ HAVING COUNT(rs.user_id) &gt; 0;
++ 
++ -- Show any active rooms with no players (should be 0)
++ SELECT 
++   r.id,
++   r.name,
++   r.status,
++   COUNT(rs.user_id) as player_count
++ FROM rooms r
++ LEFT JOIN room_seats rs ON rs.room_id = r.id
++ WHERE r.status = &#39;active&#39;
++ GROUP BY r.id, r.name, r.status
++ HAVING COUNT(rs.user_id) = 0;
++ 
++ SELECT &#39;✅ Migration 07 complete - Room status cleaned up!&#39; as result;
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="bash" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **command** • Run command: cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "Add room status schema documentation + migration 07" && echo "✅ Schema documented - ready to standardize"</summary>
+
+```bash
+cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "Add room status schema documentation + migration 07" && echo "✅ Schema documented - ready to standardize"
+```
+
+```
+[main 6c6476f] Add room status schema documentation + migration 07
+ 3 files changed, 540 insertions(+), 14 deletions(-)
+ create mode 100644 ROOM_STATUS_SCHEMA.md
+ create mode 100644 migrations/07_room_status_cleanup.sql
+✅ Schema documented - ready to standardize
+
+```
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Good! I've created the schema documentation and migration. Now let me explain the approach to the user clearly.</details></think>
+
+---
+
+**PERFECT INSIGHT!** I've created a clear 3-state lifecycle:
+
+## 🎯 New Room Status Schema
+
+### States (PostgreSQL Enum)
+```sql
+'inactive'  → Room exists, no players seated (initial state)
+'active'    → ≥1 player seated (room in use)
+'closed'    → Room terminated (final state)
+```
+
+### Key Principles
+
+1. **Room state ≠ Game state**
+   - `room.status = 'active'` = players present
+   - `game_states.status = 'active'` = hand in progress
+   - Separate concerns!
+
+2. **Auto-management via triggers**
+   - First player joins → `inactive` → `active`
+   - Last player leaves → `active` → `inactive`
+   - Host closes → any state → `closed`
+
+3. **Room limit counts non-closed**
+   - Query: `WHERE status != 'closed'`
+   - Both `active` and `inactive` count toward limit
+
+---
+
+## 📋 What I Created
+
+1. **`ROOM_STATUS_SCHEMA.md`** - Full architectural explanation
+2. **`migrations/07_room_status_cleanup.sql`** - Database migration:
+   - Creates enum type
+   - Migrates existing data (`WAITING` → `inactive`, etc.)
+   - Adds auto-activation/deactivation triggers
+   - Includes verification queries
+
+---
+
+## 🚀 Next Step
+
+**Run Migration 07** in Supabase to standardize everything. This will:
+- ✅ Convert all existing statuses to clean enum values
+- ✅ Add triggers for auto status management
+- ✅ Make room limit queries accurate
+
+Should I proceed with testing the migration, or do you want to review the schema first?
+
+---
+
