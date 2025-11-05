@@ -35,23 +35,17 @@ WHERE status = 'active'
   );
 
 -- Show how many rooms were closed
-SELECT 'Closed ' || COUNT(*) || ' old rooms' as result
+SELECT 
+  'Closed ' || COUNT(*) || ' old/inactive rooms' as result
 FROM rooms 
 WHERE status = 'closed' AND updated_at > NOW() - INTERVAL '1 minute';
 
--- Show your active rooms now
+-- Show all active rooms (across all users)
 SELECT 
-  r.id,
-  r.name,
-  r.status,
-  r.created_at,
-  COUNT(rs.user_id) as players_count
-FROM rooms r
-LEFT JOIN room_seats rs ON rs.room_id = r.id
-WHERE r.host_user_id = 'YOUR_USER_ID_HERE'  -- Replace with your actual user ID
-  AND r.status = 'active'
-GROUP BY r.id, r.name, r.status, r.created_at
-ORDER BY r.created_at DESC;
+  COUNT(*) as total_active_rooms,
+  COUNT(DISTINCT host_user_id) as unique_hosts
+FROM rooms 
+WHERE status = 'active';
 
-SELECT '✅ Trigger fixed! Old rooms cleaned. Try creating a game now.' as next_step;
+SELECT '✅ Trigger fixed! Old rooms cleaned. Restart server and try creating a game now.' as next_step;
 
