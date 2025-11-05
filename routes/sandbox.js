@@ -141,7 +141,7 @@ router.post('/join-room', async (req, res) => {
     
     // Find room by code
     const result = await db.query(
-      `SELECT id, name, host_user_id, status, invite_code 
+      `SELECT id, name, host_user_id, invite_code 
        FROM rooms 
        WHERE invite_code = $1`,
       [code.toUpperCase()]
