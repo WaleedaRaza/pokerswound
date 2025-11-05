@@ -45,6 +45,27 @@ router.post('/create-room', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
+    // 🚨 HARD LIMIT: Enforce 5-room limit per user (SANDBOX ALSO COUNTS!)
+    const roomCount = await db.query(
+      `SELECT COUNT(*) FROM rooms 
+       WHERE host_user_id = $1 AND status = 'active'`,
+      [userId]
+    );
+    
+    const activeRooms = parseInt(roomCount.rows[0].count);
+    console.log(`🔍 [SANDBOX] Room limit check: User ${userId} has ${activeRooms} active rooms`);
+    
+    if (activeRooms >= 5) {
+      console.warn(`🚫 [SANDBOX] BLOCKED: User has ${activeRooms} active rooms (limit: 5)`);
+      return res.status(403).json({ 
+        error: 'ROOM_LIMIT_REACHED',
+        message: `You have ${activeRooms} active rooms. Maximum is 5. Close an existing room before creating a new one.`,
+        activeRooms: activeRooms,
+        limit: 5,
+        action: 'manage_rooms'
+      });
+    }
+    
     // Ensure user profile exists
     try {
       await db.query(
