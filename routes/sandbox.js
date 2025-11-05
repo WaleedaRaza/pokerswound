@@ -91,13 +91,13 @@ router.post('/create-room', async (req, res) => {
       attempts++;
     }
     
-    // Create room (minimal fields)
+    // Create room (minimal fields, no status column)
     const result = await db.query(
       `INSERT INTO rooms (
-        name, invite_code, host_user_id, status,
+        name, invite_code, host_user_id,
         small_blind, big_blind, max_players, min_buy_in, max_buy_in,
         created_at, updated_at
-      ) VALUES ($1, $2, $3, 'WAITING', 5, 10, 10, 100, 5000, NOW(), NOW())
+      ) VALUES ($1, $2, $3, 5, 10, 10, 100, 5000, NOW(), NOW())
       RETURNING id, invite_code`,
       [name, code, userId]
     );
