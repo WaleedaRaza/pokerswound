@@ -274,7 +274,7 @@ BEGIN
     player_ids,
     player_count
   ) VALUES (
-    NEW.game_id,
+    NEW.id,  -- game_states.id is the game_id
     NEW.room_id,
     host_id,
     NEW.created_at,
@@ -285,6 +285,11 @@ BEGIN
     COALESCE(array_length(player_ids_array, 1), 0)
   )
   ON CONFLICT (game_id) DO NOTHING;
+  
+  -- If insert failed (conflict), return early
+  IF NOT FOUND THEN
+    RETURN NEW;
+  END IF;
   
   -- Update all players' completion counts
   UPDATE user_profiles
