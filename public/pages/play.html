@@ -2516,50 +2516,46 @@
         content.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">No rooms found (this is a bug - please refresh)</p>';
       } else {
         content.innerHTML = `
-          <!-- Bulk Actions Bar -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="btn btn-secondary" onclick="selectAllRooms()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                ☑️ Select All
-              </button>
-              <button class="btn btn-secondary" onclick="deselectAllRooms()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                ☐ Deselect All
-              </button>
+          <!-- Simple Action Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05)); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+            <div>
+              <p style="color: #FCA5A5; font-size: 0.9rem; margin: 0 0 0.5rem 0;">💡 Select rooms to delete, then click the button</p>
+              <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-secondary" onclick="selectAllRooms()" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;">
+                  Select All
+                </button>
+                <button class="btn btn-secondary" onclick="deselectAllRooms()" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;">
+                  Clear
+                </button>
+              </div>
             </div>
-            <button class="btn btn-secondary" onclick="deleteSelectedRooms()" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background: rgba(239, 68, 68, 0.3); border-color: #EF4444;">
-              🗑️ Delete Selected (<span id="selectedCount">0</span>)
+            <button class="btn btn-primary" onclick="deleteSelectedRooms()" style="padding: 0.75rem 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #EF4444, #DC2626); border: none; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+              🗑️ Delete (<span id="selectedCount">0</span>)
             </button>
           </div>
           
-          <!-- Rooms List -->
-          <div style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto;">
+          <!-- Clean Rooms List -->
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 450px; overflow-y: auto; padding-right: 0.5rem;">
             ${roomData.hosted.map(room => `
-              <div class="liquid-glass-tile room-card" data-room-id="${room.id}" style="padding: 1rem; border: 2px solid rgba(239, 68, 68, 0.3);">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                  <!-- Checkbox -->
-                  <input type="checkbox" class="room-checkbox" data-room-id="${room.id}" data-room-name="${room.name || 'Unnamed Room'}" onchange="updateSelectedCount()" style="width: 20px; height: 20px; cursor: pointer;">
-                  
-                  <!-- Room Info -->
-                  <div style="flex: 1;">
-                    <h4 style="color: #fff; font-size: 1rem; margin-bottom: 0.25rem;">
-                      ${room.name || 'Unnamed Room'}
-                    </h4>
-                    <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">
-                      Code: ${room.invite_code} • Players: ${room.player_count}/${room.max_players || 10}
-                    </p>
-                  </div>
-                  
-                  <!-- Actions -->
-                  <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-primary" onclick="rejoinRoomFromGate('${room.id}')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                      🎮 Rejoin
-                    </button>
-                    <button class="btn btn-secondary" onclick="closeRoomFromGate('${room.id}', '${room.name || 'Unnamed Room'}')" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(239, 68, 68, 0.2); border-color: #EF4444;">
-                      🗑️ Delete
-                    </button>
-                  </div>
+              <label class="room-card" data-room-id="${room.id}" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+                <!-- Checkbox -->
+                <input type="checkbox" class="room-checkbox" data-room-id="${room.id}" data-room-name="${room.name || 'Unnamed Room'}" onchange="updateSelectedCount()" style="width: 22px; height: 22px; cursor: pointer; accent-color: #EF4444;">
+                
+                <!-- Room Info -->
+                <div style="flex: 1;">
+                  <h4 style="color: #fff; font-size: 1rem; margin: 0 0 0.25rem 0; font-weight: 600;">
+                    ${room.name || 'Unnamed Room'}
+                  </h4>
+                  <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 0;">
+                    ${room.invite_code} • ${room.player_count || 0}/${room.max_players || 10} players
+                  </p>
                 </div>
-              </div>
+                
+                <!-- Rejoin Button (Optional) -->
+                <button class="btn btn-primary" onclick="event.stopPropagation(); rejoinRoomFromGate('${room.id}')" style="padding: 0.5rem 1.2rem; font-size: 0.9rem;">
+                  ↩️ Rejoin
+                </button>
+              </label>
             `).join('')}
           </div>
         `;
