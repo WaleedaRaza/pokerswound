@@ -2516,24 +2516,46 @@
         content.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">No rooms found (this is a bug - please refresh)</p>';
       } else {
         content.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <!-- Bulk Actions Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary" onclick="selectAllRooms()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                ☑️ Select All
+              </button>
+              <button class="btn btn-secondary" onclick="deselectAllRooms()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                ☐ Deselect All
+              </button>
+            </div>
+            <button class="btn btn-secondary" onclick="deleteSelectedRooms()" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background: rgba(239, 68, 68, 0.3); border-color: #EF4444;">
+              🗑️ Delete Selected (<span id="selectedCount">0</span>)
+            </button>
+          </div>
+          
+          <!-- Rooms List -->
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto;">
             ${roomData.hosted.map(room => `
-              <div class="liquid-glass-tile" style="padding: 1rem; border: 2px solid rgba(239, 68, 68, 0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="liquid-glass-tile room-card" data-room-id="${room.id}" style="padding: 1rem; border: 2px solid rgba(239, 68, 68, 0.3);">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <!-- Checkbox -->
+                  <input type="checkbox" class="room-checkbox" data-room-id="${room.id}" data-room-name="${room.name || 'Unnamed Room'}" onchange="updateSelectedCount()" style="width: 20px; height: 20px; cursor: pointer;">
+                  
+                  <!-- Room Info -->
                   <div style="flex: 1;">
                     <h4 style="color: #fff; font-size: 1rem; margin-bottom: 0.25rem;">
                       ${room.name || 'Unnamed Room'}
                     </h4>
                     <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">
-                      Code: ${room.invite_code} • Players: ${room.player_count}/${room.max_players} • Status: ${room.status}
+                      Code: ${room.invite_code} • Players: ${room.player_count}/${room.max_players || 10}
                     </p>
                   </div>
+                  
+                  <!-- Actions -->
                   <div style="display: flex; gap: 0.5rem;">
                     <button class="btn btn-primary" onclick="rejoinRoomFromGate('${room.id}')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                       🎮 Rejoin
                     </button>
-                    <button class="btn btn-secondary" onclick="closeRoomFromGate('${room.id}', '${room.name}')" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(239, 68, 68, 0.2); border-color: #EF4444;">
-                      🗑️ Close
+                    <button class="btn btn-secondary" onclick="closeRoomFromGate('${room.id}', '${room.name || 'Unnamed Room'}')" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(239, 68, 68, 0.2); border-color: #EF4444;">
+                      🗑️ Delete
                     </button>
                   </div>
                 </div>
@@ -2545,6 +2567,82 @@
       
       modal.style.display = 'flex';
       modal.classList.add('show');
+    }
+    
+    // Select/Deselect functions
+    function selectAllRooms() {
+      document.querySelectorAll('.room-checkbox').forEach(cb => {
+        cb.checked = true;
+      });
+      updateSelectedCount();
+    }
+    
+    function deselectAllRooms() {
+      document.querySelectorAll('.room-checkbox').forEach(cb => {
+        cb.checked = false;
+      });
+      updateSelectedCount();
+    }
+    
+    function updateSelectedCount() {
+      const checked = document.querySelectorAll('.room-checkbox:checked').length;
+      const countEl = document.getElementById('selectedCount');
+      if (countEl) countEl.textContent = checked;
+    }
+    
+    // Bulk delete function
+    async function deleteSelectedRooms() {
+      const selected = Array.from(document.querySelectorAll('.room-checkbox:checked'));
+      
+      if (selected.length === 0) {
+        showNotification('Please select rooms to delete', 'warning');
+        return;
+      }
+      
+      if (!confirm(`Delete ${selected.length} room(s)?\n\nThis cannot be undone.`)) {
+        return;
+      }
+      
+      const roomsToDelete = selected.map(cb => ({
+        id: cb.dataset.roomId,
+        name: cb.dataset.roomName
+      }));
+      
+      let successCount = 0;
+      let failCount = 0;
+      
+      // Delete rooms one by one
+      for (const room of roomsToDelete) {
+        try {
+          const response = await fetch(`/api/rooms/${room.id}/close`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hostId: window.currentUser.id })
+          });
+          
+          if (response.ok) {
+            successCount++;
+            console.log(`✅ Deleted room: ${room.name}`);
+          } else {
+            failCount++;
+            console.error(`❌ Failed to delete room: ${room.name}`);
+          }
+        } catch (error) {
+          failCount++;
+          console.error(`❌ Error deleting room: ${room.name}`, error);
+        }
+      }
+      
+      // Show result
+      if (successCount > 0) {
+        showNotification(`✅ Deleted ${successCount} room(s)`, 'success');
+      }
+      if (failCount > 0) {
+        showNotification(`⚠️ Failed to delete ${failCount} room(s)`, 'warning');
+      }
+      
+      // Refresh the gate
+      await refreshRoomLimitGate();
     }
     
     function closeRoomLimitGate() {
