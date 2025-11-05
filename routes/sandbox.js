@@ -48,7 +48,7 @@ router.post('/create-room', async (req, res) => {
     // 🚨 HARD LIMIT: Enforce 5-room limit per user (SANDBOX ALSO COUNTS!)
     const roomCount = await db.query(
       `SELECT COUNT(*) FROM rooms 
-       WHERE host_user_id = $1 AND status = 'active'`,
+       WHERE host_user_id = $1 AND status != 'closed'`,
       [userId]
     );
     

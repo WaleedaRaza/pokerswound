@@ -77,7 +77,7 @@ router.post('/', withIdempotency, async (req, res) => {
     
     const roomCount = await db.query(
       `SELECT COUNT(*) FROM rooms 
-       WHERE host_user_id = $1 AND status = 'active'`,
+       WHERE host_user_id = $1 AND status != 'closed'`,
       [user_id]
     );
     
