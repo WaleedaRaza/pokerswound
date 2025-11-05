@@ -1681,6 +1681,71 @@ router.get('/:roomId/game-state', async (req, res) => {
   }
 });
 
+// POST /api/rooms/:roomId/invite - Invite friend to game
+router.post('/:roomId/invite', withIdempotency, async (req, res) => {
+  try {
+    const { friendId, hostId } = req.body;
+    const { roomId } = req.params;
+    
+    if (!friendId || !hostId) {
+      return res.status(400).json({ error: 'Missing friendId or hostId' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Get room details
+    const roomResult = await db.query(
+      'SELECT name, invite_code FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const room = roomResult.rows[0];
+    
+    // Get host username
+    const hostResult = await db.query(
+      'SELECT username FROM user_profiles WHERE id = $1',
+      [hostId]
+    );
+    const hostUsername = hostResult.rows[0]?.username || 'A friend';
+    
+    // Create notification
+    const notificationResult = await db.query(
+      `INSERT INTO notifications (user_id, type, message, metadata, created_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       RETURNING id`,
+      [
+        friendId,
+        'GAME_INVITE',
+        `${hostUsername} invited you to play poker in "${room.name}"`,
+        JSON.stringify({
+          roomId: roomId,
+          inviteCode: room.invite_code,
+          roomName: room.name,
+          hostId: hostId,
+          hostUsername: hostUsername
+        })
+      ]
+    );
+    
+    console.log(`📧 Game invite sent: ${hostId} → ${friendId} for room ${roomId}`);
+    
+    res.json({
+      success: true,
+      notificationId: notificationResult.rows[0].id,
+      message: 'Invite sent!'
+    });
+  } catch (error) {
+    console.error('Send invite error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/rooms/:roomId/update-chips - Host directly sets player chip amount
 router.post('/:roomId/update-chips', withIdempotency, async (req, res) => {
   try {
