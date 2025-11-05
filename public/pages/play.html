@@ -2599,6 +2599,11 @@
         return;
       }
       
+      if (!window.currentUser || !window.currentUser.id) {
+        showNotification('Error: User not authenticated', 'error');
+        return;
+      }
+      
       if (!confirm(`Delete ${selected.length} room(s)?\n\nThis cannot be undone.`)) {
         return;
       }
@@ -2611,12 +2616,19 @@
       let successCount = 0;
       let failCount = 0;
       
+      console.log(`🗑️ Deleting ${roomsToDelete.length} rooms...`);
+      
       // Delete rooms one by one
       for (const room of roomsToDelete) {
         try {
+          console.log(`🔄 Deleting room ${room.id} (${room.name})...`);
+          
           const response = await fetch(`/api/rooms/${room.id}/close`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-Idempotency-Key': `delete-${room.id}-${Date.now()}`
+            },
             body: JSON.stringify({ hostId: window.currentUser.id })
           });
           
@@ -2624,8 +2636,9 @@
             successCount++;
             console.log(`✅ Deleted room: ${room.name}`);
           } else {
+            const error = await response.json();
             failCount++;
-            console.error(`❌ Failed to delete room: ${room.name}`);
+            console.error(`❌ Failed to delete room: ${room.name}`, error);
           }
         } catch (error) {
           failCount++;

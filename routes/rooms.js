@@ -1014,8 +1014,11 @@ router.post('/:roomId/close', withIdempotency, async (req, res) => {
     const { hostId } = req.body;
     
     if (!hostId) {
+      console.error('❌ Close room: hostId missing', { body: req.body, params: req.params });
       return res.status(400).json({ error: 'hostId required' });
     }
+    
+    console.log(`🚪 Close room request: ${roomId} by host ${hostId}`);
     
     const getDb = req.app.locals.getDb;
     const db = getDb();
