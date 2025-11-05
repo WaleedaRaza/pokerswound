@@ -185,11 +185,11 @@ router.get('/my-rooms', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
-    // Fetch all rooms where user is the host
+    // Fetch all NON-CLOSED rooms where user is the host
     const result = await db.query(
       `SELECT id, name, invite_code as code, status, created_at, updated_at
        FROM rooms 
-       WHERE host_user_id = $1
+       WHERE host_user_id = $1 AND status != 'closed'
        ORDER BY created_at DESC
        LIMIT 50`,
       [userId]

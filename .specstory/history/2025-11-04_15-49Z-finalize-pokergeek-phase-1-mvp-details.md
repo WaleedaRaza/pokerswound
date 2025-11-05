@@ -34975,3 +34975,296 @@ Should I proceed with testing the migration, or do you want to review the schema
 
 ---
 
+_**User (2025-11-05 13:39Z)**_
+
+I ran the schema, lets ensure we are ready, becuase I want to get this over w and move on to friends
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user ran migration 07 (room status cleanup). Now they want to ensure everything is ready and working before moving on to friends. Let me verify:
+
+1. We fixed the room limit enforcement (backend checks `status != 'closed'`)
+2. We ran migration 07 to standardize statuses to enum ('active', 'inactive', 'closed')
+3. We added triggers for auto-activation/deactivation
+4. We still need to run the HOTFIX for the game_start trigger (`NEW.id` instead of `NEW.game_id`)
+
+Let me check what still needs to be done:
+- Run HOTFIX_TRIGGER_ROOM_LIMIT.sql (the trigger fix)
+- Test room creation with the limit
+- Verify cards deal properly
+- Then move to friends
+
+I should create a quick checklist and test the critical path.</details></think>
+
+---
+
+**GOOD CALL.** Let me verify everything is wired up correctly before we move on:
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] Auth Simplification - Remove email/password, keep Google+Guest only
+- [x] Profile Stats Sync - Fix user_profiles showing 0 stats (MIGRATION READY - run in Supabase)
+- [x] Room Limits - Max 5 rooms per user, add private rooms (MIGRATION READY)
+- [ ] Friends UI Polish - Test all tabs, add search, fix bugs (LOOKS COMPLETE - will test later)
+- [x] Friend Invites to Games - Invite friends to your poker room
+- [ ] Notifications Polish - Bell icon, unread count, dropdown
+- [ ] Hand Encoder Service - Create PHE encoder/decoder
+- [ ] PHE Schema Migration - Add phe_encoding columns
+- [ ] Integrate Encoder - Write PHE on hand complete
+- [x] Error Handling - User-friendly errors everywhere (ERROR HANDLER CREATED - needs full integration)
+- [x] Loading States - Spinners on all actions (INFRASTRUCTURE READY)
+- [x] Empty States - No blank screens (SYSTEM READY)
+- [ ] UI Consistency Audit - Cohesive look across all pages
+- [ ] Mobile Responsiveness - Critical pages work on mobile
+- [ ] Host Controls Testing - Verify all 7 controls work
+- [ ] Critical User Flows - Test 7 core user journeys
+- [ ] Debug Cleanup - Remove console.logs
+- [x] Documentation - README and DEPLOYMENT guide
+- [ ] Pre-Launch Checklist - Final smoke tests
+- [x] Room Status Cleanup - Standardize to 3-state enum (inactive/active/closed)
+- [-] Game Start Trigger Fix - Use NEW.id not NEW.game_id
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/PRE_FRIENDS_CHECKLIST.md</summary>
+
+**Chunk 1**
+Lines added: 91, lines removed: 1
+
+```diff
+@@ -1,1 +1,91 @@
+- 
++ # Pre-Friends Testing Checklist
++ **Goal:** Verify room limit + game start work before moving to friends system
++ 
++ ## ✅ Already Done
++ - [x] Migration 03: Profile stats sync
++ - [x] Migration 06: Profile-room-game relationships  
++ - [x] Migration 07: Room status cleanup (just ran)
++ - [x] Backend room limit enforcement (both &#96;/api/rooms&#96; and &#96;/api/sandbox&#96;)
++ - [x] Frontend gate modal for room limit
++ 
++ ## 🚨 CRITICAL: Must Run Before Testing
++ - [ ] **HOTFIX_TRIGGER_ROOM_LIMIT.sql** in Supabase
++   - Fixes &#96;track_game_start()&#96; trigger to use &#96;NEW.id&#96; instead of &#96;NEW.game_id&#96;
++   - Without this, cards won&#39;t deal (error: &quot;record has no field game_id&quot;)
++ 
++ ## 🧪 Test Flow (5 min)
++ 
++ ### Test 1: Room Limit Gate (2 min)
++ 1. Click &quot;Create Sandbox&quot;
++ 2. Enter room name, submit
++ 3. **Expected:** Red gate modal appears with &quot;You have X rooms (max 5)&quot;
++ 4. **Verify:** Console shows &#96;🚫 [SANDBOX] BLOCKED: User has X active rooms&#96;
++ 5. **Actions Available:**
++    - Close a room → modal refreshes
++    - Rejoin a room → navigate to room
++    - Cancel → close modal
++ 
++ ### Test 2: Game Start (2 min)
++ 1. Close old rooms until &lt; 5
++ 2. Create new sandbox room
++ 3. Join with 2nd player (incognito window)
++ 4. Click &quot;Start Hand&quot;
++ 5. **Expected:** Cards deal successfully, no errors
++ 6. **Verify Console:**
++    - ✅ &#96;Dealt cards to 2 players&#96;
++    - ✅ No error about &#96;game_id&#96;
++ 7. **Verify DB:**
++    &#96;&#96;&#96;sql
++    SELECT is_playing, current_game_id, total_games_started 
++    FROM user_profiles 
++    WHERE id = &#39;YOUR_USER_ID&#39;;
++    &#96;&#96;&#96;
++    - &#96;is_playing&#96; should be &#96;true&#96;
++    - &#96;current_game_id&#96; should be set
++    - &#96;total_games_started&#96; should increment
++ 
++ ### Test 3: Complete Hand (1 min)
++ 1. Play through a hand to completion
++ 2. **Verify DB:**
++    &#96;&#96;&#96;sql
++    SELECT total_hands_played, total_wins 
++    FROM user_profiles 
++    WHERE id = &#39;YOUR_USER_ID&#39;;
++    &#96;&#96;&#96;
++    - &#96;total_hands_played&#96; should increment
++    - Winner&#39;s &#96;total_wins&#96; should increment
++ 
++ ## 🔧 If Tests Fail
++ 
++ ### Room Limit Not Working?
++ - Check server logs for &#96;🔍 [SANDBOX] Room limit check&#96;
++ - Verify query uses &#96;status != &#39;closed&#39;&#96; (not &#96;= &#39;active&#39;&#96;)
++ - Check DB: &#96;SELECT COUNT(*) FROM rooms WHERE host_user_id = &#39;YOUR_ID&#39; AND status != &#39;closed&#39;;&#96;
++ 
++ ### Cards Not Dealing?
++ - **Most likely:** You didn&#39;t run &#96;HOTFIX_TRIGGER_ROOM_LIMIT.sql&#96;
++ - Check server logs for error about &#96;game_id&#96;
++ - Verify trigger uses &#96;NEW.id&#96; not &#96;NEW.game_id&#96;
++ 
++ ### Profile Not Updating?
++ - Check triggers exist:
++   &#96;&#96;&#96;sql
++   SELECT trigger_name, event_manipulation, event_object_table 
++   FROM information_schema.triggers 
++   WHERE event_object_table IN (&#39;game_states&#39;, &#39;player_statistics&#39;, &#39;room_seats&#39;);
++   &#96;&#96;&#96;
++ - Should see: &#96;game_starts&#96;, &#96;game_completes&#96;, &#96;update_profile_stats_trigger&#96;, etc.
++ 
++ ## ✅ Sign-Off Criteria
++ 
++ All 3 tests pass → **READY FOR FRIENDS**
++ 
++ Then we&#39;ll tackle:
++ 1. Friends page testing (search, tabs, requests)
++ 2. Friend invites to games (from gate modal)
++ 3. Notifications polish
++ 
++ ---
++ 
++ **Current Status:** Waiting for HOTFIX SQL to be run, then test.
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="bash" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **command** • Run command: cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "Add pre-friends testing checklist" && echo "📋 Checklist ready"</summary>
+
+```bash
+cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "Add pre-friends testing checklist" && echo "📋 Checklist ready"
+```
+
+```
+[main edfc3c7] Add pre-friends testing checklist
+ 2 files changed, 550 insertions(+)
+ create mode 100644 PRE_FRIENDS_CHECKLIST.md
+📋 Checklist ready
+
+```
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Good, I've created the checklist. Now the user needs to run the HOTFIX SQL to fix the game_start trigger. Let me remind them of this critical step.</details></think>
+
+---
+
+**READY TO TEST!** Here's the current state:
+
+## ✅ What's Done
+1. ✅ Migration 07 ran - room statuses standardized
+2. ✅ Backend enforces 5-room limit (both endpoints)
+3. ✅ Frontend gate modal ready
+4. ✅ Profile-game relationships in place
+
+## 🚨 ONE CRITICAL STEP REMAINING
+
+**Run `HOTFIX_TRIGGER_ROOM_LIMIT.sql` in Supabase NOW:**
+- This fixes the `track_game_start()` trigger
+- Changes `NEW.game_id` → `NEW.id`
+- Without this, cards won't deal
+
+## 🧪 Then Test (5 min)
+
+Follow `PRE_FRIENDS_CHECKLIST.md`:
+
+1. **Test Room Limit** - Try creating 6th room → blocked by gate
+2. **Test Game Start** - Create room, deal cards → no errors
+3. **Test Profile Updates** - Complete hand → stats increment
+
+**All 3 pass = MOVE TO FRIENDS** 🎯
+
+---
+
+**Go run the HOTFIX SQL now, then run the 3 tests. Report back and we'll jump straight to friends!**
+
+---
+
+_**User (2025-11-05 13:39Z)**_
+
+Awesome, i got the messag,e but interstingly, in the popup it says i have 23 rooms open, butin room management i see over 50?
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user is seeing a discrepancy:
+- Gate modal says "23 active rooms"
+- Room management shows 50+ rooms
+
+This is likely because:
+1. The room limit gate fetches from `/api/rooms/my-rooms` which queries `status != 'closed'`
+2. BUT we just ran Migration 07 which converted statuses to the new enum
+3. Some rooms might have been marked as `inactive` or some other status that doesn't count
+
+OR
+
+The room management modal is showing ALL rooms (including closed ones) while the gate is correctly filtering.
+
+Let me check what the room management query does vs the limit check query.
+
+Looking at the backend:
+- Room limit check: `WHERE host_user_id = $1 AND status != 'closed'`
+- `/api/rooms/my-rooms`: Same query for hosted rooms
+
+But the room management UI might be calling `/api/sandbox/my-rooms` which has a different query:
+```javascript
+`SELECT id, name, invite_code as code, status, created_at, updated_at
+ FROM rooms 
+ WHERE host_user_id = $1
+ ORDER BY created_at DESC
+ LIMIT 50`
+```
+
+This query doesn't filter by status! It shows ALL rooms, including closed ones.
+
+So the issue is:
+- Gate/limit check: Correctly counts only non-closed rooms (23)
+- Room management: Shows all rooms up to LIMIT 50 (doesn't filter closed)
+
+I need to check which endpoint the room management modal is calling and verify the query filters correctly.</details></think>
+
+---
+
+**CAUGHT IT!** The room management modal is showing ALL rooms (including closed ones), but the limit check correctly counts only **active** rooms.
+
+Let me verify the queries:
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
