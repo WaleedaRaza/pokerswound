@@ -162,14 +162,8 @@ router.post('/username/change', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'This is already your username' });
     }
 
-    // Check change limit (optional - you can remove this if unlimited changes allowed)
+    // ✅ No username change limit - users can change unlimited times
     const changeCount = profile.username_change_count || 0;
-    const maxChanges = profile.max_username_changes || 3;
-    if (changeCount >= maxChanges) {
-      return res.status(400).json({ 
-        error: `Username change limit reached (${maxChanges} changes allowed)` 
-      });
-    }
 
     // Check if new username is available
     const { data: existing } = await supabase
@@ -213,7 +207,7 @@ router.post('/username/change', requireAuth, async (req, res) => {
     res.json({ 
       success: true, 
       username: data.username,
-      changes_remaining: maxChanges - (changeCount + 1)
+      changes_remaining: 999  // Unlimited
     });
   } catch (error) {
     console.error('Error changing username:', error);
