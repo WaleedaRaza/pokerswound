@@ -29521,7 +29521,790 @@ Based on the testing results, here are the issues:
 5. Host controls UI broken (no current players section)
 6. Game completion gap (no game_summary concept)
 7. Player settings can be removed/simplified
-8. Pause</details></think>
+8. Pause doesn't work
+9. Kick says use buttons but no buttons visible
+
+Let me create a procedure document that tackles each issue one at a time, with clear success criteria.</details></think>
+
+---
+
+Perfect! Let's proceduralize every single issue into discrete, testable steps. Working iteratively - one fix at a time, validate, commit, move on.
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/ITERATIVE_FIXES.md</summary>
+
+**Chunk 1**
+Lines added: 386, lines removed: 1
+
+```diff
+@@ -1,1 +1,386 @@
+- 
++ # 🔧 ITERATIVE FIX PROCEDURE
++ 
++ **Date:** November 5, 2025  
++ **Mode:** Iterative - One issue at a time  
++ **Status:** Foundation complete, now wiring in
++ 
++ ---
++ 
++ ## 🎯 PROCEDURE PHILOSOPHY
++ 
++ 1. **Fix one thing** at a time
++ 2. **Test immediately** after each fix
++ 3. **Commit** when working
++ 4. **Document** what changed
++ 5. **Move to next**
++ 
++ **No sweeping changes. No getting ahead. Methodical progress.**
++ 
++ ---
++ 
++ ## 📋 ISSUES IDENTIFIED FROM TESTING
++ 
++ ### ✅ What Works
++ - Authentication (Google + Guest)
++ - Room creation
++ - Joining rooms
++ - Playing poker hands (core game loop)
++ - Actions (fold, call, raise)
++ - Winner determination
++ 
++ ### ❌ What&#39;s Broken
++ 1. Email/password UI still visible (should be Google + Guest only)
++ 2. Friend search returns &quot;no users exist&quot;
++ 3. Profile stats show 0 (migration 03 not run)
++ 4. 50 old rooms showing (cleanup + limit enforcement)
++ 5. Host controls UI broken (no current players list)
++ 6. Game pause doesn&#39;t work
++ 7. Kick player has no buttons
++ 8. Player settings has features we don&#39;t need
++ 9. Reset stacks/End game fail
++ 10. Game completion doesn&#39;t increment profile games
++ 
++ ---
++ 
++ ## 🔴 ITERATION 1: Profile Stats Sync (BLOCKING)
++ 
++ **Why First:** Stats are core MVP feature, needed for validation
++ 
++ **Issue:** Migration 03 not run, trigger doesn&#39;t exist
++ 
++ **Steps:**
++ 1. Create complete migration SQL
++ 2. User runs in Supabase SQL Editor
++ 3. User plays a hand
++ 4. Check &#96;player_statistics&#96; table updates
++ 5. Check &#96;user_profiles&#96; table auto-updates via trigger
++ 6. User views profile - should show correct stats
++ 
++ **Success Criteria:**
++ - Trigger exists: &#96;SELECT tgname FROM pg_trigger WHERE tgname = &#39;update_profile_stats_trigger&#39;;&#96;
++ - After playing hand, profile stats increment
++ - &#96;total_hands_played&#96;, &#96;total_wins&#96;, &#96;win_rate&#96; all correct
++ 
++ **SQL to Run:**
++ &#96;&#96;&#96;sql
++ -- See migration file created below
++ &#96;&#96;&#96;
++ 
++ **Testing:**
++ - Before: Profile shows 0 hands
++ - Action: Play 1 hand
++ - After: Profile shows 1 hand, stats updated
++ 
++ **Commit Message:** &#96;Fix profile stats sync - add trigger for player_statistics → user_profiles&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 2: Remove Email/Password UI
++ 
++ **Why Next:** Simple cleanup, improves auth clarity
++ 
++ **Issue:** Email/password forms still in all HTML files
++ 
++ **Files to Edit:** (6 files)
++ - &#96;public/pages/index.html&#96;
++ - &#96;public/pages/play.html&#96;
++ - &#96;public/pages/learning.html&#96;
++ - &#96;public/pages/poker-today.html&#96;
++ - &#96;public/pages/ai-solver.html&#96;
++ - &#96;public/pages/analysis.html&#96;
++ 
++ **Steps:**
++ 1. Search each file for &quot;loginForm&quot; div
++ 2. Remove email/password input sections
++ 3. Keep only Google button + Guest button
++ 4. Remove &quot;Sign Up&quot; tab (only &quot;Sign In&quot; needed)
++ 5. Test login modal on each page
++ 
++ **Success Criteria:**
++ - Click &quot;Sign In&quot; → Only see Google + Guest buttons
++ - No email/password fields visible
++ - No &quot;Sign Up&quot; tab
++ 
++ **Commit Message:** &#96;Remove email/password UI - Google + Guest only&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 3: Friend Search Debug
++ 
++ **Why Next:** Need to understand why search fails
++ 
++ **Issue:** Searching username/email returns &quot;no users exist&quot;
++ 
++ **Investigation Steps:**
++ 1. Check what users exist: &#96;SELECT id, username, display_name FROM user_profiles LIMIT 20;&#96;
++ 2. Test exact username search
++ 3. Check friend search endpoint logs
++ 4. Verify username in request matches database
++ 
++ **Possible Causes:**
++ - User searched doesn&#39;t exist
++ - Case sensitivity issue
++ - API endpoint issue
++ - Frontend sending wrong parameter
++ 
++ **Steps:**
++ 1. Add console.log in &#96;friends-page.js&#96; searchUsers()
++ 2. Add console.log in &#96;routes/social.js&#96; /username/:username
++ 3. User searches for known username
++ 4. Check browser console
++ 5. Check server logs
++ 6. Identify mismatch
++ 
++ **Success Criteria:**
++ - Search for existing user → User found
++ - See exact username in logs
++ - API returns user profile
++ 
++ **Commit Message:** &#96;Fix friend search - [describe root cause]&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 4: Room Cleanup &amp; Limit Enforcement
++ 
++ **Why Next:** Clutter + limit not working
++ 
++ **Issue:** 50 old rooms showing, 5-room limit not enforced
++ 
++ **Steps:**
++ 1. **Cleanup:** Delete old/inactive rooms
++    &#96;&#96;&#96;sql
++    DELETE FROM rooms 
++    WHERE status != &#39;active&#39; 
++    OR (status = &#39;active&#39; AND updated_at &lt; NOW() - INTERVAL &#39;7 days&#39;);
++    &#96;&#96;&#96;
++ 
++ 2. **Verify Limit Code:** Check &#96;routes/rooms.js&#96; lines 71-90
++    - Limit IS in code
++    - Need to test if it works
++ 
++ 3. **Test Enforcement:**
++    - User creates 5 rooms
++    - Try to create 6th
++    - Should get error: &quot;Room limit reached&quot;
++ 
++ 4. **Add Room Manager Cleanup:**
++    - Show only active rooms
++    - Add &quot;Close Room&quot; button for each
++ 
++ **Success Criteria:**
++ - Old rooms deleted
++ - User can&#39;t create 6th room
++ - Room manager shows only active rooms
++ 
++ **Commit Message:** &#96;Clean old rooms and enforce 5-room limit&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 5: Simplify Host Controls UI
++ 
++ **Why Next:** Core hosting functionality broken
++ 
++ **Issue:** Current players section doesn&#39;t render, buttons missing
++ 
++ **Current Problems:**
++ - &quot;💡 Use KICK buttons...&quot; but no buttons visible
++ - Pause doesn&#39;t work
++ - Reset stacks fails
++ - End game fails
++ - UI is confusing
++ 
++ **Redesign Approach:**
++ &#96;&#96;&#96;
++ Host Controls
++ ├── Current Players (cards with controls)
++ │   ├── Player 1: Name, Stack, [Adjust] [Kick]
++ │   ├── Player 2: Name, Stack, [Adjust] [Kick]
++ │   └── ...
++ └── Game Controls
++     ├── [⏸️ Pause] [▶️ Resume]
++     ├── [🔄 Reset Stacks]
++     └── [🛑 End Game]
++ &#96;&#96;&#96;
++ 
++ **Steps:**
++ 1. Read current host controls HTML
++ 2. Create simplified version
++ 3. Add &#96;renderHostPlayers()&#96; function
++ 4. Wire up to seat updates
++ 5. Test each button individually
++ 
++ **Success Criteria:**
++ - Host sees all seated players
++ - Can adjust player stack
++ - Can kick player (player removed)
++ - Can pause game (actions disabled)
++ - Can end game (room closes)
++ 
++ **Commit Message:** &#96;Simplify host controls - working player list and actions&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 6: Remove Unnecessary Player Settings
++ 
++ **Why Next:** Cleanup, focus on what works
++ 
++ **Issue:** Player settings has features we don&#39;t support yet
++ 
++ **Remove:**
++ - 🃏 4-Color Deck (not implemented)
++ - 🎴 Card Back Design (not implemented)
++ - ⚡ Animation Speed (not needed now)
++ - 🙈 Auto-Muck (not needed now)
++ 
++ **Keep:**
++ - Table color selection (works)
++ - Any accessibility settings
++ 
++ **Steps:**
++ 1. Find player settings modal
++ 2. Remove HTML for unused features
++ 3. Keep only working features
++ 4. Test modal still opens
++ 
++ **Success Criteria:**
++ - Player settings shows only table color
++ - No &quot;coming soon&quot; items
++ - Modal is clean and focused
++ 
++ **Commit Message:** &#96;Clean up player settings - remove unimplemented features&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 7: Implement Game Completion Architecture
++ 
++ **Why Next:** The conceptual gap you identified
++ 
++ **Issue:** No connection between game completion and profile
++ 
++ **Current Flow:**
++ &#96;&#96;&#96;
++ Hand completes → player_statistics updates ✅
++                 ↓ (with Iteration 1)
++                 user_profiles.total_hands_played++ ✅
++                 
++ Game ends → ??? ❌
++            No game entity
++            No games_played increment
++ &#96;&#96;&#96;
++ 
++ **New Architecture:**
++ &#96;&#96;&#96;sql
++ CREATE TABLE game_summary (
++   id UUID PRIMARY KEY,
++   room_id UUID NOT NULL,
++   game_id TEXT NOT NULL,
++   host_user_id UUID,
++   started_at TIMESTAMP,
++   ended_at TIMESTAMP,
++   total_hands INTEGER,
++   players JSONB, -- [{user_id, final_stack, net_result}]
++   winner_user_id UUID
++ );
++ 
++ -- Trigger on INSERT
++ -- → Increment user_profiles.total_games_played for all players
++ &#96;&#96;&#96;
++ 
++ **Steps:**
++ 1. Create migration &#96;05_game_summary.sql&#96;
++ 2. Add trigger to increment games_played
++ 3. Find where games end in code
++ 4. Add &#96;insertGameSummary()&#96; call
++ 5. Test: Play game, end it, check profile
++ 
++ **Success Criteria:**
++ - Game ends → game_summary row created
++ - All players&#39; total_games_played increments
++ - Profile shows correct game count
++ 
++ **Commit Message:** &#96;Add game_summary architecture - track completed games&#96;
++ 
++ ---
++ 
++ ## 🔴 ITERATION 8: Final Integration &amp; Testing
++ 
++ **Why Last:** Ensure everything works together
++ 
++ **Steps:**
++ 1. Full user flow test (sign up → create → play → stats)
++ 2. Test all host controls
++ 3. Test friend system end-to-end
++ 4. Test mobile basic responsiveness
++ 5. Check for console errors
++ 6. Check for server errors
++ 
++ **Success Criteria:**
++ - All critical flows work
++ - No red console errors
++ - Stats update correctly
++ - Friends system works
++ - Host controls work
++ 
++ **Commit Message:** &#96;Integration complete - all critical features working&#96;
++ 
++ ---
++ 
++ ## 📊 PROGRESS TRACKING
++ 
++ | Iteration | Status | Time | Commit |
++ |-----------|--------|------|--------|
++ | 1. Profile Stats | ⏳ | - | - |
++ | 2. Remove Email UI | ⏳ | - | - |
++ | 3. Friend Search | ⏳ | - | - |
++ | 4. Room Cleanup | ⏳ | - | - |
++ | 5. Host Controls | ⏳ | - | - |
++ | 6. Player Settings | ⏳ | - | - |
++ | 7. Game Summary | ⏳ | - | - |
++ | 8. Final Testing | ⏳ | - | - |
++ 
++ ---
++ 
++ ## 🎯 EXECUTION RULES
++ 
++ 1. **Start with Iteration 1** (always)
++ 2. **Complete fully** before moving to next
++ 3. **Test immediately** after implementing
++ 4. **Commit when working** (or revert if broken)
++ 5. **Update progress table** after each iteration
++ 6. **Document any blockers** in this file
++ 7. **No skipping ahead** - order matters
++ 
++ ---
++ 
++ ## 🚨 BLOCKERS LOG
++ 
++ **Iteration X:** [Issue description]  
++ **Cause:** [Root cause]  
++ **Resolution:** [How fixed or workaround]  
++ **Time Lost:** [Duration]
++ 
++ ---
++ 
++ ## ✅ COMPLETION CRITERIA
++ 
++ **MVP is ready when:**
++ - ✅ All 8 iterations complete
++ - ✅ Profile stats update after playing
++ - ✅ Friends system works end-to-end
++ - ✅ Host controls work
++ - ✅ Room limit enforced
++ - ✅ Game completion tracked
++ - ✅ No critical console errors
++ - ✅ Basic mobile support
++ 
++ **Then we can:**
++ - Do UI consistency audit
++ - Mobile polish
++ - Notifications bell
++ - Deploy to production
++ 
++ ---
++ 
++ **Current Iteration:** 1 (Profile Stats Sync)  
++ **Next Step:** Create migration SQL and have user run it
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/migrations/03_sync_profile_stats_COMPLETE.sql</summary>
+
+**Chunk 1**
+Lines added: 143, lines removed: 1
+
+```diff
+@@ -1,1 +1,143 @@
+- 
++ -- ============================================
++ -- Migration 03: Profile Stats Synchronization
++ -- Purpose: Auto-sync player_statistics → user_profiles
++ -- Status: COMPLETE VERSION (with all fields)
++ -- Date: 2025-11-05
++ -- ============================================
++ 
++ -- ============================================
++ -- PART 1: ADD MISSING COLUMNS TO user_profiles
++ -- ============================================
++ 
++ -- Add all stats columns if they don&#39;t exist
++ ALTER TABLE user_profiles 
++   ADD COLUMN IF NOT EXISTS total_hands_played INTEGER DEFAULT 0;
++ 
++ ALTER TABLE user_profiles 
++   ADD COLUMN IF NOT EXISTS total_wins INTEGER DEFAULT 0;
++ 
++ ALTER TABLE user_profiles 
++   ADD COLUMN IF NOT EXISTS win_rate NUMERIC(5,2) DEFAULT 0.0;
++ 
++ ALTER TABLE user_profiles 
++   ADD COLUMN IF NOT EXISTS total_games_played INTEGER DEFAULT 0;
++ 
++ ALTER TABLE user_profiles 
++   ADD COLUMN IF NOT EXISTS biggest_pot_won BIGINT DEFAULT 0;
++ 
++ ALTER TABLE user_profiles 
++   ADD COLUMN IF NOT EXISTS total_winnings BIGINT DEFAULT 0;
++ 
++ -- ============================================
++ -- PART 2: CREATE SYNC TRIGGER FUNCTION
++ -- ============================================
++ 
++ CREATE OR REPLACE FUNCTION sync_user_profile_stats()
++ RETURNS TRIGGER AS $$
++ BEGIN
++   -- Update user_profiles when player_statistics changes
++   UPDATE user_profiles
++   SET 
++     total_hands_played = NEW.total_hands_played,
++     total_wins = NEW.total_hands_won,
++     win_rate = CASE 
++       WHEN NEW.total_hands_played &gt; 0 
++       THEN ROUND((NEW.total_hands_won::numeric / NEW.total_hands_played::numeric) * 100, 2)
++       ELSE 0 
++     END,
++     total_winnings = NEW.total_profit_loss,
++     updated_at = NOW()
++   WHERE id = NEW.user_id;
++   
++   RETURN NEW;
++ END;
++ $$ LANGUAGE plpgsql;
++ 
++ -- ============================================
++ -- PART 3: CREATE TRIGGER
++ -- ============================================
++ 
++ -- Drop existing trigger if it exists
++ DROP TRIGGER IF EXISTS update_profile_stats_trigger ON player_statistics;
++ 
++ -- Create new trigger
++ CREATE TRIGGER update_profile_stats_trigger
++ AFTER INSERT OR UPDATE ON player_statistics
++ FOR EACH ROW 
++ EXECUTE FUNCTION sync_user_profile_stats();
++ 
++ -- ============================================
++ -- PART 4: BACKFILL EXISTING DATA
++ -- ============================================
++ 
++ -- Sync all existing player_statistics to user_profiles
++ UPDATE user_profiles up
++ SET 
++   total_hands_played = COALESCE(ps.total_hands_played, 0),
++   total_wins = COALESCE(ps.total_hands_won, 0),
++   win_rate = CASE 
++     WHEN COALESCE(ps.total_hands_played, 0) &gt; 0 
++     THEN ROUND((COALESCE(ps.total_hands_won, 0)::numeric / ps.total_hands_played::numeric) * 100, 2)
++     ELSE 0 
++   END,
++   total_winnings = COALESCE(ps.total_profit_loss, 0),
++   updated_at = NOW()
++ FROM player_statistics ps
++ WHERE up.id = ps.user_id;
++ 
++ -- ============================================
++ -- PART 5: VERIFY SETUP
++ -- ============================================
++ 
++ -- Check trigger exists (should return 1 row)
++ DO $$
++ DECLARE
++   trigger_count INTEGER;
++ BEGIN
++   SELECT COUNT(*) INTO trigger_count
++   FROM pg_trigger 
++   WHERE tgname = &#39;update_profile_stats_trigger&#39;;
++   
++   IF trigger_count = 1 THEN
++     RAISE NOTICE &#39;✅ Trigger &quot;update_profile_stats_trigger&quot; created successfully&#39;;
++   ELSE
++     RAISE WARNING &#39;❌ Trigger not found! Something went wrong.&#39;;
++   END IF;
++ END $$;
++ 
++ -- Check columns exist
++ DO $$
++ DECLARE
++   column_count INTEGER;
++ BEGIN
++   SELECT COUNT(*) INTO column_count
++   FROM information_schema.columns 
++   WHERE table_name = &#39;user_profiles&#39; 
++   AND column_name IN (&#39;total_hands_played&#39;, &#39;total_wins&#39;, &#39;win_rate&#39;);
++   
++   IF column_count = 3 THEN
++     RAISE NOTICE &#39;✅ All required columns exist in user_profiles&#39;;
++   ELSE
++     RAISE WARNING &#39;❌ Missing columns! Expected 3, found %&#39;, column_count;
++   END IF;
++ END $$;
++ 
++ -- Show sample of synced data
++ SELECT 
++   up.username,
++   up.total_hands_played as profile_hands,
++   ps.total_hands_played as stats_hands,
++   up.total_hands_played = ps.total_hands_played as synced,
++   up.win_rate
++ FROM user_profiles up
++ LEFT JOIN player_statistics ps ON up.id = ps.user_id
++ WHERE ps.user_id IS NOT NULL
++ LIMIT 10;
++ 
++ -- ============================================
++ -- SUCCESS MESSAGE
++ -- ============================================
++ 
++ SELECT &#39;✅ Migration 03 COMPLETE: Profile stats will now auto-sync!&#39; AS result;
++ SELECT &#39;🧪 TEST: Play a hand and check your profile stats update&#39; AS next_step;
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="bash" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **command** • Run command: cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "Add iterative fix procedure and complete migration 03" && echo "✅ Procedure documented and migration ready"</summary>
+
+```bash
+cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "Add iterative fix procedure and complete migration 03" && echo "✅ Procedure documented and migration ready"
+```
+
+```
+[main b27f4cf] Add iterative fix procedure and complete migration 03
+ 4 files changed, 6306 insertions(+), 17 deletions(-)
+ create mode 100644 ITERATIVE_FIXES.md
+ create mode 100644 logs.txt
+ create mode 100644 migrations/03_sync_profile_stats_COMPLETE.sql
+✅ Procedure documented and migration ready
+
+```
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Good! I've created the procedural document and the complete migration. Now let me update the status and prepare for the user to start ITERATION 1.
+
+The user needs to:
+1. Run the migration in Supabase
+2. Test by playing a hand
+3. Check profile stats
+
+Then we move to Iteration 2.
+
+Let me create a quick status update.</details></think>
+
+---
+
+Perfect! **Iterative procedure documented.** Here's your path forward:
+
+## 🎯 **ITERATION 1: Profile Stats Sync** - START HERE
+
+### What I Just Created:
+
+1. **`ITERATIVE_FIXES.md`** - Complete 8-iteration roadmap
+   - One issue at a time
+   - Clear success criteria for each
+   - Testing steps
+   - No sweeping changes
+
+2. **`migrations/03_sync_profile_stats_COMPLETE.sql`** - Ready to run
+   - Adds all missing columns
+   - Creates trigger function
+   - Creates trigger
+   - Backfills existing data
+   - Includes verification queries
+
+---
+
+## 🚀 **YOUR NEXT STEPS (Iteration 1)**
+
+### Step 1: Run Migration
+```bash
+# Open Supabase SQL Editor
+# Copy ALL contents of: migrations/03_sync_profile_stats_COMPLETE.sql
+# Click "Run"
+```
+
+**Expected Output:**
+```
+✅ Trigger "update_profile_stats_trigger" created successfully
+✅ All required columns exist in user_profiles
+✅ Migration 03 COMPLETE: Profile stats will now auto-sync!
+```
+
+### Step 2: Test It
+1. Play a poker hand (complete it to showdown)
+2. Open profile modal
+3. Check if stats updated
+
+**Success = Stats show non-zero values**
+
+### Step 3: Verify in Database
+```sql
+-- Check your stats
+SELECT 
+  username,
+  total_hands_played,
+  total_wins,
+  win_rate,
+  total_winnings
+FROM user_profiles 
+WHERE username = 'your_username';
+
+-- Check trigger exists
+SELECT tgname FROM pg_trigger WHERE tgname = 'update_profile_stats_trigger';
+```
+
+### Step 4: Report Back
+Tell me:
+- ✅ Migration ran successfully (or error message)
+- ✅ Stats updated after playing (or still 0)
+- ✅ Profile shows correct numbers (or what's wrong)
+
+---
+
+## 📊 What Happens After Iteration 1?
+
+**If successful:**
+- Mark Iteration 1 complete ✅
+- Commit changes
+- **Start Iteration 2** (Remove email/password UI)
+
+**If issues:**
+- Debug together
+- Fix the specific problem
+- Don't move to Iteration 2 until working
+
+---
+
+## 🎯 The Full Path (Quick Reference)
+
+```
+Iteration 1: Profile Stats ← YOU ARE HERE
+Iteration 2: Remove Email UI
+Iteration 3: Friend Search Debug
+Iteration 4: Room Cleanup
+Iteration 5: Host Controls
+Iteration 6: Player Settings Cleanup
+Iteration 7: Game Summary Architecture
+Iteration 8: Final Testing
+```
+
+**Estimated time:** 30-60 min per iteration = 4-8 hours total
+
+---
+
+## 💡 Key Principle
+
+**One iteration at a time. Test. Validate. Move on.**
+
+No jumping ahead. No "while we're at it" changes. Just methodical progress through the list.
+
+Ready to run that migration? Let me know when it's done and what happens! 🚀
+
+---
+
+_**User (2025-11-05 13:19Z)**_
+
+I ran the migration before we dive deep lets also get proper room management, this will strengthen the relationship between profiles and games. The way I see it, is that your profile is something that understand s your holistif interactions, it updates, live, and real time, it is almost liek a tracker, there is a deep stronger connection we need to bring to light
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user ran the migration (good!) but before diving deeper into testing, they want to address room management. They're articulating a deeper architectural insight about the relationship between profiles, rooms, and games.
+
+They're saying:
+1. Profiles should be "holistic trackers" of user interactions
+2. Updates should be live and real-time
+3. There's a deeper connection between profile ↔ rooms ↔ games that needs to be made explicit
+
+This is actually smart - they're identifying that we need to strengthen the data model relationships BEFORE we continue testing individual features. This is the "conceptual gap" they mentioned earlier.
+
+Let me think about what they're asking for:
+
+**Current Architecture (Weak Links):**
+```
+User Profile (user_profiles)
+  ↓ (weak/no link)
+Rooms (rooms) - host_user_id only
+  ↓ (weak/no link)
+Game States (game_states) - JSONB blob
+  ↓ (strong link)
+Hands (hand_history)
+  ↓ (strong link)
+Player Stats (player_statistics) → triggers → user_profiles ✅
+```
+
+**What's Missing:**
+1. **Room-Profile Relationship**: No tracking of which rooms a user has participated in
+2. **Game-Profile Relationship**: No "game_summary" to track completed games
+3. **Real-time Tracking**: Profile doesn't reflect active/current game state
+4. **Participation History**: No record of "I played in these rooms"
+
+**What They Need:**
+```
+user_profiles (the tracker)
+  ├── Current State (real-time)
+  │   ├── currently_in_room_id
+  │   ├── current_game_id
+  │   ├── is_playing (boolean)
+  │   └── last_active_at
+  │
+  ├── Lifetime Stats (aggregated)
+  │   ├── total_rooms_created
+  │   ├── total_rooms_joined
+  │   ├── total_games_played ← MISSING
+  │   ├── total_hands_played ✅
+  │   └── total_winnings ✅
+  │
+  └── Relationships
+      ├── rooms (via room_participations)
+      ├── games (via game_participations)
+      └── friends (via friendships) ✅
+```
+
+I need to build room and game participation tracking, add real-time state fields to profiles, and wire up triggers to keep everything synchronized.
+
+Perfect timing to establish this foundation now. I</details></think>
 
 ---
 
