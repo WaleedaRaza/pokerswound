@@ -674,7 +674,7 @@ router.post('/action', async (req, res) => {
     
     // ===== STEP 1: GET CURRENT GAME STATE =====
     const gameStateResult = await db.query(
-      `SELECT current_state FROM game_states
+      `SELECT id, current_state FROM game_states
        WHERE room_id = $1 AND status = 'active'
        ORDER BY created_at DESC
        LIMIT 1`,
@@ -685,6 +685,7 @@ router.post('/action', async (req, res) => {
       return res.status(404).json({ error: 'No active game in this room' });
     }
     
+    const gameStateId = gameStateResult.rows[0].id;
     const currentState = gameStateResult.rows[0].current_state;
     
     // ===== STEP 2: PROCESS ACTION (PRODUCTION LOGIC) =====
@@ -744,13 +745,61 @@ router.post('/action', async (req, res) => {
         [roomId]
       );
       
-      // Reset room status to WAITING for next hand
-      await db.query(
-        `UPDATE rooms 
-         SET status = 'WAITING' 
-         WHERE id = $1`,
-        [roomId]
-      );
+      // ===== STEP 3C: EXTRACT HAND DATA TO HISTORY =====
+      console.log('📊 [MINIMAL] Extracting hand data to hand_history + player_statistics');
+      
+      try {
+        // 1. INSERT HAND_HISTORY
+        const handHistoryInsert = await db.query(
+          `INSERT INTO hand_history (
+            game_id, room_id, hand_number, pot_size, 
+            community_cards, winners, player_actions, final_stacks, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+          RETURNING id`,
+          [
+            gameStateId,  // game_id from game_states
+            roomId,
+            updatedState.handNumber || 1,
+            updatedState.pot || 0,
+            JSON.stringify(updatedState.communityCards || []),
+            JSON.stringify(updatedState.winners || []),
+            JSON.stringify(updatedState.actionHistory || []),
+            JSON.stringify(updatedState.players.map(p => ({
+              userId: p.userId,
+              seatIndex: p.seatIndex,
+              finalChips: p.chips
+            })))
+          ]
+        );
+        
+        console.log(`   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}`);
+        
+        // 2. UPDATE PLAYER_STATISTICS
+        const winnerIds = new Set((updatedState.winners || []).map(w => w.userId));
+        
+        for (const player of updatedState.players) {
+          const isWinner = winnerIds.has(player.userId);
+          
+          await db.query(
+            `INSERT INTO player_statistics (user_id, total_hands_played, total_hands_won, last_hand_played_at, created_at)
+             VALUES ($1, 1, $2, NOW(), NOW())
+             ON CONFLICT (user_id) DO UPDATE SET
+               total_hands_played = player_statistics.total_hands_played + 1,
+               total_hands_won = player_statistics.total_hands_won + $2,
+               last_hand_played_at = NOW(),
+               updated_at = NOW()`,
+            [player.userId, isWinner ? 1 : 0]
+          );
+          
+          console.log(`   ✅ player_statistics updated: ${player.userId.substr(0, 8)} (won: ${isWinner})`);
+        }
+        
+        console.log('📊 [MINIMAL] Data extraction complete - trigger will sync to user_profiles');
+        
+      } catch (extractionError) {
+        console.error('❌ [MINIMAL] Data extraction failed (non-critical):', extractionError.message);
+        // Don't fail the request - chips already updated
+      }
       
       // VERIFY: Query room_seats to confirm chips were updated
       const verifyResult = await db.query(
