@@ -75,24 +75,24 @@ router.post('/', withIdempotency, async (req, res) => {
       return res.status(500).json({ error: 'Database unavailable' });
     }
     
-    const roomCount = await db.query(
-      `SELECT COUNT(*) FROM rooms 
+      const roomCount = await db.query(
+        `SELECT COUNT(*) FROM rooms 
        WHERE host_user_id = $1`,
-      [user_id]
-    );
-    
-    const activeRooms = parseInt(roomCount.rows[0].count);
+        [user_id]
+      );
+      
+      const activeRooms = parseInt(roomCount.rows[0].count);
     console.log(`🔍 Room limit check: User ${user_id} has ${activeRooms} active rooms`);
     
-    if (activeRooms >= 5) {
+      if (activeRooms >= 5) {
       console.warn(`🚫 BLOCKED: User has ${activeRooms} active rooms (limit: 5)`);
       return res.status(403).json({ 
         error: 'ROOM_LIMIT_REACHED',
         message: `You have ${activeRooms} active rooms. Maximum is 5. Close an existing room before creating a new one.`,
-        activeRooms: activeRooms,
+          activeRooms: activeRooms,
         limit: 5,
         action: 'manage_rooms' // Tell frontend to show room management
-      });
+        });
     }
     
     const createRoom = req.app.locals.createRoom;
@@ -394,7 +394,7 @@ router.get('/:roomId/hydrate', async (req, res) => {
     
     // Get room details
     const roomResult = await db.query(
-      `SELECT id, invite_code, host_user_id, max_players, status, 
+      `SELECT id, invite_code, host_user_id, max_players, 
               small_blind, big_blind, game_id, created_at
        FROM rooms WHERE id = $1`,
       [req.params.roomId]
@@ -605,7 +605,6 @@ router.get('/:roomId/hydrate', async (req, res) => {
         code: room.invite_code,
         host_id: room.host_user_id,
         capacity: room.max_players,
-        status: room.status,
         small_blind: room.small_blind,
         big_blind: room.big_blind
       },

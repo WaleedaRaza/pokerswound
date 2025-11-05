@@ -245,10 +245,7 @@ router.delete('/delete-room', async (req, res) => {
       return res.status(403).json({ error: 'Only the host can delete this room' });
     }
     
-    // Block deletion of active games unless force flag is set
-    if (room.status === 'ACTIVE' && !forceDelete) {
-      return res.status(400).json({ error: 'Cannot delete an active game without force flag' });
-    }
+    // Note: Rooms can always be deleted - data extraction happens via triggers
     
     // Delete related records first (foreign key constraints)
     await db.query('DELETE FROM room_seats WHERE room_id = $1', [roomId]);
