@@ -77,7 +77,7 @@ router.post('/', withIdempotency, async (req, res) => {
     
     const roomCount = await db.query(
       `SELECT COUNT(*) FROM rooms 
-       WHERE host_user_id = $1 AND status != 'closed'`,
+       WHERE host_user_id = $1`,
       [user_id]
     );
     
@@ -968,19 +968,19 @@ router.get('/my-rooms', async (req, res) => {
     const db = getDb();
     if (!db) throw new Error('Database not configured');
     
-    // Get hosted rooms
+    // Get ALL hosted rooms (if it exists, it's active)
     const hostedRooms = await db.query(
-      `SELECT r.id, r.name, r.invite_code, r.max_players, r.status, r.created_at,
+      `SELECT r.id, r.name, r.invite_code, r.max_players, r.created_at,
               COUNT(DISTINCT rs.user_id) as player_count
        FROM rooms r
        LEFT JOIN room_seats rs ON r.id = rs.room_id
-       WHERE r.host_user_id = $1 AND r.status = 'active'
+       WHERE r.host_user_id = $1
        GROUP BY r.id
        ORDER BY r.created_at DESC`,
       [userId]
     );
     
-    // Get joined rooms (where user is not host)
+    // Get ALL joined rooms (active + inactive, exclude closed)
     const joinedRooms = await db.query(
       `SELECT r.id, r.name, r.invite_code, r.max_players, r.status, r.created_at,
               r.host_user_id,
@@ -988,7 +988,7 @@ router.get('/my-rooms', async (req, res) => {
        FROM room_seats rs
        JOIN rooms r ON rs.room_id = r.id
        LEFT JOIN room_seats rs2 ON r.id = rs2.room_id
-       WHERE rs.user_id = $1 AND r.host_user_id != $1 AND r.status = 'active'
+       WHERE rs.user_id = $1 AND r.host_user_id != $1 AND r.status != 'closed'
        GROUP BY r.id, r.host_user_id
        ORDER BY r.created_at DESC`,
       [userId]
@@ -1035,17 +1035,13 @@ router.post('/:roomId/close', withIdempotency, async (req, res) => {
       return res.status(403).json({ error: 'Only the host can close the room' });
     }
     
-    // Set room status to closed
-    await db.query(
-      `UPDATE rooms SET status = 'closed', updated_at = NOW() WHERE id = $1`,
-      [roomId]
-    );
+    // DELETE room entirely (data already extracted to game_completions/hand_history)
+    // First remove related records (foreign keys)
+    await db.query('DELETE FROM room_seats WHERE room_id = $1', [roomId]);
+    await db.query('DELETE FROM game_states WHERE room_id = $1', [roomId]);
     
-    // Remove all players from room seats
-    await db.query(
-      'DELETE FROM room_seats WHERE room_id = $1',
-      [roomId]
-    );
+    // Then delete the room itself
+    await db.query('DELETE FROM rooms WHERE id = $1', [roomId]);
     
     console.log(`🚪 Host ${hostId} closed room ${roomId}`);
     

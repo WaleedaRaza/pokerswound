@@ -48,7 +48,7 @@ router.post('/create-room', async (req, res) => {
     // 🚨 HARD LIMIT: Enforce 5-room limit per user (SANDBOX ALSO COUNTS!)
     const roomCount = await db.query(
       `SELECT COUNT(*) FROM rooms 
-       WHERE host_user_id = $1 AND status != 'closed'`,
+       WHERE host_user_id = $1`,
       [userId]
     );
     
@@ -185,13 +185,13 @@ router.get('/my-rooms', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
-    // Fetch all NON-CLOSED rooms where user is the host
+    // Fetch all rooms where user is the host (if it exists, it's active)
     const result = await db.query(
-      `SELECT id, name, invite_code as code, status, created_at, updated_at
+      `SELECT id, name, invite_code as code, created_at, updated_at
        FROM rooms 
-       WHERE host_user_id = $1 AND status != 'closed'
+       WHERE host_user_id = $1
        ORDER BY created_at DESC
-       LIMIT 50`,
+       LIMIT 100`,
       [userId]
     );
     
