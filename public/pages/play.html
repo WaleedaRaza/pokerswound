@@ -535,8 +535,47 @@
       }
     };
     
-    window.openCreateModal = function() {
-      console.log('✅ openCreateModal called');
+    // 🚨 ROOM LIMIT GATE - Check before allowing room creation
+    window.openCreateModal = async function() {
+      console.log('✅ openCreateModal called - checking room limit first...');
+      
+      // Check if user is authenticated
+      if (!window.currentUser) {
+        showNotification('Please sign in to create a room', 'error');
+        return;
+      }
+      
+      // Fetch user's active room count
+      try {
+        const response = await fetch(`/api/rooms/my-rooms?userId=${window.currentUser.id}`);
+        if (!response.ok) throw new Error('Failed to check room limit');
+        
+        const data = await response.json();
+        console.log('🔍 Room limit check:', data);
+        
+        // If user has 5+ rooms, show the GATE modal (blocking)
+        if (data.totalActive >= 5) {
+          console.warn('🚫 Room limit reached! Showing gate modal...');
+          showRoomLimitGate(data);
+          return; // BLOCK room creation
+        }
+        
+        // Otherwise, proceed to create modal
+        console.log('✅ Room limit OK - opening create modal');
+        openCreateModalDirect();
+        
+      } catch (error) {
+        console.error('Error checking room limit:', error);
+        // Fail safe: show warning but allow creation
+        if (confirm('Could not verify room limit. Create anyway?')) {
+          openCreateModalDirect();
+        }
+      }
+    };
+    
+    // Direct modal opener (bypasses gate check)
+    function openCreateModalDirect() {
+      console.log('✅ openCreateModalDirect called');
       const modal = document.getElementById('createRoomModal');
       if (modal) {
         modal.classList.add('show');
@@ -2461,6 +2500,113 @@
       }
     }
     
+    // 🚨 ROOM LIMIT GATE FUNCTIONS
+    function showRoomLimitGate(roomData) {
+      const modal = document.getElementById('roomLimitGateModal');
+      document.getElementById('limitGateCount').textContent = roomData.totalActive;
+      
+      // Populate with user's rooms
+      const content = document.getElementById('roomLimitGateContent');
+      
+      if (!roomData.hosted || roomData.hosted.length === 0) {
+        content.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">No rooms found (this is a bug - please refresh)</p>';
+      } else {
+        content.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${roomData.hosted.map(room => `
+              <div class="liquid-glass-tile" style="padding: 1rem; border: 2px solid rgba(239, 68, 68, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="flex: 1;">
+                    <h4 style="color: #fff; font-size: 1rem; margin-bottom: 0.25rem;">
+                      ${room.name || 'Unnamed Room'}
+                    </h4>
+                    <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">
+                      Code: ${room.invite_code} • Players: ${room.player_count}/${room.max_players} • Status: ${room.status}
+                    </p>
+                  </div>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="rejoinRoomFromGate('${room.id}')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                      🎮 Rejoin
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeRoomFromGate('${room.id}', '${room.name}')" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(239, 68, 68, 0.2); border-color: #EF4444;">
+                      🗑️ Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      modal.style.display = 'flex';
+      modal.classList.add('show');
+    }
+    
+    function closeRoomLimitGate() {
+      const modal = document.getElementById('roomLimitGateModal');
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+    }
+    
+    async function refreshRoomLimitGate() {
+      if (!window.currentUser) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/my-rooms?userId=${window.currentUser.id}`);
+        if (!response.ok) throw new Error('Failed to refresh');
+        
+        const data = await response.json();
+        
+        // If user is now under the limit, close gate and open create modal
+        if (data.totalActive < 5) {
+          closeRoomLimitGate();
+          showNotification('✅ You can now create a room!', 'success');
+          openCreateModalDirect();
+        } else {
+          // Still at limit, refresh the list
+          showRoomLimitGate(data);
+          showNotification('Room list refreshed', 'info');
+        }
+        
+      } catch (error) {
+        console.error('Refresh gate error:', error);
+        showNotification('Failed to refresh: ' + error.message, 'error');
+      }
+    }
+    
+    function rejoinRoomFromGate(roomId) {
+      // Close gate and navigate to room
+      closeRoomLimitGate();
+      window.location.href = `/poker?room=${roomId}`;
+    }
+    
+    async function closeRoomFromGate(roomId, roomName) {
+      if (!confirm(`Close "${roomName}"?\n\nAll players will be removed.`)) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hostId: window.currentUser.id })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to close room');
+        }
+        
+        showNotification(`Room "${roomName}" closed`, 'success');
+        
+        // Refresh the gate to check if user is now under limit
+        await refreshRoomLimitGate();
+        
+      } catch (error) {
+        console.error('Close room error:', error);
+        showNotification('Failed to close: ' + error.message, 'error');
+      }
+    }
+    
     // Abandon/leave a joined room
     async function abandonRoom(roomId, roomName) {
       if (!confirm(`Are you sure you want to leave "${roomName}"?`)) {
@@ -2730,6 +2876,35 @@
       
       <div id="roomManagementContent" style="margin-top: 1.5rem;">
         <p style="text-align: center; color: rgba(255,255,255,0.5);">Loading your rooms...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚨 ROOM LIMIT GATE MODAL - Blocking modal when user hits 5 room limit -->
+  <div id="roomLimitGateModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+      <!-- No close button - forces user to handle rooms -->
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1)); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 class="modal-title" style="color: #FCA5A5;">🚫 Room Limit Reached</h2>
+        <p class="modal-subtitle" style="color: rgba(255,255,255,0.9); font-size: 1rem; margin-top: 0.5rem;">
+          You have <strong id="limitGateCount">5</strong> active rooms (max: 5)
+        </p>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 0.75rem;">
+          Please close or rejoin an existing room before creating a new one.
+        </p>
+      </div>
+      
+      <div id="roomLimitGateContent" style="margin-top: 1rem;">
+        <p style="text-align: center; color: rgba(255,255,255,0.5);">Loading your rooms...</p>
+      </div>
+      
+      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="closeRoomLimitGate()" style="flex: 1;">
+          ❌ Cancel
+        </button>
+        <button class="btn btn-primary" onclick="refreshRoomLimitGate()" style="flex: 1;">
+          🔄 Refresh List
+        </button>
       </div>
     </div>
   </div>
