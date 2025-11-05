@@ -1,0 +1,23 @@
+RUN THIS IN SUPABASE SQL EDITOR
+================================
+
+1. Open Supabase Dashboard
+2. Go to SQL Editor
+3. Copy/paste contents of 03_sync_profile_stats.sql
+4. Click "Run"
+5. Wait for success message
+
+Expected output:
+✅ "Migration 03 complete: Profile stats will now auto-sync!"
+
+Then verify:
+- Play a hand in the game
+- Check player_statistics table updates
+- Check user_profiles table auto-updates
+- Profile modal shows correct stats
+
+If you see errors about permissions:
+- The migration includes GRANT statements
+- May need to run as postgres superuser
+- Or manually grant in Supabase dashboard
+
