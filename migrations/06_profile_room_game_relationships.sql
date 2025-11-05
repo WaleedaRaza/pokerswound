@@ -322,10 +322,10 @@ EXECUTE FUNCTION track_game_complete();
 -- Backfill room participations from current room_seats
 INSERT INTO room_participations (user_id, room_id, joined_at)
 SELECT 
-  user_id,
-  room_id,
-  COALESCE(joined_at, created_at, NOW())
-FROM room_seats
+  rs.user_id,
+  rs.room_id,
+  COALESCE(rs.joined_at, NOW())
+FROM room_seats rs
 ON CONFLICT (user_id, room_id) DO NOTHING;
 
 -- Update currently_in_room_id for users with active seats
