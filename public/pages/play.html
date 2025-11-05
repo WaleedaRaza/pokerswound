@@ -1637,6 +1637,9 @@
           return; // Exit and let user login first
         }
         
+        // 🚨 BACKEND ENFORCES LIMIT - If we get 403, show room management
+        console.log('🚀 Creating room for user:', currentUser.id);
+        
         let user = currentUser;
         
         const smallBlind = parseInt(document.getElementById('createSmallBlind').value) || 5;
@@ -1672,8 +1675,26 @@
           })
         });
         
+        // 🚨 HANDLE ROOM LIMIT FROM BACKEND
         if (!response.ok) {
           const errorData = await response.json();
+          
+          // If backend says "too many rooms", show gate modal
+          if (response.status === 403 && errorData.error === 'ROOM_LIMIT_REACHED') {
+            console.warn('🚫 Backend blocked: Room limit reached');
+            closeCreateModal(); // Close the create modal
+            
+            // Fetch user's rooms and show gate
+            const roomsResponse = await fetch(`/api/rooms/my-rooms?userId=${user.id}`);
+            if (roomsResponse.ok) {
+              const roomsData = await roomsResponse.json();
+              showRoomLimitGate(roomsData);
+            } else {
+              showNotification(errorData.message, 'error');
+            }
+            return; // Stop execution
+          }
+          
           throw new Error(errorData.error || 'Failed to create room');
         }
         

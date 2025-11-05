@@ -68,25 +68,31 @@ router.post('/', withIdempotency, async (req, res) => {
       return res.status(400).json({ error: 'user_id required - please sign in first' });
     }
     
-    // WEEK 3 DAY 3: Enforce 5-room limit per user
+    // 🚨 HARD LIMIT: Enforce 5-room limit per user (BACKEND BLOCK)
     const getDb = req.app.locals.getDb;
     const db = getDb();
-    if (db) {
-      const roomCount = await db.query(
-        `SELECT COUNT(*) FROM rooms 
-         WHERE host_user_id = $1 AND status = 'active'`,
-        [user_id]
-      );
-      
-      const activeRooms = parseInt(roomCount.rows[0].count);
-      if (activeRooms >= 5) {
-        return res.status(400).json({ 
-          error: 'Room limit reached',
-          message: `You have ${activeRooms} active rooms. Maximum is 5. Please close an existing room first.`,
-          activeRooms: activeRooms,
-          limit: 5
-        });
-      }
+    if (!db) {
+      return res.status(500).json({ error: 'Database unavailable' });
+    }
+    
+    const roomCount = await db.query(
+      `SELECT COUNT(*) FROM rooms 
+       WHERE host_user_id = $1 AND status = 'active'`,
+      [user_id]
+    );
+    
+    const activeRooms = parseInt(roomCount.rows[0].count);
+    console.log(`🔍 Room limit check: User ${user_id} has ${activeRooms} active rooms`);
+    
+    if (activeRooms >= 5) {
+      console.warn(`🚫 BLOCKED: User has ${activeRooms} active rooms (limit: 5)`);
+      return res.status(403).json({ 
+        error: 'ROOM_LIMIT_REACHED',
+        message: `You have ${activeRooms} active rooms. Maximum is 5. Close an existing room before creating a new one.`,
+        activeRooms: activeRooms,
+        limit: 5,
+        action: 'manage_rooms' // Tell frontend to show room management
+      });
     }
     
     const createRoom = req.app.locals.createRoom;
