@@ -448,6 +448,9 @@ class MinimalBettingAdapter {
       console.log(`   ${w.player.userId.substr(0, 8)} (Seat ${w.player.seatIndex}): ${w.description}`);
     });
     
+    // ✅ CAPTURE POT BEFORE DISTRIBUTION (for data extraction)
+    const finalPotSize = gameState.pot;
+    
     // Split pot among winners
     const potShare = Math.floor(gameState.pot / winners.length);
     
@@ -462,7 +465,12 @@ class MinimalBettingAdapter {
       };
     });
     
+    // Zero pot after distribution
     gameState.pot = 0;
+    
+    // ✅ STORE FINAL POT SIZE FOR EXTRACTION
+    gameState.finalPotSize = finalPotSize;
+    
     gameState.status = 'COMPLETED';
     
     console.log('✅ [GAME] Showdown complete, chips awarded');

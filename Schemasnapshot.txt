@@ -346,7 +346,14 @@ CREATE TABLE public.hand_history (
   player_actions jsonb,
   final_stacks jsonb,
   created_at timestamp with time zone DEFAULT now(),
+  player_ids ARRAY,
+  winner_id uuid,
+  winning_hand text,
+  hand_rank integer,
+  board_cards text,
+  actions_log jsonb,
   CONSTRAINT hand_history_pkey PRIMARY KEY (id),
+  CONSTRAINT hand_history_winner_id_fkey FOREIGN KEY (winner_id) REFERENCES public.user_profiles(id),
   CONSTRAINT hand_history_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
 );
 CREATE TABLE public.message_flags (
@@ -826,7 +833,7 @@ CREATE TABLE public.user_profiles (
   max_username_changes integer DEFAULT 3,
   username_set_at timestamp without time zone,
   total_hands_played integer DEFAULT 0,
-  best_hand_rank character varying,
+  best_hand_rank integer CHECK (best_hand_rank IS NULL OR best_hand_rank >= 1 AND best_hand_rank <= 10),
   best_hand_cards text,
   total_wins integer DEFAULT 0,
   biggest_pot_won bigint DEFAULT 0,
@@ -840,6 +847,8 @@ CREATE TABLE public.user_profiles (
   total_rooms_joined integer DEFAULT 0,
   total_games_started integer DEFAULT 0,
   total_games_completed integer DEFAULT 0,
+  best_hand_date timestamp without time zone,
+  biggest_pot bigint DEFAULT 0,
   CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
   CONSTRAINT user_profiles_currently_in_room_id_fkey FOREIGN KEY (currently_in_room_id) REFERENCES public.rooms(id)
 );

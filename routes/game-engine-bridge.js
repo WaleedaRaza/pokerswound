@@ -774,6 +774,9 @@ router.post('/action', async (req, res) => {
         // Extract all player IDs
         const playerIds = updatedState.players.map(p => p.userId);
         
+        // ✅ USE FINAL POT SIZE (captured before zeroing)
+        const potSize = updatedState.finalPotSize || updatedState.pot || 0;
+        
         // 1. INSERT HAND_HISTORY (with ALL required fields)
         const handHistoryInsert = await db.query(
           `INSERT INTO hand_history (
@@ -786,7 +789,7 @@ router.post('/action', async (req, res) => {
             gameStateId,  // game_id from game_states
             roomId,
             updatedState.handNumber || 1,
-            updatedState.pot || 0,
+            potSize,     // ✅ FIXED: Use finalPotSize captured before zeroing
             playerIds,  // ✅ NEW: Array of UUIDs
             winnerId,   // ✅ NEW: Winner UUID for trigger
             winningHand, // ✅ NEW: "Flush (J-high)"
@@ -797,11 +800,10 @@ router.post('/action', async (req, res) => {
         );
         
         console.log(`   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}`);
-        console.log(`      Winner: ${winnerId ? winnerId.substr(0, 8) : 'none'} | Hand: ${winningHand || 'none'} | Rank: ${handRank}`);
+        console.log(`      Winner: ${winnerId ? winnerId.substr(0, 8) : 'none'} | Hand: ${winningHand || 'none'} | Rank: ${handRank} | Pot: $${potSize}`);
         
         // 2. UPDATE PLAYER_STATISTICS
         const winnerIds = new Set((updatedState.winners || []).map(w => w.userId));
-        const potSize = updatedState.pot || 0;
         
         for (const player of updatedState.players) {
           const isWinner = winnerIds.has(player.userId);
