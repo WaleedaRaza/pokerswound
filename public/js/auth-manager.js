@@ -28,13 +28,16 @@ class AuthManager {
       
       if (session && session.user) {
         console.log('✅ AuthManager: Found Supabase session');
-        this.user = await this.normalizeUser(session.user, 'google');
-        this.saveToCache();
         
-        // Sync to backend (non-blocking)
-        this.syncToBackend().catch(err => 
+        // ✅ CRITICAL: Sync to backend FIRST to ensure user exists in DB
+        // Pass sessionUser directly so we don't need this.user yet
+        await this.syncToBackend(session.user).catch(err => 
           console.warn('⚠️ Backend sync failed:', err)
         );
+        
+        // ✅ THEN normalize (fetch username from DB now that user is synced)
+        this.user = await this.normalizeUser(session.user, 'google');
+        this.saveToCache();
         
         this.notifyListeners();
         return this.user;
@@ -350,8 +353,11 @@ class AuthManager {
    * Sync Supabase user to backend
    * @returns {Promise<void>}
    */
-  async syncToBackend() {
-    if (!this.user || this.user.isGuest) {
+  async syncToBackend(sessionUser = null) {
+    // Allow passing sessionUser directly for early sync
+    const userToSync = sessionUser || this.user;
+    
+    if (!userToSync || userToSync.isGuest) {
       console.log('ℹ️ AuthManager: Skipping backend sync (guest user)');
       return;
     }
@@ -361,7 +367,12 @@ class AuthManager {
       const response = await fetch('/api/auth/sync-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.user)
+        body: JSON.stringify({
+          id: userToSync.id,
+          email: userToSync.email,
+          username: userToSync.username,
+          provider: userToSync.provider || 'google'
+        })
       });
 
       if (!response.ok) {
