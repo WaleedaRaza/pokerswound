@@ -18,29 +18,32 @@
 
 ## 🔥 **MUST RUN NOW (In Order):**
 
-### **13. Add Missing hand_history Columns** 🔥
+### **13. Add Missing hand_history Columns** ✅
 **File:** `migrations/13_add_hand_history_columns.sql`
 
-**Why:** Backend is trying to INSERT into columns that don't exist:
-- `player_ids` (UUID[])
-- `winner_id` (UUID)
-- `winning_hand` (TEXT)
-- `hand_rank` (INTEGER)
-- `board_cards` (TEXT)
-- `actions_log` (JSONB)
+**Status:** ✅ Already run by user
 
-**Run this FIRST before Migration 12!**
+**What it did:** Added `player_ids`, `winner_id`, `winning_hand`, `hand_rank`, `board_cards`, `actions_log` to `hand_history` table.
+
+---
+
+### **14. Fix best_hand_rank Type** 🔥
+**File:** `migrations/14_fix_best_hand_rank_type.sql`
+
+**Why:** `user_profiles.best_hand_rank` is VARCHAR but needs to be INTEGER for comparison with `hand_history.hand_rank`.
+
+**Run this BEFORE Migration 12!**
 
 ```sql
 -- Open Supabase SQL Editor
--- Paste: migrations/13_add_hand_history_columns.sql
+-- Paste: migrations/14_fix_best_hand_rank_type.sql
 -- Execute
 ```
 
 **Expected Output:**
 ```
-✅ All required columns exist in hand_history table!
-✅ Migration 13 complete
+✅ best_hand_rank is now INTEGER type
+✅ Migration 14 complete
 ```
 
 ---
@@ -50,7 +53,7 @@
 
 **Why:** Creates trigger to update `user_profiles.best_hand` when better hand is won.
 
-**Run this AFTER Migration 13!**
+**Run this AFTER Migration 14!**
 
 ```sql
 -- Open Supabase SQL Editor
@@ -68,10 +71,11 @@
 
 ## 🎯 **EXECUTION CHECKLIST:**
 
-- [ ] **Step 1:** Run Migration 13 (`13_add_hand_history_columns.sql`)
-- [ ] **Step 2:** Run Migration 12 (`12_best_hand_tracking.sql`)
-- [ ] **Step 3:** Restart server (`Ctrl+C`, then `npm start`)
-- [ ] **Step 4:** Test data flow (play 1 hand, check profile stats)
+- [x] **Step 1:** Run Migration 13 (`13_add_hand_history_columns.sql`) ✅
+- [ ] **Step 2:** Run Migration 14 (`14_fix_best_hand_rank_type.sql`) 🔥 **YOU ARE HERE**
+- [ ] **Step 3:** Run Migration 12 (`12_best_hand_tracking.sql`)
+- [ ] **Step 4:** Restart server (`Ctrl+C`, then `npm start`)
+- [ ] **Step 5:** Test data flow (play 1 hand, check profile stats)
 
 ---
 
