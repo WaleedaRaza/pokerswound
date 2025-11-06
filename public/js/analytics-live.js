@@ -115,19 +115,57 @@ class AnalyticsDataService {
       return;
     }
     
-    feedContainer.innerHTML = this.dataFeed.map(event => {
+    feedContainer.innerHTML = this.dataFeed.map((event, index) => {
       const time = new Date(event.timestamp).toLocaleTimeString();
       const data = event.data || {};
       
       if (event.type === 'extraction') {
+        // Decode PHE if available
+        let decodedHtml = '';
+        if (data.encodedHand && window.HandEncoder) {
+          try {
+            const decoded = window.HandEncoder.decode(data.encodedHand);
+            const savings = data.savings || 0;
+            
+            decodedHtml = `
+              <div class="encoded-section">
+                <details>
+                  <summary class="encoded-summary">
+                    📦 PHE Encoding (${data.encodedSize || 0} bytes, ${savings}% smaller)
+                  </summary>
+                  <div class="encoded-content">
+                    <div class="encoded-raw">
+                      <strong>Raw:</strong>
+                      <code>${data.encodedHand}</code>
+                    </div>
+                    <div class="decoded-view">
+                      <strong>Decoded:</strong>
+                      <ul class="decoded-list">
+                        ${decoded.players.map(p => 
+                          `<li>Seat ${p.seatIndex}: ${p.revealed ? p.cards.join(' ') : '[Mucked]'} ${p.seatIndex === decoded.winner ? '🏆' : ''}</li>`
+                        ).join('')}
+                      </ul>
+                      <div class="decoded-board">Board: ${decoded.board.join(' ') || 'None'}</div>
+                      <div class="decoded-actions">${decoded.actions.length} actions recorded</div>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            `;
+          } catch (e) {
+            console.error('Failed to decode hand:', e);
+          }
+        }
+        
         return `
-          <div class="data-event extraction-event">
+          <div class="data-event extraction-event" data-event-id="${index}">
             <div class="event-time">${time}</div>
             <div class="event-details">
               <strong>📊 Hand #${data.handNumber || '?'}</strong> extracted<br>
               💰 Pot: $${data.pot || 0}<br>
               ${data.winner ? `🏆 Winner: ${data.winner.hand || 'Unknown'} (Rank ${data.winner.rank || '?'})` : ''}<br>
               ⚡ ${data.extractionTime ? data.extractionTime + 'ms' : 'N/A'}
+              ${decodedHtml}
               <div class="event-status">✅ Extraction Complete</div>
             </div>
           </div>
