@@ -72,10 +72,11 @@
 ## 🎯 **EXECUTION CHECKLIST:**
 
 - [x] **Step 1:** Run Migration 13 (`13_add_hand_history_columns.sql`) ✅
-- [ ] **Step 2:** Run Migration 14 (`14_fix_best_hand_rank_type.sql`) 🔥 **YOU ARE HERE**
-- [ ] **Step 3:** Run Migration 12 (`12_best_hand_tracking.sql`)
-- [ ] **Step 4:** Restart server (`Ctrl+C`, then `npm start`)
-- [ ] **Step 5:** Test data flow (play 1 hand, check profile stats)
+- [ ] **Step 2:** Run Migration 14 (`14_fix_best_hand_rank_type.sql`) 🔥
+- [ ] **Step 3:** Run Migration 15 (`15_fix_biggest_pot_column_name.sql`) 🔥  
+- [ ] **Step 4:** Run Migration 12 (`12_best_hand_tracking.sql`)
+- [ ] **Step 5:** Restart server (`Ctrl+C`, then `npm start`)
+- [ ] **Step 6:** Test data flow (play 1 hand, check profile stats)
 
 ---
 
