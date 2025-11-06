@@ -62,28 +62,36 @@
                 </div>
             </div>
 
-            <!-- Stats tiles row -->
+            <!-- Extraction Health Metrics -->
             <div class="liquid-glass-tile analysis-stat-tile">
                 <div class="tile-content">
-                    <h4 class="tile-title">📈 Player Stats</h4>
-                    <div class="stat-value">12,847</div>
-                    <div class="stat-label">Total Hands</div>
+                    <h4 class="tile-title">📊 Hands Tracked</h4>
+                    <div class="stat-value" id="total-hands">0</div>
+                    <div class="stat-label">Total Extractions</div>
                 </div>
             </div>
 
             <div class="liquid-glass-tile analysis-stat-tile">
                 <div class="tile-content">
-                    <h4 class="tile-title">💰 Win Rate</h4>
-                    <div class="stat-value">+8.2</div>
-                    <div class="stat-label">BB/100</div>
+                    <h4 class="tile-title">✅ Success Rate</h4>
+                    <div class="stat-value" id="success-rate">0 (0%)</div>
+                    <div class="stat-label">Successful Extractions</div>
                 </div>
             </div>
 
             <div class="liquid-glass-tile analysis-stat-tile">
                 <div class="tile-content">
-                    <h4 class="tile-title">🎯 VPIP</h4>
-                    <div class="stat-value">22.1%</div>
-                    <div class="stat-label">Voluntarily Put $</div>
+                    <h4 class="tile-title">⚡ Performance</h4>
+                    <div class="stat-value" id="avg-extraction-time">0ms</div>
+                    <div class="stat-label">Avg Extraction Time</div>
+                </div>
+            </div>
+            
+            <div class="liquid-glass-tile analysis-stat-tile">
+                <div class="tile-content">
+                    <h4 class="tile-title">💰 Total Extracted</h4>
+                    <div class="stat-value" id="total-pot-extracted">$0</div>
+                    <div class="stat-label">Cumulative Pot Size</div>
                 </div>
             </div>
 
