@@ -706,5 +706,162 @@ router.get('/notifications/count', requireAuth, async (req, res) => {
   }
 });
 
+// ============================================
+// ANALYTICS ENDPOINTS
+// ============================================
+
+/**
+ * GET /api/social/analytics/hands/:userId
+ * Fetch paginated hand history for a user with filters
+ * 
+ * Query params:
+ * - limit: 100 (default)
+ * - offset: 0 (default)
+ * - startDate: ISO date string
+ * - endDate: ISO date string
+ * - roomId: UUID filter
+ * - minHandRank: 1-10 (1=Royal Flush, 10=High Card)
+ * - maxHandRank: 1-10
+ */
+router.get('/analytics/hands/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { 
+      limit = 100, 
+      offset = 0, 
+      startDate, 
+      endDate, 
+      roomId,
+      minHandRank,
+      maxHandRank
+    } = req.query;
+    
+    // Security: Users can only view their own hands (unless admin)
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Build dynamic query
+    const conditions = ['$1 = ANY(player_ids)'];  // User was in hand
+    const params = [userId];
+    let paramIndex = 2;
+    
+    if (startDate) {
+      conditions.push(`created_at >= $${paramIndex}`);
+      params.push(new Date(startDate));
+      paramIndex++;
+    }
+    
+    if (endDate) {
+      conditions.push(`created_at <= $${paramIndex}`);
+      params.push(new Date(endDate));
+      paramIndex++;
+    }
+    
+    if (roomId) {
+      conditions.push(`room_id = $${paramIndex}`);
+      params.push(roomId);
+      paramIndex++;
+    }
+    
+    if (minHandRank) {
+      conditions.push(`hand_rank >= $${paramIndex}`);
+      params.push(parseInt(minHandRank));
+      paramIndex++;
+    }
+    
+    if (maxHandRank) {
+      conditions.push(`hand_rank <= $${paramIndex}`);
+      params.push(parseInt(maxHandRank));
+      paramIndex++;
+    }
+    
+    const whereClause = conditions.join(' AND ');
+    
+    // Get total count
+    const countResult = await db.query(
+      `SELECT COUNT(*) as total FROM hand_history WHERE ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0]?.total || 0);
+    
+    // Get hands
+    const handsResult = await db.query(
+      `SELECT 
+        hh.id, hh.game_id, hh.room_id, hh.hand_number, hh.pot_size,
+        hh.player_ids, hh.winner_id, hh.winning_hand, hh.hand_rank,
+        hh.board_cards, hh.encoded_hand, hh.created_at,
+        r.name as room_name,
+        up.username as winner_username
+       FROM hand_history hh
+       LEFT JOIN rooms r ON r.id = hh.room_id
+       LEFT JOIN user_profiles up ON up.id = hh.winner_id
+       WHERE ${whereClause}
+       ORDER BY hh.created_at DESC
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, parseInt(limit), parseInt(offset)]
+    );
+    
+    res.json({
+      hands: handsResult.rows,
+      total: total,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      hasMore: offset + handsResult.rows.length < total
+    });
+    
+  } catch (error) {
+    console.error('Error fetching hand history:', error);
+    res.status(500).json({ error: 'Failed to fetch hand history' });
+  }
+});
+
+/**
+ * GET /api/social/analytics/rooms/:userId
+ * Get list of rooms user has played in (for filter dropdown)
+ */
+router.get('/analytics/rooms/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Security check
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    const result = await db.query(
+      `SELECT DISTINCT r.id, r.name, COUNT(hh.id) as hand_count
+       FROM room_participations rp
+       JOIN rooms r ON r.id = rp.room_id
+       LEFT JOIN hand_history hh ON hh.room_id = r.id AND $1 = ANY(hh.player_ids)
+       WHERE rp.user_id = $1
+       GROUP BY r.id, r.name
+       ORDER BY hand_count DESC
+       LIMIT 50`,
+      [userId]
+    );
+    
+    res.json({ rooms: result.rows });
+    
+  } catch (error) {
+    console.error('Error fetching rooms:', error);
+    res.status(500).json({ error: 'Failed to fetch rooms' });
+  }
+});
+
 module.exports = router;
 

@@ -25,6 +25,9 @@
     <!-- Analytics Live Data Service -->
     <script src="/js/analytics-live.js"></script>
     
+    <!-- Analytics Hand History Service -->
+    <script src="/js/analytics-history.js"></script>
+    
     <!-- SVG Filter for Liquid Glass Effect -->
     <svg width="0" height="0" class="svg-filter">
         <defs>
@@ -95,6 +98,65 @@
                     <h4 class="tile-title">💰 Total Extracted</h4>
                     <div class="stat-value" id="total-pot-extracted">$0</div>
                     <div class="stat-label">Cumulative Pot Size</div>
+                </div>
+            </div>
+
+            <!-- Hand History Viewer (FULL WIDTH) -->
+            <div class="liquid-glass-tile analysis-history-tile">
+                <div class="tile-content">
+                    <h3 class="tile-title">📖 Hand History</h3>
+                    <p class="tile-description">Review your past hands with advanced filters</p>
+                    
+                    <!-- Filters -->
+                    <div class="history-filters">
+                        <div class="filter-row">
+                            <label>Date Range:</label>
+                            <input type="date" id="filter-start-date" class="filter-input">
+                            <span>to</span>
+                            <input type="date" id="filter-end-date" class="filter-input">
+                        </div>
+                        
+                        <div class="filter-row">
+                            <label>Room:</label>
+                            <select id="filter-room" class="filter-input">
+                                <option value="">All Rooms</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-row">
+                            <label>Hand Rank:</label>
+                            <select id="filter-hand-rank" class="filter-input">
+                                <option value="">All</option>
+                                <option value="1">Royal Flush</option>
+                                <option value="2">Straight Flush</option>
+                                <option value="3">Four of a Kind</option>
+                                <option value="4">Full House</option>
+                                <option value="5">Flush</option>
+                                <option value="6">Straight</option>
+                                <option value="7">Three of a Kind</option>
+                                <option value="8">Two Pair</option>
+                                <option value="9">Pair</option>
+                                <option value="10">High Card</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-buttons">
+                            <button onclick="applyHandHistoryFilters()" class="btn-primary">Apply Filters</button>
+                            <button onclick="clearHandHistoryFilters()" class="btn-secondary">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Hand List -->
+                    <div id="hand-history-list" class="hand-history-container">
+                        <p class="text-muted">Loading hands...</p>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div id="history-pagination" class="pagination-controls">
+                        <button onclick="loadPreviousPage()" id="btn-prev" disabled>← Previous</button>
+                        <span id="page-info">Page 1</span>
+                        <button onclick="loadNextPage()" id="btn-next">Next →</button>
+                    </div>
                 </div>
             </div>
 
