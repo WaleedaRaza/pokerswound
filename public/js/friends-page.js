@@ -162,7 +162,10 @@ function renderFriendsList(container) {
             <div class="friend-display-name">${friend.display_name || 'Player'}</div>
           </div>
           <div class="friend-actions">
-            <button onclick="inviteToGame('${friend.id}')" class="btn btn-sm btn-primary">
+            <button onclick="window.openPlayerProfile('${friend.id}')" class="btn btn-sm btn-primary">
+              👤 Profile
+            </button>
+            <button onclick="inviteToGame('${friend.id}')" class="btn btn-sm btn-success">
               🎮 Invite
             </button>
             <button onclick="removeFriend('${friend.id}')" class="btn btn-sm btn-danger">
@@ -402,9 +405,100 @@ async function removeFriend(friendId) {
   }
 }
 
-function inviteToGame(friendId) {
-  // TODO: Implement game invite system (Task #11)
-  showNotification('info', 'Game invites coming soon!');
+async function inviteToGame(friendId) {
+  try {
+    // Get user's active rooms
+    const token = await window.authManager.getAccessToken();
+    const roomsResponse = await fetch('/api/rooms/my-rooms', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!roomsResponse.ok) {
+      throw new Error('Failed to load rooms');
+    }
+    
+    const roomsData = await roomsResponse.json();
+    const rooms = roomsData.rooms || [];
+    
+    if (rooms.length === 0) {
+      showNotification('info', 'Create a room first, then invite your friend!');
+      return;
+    }
+    
+    // Show invite modal
+    const friend = friendsData.friends.find(f => f.id === friendId);
+    const modal = document.createElement('div');
+    modal.id = 'inviteGameModal';
+    modal.className = 'social-modal-overlay';
+    
+    modal.innerHTML = `
+      <div class="social-modal">
+        <div class="social-modal-header">
+          <h2>🎮 Invite ${friend?.username || 'Friend'} to Game</h2>
+          <button onclick="closeInviteGameModal()" class="close-btn">×</button>
+        </div>
+        
+        <div class="social-modal-body">
+          <p>Select a room to invite your friend to:</p>
+          
+          <div class="rooms-list">
+            ${rooms.map(room => `
+              <div class="room-invite-card" onclick="sendGameInvite('${friendId}', '${room.id}', '${room.name}')">
+                <div class="room-invite-name">${room.name}</div>
+                <div class="room-invite-details">
+                  ${room.player_count || 0}/${room.max_players || 8} players • 
+                  ${room.game_format || 'Private Room'}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div class="social-modal-actions">
+          <button onclick="closeInviteGameModal()" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+  } catch (error) {
+    console.error('Error opening invite modal:', error);
+    showNotification('error', 'Failed to load rooms');
+  }
+}
+
+function closeInviteGameModal() {
+  const modal = document.getElementById('inviteGameModal');
+  if (modal) modal.remove();
+}
+
+async function sendGameInvite(friendId, roomId, roomName) {
+  try {
+    const token = await window.authManager.getAccessToken();
+    const response = await fetch(`/api/rooms/${roomId}/invite`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ friendId })
+    });
+    
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to send invite');
+    }
+    
+    showNotification('success', `Invite sent to ${roomName}!`);
+    closeInviteGameModal();
+    
+  } catch (error) {
+    console.error('Error sending game invite:', error);
+    showNotification('error', error.message || 'Failed to send invite');
+  }
 }
 
 // ============================================
