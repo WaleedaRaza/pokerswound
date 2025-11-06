@@ -1,0 +1,128 @@
+/* ANALYTICS LIVE DATA OBSERVATORY STYLES */
+
+.status-live {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+.status-disconnected {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.data-feed-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.data-event {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid #10b981;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.data-event:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.extraction-event {
+  border-left-color: #10b981;
+}
+
+.hand-complete-event {
+  border-left-color: #3b82f6;
+}
+
+.event-time {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.event-details {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.event-details strong {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.event-status {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.hand-complete-event .event-status {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+/* Stat tiles styling */
+.analysis-stat-tile .stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #10b981;
+  margin: 1rem 0 0.5rem 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.analysis-stat-tile .stat-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Auto-scroll indicator */
+.data-feed-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.data-feed-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.data-feed-container::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.5);
+  border-radius: 4px;
+}
+
+.data-feed-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.7);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .data-feed-container {
+    max-height: 300px;
+  }
+  
+  .analysis-stat-tile .stat-value {
+    font-size: 2rem;
+  }
+}
+

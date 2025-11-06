@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/pokergeek.css">
+    <link rel="stylesheet" href="/css/analytics-live.css">
     
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,6 +15,12 @@
     <script src="/js/auth-manager.js"></script>
     <script src="/js/nav-shared.js"></script>
     <script src="/js/navbar-template.js"></script>
+    
+    <!-- Socket.IO for live data -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Analytics Live Data Service -->
+    <script src="/js/analytics-live.js"></script>
     
     <!-- SVG Filter for Liquid Glass Effect -->
     <svg width="0" height="0" class="svg-filter">
@@ -37,19 +44,21 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="page-header">
-            <h1 class="page-title">Analysis & Data</h1>
-            <p class="page-subtitle">Comprehensive performance analytics, hand history analysis, and detailed statistics to improve your game</p>
-            <div class="status-badge coming-soon">📊 Coming Soon</div>
+            <h1 class="page-title">Analysis & Data Observatory</h1>
+            <p class="page-subtitle">Real-time data extraction monitoring and hand history analysis</p>
+            <div id="connection-status" class="status-badge status-disconnected">🔴 Disconnected</div>
         </div>
         
         <!-- Analysis content using diverse liquid glass tile layouts -->
         <div class="analysis-grid">
-            <!-- Large main tile -->
+            <!-- Live Data Feed -->
             <div class="liquid-glass-tile analysis-main-tile">
                 <div class="tile-content">
-                    <h3 class="tile-title">📊 Analysis Dashboard</h3>
-                    <p class="tile-description">Comprehensive performance analytics and data visualization tools</p>
-                    <div class="coming-soon-badge">Coming Soon</div>
+                    <h3 class="tile-title">🔴 LIVE DATA STREAM</h3>
+                    <p class="tile-description">Real-time data extraction events from active games</p>
+                    <div id="live-data-feed" class="data-feed-container">
+                        <p class="text-muted">Waiting for hand completions...</p>
+                    </div>
                 </div>
             </div>
 
@@ -573,6 +582,12 @@
             console.log('📊 Analysis page initializing...');
             currentUser = await initializeAuth();
             console.log('✅ Analysis page loaded with user:', currentUser);
+            
+            // Connect to live data stream
+            if (window.analyticsService) {
+                window.analyticsService.connect();
+                console.log('📊 Analytics Observatory initialized');
+            }
         });
     </script>
 

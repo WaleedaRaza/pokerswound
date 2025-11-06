@@ -837,8 +837,43 @@ router.post('/action', async (req, res) => {
         
         console.log('📊 [MINIMAL] Data extraction complete - triggers will sync to user_profiles');
         
+        // ===== EMIT DATA EXTRACTION EVENT FOR ANALYTICS =====
+        const io = req.app.locals.io;
+        if (io && roomId) {
+          io.to(`room:${roomId}`).emit('data_extracted', {
+            type: 'hand_extraction',
+            timestamp: Date.now(),
+            data: {
+              roomId,
+              handNumber: updatedState.handNumber,
+              pot: potSize,
+              winner: winnerId ? {
+                userId: winnerId,
+                hand: winningHand,
+                rank: handRank
+              } : null,
+              players: playerIds,
+              board: updatedState.communityCards,
+              extractionTime: Date.now() - (updatedState.handStartTime || Date.now())
+            }
+          });
+          
+          console.log('📡 [ANALYTICS] Emitted data_extracted event to room');
+        }
+        
       } catch (extractionError) {
         console.error('❌ [MINIMAL] Data extraction failed (non-critical):', extractionError.message);
+        
+        // Emit failure event
+        const io = req.app.locals.io;
+        if (io && roomId) {
+          io.to(`room:${roomId}`).emit('data_extraction_failed', {
+            type: 'extraction_error',
+            timestamp: Date.now(),
+            error: extractionError.message
+          });
+        }
+        
         // Don't fail the request - chips already updated
       }
       

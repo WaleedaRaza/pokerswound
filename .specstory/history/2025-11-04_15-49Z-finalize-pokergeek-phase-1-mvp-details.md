@@ -38824,17 +38824,446 @@ Lets proceduralize, and begin itertive execution, sweeping changes arent best he
 
 _**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
 
+<think><details><summary>Thought Process</summary>
+Perfect - the user wants to proceduralize and do iterative execution. They're right - sweeping changes aren't best. Let me break this down into small, concrete steps and execute them one by one.
 
+Let me create a clear procedure document and start with the most critical fixes first:
+
+1. Fix the biggest_pot extraction issue (finalPotSize)
+2. Run Migration 15
+3. Test current state
+4. Then move to analytics observatory (Phase 1 only)
+
+Let me start with creating a clear procedure document and then execute step by step.</details></think>
 
 ---
 
+# 🎯 **ITERATIVE EXECUTION - PROCEDURALIZED PLAN**
 
+Let me break this into **small, testable steps** and execute them one at a time.
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/EXECUTION_PLAN.md</summary>
+
+**Chunk 1**
+Lines added: 82, lines removed: 1
+
+```diff
+@@ -1,1 +1,82 @@
+- 
++ # 🎯 EXECUTION PLAN - Data Tracking Completion
++ 
++ **Status:** In Progress  
++ **Goal:** Fix stats display + build Analytics Observatory  
++ **Approach:** Small iterative steps with testing between each
++ 
++ ---
++ 
++ ## ✅ **PHASE 0: Critical Fixes** (NOW)
++ 
++ ### **Step 0.1: Fix biggest_pot extraction** 🔥
++ - [ ] Add &#96;finalPotSize&#96; capture in minimal-engine-bridge.js
++ - [ ] Update extraction to use &#96;finalPotSize&#96; in game-engine-bridge.js
++ - [ ] Test: Verify pot is captured before zeroing
++ 
++ ### **Step 0.2: Run Migration 15** 🔥
++ - [ ] Execute Migration 15 in Supabase (merge columns)
++ - [ ] Verify: Check only &#96;biggest_pot&#96; exists
++ - [ ] Test: Query user_profiles for biggest_pot column
++ 
++ ### **Step 0.3: Restart &amp; Test Stats** 🔥
++ - [ ] Restart server
++ - [ ] Play 1 hand to completion
++ - [ ] Verify: All stats update (hands, wins, win_rate, biggest_pot, rooms_played, best_hand)
++ - [ ] Check server logs for data extraction
++ 
++ ---
++ 
++ ## ✅ **PHASE 1: Analytics Observatory** (NEXT)
++ 
++ ### **Step 1.1: Add data extraction event emission**
++ - [ ] Add WebSocket emit in game-engine-bridge.js after data extraction
++ - [ ] Include: pot, winner, hand, extraction time
++ - [ ] Test: Check socket event fires
++ 
++ ### **Step 1.2: Create analytics live data service**
++ - [ ] Create public/js/analytics-live.js
++ - [ ] Connect to WebSocket
++ - [ ] Listen for data_extracted events
++ - [ ] Store in local array
++ 
++ ### **Step 1.3: Update Analytics page (minimal)**
++ - [ ] Add live data feed container
++ - [ ] Add health metrics display
++ - [ ] Initialize service on page load
++ - [ ] Test: Open Analytics page, play hand, see update
++ 
++ ### **Step 1.4: Style &amp; Polish**
++ - [ ] Add CSS for data feed items
++ - [ ] Add auto-scroll for new events
++ - [ ] Add timestamp formatting
++ - [ ] Test: Visual appearance
++ 
++ ---
++ 
++ ## ✅ **PHASE 2: Hand History Display** (FUTURE)
++ 
++ - [ ] Query hand_history table via API
++ - [ ] Display in table format
++ - [ ] Add pagination
++ - [ ] Test: Load history on page open
++ 
++ ---
++ 
++ ## 🎯 **SUCCESS CRITERIA PER PHASE:**
++ 
++ ### **Phase 0:**
++ - ✅ Profile modal shows biggest_pot &gt; $0
++ - ✅ Profile modal shows rooms_played &gt; 0
++ - ✅ All 6 stats updating correctly
++ - ✅ No errors in console or logs
++ 
++ ### **Phase 1:**
++ - ✅ Analytics page shows live data feed
++ - ✅ New hands appear automatically
++ - ✅ Health metrics update
++ - ✅ No performance issues
++ 
++ ---
++ 
++ **Current Step:** 0.1 (Fix biggest_pot extraction)
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Fix biggest_pot extraction (add finalPotSize)
+- [ ] Run Migration 15 in Supabase
+- [ ] Restart server and test all stats
+- [ ] Add data extraction WebSocket event
+- [ ] Create analytics-live.js service
+- [ ] Update Analytics page with live feed
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Good, I've created the execution plan and todos. Now let me start with Step 0.1 - fixing the biggest_pot extraction by capturing finalPotSize before the pot is zeroed.</details></think>
+
+---
+
+---
+
+# ✅ **STEP 0.1: Fix biggest_pot Extraction**
+
+Starting with the critical fix - capture pot before it's zeroed.
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/src/adapters/minimal-engine-bridge.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/src/adapters/minimal-engine-bridge.js</summary>
+
+**Chunk 1**
+Lines added: 3, lines removed: undefined
+
+```diff
+@@ -448,4 +448,7 @@
+        console.log(&#96;   ${w.player.userId.substr(0, 8)} (Seat ${w.player.seatIndex}): ${w.description}&#96;);
+      });
++     
++     // ✅ CAPTURE POT BEFORE DISTRIBUTION (for data extraction)
++     const finalPotSize = gameState.pot;
+      
+      // Split pot among winners
+```
+
+**Chunk 2**
+Lines added: 5, lines removed: undefined
+
+```diff
+@@ -463,5 +466,10 @@
+      });
+      
++     // Zero pot after distribution
+      gameState.pot = 0;
++     
++     // ✅ STORE FINAL POT SIZE FOR EXTRACTION
++     gameState.finalPotSize = finalPotSize;
++     
+      gameState.status = &#39;COMPLETED&#39;;
+      
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Good! Now I need to update the extraction code in routes/game-engine-bridge.js to use finalPotSize instead of pot</details></think>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/routes/game-engine-bridge.js</summary>
+
+**Chunk 1**
+Lines added: 3, lines removed: undefined
+
+```diff
+@@ -774,4 +774,7 @@
+          // Extract all player IDs
+          const playerIds = updatedState.players.map(p =&gt; p.userId);
++         
++         // ✅ USE FINAL POT SIZE (captured before zeroing)
++         const potSize = updatedState.finalPotSize || updatedState.pot || 0;
+          
+          // 1. INSERT HAND_HISTORY (with ALL required fields)
+```
+
+**Chunk 2**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -787,5 +790,5 @@
+              roomId,
+              updatedState.handNumber || 1,
+-             updatedState.pot || 0,
++             potSize,     // ✅ FIXED: Use finalPotSize captured before zeroing
+              playerIds,  // ✅ NEW: Array of UUIDs
+              winnerId,   // ✅ NEW: Winner UUID for trigger
+```
+
+**Chunk 3**
+Lines added: 1, lines removed: 2
+
+```diff
+@@ -798,9 +801,8 @@
+          
+          console.log(&#96;   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}&#96;);
+-         console.log(&#96;      Winner: ${winnerId ? winnerId.substr(0, 8) : &#39;none&#39;} | Hand: ${winningHand || &#39;none&#39;} | Rank: ${handRank}&#96;);
++         console.log(&#96;      Winner: ${winnerId ? winnerId.substr(0, 8) : &#39;none&#39;} | Hand: ${winningHand || &#39;none&#39;} | Rank: ${handRank} | Pot: $${potSize}&#96;);
+          
+          // 2. UPDATE PLAYER_STATISTICS
+          const winnerIds = new Set((updatedState.winners || []).map(w =&gt; w.userId));
+-         const potSize = updatedState.pot || 0;
+          
+          for (const player of updatedState.players) {
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="bash" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **command** • Run command: cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "✅ Step 0.1: Fix biggest_pot extraction - capture finalPotSize before pot is zeroed"</summary>
+
+```bash
+cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "✅ Step 0.1: Fix biggest_pot extraction - capture finalPotSize before pot is zeroed"
+```
+
+```
+[main 88ad115] ✅ Step 0.1: Fix biggest_pot extraction - capture finalPotSize before pot is zeroed
+ 5 files changed, 2330 insertions(+), 18 deletions(-)
+ create mode 100644 EXECUTION_PLAN.md
+
+```
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] Fix biggest_pot extraction (add finalPotSize)
+- [ ] Run Migration 15 in Supabase
+- [ ] Restart server and test all stats
+- [ ] Add data extraction WebSocket event
+- [ ] Create analytics-live.js service
+- [ ] Update Analytics page with live feed
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Perfect! Step 0.1 is complete. Now I need to guide the user to run Migration 15, then restart and test. Let me create a summary of what's done and what's next.</details></think>
+
+---
+
+---
+
+# ✅ **STEP 0.1 COMPLETE!**
+
+## 🎯 **What Was Fixed:**
+
+**Problem:** Pot was being zeroed before extraction  
+**Solution:** Capture `finalPotSize` BEFORE zeroing
+
+**Changed Files:**
+1. `src/adapters/minimal-engine-bridge.js` - Capture pot before zeroing, store in `gameState.finalPotSize`
+2. `routes/game-engine-bridge.js` - Use `finalPotSize` for extraction
+
+**New Console Log:**
+```
+✅ hand_history insert: [uuid]
+   Winner: [userId] | Hand: Pair (8s) | Rank: 9 | Pot: $40  ← NOW SHOWS ACTUAL POT!
+```
+
+---
+
+## 🔥 **NEXT STEP: 0.2 - Run Migration 15**
+
+**You need to do this manually in Supabase:**
+
+```sql
+-- Open Supabase SQL Editor
+-- Paste the contents of: migrations/15_fix_biggest_pot_column_name.sql
+-- Click "Run"
+```
+
+**Expected Output:**
+```
+Column status: biggest_pot_won=true, biggest_pot=true
+✅ Merged biggest_pot_won into biggest_pot and dropped old column
+✅ Verification: biggest_pot column exists
+✅ Migration 15 complete
+```
+
+**This will:**
+- Detect both columns exist
+- Copy max value to `biggest_pot`
+- Drop `biggest_pot_won`
+- Leave single clean `biggest_pot` column
+
+---
+
+## 📋 **THEN: Step 0.3 - Test**
+
+After Migration 15:
+
+```bash
+# Restart server
+Ctrl+C
+npm start
+
+# Then test:
+# 1. Create Private Room
+# 2. Play 1 hand to showdown
+# 3. Open profile modal
+# 4. Verify ALL stats:
+#    ✅ Hands Played: [incrementing]
+#    ✅ Rooms Played: [count]
+#    ✅ Total Wins: [incrementing]
+#    ✅ Win Rate: [calculating]
+#    ✅ Biggest Pot: $[ACTUAL AMOUNT] ← SHOULD BE > $0 NOW!
+#    ✅ Best Hand: [hand description]
+```
+
+---
+
+## 📊 **PROGRESS:**
+
+```
+Phase 0: Critical Fixes
+├─ ✅ 0.1: Fix biggest_pot extraction
+├─ 🔥 0.2: Run Migration 15 (YOU DO THIS NOW)
+└─ ⏳ 0.3: Restart & Test
+
+Phase 1: Analytics Observatory
+├─ ⏳ 1.1: Add WebSocket events
+├─ ⏳ 1.2: Create analytics service
+└─ ⏳ 1.3: Update Analytics page
+```
+
+---
+
+**Run Migration 15 now, then let me know the result!** 🚀
+
+---
+
+_**User (2025-11-06 04:42Z)**_
+
+Okay well I want to get fucking started and push forward you should understand what i want in terms of data flow and serialization, and the translation of that and the loop
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user wants me to push forward aggressively. They're frustrated with the pace and want me to just execute on the data flow, serialization, and analytics observatory without waiting. They understand the vision - they want:
+
+1. Data extraction working (biggest_pot fix)
+2. Analytics page showing live data flow
+3. Serialization visible
+4. The full loop closed
+
+They're saying "get fucking started" - so I should:
+- Execute steps 0.2, 0.3 (guide them through)
+- Then immediately move to Phase 1 (Analytics Observatory)
+- Don't wait for permission, just build it
+- Show the data flow in action
+
+Let me execute Phase 1 in parallel while they handle migrations.</details></think>
+
+---
+
+# 🔥 **LET'S FUCKING GO - FULL EXECUTION NOW**
+
+I understand - you want the **complete data loop visible**. Let me build it ALL now while you run the migration.
 
 ---
 
 <tool-use data-tool-type="unknown" data-tool-name="write">
 <details>
 <summary>Tool use: **write**</summary>
+
+
+Parameters:
+
+```json
+{
+  &quot;relativeWorkspacePath&quot;: &quot;/Users/waleedraza/Desktop/PokerGeek/public/js/analytics-live.js&quot;,
+  &quot;code&quot;: {
+    &quot;code&quot;: &quot;/**\n * ANALYTICS LIVE DATA SERVICE\n * Real-time data extraction observatory\n */\n\nclass AnalyticsDataService {\n  constructor() {\n    this.socket = null;\n    this.data&quot;
+  }
+}
+```
+Additional data:
+
+```json
+{
+  &quot;codeblockId&quot;: &quot;673b1d0d-9cb4-4c52-9059-3635e9c8c9c1&quot;
+}
+```
+User decision: **accepted**
 
 Status: **loading**
 
