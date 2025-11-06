@@ -204,3 +204,4 @@ Profile modal shows live stats ✅
 
 **Ready to test?** Follow `TEST_HAND_TRACKING.md` step-by-step. 🚀
 
+

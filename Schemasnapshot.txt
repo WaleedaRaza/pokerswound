@@ -210,6 +210,17 @@ CREATE TABLE public.event_snapshots (
   snapshot_reason character varying,
   CONSTRAINT event_snapshots_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.friend_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  sender_id uuid NOT NULL,
+  receiver_id uuid NOT NULL,
+  status character varying DEFAULT 'pending'::character varying CHECK (status::text = ANY (ARRAY['pending'::character varying, 'accepted'::character varying, 'rejected'::character varying]::text[])),
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT friend_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT friend_requests_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT friend_requests_receiver_id_fkey FOREIGN KEY (receiver_id) REFERENCES public.user_profiles(id)
+);
 CREATE TABLE public.friendships (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   requester_id uuid NOT NULL,
@@ -218,6 +229,26 @@ CREATE TABLE public.friendships (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT friendships_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.game_completions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  game_id text NOT NULL UNIQUE,
+  room_id uuid NOT NULL,
+  started_at timestamp without time zone NOT NULL,
+  completed_at timestamp without time zone NOT NULL DEFAULT now(),
+  duration_seconds integer,
+  host_user_id uuid,
+  total_hands_played integer NOT NULL DEFAULT 0,
+  total_pot_size bigint DEFAULT 0,
+  player_ids ARRAY NOT NULL,
+  player_count integer,
+  winner_user_id uuid,
+  winning_amount bigint,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT game_completions_pkey PRIMARY KEY (id),
+  CONSTRAINT game_completions_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id),
+  CONSTRAINT game_completions_host_user_id_fkey FOREIGN KEY (host_user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT game_completions_winner_user_id_fkey FOREIGN KEY (winner_user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.game_states (
   id text NOT NULL,
@@ -367,6 +398,18 @@ CREATE TABLE public.moderation_queue (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT moderation_queue_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.notifications (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['friend_request'::character varying, 'friend_accepted'::character varying, 'game_invite'::character varying, 'game_started'::character varying, 'achievement'::character varying, 'system'::character varying]::text[])),
+  title character varying NOT NULL,
+  message text,
+  action_url text,
+  is_read boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.player_achievements (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -585,6 +628,22 @@ CREATE TABLE public.role_permissions (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT role_permissions_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.room_participations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  room_id uuid NOT NULL,
+  joined_at timestamp without time zone NOT NULL DEFAULT now(),
+  left_at timestamp without time zone,
+  was_host boolean DEFAULT false,
+  hands_played integer DEFAULT 0,
+  games_completed integer DEFAULT 0,
+  total_winnings bigint DEFAULT 0,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT room_participations_pkey PRIMARY KEY (id),
+  CONSTRAINT room_participations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT room_participations_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
+);
 CREATE TABLE public.room_players (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   room_id uuid NOT NULL,
@@ -641,7 +700,6 @@ CREATE TABLE public.rooms (
   auto_muck_losing_hands boolean DEFAULT true,
   allow_rabbit_hunting boolean DEFAULT false,
   allow_spectators boolean DEFAULT true,
-  status character varying DEFAULT 'WAITING'::character varying CHECK (status::text = ANY (ARRAY['WAITING'::character varying, 'ACTIVE'::character varying, 'PAUSED'::character varying, 'CLOSED'::character varying]::text[])),
   current_game_id uuid,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
@@ -766,7 +824,24 @@ CREATE TABLE public.user_profiles (
   username_changed_at timestamp with time zone,
   username_change_count integer DEFAULT 0,
   max_username_changes integer DEFAULT 3,
-  CONSTRAINT user_profiles_pkey PRIMARY KEY (id)
+  username_set_at timestamp without time zone,
+  total_hands_played integer DEFAULT 0,
+  best_hand_rank character varying,
+  best_hand_cards text,
+  total_wins integer DEFAULT 0,
+  biggest_pot_won bigint DEFAULT 0,
+  win_rate numeric DEFAULT 0.00,
+  currently_in_room_id uuid,
+  current_game_id text,
+  is_playing boolean DEFAULT false,
+  current_seat_index integer,
+  last_active_at timestamp without time zone DEFAULT now(),
+  total_rooms_created integer DEFAULT 0,
+  total_rooms_joined integer DEFAULT 0,
+  total_games_started integer DEFAULT 0,
+  total_games_completed integer DEFAULT 0,
+  CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_profiles_currently_in_room_id_fkey FOREIGN KEY (currently_in_room_id) REFERENCES public.rooms(id)
 );
 CREATE TABLE public.user_reports (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
