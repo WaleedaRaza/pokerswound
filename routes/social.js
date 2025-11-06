@@ -56,21 +56,20 @@ router.post('/username/check', requireAuth, async (req, res) => {
       });
     }
 
-    // Check availability in database using PostgreSQL
-    const getDb = req.app.locals.getDb;
-    const db = getDb();
-    
-    if (!db) {
-      return res.status(500).json({ error: 'Database not configured' });
-    }
-    
-    // Check if username exists (excluding current user)
-    const result = await db.query(
-      'SELECT id FROM user_profiles WHERE LOWER(username) = LOWER($1) AND id != $2',
-      [username, currentUserId]
-    );
+    // ✅ Use Supabase (service role bypasses RLS)
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .ilike('username', username)  // Case-insensitive
+      .neq('id', currentUserId)  // Exclude current user
+      .maybeSingle();
 
-    const available = result.rowCount === 0;
+    if (error) {
+      console.error('Error checking username:', error);
+      throw error;
+    }
+
+    const available = !data;
     res.json({ available, username });
   } catch (error) {
     console.error('Error checking username:', error);
