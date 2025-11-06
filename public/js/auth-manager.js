@@ -28,7 +28,7 @@ class AuthManager {
       
       if (session && session.user) {
         console.log('✅ AuthManager: Found Supabase session');
-        this.user = this.normalizeUser(session.user, 'google');
+        this.user = await this.normalizeUser(session.user, 'google');
         this.saveToCache();
         
         // Sync to backend (non-blocking)
@@ -75,15 +75,33 @@ class AuthManager {
 
   /**
    * Normalize user data to consistent structure
+   * ✅ FIXED: Now fetches username from database for persistence
    * @param {Object} supabaseUser - Supabase user object
    * @param {string} provider - Auth provider ('google', 'guest', 'anonymous')
-   * @returns {Object} Normalized user object
+   * @returns {Promise<Object>} Normalized user object
    */
-  normalizeUser(supabaseUser, provider) {
+  async normalizeUser(supabaseUser, provider) {
     const email = supabaseUser.email || null;
-    const username = email 
+    let username = email 
       ? email.split('@')[0] 
       : `Guest_${supabaseUser.id.substring(0, 6)}`;
+    
+    // ✅ Fetch actual username from database (for non-guests)
+    const isGuest = provider === 'guest' || provider === 'anonymous';
+    if (!isGuest) {
+      try {
+        const response = await fetch(`/api/auth/profile/${supabaseUser.id}`);
+        if (response.ok) {
+          const profile = await response.json();
+          if (profile.username) {
+            username = profile.username;
+            console.log(`✅ AuthManager: Loaded username from DB: ${username}`);
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ AuthManager: Failed to load username from DB, using fallback:', error);
+      }
+    }
     
     return {
       id: supabaseUser.id,
@@ -91,7 +109,7 @@ class AuthManager {
       username: username,
       avatar: provider === 'google' ? '👤' : '👻',
       provider: provider,
-      isGuest: provider === 'guest' || provider === 'anonymous',
+      isGuest: isGuest,
       isAnonymous: provider === 'anonymous'
     };
   }

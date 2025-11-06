@@ -420,6 +420,14 @@ async function submitUsernameChange() {
     const changesMsg = data.changes_remaining !== undefined 
       ? ` (${data.changes_remaining} changes remaining)` 
       : '';
+    
+    // ✅ Update AuthManager cache IMMEDIATELY
+    if (window.authManager && window.authManager.user) {
+      window.authManager.user.username = username;
+      window.authManager.saveToCache();
+      console.log('✅ Username updated in AuthManager cache:', username);
+    }
+    
     showNotification('success', `Username changed to @${username}${changesMsg}`);
     closeChangeUsername();
     

@@ -352,6 +352,7 @@ CREATE TABLE public.hand_history (
   hand_rank integer,
   board_cards text,
   actions_log jsonb,
+  encoded_hand text,
   CONSTRAINT hand_history_pkey PRIMARY KEY (id),
   CONSTRAINT hand_history_winner_id_fkey FOREIGN KEY (winner_id) REFERENCES public.user_profiles(id),
   CONSTRAINT hand_history_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
@@ -836,7 +837,6 @@ CREATE TABLE public.user_profiles (
   best_hand_rank integer CHECK (best_hand_rank IS NULL OR best_hand_rank >= 1 AND best_hand_rank <= 10),
   best_hand_cards text,
   total_wins integer DEFAULT 0,
-  biggest_pot_won bigint DEFAULT 0,
   win_rate numeric DEFAULT 0.00,
   currently_in_room_id uuid,
   current_game_id text,

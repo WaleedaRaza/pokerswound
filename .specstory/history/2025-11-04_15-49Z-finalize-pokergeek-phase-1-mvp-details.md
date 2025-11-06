@@ -43275,29 +43275,2991 @@ Lines added: 5, lines removed: 2
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="search_replace">
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/routes/auth.js</summary>
+
+**Chunk 1**
+Lines added: 2, lines removed: 2
+
+```diff
+@@ -56,9 +56,9 @@
+      // Skip syncing guest users
+      if (isGuest) {
+-       console.log(&#39;ℹ️ Skipping sync for guest user:&#39;, username);
++       console.log(&#39;ℹ️ Skipping sync for guest user:&#39;, finalUsername);
+        return res.json({ 
+          success: true, 
+          message: &#39;Guest user - no sync needed&#39;,
+-         user: { id, username, isGuest: true }
++         user: { id, username: finalUsername, isGuest: true }
+        });
+      }
+```
+
+**Chunk 2**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -68,5 +68,5 @@
+      if (!db) return res.status(500).json({ error: &#39;Database not configured&#39; });
+      
+-     console.log(&#39;🔄 Syncing user to backend:&#39;, { id, email, username, provider });
++     console.log(&#39;🔄 Syncing user to backend:&#39;, { id, email, username: finalUsername, provider });
+      
+      // Check if user profile exists
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/routes/auth.js</summary>
+
+**Chunk 1**
+Lines added: 14, lines removed: 10
+
+```diff
+@@ -82,16 +82,20 @@
+           VALUES ($1, $2, $3, NOW())
+           ON CONFLICT (id) DO NOTHING&#96;,
+-         [id, username, username]
++         [id, finalUsername, finalUsername]
+        );
+-       console.log(&#39;✅ Created new user profile:&#39;, username);
++       console.log(&#39;✅ Created new user profile:&#39;, finalUsername);
+      } else {
+-       // Update existing profile if needed
+-       await db.query(
+-         &#96;UPDATE user_profiles 
+-          SET username = $2, display_name = $3, updated_at = NOW()
+-          WHERE id = $1&#96;,
+-         [id, username, username]
+-       );
+-       console.log(&#39;✅ Updated existing user profile:&#39;, username);
++       // Update existing profile if needed (only if username provided)
++       if (username) {
++         await db.query(
++           &#96;UPDATE user_profiles 
++            SET username = $2, display_name = $3, updated_at = NOW()
++            WHERE id = $1&#96;,
++           [id, finalUsername, finalUsername]
++         );
++         console.log(&#39;✅ Updated existing user profile:&#39;, finalUsername);
++       } else {
++         console.log(&#39;ℹ️ User profile exists, no username update needed&#39;);
++       }
+      }
+      
+```
+
+**Chunk 2**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -100,5 +104,5 @@
+        user: {
+          id,
+-         username,
++         username: finalUsername,
+          email: email || &#39;&#39;,
+          provider: provider || &#39;google&#39;
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/public/js/social-modals.js</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -235,5 +235,5 @@
+              
+              &lt;div class=&quot;stat-card&quot;&gt;
+-               &lt;div class=&quot;stat-value&quot;&gt;${(profile.win_rate ?? 0).toFixed(1)}%&lt;/div&gt;
++               &lt;div class=&quot;stat-value&quot;&gt;${parseFloat(profile.win_rate || 0).toFixed(1)}%&lt;/div&gt;
+                &lt;div class=&quot;stat-label&quot;&gt;Win Rate&lt;/div&gt;
+              &lt;/div&gt;
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="write">
+
+<details><summary>Tool use: **code_edit** • Edit file: /Users/waleedraza/Desktop/PokerGeek/WIPE_LEGACY_DATA.sql</summary>
+
+**Chunk 1**
+Lines added: 43, lines removed: 1
+
+```diff
+@@ -1,1 +1,43 @@
+- 
++ -- ============================================
++ -- WIPE LEGACY DATA - START FRESH
++ -- Run this in Supabase SQL Editor
++ -- ============================================
++ 
++ -- SAFETY CHECK: Confirm you want to wipe
++ DO $$
++ BEGIN
++   RAISE NOTICE &#39;⚠️ About to wipe all game data and reset stats!&#39;;
++   RAISE NOTICE &#39;Press CANCEL if you want to keep legacy data&#39;;
++   RAISE NOTICE &#39;Press RUN to start fresh (recommended for testing)&#39;;
++ END $$;
++ 
++ -- STEP 1: Wipe all game history tables
++ TRUNCATE TABLE hand_history CASCADE;
++ TRUNCATE TABLE room_participations CASCADE;
++ TRUNCATE TABLE game_completions CASCADE;
++ TRUNCATE TABLE player_statistics CASCADE;
++ 
++ -- STEP 2: Reset all profile stats to zero
++ UPDATE user_profiles SET
++   total_hands_played = 0,
++   total_wins = 0,
++   win_rate = 0,
++   total_winnings = 0,
++   biggest_pot = 0,
++   best_hand = NULL,
++   best_hand_date = NULL,
++   best_hand_rank = NULL
++ WHERE id IS NOT NULL;
++ 
++ -- STEP 3: Verify clean slate
++ SELECT 
++   (SELECT COUNT(*) FROM hand_history) as hand_history_count,
++   (SELECT COUNT(*) FROM room_participations) as room_participations_count,
++   (SELECT COUNT(*) FROM game_completions) as game_completions_count,
++   (SELECT COUNT(*) FROM player_statistics) as player_statistics_count,
++   (SELECT COUNT(*) FROM user_profiles WHERE total_hands_played &gt; 0) as users_with_hands;
++ 
++ -- Expected result: All counts should be 0
++ 
++ SELECT &#39;✅ Clean slate ready! Legacy data wiped.&#39; as status;
++ 
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="bash" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **command** • Run command: cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "🐛 FIX: Auth sync + Profile modal + Legacy data wipe
+
+FIXES:
+1. Auth sync 400 error - username now optional
+2. Profile modal crash - parseFloat(win_rate) instead of direct .toFixed()
+3. Add WIPE_LEGACY_DATA.sql for clean slate
+
+REASON:
+- PostgreSQL returns numeric as STRING
+- New users don't have username yet
+- Legacy data lacks encoded_hand, can't show in Analytics
+
+USER SHOULD:
+1. Run WIPE_LEGACY_DATA.sql in Supabase
+2. Restart server
+3. Test fresh (all stats start at 0)"</summary>
+
+```bash
+cd /Users/waleedraza/Desktop/PokerGeek && git add -A && git commit -m "🐛 FIX: Auth sync + Profile modal + Legacy data wipe
+
+FIXES:
+1. Auth sync 400 error - username now optional
+2. Profile modal crash - parseFloat(win_rate) instead of direct .toFixed()
+3. Add WIPE_LEGACY_DATA.sql for clean slate
+
+REASON:
+- PostgreSQL returns numeric as STRING
+- New users don't have username yet
+- Legacy data lacks encoded_hand, can't show in Analytics
+
+USER SHOULD:
+1. Run WIPE_LEGACY_DATA.sql in Supabase
+2. Restart server
+3. Test fresh (all stats start at 0)"
+```
+
+```
+[main 378511f] 🐛 FIX: Auth sync + Profile modal + Legacy data wipe
+ 4 files changed, 2144 insertions(+), 17 deletions(-)
+ create mode 100644 WIPE_LEGACY_DATA.sql
+
+```
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Good! I've fixed all three issues. Now let me create a clear action plan for the user.</details></think>
+
+---
+
+---
+
+# ✅ **ALL BUGS FIXED - ACTION PLAN**
+
+## **🔧 WHAT I FIXED:**
+
+### **1. Auth Sync 400 Error** ✅
+**Problem:** Required `username` field, but new users don't have it yet  
+**Fix:** Username now optional, generates `user_abc12345` fallback
+
+### **2. Profile Modal Crash** ✅
+**Problem:** `win_rate` returned as STRING from PostgreSQL  
+**Fix:** `parseFloat(profile.win_rate || 0).toFixed(1)` - parse before format
+
+### **3. Legacy Data Strategy** ✅
+**Problem:** Old data has no `encoded_hand`, can't show in Analytics  
+**Fix:** Created `WIPE_LEGACY_DATA.sql` for clean slate
+
+---
+
+## **📋 YOUR ACTION PLAN (4 STEPS):**
+
+### **Step 1: Wipe Legacy Data (Supabase SQL Editor)**
+
+1. Open Supabase SQL Editor
+2. Paste contents of `WIPE_LEGACY_DATA.sql`:
+
+```sql
+TRUNCATE TABLE hand_history CASCADE;
+TRUNCATE TABLE room_participations CASCADE;
+TRUNCATE TABLE game_completions CASCADE;
+TRUNCATE TABLE player_statistics CASCADE;
+
+UPDATE user_profiles SET
+  total_hands_played = 0,
+  total_wins = 0,
+  win_rate = 0,
+  total_winnings = 0,
+  biggest_pot = 0,
+  best_hand = NULL,
+  best_hand_date = NULL,
+  best_hand_rank = NULL;
+
+SELECT '✅ Clean slate ready!' as status;
+```
+
+3. Click **RUN**
+4. Expected output: `✅ Clean slate ready!`
+
+---
+
+### **Step 2: Run Migration 16 (Add encoded_hand column)**
+
+While you're in Supabase SQL Editor:
+
+```sql
+ALTER TABLE hand_history
+  ADD COLUMN IF NOT EXISTS encoded_hand TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_hand_history_encoded 
+  ON hand_history(encoded_hand);
+
+SELECT '✅ Migration 16 complete!' as status;
+```
+
+---
+
+### **Step 3: Restart Server**
+
+```bash
+# In terminal (Ctrl+C if running, then):
+npm start
+```
+
+**Expected Console Output:**
+```
+✅ HandEncoder loaded (PHE v1.0)
+🎉 All systems operational!
+```
+
+---
+
+### **Step 4: Test Complete Flow**
+
+1. **Refresh browser** (clear cache if needed)
+2. **Login** - Should see no auth sync errors
+3. **Click Profile Icon** - Modal should open without crash
+4. **Stats should show:**
+   ```
+   Hands Played: 0
+   Rooms Played: 0
+   Total Wins: 0
+   Win Rate: 0.0%
+   Biggest Pot: $0
+   Best Hand: No hands recorded yet
+   ```
+
+5. **Create Private Room**
+6. **Play hand to showdown**
+7. **Check Analytics page** (`/analysis`)
+   - Should see: `🟢 LIVE`
+   - New hand appears in feed
+   - Click "📦 PHE Encoding" to expand
+
+8. **Click Profile again** - Stats should update:
+   ```
+   Hands Played: 1
+   Rooms Played: 1
+   Total Wins: 1 (if you won)
+   Win Rate: 100.0%
+   Biggest Pot: $40 (actual pot amount)
+   Best Hand: Pair (8s) (actual hand)
+   ```
+
+---
+
+## **🎯 WHAT TO EXPECT:**
+
+### **✅ Success Indicators:**
+
+**Console (Server):**
+```
+🔄 Syncing user to backend: { id: '...', username: 'wal33d' }
+✅ Created new user profile: wal33d
+📦 Encoded hand: P0:AhKd|P1:XX|... (85 chars)
+💾 Storage: 85 bytes (89% smaller than JSON)
+📡 [ANALYTICS] Emitted data_extracted event with PHE encoding
+```
+
+**Browser Console:**
+```
+✅ HandEncoder loaded (PHE v1.0)
+📊 Analytics Observatory initialized
+🟢 LIVE (Connected to room:...)
+```
+
+**Analytics Page:**
+```
+🔴 LIVE DATA STREAM
+━━━━━━━━━━━━━━━━━
+[4:36:45 PM] 📊 Hand #1 extracted
+💰 Pot: $40
+🏆 Winner: Pair (8s) [Rank 9]
+⚡ 5ms
+
+📦 PHE Encoding (85 bytes, 89% smaller)
+  Raw: P0:AhKd|P1:XX|B:8s3h2c|W:0|R:9|P:40|A:0R20,1F
+  
+  Decoded:
+  • Seat 0: Ah Kd 🏆
+  • Seat 1: [Mucked]
+  Board: 8s 3h 2c
+```
+
+**Profile Modal:**
+```
+All 6 stats populating ✅
+No .toFixed errors ✅
+Rooms Played shows correct count ✅
+```
+
+---
+
+## **❌ If Issues Persist:**
+
+1. **Auth still fails?**
+   - Check server logs for actual error
+   - Verify DATABASE_URL in `.env`
+
+2. **Profile still crashes?**
+   - Hard refresh browser (Cmd+Shift+R)
+   - Check if `win_rate` column exists in `user_profiles`
+
+3. **Analytics shows 🔴 Disconnected?**
+   - Check Socket.IO connected in browser console
+   - Verify server started without errors
+
+---
+
+## **📊 WHY WIPE LEGACY DATA?**
+
+### **Keeping it would mean:**
+- ❌ Analytics page can't display old hands (no `encoded_hand`)
+- ❌ Stats might be in wrong format (string vs number)
+- ❌ Migration complexity
+- ❌ Debugging confusion (old vs new format)
+
+### **Clean slate means:**
+- ✅ All data in new format from start
+- ✅ Easy to test & verify
+- ✅ No format conversion needed
+- ✅ Clean Analytics display
+
+**You're in early development - this is the RIGHT time to wipe.**
+
+---
+
+## **🚀 READY TO GO:**
+
+1. ✅ Code fixed & committed
+2. ✅ Wipe script ready
+3. ✅ Migration 16 ready
+4. ✅ Testing instructions clear
+
+**Run the 4 steps above and you'll have a clean, working system.** 🎯
+
+---
+
+_**User (2025-11-06 10:25Z)**_
+
+well i am honestly having issues w usernames, accounts ive set them on persist, but after a few session refreshes and cache clears the username is usually gone. i want to understand and address all the cross-funcitonal needs to amke this happen, we are very close, but at this point it can get messier, or eveything can link. we have our data flow of games/hands, its relation to a users profile, the usernames realtion to profile, and friends page relation to username. it is very much all interconnected, not to mention the interonnected nature of our frontend, backend, db, server, auth etc. its going to take a deep push. Its like we are at the 1 yard, we need to resound behind our quarterback for the 1 yard push. holistic strategy and tacitcs are imporetant. dont focus on outputting code, act alsmots as a solutions arhitect
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Ask)**_
+
+<think><details><summary>Thought Process</summary>
+The user is experiencing username persistence issues and wants me to act as a solutions architect, not just output code. They want a holistic understanding of the interconnected system:
+
+1. Username persistence across sessions/refreshes
+2. Cross-functional relationships:
+   - Games/Hands → Profile
+   - Username → Profile
+   - Friends → Username
+3. System layers:
+   - Frontend (auth state)
+   - Backend (API endpoints)
+   - Database (user_profiles)
+   - Server (session management)
+   - Auth (Supabase)
+
+They're at the "1 yard line" - very close but this is where things can get messy. They need a deep, strategic understanding of how all pieces connect.
+
+Let me analyze the system architecture holistically and identify the root causes of username persistence issues.</details></think>
+
+---
+
+# 🏗️ **SOLUTIONS ARCHITECT MODE - THE 1 YARD LINE PUSH**
+
+You're absolutely right. This is the critical moment where **everything either links perfectly or becomes spaghetti**. Let me map the entire system architecture and identify the **username persistence gap**.
+
+---
+
+<tool-use data-tool-type="grep" data-tool-name="grep">
 <details>
-<summary>Tool use: **search_replace**</summary>
+<summary>Tool use: **grep** • Grep for "username" in "/Users/waleedraza/Desktop/PokerGeek/public/js/auth-manager.js" • 0 matches</summary>
+
+Output mode: count
 
 
-Parameters:
 
-```json
-{
-  &quot;relativeWorkspacePath&quot;: &quot;/Users/waleedraza/Desktop/PokerGeek/routes/auth.js&quot;
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "Where is username stored and retrieved in the authentication flow?" • **13** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `src/services/auth/auth-service.ts` | L29-387 |
+| `public/js/auth-manager.js` | L3-400 |
+| `routes/auth.js` | L32-115 |
+| `routes/auth.js` | L118-251 |
+| `routes/auth.js` | L40-157 |
+| `public/js/social-modals.js` | L62-282 |
+| `public/js/social-modals.js` | L559-605 |
+| `routes/rooms.js` | L209-328 |
+| `06_SYSTEM_ARCHITECTURE.md` | L605-708 |
+| `public/js/username-modal.js` | L259-411 |
+| `database/migrations/001_initial_schema.sql` | L55 |
+| `src/routes/auth.ts` | L3-269 |
+| `routes/social.js` | L42-215 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "How does Supabase auth session data relate to user_profiles username?" • **15** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `routes/auth.js` | L32-115 |
+| `database/migrations/010_fix_auth_foreign_keys.sql` | L41-112 |
+| `database/migrations/012_fix_auth_foreign_keys_final.sql` | L112-170 |
+| `routes/auth.js` | L40-157 |
+| `public/js/auth-manager.js` | L3-400 |
+| `database/migrations/011_fix_auth_foreign_keys_safe.sql` | L97-144 |
+| `pokeher/poker-engine/sophisticated-engine-server.js` | L960-1156 |
+| `database/migrations/018a_user_profiles_enhancement.sql` | L55 |
+| `database/migrations/012_fix_auth_foreign_keys_final.sql` | L52-115 |
+| `database/migrations/011_fix_auth_foreign_keys_safe.sql` | L39-100 |
+| `Schemasnapshot.txt` | L803-851 |
+| `database/migrations/001_initial_schema.sql` | L55 |
+| `migrations/02_identity_social_system.sql` | L53 |
+| `routes/social.js` | L42-215 |
+| `database/migrations/001_initial_schema_fixed.sql` | L55 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/public/js/auth-manager.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Now I can see the COMPLETE architecture. Let me map out the username persistence issue:
+
+**THE PROBLEM: Username doesn't persist**
+
+Looking at the code flow:
+
+1. **Supabase Auth** (Source of Truth #1)
+   - Stores user in `auth.users` table
+   - Has `raw_user_meta_data` which MAY contain username
+   - Session persists in browser
+
+2. **Frontend (auth-manager.js)** 
+   - Line 84-86: Normalizes username from email: `email.split('@')[0]`
+   - Line 32: Saves to localStorage cache
+   - BUT: Username comes from Supabase metadata, NOT from user_profiles table!
+
+3. **Backend sync (/api/auth/sync-user)**
+   - Line 54: Falls back to `user_${id.substring(0, 8)}` if no username
+   - Writes to `user_profiles` table
+   - BUT: This doesn't update Supabase metadata!
+
+4. **user_profiles table** (Source of Truth #2)
+   - Has username column
+   - Gets updated when user sets username
+   - BUT: Frontend doesn't read from here on session restore!
+
+**THE GAP:**
+
+There are TWO sources of truth for username:
+1. Supabase auth.users.raw_user_meta_data
+2. PostgreSQL user_profiles.username
+
+They are NOT synced bidirectionally!
+
+**FLOW WHEN USER SETS USERNAME:**
+
+1. User clicks "Change Username" modal
+2. Calls `/api/social/username/change`
+3. Updates `user_profiles.username` ✅
+4. Does NOT update Supabase metadata ❌
+5. On next refresh:
+   - Frontend reads Supabase session
+   - Normalizes username from EMAIL (line 84)
+   - Ignores user_profiles table
+   - Username reverts to email prefix!
+   
+I'll establish a unified username strategy by making user_profiles the definitive source. The key is creating a consistent fetch mechanism that prioritizes the database username over email-derived defaults. This requires modifying the authentication flow to explicitly pull username from the user_profiles table during session initialization, ensuring persistent and user-controlled username representation.</details></think>
+
+---
+
+# 🏗️ **THE USERNAME PERSISTENCE GAP - ARCHITECTURAL ANALYSIS**
+
+I found it. You have a **dual source of truth problem** with username. Let me show you the entire system topology:
+
+---
+
+## **📊 THE CURRENT ARCHITECTURE (BROKEN)**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SUPABASE AUTH                                 │
+│           (Source of Truth #1 - Session)                         │
+├─────────────────────────────────────────────────────────────────┤
+│ Table: auth.users                                                │
+│ ├─ id: UUID                                                      │
+│ ├─ email: user@gmail.com                                         │
+│ ├─ raw_user_meta_data: {                                         │
+│ │    username: "???" ← MAY OR MAY NOT HAVE THIS                 │
+│ │  }                                                              │
+│ └─ Session persists across refreshes ✅                          │
+└─────────────────────────────────────────────────────────────────┘
+            ↓ ON LOGIN (Frontend auth-manager.js line 31)
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│              FRONTEND NORMALIZATION (LINE 84-86)                 │
+├─────────────────────────────────────────────────────────────────┤
+│ username = email.split('@')[0]  ← ALWAYS READS FROM EMAIL!      │
+│                                                                   │
+│ Problem: Ignores user_profiles table entirely                    │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│               LOCALSTORAGE (Temporary Cache)                     │
+├─────────────────────────────────────────────────────────────────┤
+│ { id, email, username: "waleed", ... }                           │
+│                                                                   │
+│ Cleared on: Cache clear, private mode, browser change            │
+└─────────────────────────────────────────────────────────────────┘
+
+            ↓ MEANWHILE, IN PARALLEL...
+            
+┌─────────────────────────────────────────────────────────────────┐
+│                 POSTGRESQL (Source of Truth #2)                  │
+│              (user_profiles table - IGNORED!)                    │
+├─────────────────────────────────────────────────────────────────┤
+│ Table: user_profiles                                             │
+│ ├─ id: UUID                                                      │
+│ ├─ username: "wal33d" ← USER'S CUSTOM USERNAME                  │
+│ ├─ updated_at: 2025-11-06                                        │
+│ └─ This gets updated when user changes username ✅               │
+│                                                                   │
+│ BUT: Frontend NEVER reads from here on session restore! ❌       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## **🔍 THE EXACT PROBLEM**
+
+### **What Happens When User Sets Username:**
+
+```
+Step 1: User logs in with Google
+  ↓
+Supabase session: { email: "waleed@gmail.com" }
+  ↓
+Frontend normalizes: username = "waleed"  (from email split)
+  ↓
+Saved to localStorage
+
+Step 2: User clicks "Change Username" → Sets to "wal33d"
+  ↓
+POST /api/social/username/change
+  ↓
+UPDATE user_profiles SET username = 'wal33d' ✅
+  ↓
+Frontend shows "wal33d" (from API response)
+  ↓
+localStorage updated with "wal33d"
+
+Step 3: User refreshes browser (or clears cache)
+  ↓
+Frontend checkAuth() runs
+  ↓
+Supabase session still: { email: "waleed@gmail.com" }
+  ↓
+normalizeUser() runs (line 84):
+  username = email.split('@')[0]  ← RESETS TO "waleed"!
+  ↓
+localStorage overwritten with "waleed"
+  ↓
+USERNAME LOST ❌
+```
+
+---
+
+## **🎯 THE ROOT CAUSE**
+
+**You have TWO sources of truth that are NOT synced:**
+
+1. **Supabase `auth.users`** - Session persists, but username MIGHT be in metadata
+2. **PostgreSQL `user_profiles`** - Username IS here, but frontend doesn't query it on auth restore
+
+**The frontend `normalizeUser()` function (line 84-86) is the culprit:**
+
+```javascript
+// THIS IS THE BUG:
+normalizeUser(supabaseUser, provider) {
+  const email = supabaseUser.email || null;
+  const username = email 
+    ? email.split('@')[0]  // ← ALWAYS uses email prefix
+    : `Guest_${supabaseUser.id.substring(0, 6)}`;
+  
+  return {
+    id: supabaseUser.id,
+    email: email,
+    username: username,  // ← OVERWRITES custom username!
+    ...
+  };
 }
 ```
-Additional data:
 
-```json
-{
-  &quot;codeblockId&quot;: &quot;fd0176a5-71c7-4aba-81f1-9b7695321db0&quot;
+**It NEVER checks `user_profiles.username`!**
+
+---
+
+## **🏗️ THE ARCHITECTURAL FIX (Single Source of Truth)**
+
+### **Strategy: Make `user_profiles` the SINGLE source of truth for username**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SUPABASE AUTH                                 │
+│           (Only for session management)                          │
+├─────────────────────────────────────────────────────────────────┤
+│ Provides: id, email, session token                               │
+│ Does NOT provide: username (we fetch it separately)              │
+└─────────────────────────────────────────────────────────────────┘
+            ↓ ON LOGIN
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│          FRONTEND (auth-manager.js - REFACTORED)                 │
+├─────────────────────────────────────────────────────────────────┤
+│ Step 1: Get Supabase session (id, email)                        │
+│ Step 2: Fetch username from backend:                            │
+│         GET /api/auth/profile/:userId                            │
+│ Step 3: Merge:                                                   │
+│         { id, email, username: profile.username }                │
+│ Step 4: Save to localStorage                                     │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│             POSTGRESQL (SINGLE SOURCE OF TRUTH)                  │
+│                   user_profiles.username                         │
+├─────────────────────────────────────────────────────────────────┤
+│ All username reads/writes go through here                        │
+│ - User changes username → UPDATE user_profiles                   │
+│ - Frontend needs username → SELECT from user_profiles            │
+│ - Friends page searches → SELECT from user_profiles              │
+│ - Profile modal displays → SELECT from user_profiles             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## **🔧 THE SOLUTION (3-Tier Fix)**
+
+### **Tier 1: Fix Frontend `normalizeUser()` to Fetch from Backend**
+
+**Current (Broken):**
+```javascript
+// auth-manager.js line 82-96
+normalizeUser(supabaseUser, provider) {
+  const email = supabaseUser.email || null;
+  const username = email 
+    ? email.split('@')[0]  // ← BUG: Ignores user_profiles
+    : `Guest_${supabaseUser.id.substring(0, 6)}`;
+  
+  return {
+    id: supabaseUser.id,
+    email: email,
+    username: username,  // ← Returns email prefix
+    ...
+  };
 }
 ```
-User decision: **accepted**
 
-Status: **loading**
+**Fixed (NEW):**
+```javascript
+// Make this ASYNC and fetch from backend
+async normalizeUser(supabaseUser, provider) {
+  const email = supabaseUser.email || null;
+  
+  // Fetch actual username from user_profiles table
+  let username = email ? email.split('@')[0] : `Guest_${supabaseUser.id.substring(0, 6)}`;
+  
+  try {
+    // ✅ Query backend for actual username
+    const response = await fetch(`/api/auth/profile/${supabaseUser.id}`);
+    if (response.ok) {
+      const profile = await response.json();
+      if (profile.username) {
+        username = profile.username;  // ← Use DB username
+        console.log(`✅ Loaded username from DB: ${username}`);
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Failed to load username from DB, using fallback:', error);
+  }
+  
+  return {
+    id: supabaseUser.id,
+    email: email,
+    username: username,  // ← Now from DB!
+    avatar: provider === 'google' ? '👤' : '👻',
+    provider: provider,
+    isGuest: provider === 'guest' || provider === 'anonymous',
+    isAnonymous: provider === 'anonymous'
+  };
+}
+```
 
+**AND update checkAuth() to await it:**
+```javascript
+// auth-manager.js line 31
+// OLD:
+this.user = this.normalizeUser(session.user, 'google');
+
+// NEW:
+this.user = await this.normalizeUser(session.user, 'google');
+```
+
+---
+
+### **Tier 2: Fix Backend `/api/auth/profile/:userId` to Always Return Username**
+
+**Current:**
+```javascript
+// routes/auth.js line 223-234
+const result = await db.query(
+  `SELECT 
+    id, username, display_name, avatar_url, bio,
+    total_hands_played, total_wins, win_rate,
+    (SELECT COUNT(DISTINCT room_id) FROM room_participations WHERE user_id = $1) as total_rooms_played,
+    total_winnings, 
+    best_hand, best_hand_date, biggest_pot,
+    created_at
+   FROM user_profiles 
+   WHERE id = $1`,
+  [userId]
+);
+```
+
+**This is already correct** ✅ - Returns username from `user_profiles`.
+
+**BUT: Need to ensure it ALWAYS has a username (no NULLs):**
+
+```sql
+-- Migration: Ensure all users have username
+UPDATE user_profiles 
+SET username = COALESCE(username, 'user_' || SUBSTRING(id::text, 1, 8))
+WHERE username IS NULL OR username = '';
+
+-- Add NOT NULL constraint
+ALTER TABLE user_profiles 
+  ALTER COLUMN username SET NOT NULL;
+```
+
+---
+
+### **Tier 3: Fix Username Change to Invalidate Cache**
+
+**Current:**
+```javascript
+// public/js/social-modals.js - After username change
+// It updates the modal, but doesn't refresh AuthManager cache
+```
+
+**Fixed:**
+```javascript
+// After successful username change:
+if (response.ok) {
+  // Update AuthManager's cached user
+  if (window.authManager) {
+    window.authManager.user.username = newUsername;
+    window.authManager.saveToCache();  // Persist to localStorage
+  }
+  
+  // Refresh navbar display
+  if (window.refreshAuthDisplay) {
+    await window.refreshAuthDisplay();
+  }
+  
+  closeChangeUsernameModal();
+  showNotification('success', 'Username updated successfully!');
+}
+```
+
+---
+
+## **🎯 THE COMPLETE DATA FLOW (FIXED)**
+
+```
+USER LOGS IN
+    ↓
+┌─────────────────────────────────────────┐
+│ Supabase Auth                           │
+│ Provides: { id, email, session }        │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ Frontend auth-manager.js                │
+│ 1. Got Supabase session                 │
+│ 2. Fetch /api/auth/profile/:id          │
+│ 3. Merge username from DB               │
+│ 4. Save to localStorage                 │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ PostgreSQL user_profiles                │
+│ Returns: { username: "wal33d" }         │
+└─────────────────────────────────────────┘
+    ↓
+USER SEES CORRECT USERNAME ✅
+
+────────────────────────────────────────────
+
+USER CHANGES USERNAME
+    ↓
+┌─────────────────────────────────────────┐
+│ POST /api/social/username/change        │
+│ UPDATE user_profiles                    │
+│ SET username = 'new_name'               │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ Frontend callback                       │
+│ 1. Update authManager.user.username     │
+│ 2. Save to localStorage                 │
+│ 3. Refresh navbar                       │
+└─────────────────────────────────────────┘
+    ↓
+USERNAME PERSISTS ✅
+
+────────────────────────────────────────────
+
+USER REFRESHES BROWSER
+    ↓
+┌─────────────────────────────────────────┐
+│ Frontend checkAuth()                    │
+│ 1. Get Supabase session                 │
+│ 2. Fetch /api/auth/profile/:id          │
+│ 3. Merge username from DB               │
+│ 4. Display correct username             │
+└─────────────────────────────────────────┘
+    ↓
+USERNAME STILL CORRECT ✅
+```
+
+---
+
+## **📋 IMPLEMENTATION CHECKLIST**
+
+### **Phase 1: Make `user_profiles` Non-Nullable (SQL)**
+```sql
+-- Ensure all users have username
+UPDATE user_profiles 
+SET username = COALESCE(username, 'user_' || SUBSTRING(id::text, 1, 8))
+WHERE username IS NULL OR username = '';
+
+-- Add constraint
+ALTER TABLE user_profiles 
+  ALTER COLUMN username SET NOT NULL;
+```
+
+### **Phase 2: Fix Frontend (auth-manager.js)**
+1. Make `normalizeUser()` async
+2. Fetch username from `/api/auth/profile/:id`
+3. Update `checkAuth()` to await `normalizeUser()`
+
+### **Phase 3: Fix Username Change Callback (social-modals.js)**
+1. Update `authManager.user.username` after change
+2. Call `authManager.saveToCache()`
+3. Refresh navbar display
+
+### **Phase 4: Test Flow**
+1. Login with Google
+2. Change username to "wal33d"
+3. **Hard refresh (Cmd+Shift+R)**
+4. Verify username is still "wal33d" ✅
+5. Clear cache + refresh
+6. Verify username is still "wal33d" ✅
+
+---
+
+## **🌐 CROSS-FUNCTIONAL IMPACT MAP**
+
+```
+user_profiles.username
+    ↓ READ BY:
+    ├─ /api/auth/profile/:userId (Profile display)
+    ├─ /api/social/profile/me (Profile modal)
+    ├─ /api/social/friends (Friends list)
+    ├─ /api/social/search (User search)
+    ├─ room_seats.nickname (Game table display)
+    └─ auth-manager.js (Frontend auth state)
+    
+    ↓ WRITTEN BY:
+    ├─ /api/auth/sync-user (First login)
+    ├─ /api/social/username/set (Initial set)
+    └─ /api/social/username/change (Update)
+    
+    ↓ USED BY:
+    ├─ Profile Modal (Display)
+    ├─ Navbar Dropdown (Display)
+    ├─ Friends Page (Search/Display)
+    ├─ Game Table (Player names)
+    └─ Hand History (Winner names)
+```
+
+**SINGLE SOURCE OF TRUTH = ALL FEATURES SYNC** ✅
+
+---
+
+## **🚀 THE 1-YARD LINE PUSH**
+
+You're right - this is where everything links or becomes spaghetti. Here's why this fix is CRITICAL:
+
+1. **Username** → Affects **Profile, Friends, Game Table, Hand History**
+2. **Profile** → Affects **Stats, Friends, Game Participation**
+3. **Auth** → Affects **Everything**
+
+**If username doesn't persist, the entire identity system collapses.**
+
+**This fix establishes:**
+- ✅ Single source of truth (`user_profiles`)
+- ✅ Backend-driven username (not client-guessed)
+- ✅ Cross-session persistence
+- ✅ Friends system compatibility
+- ✅ Game history accuracy
+
+---
+
+**Switch to Agent mode and I'll implement the 3-tier fix.** Or would you like me to elaborate on any part of the architecture first?
+
+---
+
+_**User (2025-11-06 10:25Z)**_
+
+I think you are off to a great start, I think deeper indexing and understanding our schema and what it needs to get to, as well as our engine, frontend, routes etc. I also ened us to understand how we will translate this infreastructureal development to ui. its often overlooked how our backend 'speaks' in a way through our frontend layer. concretely this translates to deepening analytics page,a nd enhancincg/creating any ui components needed for better translation. I need you to think holisitcally. i want to get done today and that requires a wide consideration@Schemasnapshot.txt . your context window is about to reset, so this will take a few prompts for you to fully understand objectively what i want. but I want to finish games stat trackings and ensuring that data loop is clean, that we extract everything in ahand to a serialization, and store in db what we need, and hvE no bloat, ensuring all profile considerations and game actions r tracked. Its important to undertsand what needs to be tracked how, and where and in what form. I also want to ensure a source of truth in terms of a player, which is prob their profile/username which must be fully robsut, analytics page is important to build a strong foundation, while rn it will just be tracking, in later phaes post launch it will have llm analytics, however that requires us rn, being able to track and undertsnad players past 100+hands and game history and display that to them in an actionable way. we will finalize the freinds system, but until profiles and usernames work fully, it is a moot point. we NEED to ensure that profiels are so tied to a username, that it will be easy for players to see and interact w each others stats and message. this only wokrs if we tie everything together, and graps these high level concepts wiht clarity. it will take patience and understanding to get where we need, and then rrapid movement 
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Ask)**_
+
+
+
+---
+
+<think><details><summary>Thought Process</summary>
+The user is asking me to step back and think holistically as a solutions architect. They want me to:
+
+1. Deeply index and understand the current schema (Schemasnapshot.txt)
+2. Understand the engine, frontend, routes
+3. Think about how backend "speaks" through frontend
+4. Focus on Analytics page and UI components for better data translation
+5. Complete the game stats tracking and data loop
+6. Ensure proper serialization and storage (no bloat)
+7. Track all profile considerations and game actions
+8. Establish username/profile as THE source of truth
+9. Build a foundation for tracking 100+ hands and game history
+10. Make profiles deeply tied to usernames for easy stat viewing and messaging
+11. Understand that friends system depends on robust profiles/usernames
+
+The user is saying my context window is about to reset, so they want me to build a comprehensive understanding NOW.
+
+Let me read the schema deeply and map out the entire architecture.</details></think>
+
+---
+
+# 🧠 **DEEP SYSTEM INDEXING - HOLISTIC ARCHITECTURE ANALYSIS**
+
+You're absolutely right. I need to **map the entire topology** before we execute. Let me index everything systematically.
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/public/js/auth-manager.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "How are game stats currently being tracked and updated in user profiles?" • **15** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `migrations/03_sync_profile_stats_COMPLETE.sql` | L64 |
+| `migrations/03_sync_profile_stats.sql` | L62 |
+| `DATA_EXTRACTION_ARCHITECTURE.md` | L77-172 |
+| `migrations/06_profile_room_game_relationships.sql` | L246-332 |
+| `database/migrations/018c_player_history.sql` | L98-155 |
+| `DATA_ARCHITECTURE_AUDIT.md` | L69-151 |
+| `migrations/06_profile_room_game_relationships.sql` | L42-99 |
+| `DATA_TRACKING_COMPLETE.md` | L226-313 |
+| `STATUS_HAND_TRACKING_COMPLETE.md` | L63 |
+| `routes/social.js` | L221-324 |
+| `INTEGRATION_AUDIT.md` | L65-140 |
+| `ARCHITECTURE_PROFILE_CENTRIC.md` | L143-209 |
+| `ARCHITECTURE_PROFILE_CENTRIC.md` | L46 |
+| `ARCHITECTURE_PROFILE_CENTRIC.md` | L265-375 |
+| `routes/game-engine-bridge.js` | L646-983 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "Where is hand serialization and encoding being used for data storage?" • **13** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `routes/game-engine-bridge.js` | L646-983 |
+| `public/js/hand-encoder.js` | L253 |
+| `src/core/models/game-state.ts` | L76-478 |
+| `CLEAN_DATA_FLOW_COMPLETE.md` | L71 |
+| `dist/core/models/game-state.js` | L17-263 |
+| `routes/games.js` | L292-608 |
+| `DATA_ARCHITECTURE_AUDIT.md` | L143-224 |
+| `sophisticated-engine-server.js` | L142-263 |
+| `public/js/hand-encoder.js` | L13-253 |
+| `migrations/16_add_encoded_hand.sql` | L32 |
+| `CLEAN_DATA_FLOW_COMPLETE.md` | L144-238 |
+| `pokeher/poker-engine/sophisticated-engine-server.js` | L351-478 |
+| `pokeher/poker-engine/sophisticated-engine-server.js` | L1588-1774 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="grep" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "total_hands_played|total_wins|win_rate|total_rooms_played|biggest_pot|best_hand" in "/Users/waleedraza/Desktop/PokerGeek" • 49 matches</summary>
+
+Output mode: files_with_matches
+
+
+| File |
+|------|
+| `./Schemasnapshot.txt` |
+| `./WIPE_LEGACY_DATA.sql` |
+| `./public/js/social-modals.js` |
+| `./routes/auth.js` |
+| `./CLEAN_DATA_FLOW_COMPLETE.md` |
+| `./routes/game-engine-bridge.js` |
+| `./routes/social.js` |
+| `./EXECUTION_PLAN.md` |
+| `./migrations/15_fix_biggest_pot_column_name.sql` |
+| `./FINAL_FIX_SUMMARY.md` |
+| `./MIGRATION_ORDER.md` |
+| `./DATA_ARCHITECTURE_AUDIT.md` |
+| `./migrations/14_fix_best_hand_rank_type.sql` |
+| `./PRE_TEST_VERIFICATION.md` |
+| `./DATA_TRACKING_COMPLETE.md` |
+| `./migrations/12_best_hand_tracking.sql` |
+| `./PROFILE_STATS_DEBUG.md` |
+| `./run-migration-11.js` |
+| `./migrations/11_fix_game_complete_trigger.sql` |
+| `./TRIGGER_BUG_FIX.md` |
+| `./TEST_HAND_TRACKING.md` |
+| `./STATUS_HAND_TRACKING_COMPLETE.md` |
+| `./HAND_COMPLETION_ARCHITECTURE.md` |
+| `./EXECUTE_NOW.md` |
+| `./migrations/08_hand_history_and_cleanup.sql` |
+| `./DATA_EXTRACTION_ARCHITECTURE.md` |
+| `./PRE_FRIENDS_CHECKLIST.md` |
+| `./migrations/06_profile_room_game_relationships.sql` |
+| `./READY_TO_TEST.md` |
+| `./INTEGRATION_AUDIT.md` |
+| `./ARCHITECTURE_PROFILE_CENTRIC.md` |
+| `./migrations/03_sync_profile_stats_COMPLETE.sql` |
+| `./ITERATIVE_FIXES.md` |
+| `./migrations/03_sync_profile_stats.sql` |
+| `./public/js/friends-page.js` |
+| `./DEBUG_PROFILE_CHECK.md` |
+| `./migrations/02_identity_social_system_FIXED.sql` |
+| `./SPRINT_3_DEPLOYMENT_GUIDE.md` |
+| `./migrations/02_identity_social_system.sql` |
+| `./dist/services/database/repos/full-game.repo.js` |
+| `./src/services/database/repos/full-game.repo.ts` |
+| `./pokeher/poker-engine/src/services/database/repos/full-game.repo.ts` |
+| `./pokeher/poker-engine/VALIDATION.md` |
+| `./database/migrations/018c_player_history.sql` |
+| `./database/migrations/012_fix_auth_foreign_keys_final.sql` |
+| `./database/migrations/011_fix_auth_foreign_keys_safe.sql` |
+| `./database/migrations/010_fix_auth_foreign_keys.sql` |
+| `./archive/fix-attempts/refresh-bug-ONLYPARTOFTHEFAILEDATTEMPTS.md` |
+| `./archive/docs-history/old/VALIDATION.md` |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/routes/game-engine-bridge.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/public/pages/analysis.html</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Okay, I'm getting a comprehensive picture now. Let me synthesize all this information into a holistic architecture map. The user wants:
+
+1. **Username persistence** - This is the root issue we identified
+2. **Complete data tracking** - From game actions to profile stats
+3. **Clean serialization** - PHE encoding is implemented
+4. **Analytics UI** - To visualize and understand the data flow
+5. **Profile as source of truth** - Everything tied to username/profile
+
+From what I've seen:
+
+**Current State:**
+- PHE encoding is implemented (hand-encoder.js)
+- Extraction is wired (routes/game-engine-bridge.js lines 780-830)
+- Analytics page exists (analysis.html) with live feed
+- Profile stats tracked via triggers (migrations 06, 11, 12, etc.)
+- BUT username is not persistent (auth-manager.js normalizeUser bug)
+
+**What's Missing/Broken:**
+1. Username persistence (the root cause we identified)
+2. Frontend doesn't fetch username from user_profiles on auth
+3. Analytics page needs to be expanded for 100+ hand history viewing
+4. Profile modal needs to be more robust
+5. Friends system blocked by username issues
+
+Let me create a comprehensive HOLISTIC ARCHITECTURE DOCUMENT that maps everything.</details></think>
+
+---
+
+# 🏛️ **HOLISTIC SYSTEM ARCHITECTURE MAP - THE 1-YARD LINE**
+
+## **I. CURRENT STATE AUDIT (What We Have)**
+
+### **✅ Data Pipeline (90% Complete)**
+
+```
+GAME ACTION → HAND COMPLETION → DATA EXTRACTION → PROFILE UPDATE
+     ↓              ↓                    ↓                ↓
+  Backend      game-engine      hand_history        user_profiles
+   Route        -bridge.js        (encoded)          (stats)
+```
+
+**What's Working:**
+- ✅ PHE Encoding (80% storage reduction)
+- ✅ Hand history storage (`hand_history` table with `encoded_hand`)
+- ✅ Player statistics tracking (`player_statistics` table)
+- ✅ Profile stats sync (triggers: `track_game_complete`, `update_best_hand_trigger`, `update_biggest_pot`)
+- ✅ Room participation tracking (`room_participations` table)
+- ✅ Game completion tracking (`game_completions` table)
+- ✅ Live analytics feed (Socket.IO events)
+
+**Schema Status:**
+```sql
+✅ user_profiles:
+   - id, username, display_name
+   - total_hands_played, total_wins, win_rate
+   - total_rooms_played (via subquery)
+   - biggest_pot, best_hand, best_hand_rank, best_hand_date
+   - currently_in_room_id, is_playing, current_game_id
+
+✅ hand_history:
+   - game_id, room_id, hand_number, pot_size
+   - player_ids, winner_id, winning_hand, hand_rank
+   - board_cards, actions_log (JSONB), encoded_hand (PHE)
+
+✅ room_participations:
+   - user_id, room_id, joined_at, hands_played
+   
+✅ game_completions:
+   - game_id, room_id, host_user_id, player_ids
+```
+
+---
+
+## **II. THE USERNAME CRISIS (Blocking Everything)**
+
+### **❌ Root Cause: Dual Source of Truth**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SUPABASE AUTH (Session)                                     │
+│  ├─ email: "waleed@gmail.com"                                │
+│  └─ NO USERNAME STORED                                       │
+└─────────────────────────────────────────────────────────────┘
+              ↓ Frontend normalizeUser() (LINE 84)
+              ↓ username = email.split('@')[0]  ← BUG!
+┌─────────────────────────────────────────────────────────────┐
+│  LOCALSTORAGE (Temporary)                                    │
+│  └─ username: "waleed"  ← RESET ON EVERY REFRESH!           │
+└─────────────────────────────────────────────────────────────┘
+
+              ↓ MEANWHILE...
+
+┌─────────────────────────────────────────────────────────────┐
+│  POSTGRESQL user_profiles (IGNORED!)                         │
+│  └─ username: "wal33d"  ← USER'S CUSTOM USERNAME            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Impact Radius:**
+- ❌ Friends system can't search by username (username keeps resetting)
+- ❌ Profile stats display incorrect username
+- ❌ Game table shows wrong nicknames
+- ❌ Hand history can't link to correct player identity
+- ❌ Analytics page can't display player names
+
+**This is the 1-yard line issue. Everything else depends on this.**
+
+---
+
+## **III. DATA FLOW ARCHITECTURE (What Needs to Speak)**
+
+### **The Complete Loop**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    USER IDENTITY LAYER                          │
+│              (The Foundation - MUST BE FIXED FIRST)             │
+├─────────────────────────────────────────────────────────────────┤
+│ Supabase Auth → GET /api/auth/profile/:id → user_profiles      │
+│                                              ↓                   │
+│                                         username (SINGLE SOURCE) │
+└─────────────────────────────────────────────────────────────────┘
+                             ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                     GAME INTERACTION LAYER                      │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. Player joins room → room_seats (user_id, nickname)          │
+│ 2. Player acts → routes/game-engine-bridge.js                  │
+│ 3. Hand completes → MinimalBettingAdapter.handleShowdown       │
+│ 4. Data extracted → INSERT hand_history (encoded_hand)         │
+└─────────────────────────────────────────────────────────────────┘
+                             ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATA PERSISTENCE LAYER                       │
+├─────────────────────────────────────────────────────────────────┤
+│ hand_history                                                    │
+│  ├─ Raw data: player_ids, winner_id, pot_size                 │
+│  ├─ Compact: encoded_hand (PHE format)                         │
+│  └─ Triggers:                                                   │
+│      ├─ update_best_hand_trigger (if hand_rank < current)     │
+│      └─ update_biggest_pot (if pot_size > current)            │
+│                                                                  │
+│ player_statistics                                               │
+│  ├─ total_hands_played++                                        │
+│  ├─ total_hands_won++ (if winner)                              │
+│  └─ Syncs to user_profiles via sync_user_profile_stats()       │
+│                                                                  │
+│ room_participations                                             │
+│  └─ hands_played++ (per room)                                   │
+│                                                                  │
+│ game_completions                                                │
+│  └─ Records when game ends (for "Rooms Played")                │
+└─────────────────────────────────────────────────────────────────┘
+                             ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                   FRONTEND DISPLAY LAYER                        │
+│              (How Backend "Speaks" Through UI)                  │
+├─────────────────────────────────────────────────────────────────┤
+│ Profile Modal (social-modals.js)                               │
+│  ├─ GET /api/social/profile/me                                 │
+│  ├─ Displays: username, total_hands_played, win_rate, etc.    │
+│  └─ NEEDS: username from user_profiles (NOT email split!)      │
+│                                                                  │
+│ Analytics Page (analysis.html + analytics-live.js)             │
+│  ├─ WebSocket: live feed of `data_extracted` events           │
+│  ├─ Decodes: encoded_hand → readable format                    │
+│  ├─ Displays: pot, winner, cards, actions                      │
+│  └─ NEEDS: 100+ hand history viewer (not yet implemented)      │
+│                                                                  │
+│ Friends Page (friends-page.js)                                 │
+│  ├─ Search by username                                          │
+│  ├─ Display friend stats                                        │
+│  └─ BLOCKED: Can't work if username keeps resetting            │
+│                                                                  │
+│ Game Table (minimal-table.html)                                │
+│  ├─ Displays player nicknames                                  │
+│  └─ NEEDS: Consistent username from user_profiles              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## **IV. THE GAPS (What's Missing or Broken)**
+
+### **Gap 1: Username Persistence (CRITICAL - Tier 0)**
+**Problem:** Frontend `auth-manager.js` doesn't query `user_profiles.username` on session restore  
+**Impact:** Username resets to email prefix on every refresh  
+**Fix:** Make `normalizeUser()` async + fetch from `/api/auth/profile/:id`  
+**Blocks:** Friends, Profile, Game Table, Analytics
+
+### **Gap 2: Analytics Page Depth (Tier 1)**
+**Current:** Live feed shows real-time hand extractions ✅  
+**Missing:**
+- 100+ hand history viewer (query `hand_history` by `user_id`)
+- Decode and display past encoded hands
+- Filter by date range, room, hand rank
+- Export to CSV/JSON for external analysis
+
+**UI Needs:**
+```html
+<div class="hand-history-viewer">
+  <div class="filters">
+    <input type="date" id="start-date">
+    <input type="date" id="end-date">
+    <select id="room-filter"><!-- Rooms --></select>
+    <select id="hand-rank-filter"><!-- Ranks --></select>
+  </div>
+  <div class="hand-list">
+    <!-- Each hand: expandable card with PHE decode -->
+    <div class="hand-card" data-hand-id="uuid">
+      <div class="hand-summary">Hand #42 | Pot: $120 | Winner: wal33d</div>
+      <div class="hand-details" hidden>
+        <!-- Full decode: board, actions, cards -->
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+**Backend Needs:**
+```javascript
+// GET /api/analytics/hands/:userId?limit=100&offset=0
+router.get('/hands/:userId', requireAuth, async (req, res) => {
+  const { userId } = req.params;
+  const { limit = 100, offset = 0, startDate, endDate, roomId } = req.query;
+  
+  const hands = await db.query(`
+    SELECT id, game_id, room_id, hand_number, pot_size,
+           winner_id, winning_hand, hand_rank,
+           encoded_hand, created_at
+    FROM hand_history
+    WHERE $1 = ANY(player_ids)
+      AND created_at >= COALESCE($2, created_at)
+      AND created_at <= COALESCE($3, created_at)
+      AND room_id = COALESCE($4, room_id)
+    ORDER BY created_at DESC
+    LIMIT $5 OFFSET $6
+  `, [userId, startDate, endDate, roomId, limit, offset]);
+  
+  res.json({ hands: hands.rows });
+});
+```
+
+### **Gap 3: Profile Robustness (Tier 1)**
+**Current:** Profile modal shows stats ✅  
+**Missing:**
+- Click on another player → view their stats
+- Privacy controls (hide stats from non-friends)
+- Achievements/badges display
+- Link to friends list
+
+**UI Enhancement:**
+```javascript
+// Add to social-modals.js
+async function openPlayerProfile(userId) {
+  const response = await fetch(`/api/social/profile/${userId}`);
+  const profile = await response.json();
+  
+  // Render modal with profile data + privacy checks
+  // If not friends and profile.show_game_history === false, hide stats
+}
+```
+
+### **Gap 4: Friends System Integration (Tier 2)**
+**Dependency:** Requires Gap 1 (username persistence) to be fixed first  
+**Current:** Friend request/accept/search endpoints exist ✅  
+**Missing:**
+- Seamless username search (currently broken due to username reset)
+- "Play with Friends" quick invite button
+- Friends stats comparison view
+
+---
+
+## **V. EXECUTION STRATEGY (How to Get Done Today)**
+
+### **Phase 1: FIX USERNAME (1-2 hours) - BLOCKING EVERYTHING**
+
+**Files to Change:**
+1. `public/js/auth-manager.js` - Make `normalizeUser()` async, fetch from backend
+2. `routes/auth.js` - Ensure `/api/auth/profile/:id` always returns latest username
+3. `public/js/social-modals.js` - Update `authManager.user.username` after change + save cache
+4. SQL Migration - Ensure `user_profiles.username` is `NOT NULL`
+
+**Testing:**
+- Login → Change username → Hard refresh → Verify username persists
+
+---
+
+### **Phase 2: EXPAND ANALYTICS (2-3 hours)**
+
+**Backend:**
+1. Create `/api/analytics/hands/:userId` endpoint (GET)
+2. Add filters: date range, room, hand rank
+3. Return paginated results (100 per page)
+
+**Frontend:**
+1. Update `analysis.html` with Hand History Viewer UI
+2. Create `public/js/analytics-history.js` for fetching/rendering
+3. Decode `encoded_hand` client-side using `HandEncoder.decode()`
+4. Add expand/collapse for each hand card
+
+**Testing:**
+- Play 10 hands → Go to Analytics → See all 10 hands listed
+- Click expand → See full hand details (board, actions, winner)
+
+---
+
+### **Phase 3: ENHANCE PROFILE (1-2 hours)**
+
+**Backend:**
+1. Add `GET /api/social/profile/:userId` (view any profile)
+2. Privacy check: if not friends + `show_game_history` false → hide stats
+
+**Frontend:**
+1. Update `social-modals.js` to support viewing other users' profiles
+2. Add "View Profile" button on friends list
+3. Display "Add Friend" button if not already friends
+
+---
+
+### **Phase 4: FINALIZE FRIENDS (1 hour)**
+
+**Dependency:** Phase 1 must be complete  
+**Tasks:**
+1. Test friend search by username (should work after Phase 1)
+2. Add "Invite to Game" button on friend profile
+3. Test friend request flow end-to-end
+
+---
+
+## **VI. THE HIGH-LEVEL VISION (Post-Launch)**
+
+```
+USER PROFILE = SINGLE SOURCE OF TRUTH
+    ↓
+┌──────────────────────────────────────────┐
+│ Identity: username (persistent)          │
+│ Stats: hands, wins, win_rate, best_hand  │
+│ History: 100+ hands (encoded PHE)        │
+│ Social: friends, clubs                   │
+│ LLM: AI insights (post-launch)           │
+└──────────────────────────────────────────┘
+    ↓
+ANALYTICS PAGE = DATA OBSERVATORY
+    ↓
+┌──────────────────────────────────────────┐
+│ Live Feed: Real-time extractions         │
+│ Hand Viewer: 100+ past hands             │
+│ Stats Dashboard: Trends, graphs          │
+│ LLM Insights: "You're too loose preflop" │
+└──────────────────────────────────────────┘
+    ↓
+FRIENDS SYSTEM = SOCIAL LAYER
+    ↓
+┌──────────────────────────────────────────┐
+│ Search by username (robust)              │
+│ View friend stats                        │
+│ Invite to game (one-click)               │
+│ Message/chat (later)                     │
+└──────────────────────────────────────────┘
+```
+
+---
+
+## **VII. ACTION ITEMS (What You Need to Do NOW)**
+
+**Switch to Agent Mode and say:**
+> "Fix username persistence (Phase 1). Make `normalizeUser()` async and fetch from `/api/auth/profile/:id`. Also add the Hand History Viewer backend endpoint and frontend UI (Phase 2)."
+
+**I will then:**
+1. Update `auth-manager.js` to fetch username from DB
+2. Create `/api/analytics/hands/:userId` endpoint
+3. Build Hand History Viewer UI in `analysis.html`
+4. Wire everything together for testing
+
+**This will complete the data loop and unblock friends.**
+
+---
+
+**You're at the 1-yard line. The offensive line (username fix) needs to push through. Then the running back (analytics) can score. Let's do this. 🏈**
+
+---
+
+_**User (2025-11-06 10:25Z)**_
+
+Okay, lets index more, come up w plans, and then if i approve we will execute, but we cant miss shit, this is from now to end, i want us to plan so deeply that we can move wuikcly through getting this final sprint done within the day
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Ask)**_
+
+<think><details><summary>Thought Process</summary>
+The user wants me to index more deeply, create comprehensive plans, and ensure we don't miss anything. This is the final sprint to get everything done today. I need to:
+
+1. Index more of the codebase to understand all touchpoints
+2. Create detailed, actionable plans with no gaps
+3. Get approval before execution
+4. Make sure we cover EVERYTHING related to:
+   - Username persistence
+   - Analytics page depth
+   - Profile system
+   - Friends system
+   - Game stats tracking
+   - Data serialization
+
+Let me do deep indexing of critical files and systems.</details></think>
+
+---
+
+# 🔬 **DEEP SYSTEM INDEX - FINAL SPRINT PLANNING**
+
+Let me index **every critical touchpoint** before we build the execution plan.
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/routes/social.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "How does the frontend currently fetch and display user profile data?" • **12** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `public/js/nav-shared.js` | L4-189 |
+| `public/js/social-modals.js` | L110-282 |
+| `public/js/auth-manager.js` | L3-403 |
+| `public/js/auth-manager.js` | L3-400 |
+| `public/js/social-modals.js` | L559-605 |
+| `public/js/nav-shared.js` | L408-466 |
+| `public/js/poker-table-v2.js` | L3-685 |
+| `public/js/social-modals.js` | L167-282 |
+| `public/js/navbar-template.js` | L61 |
+| `public/js/friends-page.js` | L16-77 |
+| `public/js/nav-shared.js` | L423-483 |
+| `public/js/social-modals.js` | L167-287 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "Where are usernames displayed in the game table UI?" • **14** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `public/minimal-table.html` | L2672-2715 |
+| `public/minimal-table.html` | L3793-3829 |
+| `public/js/poker-table-v2.js` | L3-685 |
+| `public/poker-table-grid.html` | L40-72 |
+| `public/pages/play.html` | L1405-1444 |
+| `public/minimal-table.html` | L2618-2674 |
+| `public/pages/play.html` | L1867-1905 |
+| `public/pages/play.html` | L2138-2164 |
+| `public/pages/play.html` | L2105-2140 |
+| `public/js/nav-shared.js` | L4-189 |
+| `public/js/friends-page.js` | L117-213 |
+| `public/pages/play.html` | L2523-2559 |
+| `public/js/poker-table-grid.js` | L85-257 |
+| `public/poker-table-zoom-lock.html` | L734-765 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="grep" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "window\.currentUser|authManager\.user" in "/Users/waleedraza/Desktop/PokerGeek/public" • 6 matches</summary>
+
+Output mode: files_with_matches
+
+
+| File |
+|------|
+| `public/pages/play.html` |
+| `public/js/nav-shared.js` |
+| `public/minimal-table.html` |
+| `public/js/username-modal.js` |
+| `public/poker-table-zoom-lock.html` |
+| `public/poker-table-zoom-lock.html.backup` |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/public/js/analytics-live.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="grep" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "router\.(get|post|put|delete)" in "/Users/waleedraza/Desktop/PokerGeek/routes" • 98 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `routes/auth.js` | `router.post('/register', async (req, res) => \{` | L22 |
+| `routes/auth.js` | `router.post('/login', async (req, res) => \{` | L33 |
+| `routes/auth.js` | `router.post('/sync-user', withIdempotency, async (req, res) => \{` | L45 |
+| `routes/auth.js` | `router.post('/check-username', async (req, res) => \{` | L119 |
+| `routes/auth.js` | `router.post('/set-username', async (req, res) => \{` | L161 |
+| `routes/auth.js` | `router.get('/profile/:userId', async (req, res) => \{` | L221 |
+| `routes/game-engine-bridge.js` | `router.get('/hydrate/:roomId/:userId', async (req, res) => \{` | L22 |
+| `routes/game-engine-bridge.js` | `router.post('/claim-seat', async (req, res) => \{` | L116 |
+| `routes/game-engine-bridge.js` | `router.get('/seats/:roomId', async (req, res) => \{` | L242 |
+| `routes/game-engine-bridge.js` | `router.post('/deal-cards', async (req, res) => \{` | L306 |
+| `routes/game-engine-bridge.js` | `router.get('/room/:roomId', async (req, res) => \{` | L582 |
+| `routes/game-engine-bridge.js` | `router.post('/action', async (req, res) => \{` | L649 |
+| `routes/game-engine-bridge.js` | `router.get('/game/:roomId', async (req, res) => \{` | L992 |
+| `routes/game-engine-bridge.js` | `router.get('/my-cards/:roomId/:userId', async (req, res) => \{` | L1077 |
+| `routes/game-engine-bridge.js` | `router.get('/health', (req, res) => \{` | L1134 |
+| `routes/game-engine-bridge.js` | `router.post('/next-hand', async (req, res) => \{` | L1157 |
+| `routes/game-engine-bridge.js` | `router.get('/host-controls/:roomId/:userId', async (req, res) => \{` | L1395 |
+| `routes/game-engine-bridge.js` | `router.post('/host-controls/kick-player', async (req, res) => \{` | L1466 |
+| `routes/game-engine-bridge.js` | `router.post('/showdown-action', async (req, res) => \{` | L1604 |
+| `routes/social.js` | `router.post('/username/check', requireAuth, async (req, res) => \{` | L43 |
+| `routes/social.js` | `router.post('/username/set', requireAuth, async (req, res) => \{` | L81 |
+| `routes/social.js` | `router.post('/username/change', requireAuth, async (req, res) => \{` | L133 |
+| `routes/social.js` | `router.get('/username/:username', requireAuth, async (req, res) => \{` | L222 |
+| `routes/social.js` | `router.get('/profile/me', requireAuth, async (req, res) => \{` | L254 |
+| `routes/social.js` | `router.get('/friends', requireAuth, async (req, res) => \{` | L335 |
+| `routes/social.js` | `router.post('/friends/request', requireAuth, async (req, res) => \{` | L382 |
+| `routes/social.js` | `router.get('/friends/requests', requireAuth, async (req, res) => \{` | L468 |
+| `routes/social.js` | `router.post('/friends/accept/:requestId', requireAuth, async (req, res) => \{` | L497 |
+| `routes/social.js` | `router.post('/friends/reject/:requestId', requireAuth, async (req, res) => \{` | L556 |
+| `routes/social.js` | `router.delete('/friends/:friendId', requireAuth, async (req, res) => \{` | L582 |
+| `routes/social.js` | `router.get('/notifications', requireAuth, async (req, res) => \{` | L610 |
+| `routes/social.js` | `router.get('/notifications/count', requireAuth, async (req, res) => \{` | L690 |
+| `routes/rooms.js` | `router.get('/', async (req, res) => \{` | L23 |
+| `routes/rooms.js` | `router.post('/', withIdempotency, async (req, res) => \{` | L47 |
+| `routes/rooms.js` | `router.get('/invite/:code', async (req, res) => \{` | L124 |
+| `routes/rooms.js` | `router.get('/:roomId/seats', async (req, res) => \{` | L137 |
+| `routes/rooms.js` | `router.post('/:roomId/claim-seat', async (req, res) => \{` | L156 |
+| `routes/rooms.js` | `router.get('/:roomId/session', async (req, res) => \{` | L210 |
+| `routes/rooms.js` | `router.post('/:roomId/join', withIdempotency, async (req, res) => \{` | L240 |
+| `routes/rooms.js` | `router.post('/:roomId/leave', withIdempotency, async (req, res) => \{` | L333 |
+| `routes/rooms.js` | `router.get('/:roomId/game', async (req, res) => \{` | L347 |
+| `routes/rooms.js` | `router.get('/:roomId/hydrate', async (req, res) => \{` | L377 |
+| `routes/rooms.js` | `router.get('/:roomId/my-state', async (req, res) => \{` | L654 |
+| `routes/rooms.js` | `router.post('/:roomId/lobby/join', withIdempotency, async (req, res) => \{` | L718 |
+| `routes/rooms.js` | `router.get('/:roomId/lobby/players', async (req, res) => \{` | L809 |
+| `routes/rooms.js` | `router.post('/:roomId/lobby/approve', withIdempotency, async (req, res) => \{` | L833 |
+| `routes/rooms.js` | `router.post('/:roomId/lobby/reject', withIdempotency, async (req, res) => \{` | L895 |
+| `routes/rooms.js` | `router.get('/my-rooms', async (req, res) => \{` | L958 |
+| `routes/rooms.js` | `router.post('/:roomId/close', withIdempotency, async (req, res) => \{` | L1010 |
+| `routes/rooms.js` | `router.post('/:roomId/abandon', withIdempotency, async (req, res) => \{` | L1082 |
+| `routes/rooms.js` | `router.post('/:roomId/kick', withIdempotency, async (req, res) => \{` | L1165 |
+| `routes/rooms.js` | `router.post('/:roomId/set-away', withIdempotency, async (req, res) => \{` | L1246 |
+| `routes/rooms.js` | `router.post('/:roomId/capacity', withIdempotency, async (req, res) => \{` | L1320 |
+| `routes/rooms.js` | `router.post('/:roomId/rebuy', withIdempotency, async (req, res) => \{` | L1420 |
+| `routes/rooms.js` | `router.get('/:roomId/lobby/my-status', async (req, res) => \{` | L1507 |
+| `routes/rooms.js` | `router.get('/:roomId/history', async (req, res) => \{` | L1539 |
+| `routes/rooms.js` | `router.get('/:roomId', async (req, res) => \{` | L1572 |
+| `routes/rooms.js` | `router.get('/:roomId/game-state', async (req, res) => \{` | L1622 |
+| `routes/rooms.js` | `router.post('/:roomId/invite', withIdempotency, async (req, res) => \{` | L1689 |
+| `routes/rooms.js` | `router.post('/:roomId/update-chips', withIdempotency, async (req, res) => \{` | L1754 |
+| `routes/rooms.js` | `router.post('/:roomId/pause-game', withIdempotency, async (req, res) => \{` | L1830 |
+| `routes/rooms.js` | `router.post('/:roomId/resume-game', withIdempotency, async (req, res) => \{` | L1892 |
+| `routes/sandbox.js` | `router.post('/create-room', async (req, res) => \{` | L29 |
+| `routes/sandbox.js` | `router.post('/join-room', async (req, res) => \{` | L126 |
+| `routes/sandbox.js` | `router.get('/my-rooms', async (req, res) => \{` | L172 |
+| `routes/sandbox.js` | `router.delete('/delete-room', async (req, res) => \{` | L216 |
+| `routes/sandbox.js` | `router.get('/health', (req, res) => \{` | L276 |
+| `routes/pages.js` | `router.get('/', (req, res) => \{` | L9 |
+| `routes/pages.js` | `router.get('/play', (req, res) => \{` | L14 |
+| `routes/pages.js` | `router.get('/friends', (req, res) => \{` | L19 |
+| `routes/pages.js` | `router.get('/ai-solver', (req, res) => \{` | L24 |
+| `routes/pages.js` | `router.get('/analysis', (req, res) => \{` | L29 |
+| `routes/pages.js` | `router.get('/learning', (req, res) => \{` | L34 |
+| `routes/pages.js` | `router.get('/poker-today', (req, res) => \{` | L39 |
+| `routes/pages.js` | `router.get('/game/:roomId', (req, res) => \{` | L45 |
+| `routes/pages.js` | `router.get('/game', (req, res) => \{` | L52 |
+| `routes/pages.js` | `router.get('/poker-v2', (req, res) => \{` | L59 |
+| `routes/pages.js` | `router.get('/game-v2/:roomId', (req, res) => \{` | L64 |
+| `routes/pages.js` | `router.get('/poker-demo', (req, res) => \{` | L69 |
+| `routes/pages.js` | `router.get('/poker-v3', (req, res) => \{` | L74 |
+| `routes/pages.js` | `router.get('/poker-v3-demo', (req, res) => \{` | L79 |
+| `routes/pages.js` | `router.get('/table', (req, res) => \{` | L84 |
+| `routes/pages.js` | `router.get('/table-grid', (req, res) => \{` | L89 |
+| `routes/pages.js` | `router.get('/table-old', (req, res) => \{` | L94 |
+| `routes/pages.js` | `router.get('/sandbox-table', (req, res) => \{` | L99 |
+| `routes/pages.js` | `router.get('/poker', (req, res) => \{` | L104 |
+| `routes/pages.js` | `router.get('/poker-test.html', (req, res) => \{` | L108 |
+| `routes/pages.js` | `router.get('/public/poker-test.html', (req, res) => \{` | L112 |
+| `routes/v2.js` | `router.get('/game/:gameId', async (req, res) => \{` | L8 |
+| `routes/v2.js` | `router.get('/room/:roomId', async (req, res) => \{` | L42 |
+| `routes/v2.js` | `router.post('/game/:gameId/action', async (req, res) => \{` | L65 |
+| `routes/games.js` | `router.post('/', withIdempotency, async (req, res) => \{` | L14 |
+| `routes/games.js` | `router.get('/', async (req, res) => \{` | L119 |
+| `routes/games.js` | `router.get('/:id', (req, res) => \{` | L157 |
+| `routes/games.js` | `router.post('/:id/join', withIdempotency, (req, res) => \{` | L203 |
+| `routes/games.js` | `router.get('/:id/legal-actions', (req, res) => \{` | L249 |
+| `routes/games.js` | `router.post('/:id/start-hand', withIdempotency, async (req, res) => \{` | L295 |
+| `routes/games.js` | `router.post('/:id/actions', withIdempotency, async (req, res) => \{` | L641 |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir">
+<details>
+            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+        
+No results found
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: /Users/waleedraza/Desktop/PokerGeek/public/js/nav-shared.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Excellent! I've gathered comprehensive data. Now let me create a deep, exhaustive execution plan that covers EVERYTHING. I need to organize this into:
+
+1. **USERNAME PERSISTENCE FIX** (Tier 0 - Blocking)
+2. **ANALYTICS EXPANSION** (Tier 1 - Data Flow)
+3. **PROFILE ROBUSTNESS** (Tier 1 - Identity)
+4. **FRIENDS FINALIZATION** (Tier 2 - Social)
+
+Key findings from indexing:
+- `nav-shared.js` ALREADY fetches username from backend in `showUser()` (line 43-54), but `auth-manager.js` doesn't use it initially
+- `minimal-table.html` displays nicknames at line 2684
+- Analytics page has live feed but NO history viewer yet
+- Multiple game table files need username consistency
+- All routes are mapped, I know exactly what exists
+
+Let me create the ULTIMATE execution plan.</details></think>
+
+---
+
+# 📋 **FINAL SPRINT EXECUTION PLAN - COMPLETE & EXHAUSTIVE**
+
+**Goal:** Ship production-ready profile/analytics/friends system TODAY  
+**Strategy:** Fix foundation → Expand data flow → Enhance UI → Finalize social
+
+---
+
+## **🎯 TIER 0: USERNAME PERSISTENCE (BLOCKING EVERYTHING)** ⏱️ 1-2 hours
+
+### **Problem Statement**
+- `auth-manager.js` `normalizeUser()` (line 82-96) creates username from `email.split('@')[0]`
+- Does NOT query `user_profiles.username` from database
+- `nav-shared.js` DOES fetch it (line 43-54), but ONLY for navbar display
+- **Result:** Username resets to email prefix on every page refresh
+
+### **Root Cause Chain**
+```
+Page Load → checkAuth() → normalizeUser() → email.split('@')[0]
+                                ↓
+                          localStorage.set(username: "waleed")
+                                ↓
+                          NEVER queries user_profiles.username
+```
+
+### **Solution Architecture**
+
+#### **Part 1: Fix `auth-manager.js` normalizeUser()**
+```javascript
+// Current (BROKEN):
+normalizeUser(supabaseUser, provider) {
+  const email = supabaseUser.email || null;
+  const username = email 
+    ? email.split('@')[0]  // ← BUG: Ignores DB
+    : `Guest_${supabaseUser.id.substring(0, 6)}`;
+  return { id, email, username, ... };
+}
+
+// NEW (FIXED):
+async normalizeUser(supabaseUser, provider) {
+  const email = supabaseUser.email || null;
+  let username = email ? email.split('@')[0] : `Guest_${supabaseUser.id.substring(0, 6)}`;
+  
+  // ✅ Fetch actual username from DB (for non-guests)
+  if (!provider.includes('guest') && !provider.includes('anonymous')) {
+    try {
+      const response = await fetch(`/api/auth/profile/${supabaseUser.id}`);
+      if (response.ok) {
+        const profile = await response.json();
+        if (profile.username) {
+          username = profile.username;
+          console.log(`✅ Loaded username from DB: ${username}`);
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load username from DB, using fallback:', error);
+    }
+  }
+  
+  return {
+    id: supabaseUser.id,
+    email: email,
+    username: username,  // ← Now from DB!
+    ...
+  };
+}
+```
+
+#### **Part 2: Update checkAuth() to await normalizeUser()**
+```javascript
+// Line 31: Change from sync to async
+// BEFORE:
+this.user = this.normalizeUser(session.user, 'google');
+
+// AFTER:
+this.user = await this.normalizeUser(session.user, 'google');
+```
+
+#### **Part 3: Ensure user_profiles.username is NOT NULL**
+```sql
+-- Migration 17: Enforce username constraint
+UPDATE user_profiles 
+SET username = COALESCE(username, 'user_' || SUBSTRING(id::text, 1, 8))
+WHERE username IS NULL OR username = '';
+
+ALTER TABLE user_profiles 
+  ALTER COLUMN username SET NOT NULL;
+
+SELECT '✅ All users have username' as status;
+```
+
+#### **Part 4: Update social-modals.js username change callback**
+```javascript
+// After successful username change (line ~160):
+if (response.ok) {
+  const data = await response.json();
+  
+  // ✅ Update AuthManager cache
+  if (window.authManager && window.authManager.user) {
+    window.authManager.user.username = newUsername;
+    window.authManager.saveToCache();
+  }
+  
+  // ✅ Refresh navbar
+  if (window.refreshAuthDisplay) {
+    await window.refreshAuthDisplay();
+  }
+  
+  closeChangeUsernameModal();
+  showNotification('success', `Username changed to ${newUsername}!`);
+}
+```
+
+### **Testing Protocol**
+1. Login with Google
+2. Change username to "wal33d"
+3. **Hard refresh (Cmd+Shift+R)**
+4. Verify navbar shows "@wal33d" ✅
+5. **Clear cache + refresh**
+6. Verify username STILL "wal33d" ✅
+7. Open profile modal → Verify "wal33d" ✅
+8. Join game → Verify table shows "@wal33d" ✅
+
+---
+
+## **🎯 TIER 1A: ANALYTICS PAGE EXPANSION (DATA FLOW)** ⏱️ 2-3 hours
+
+### **Current State**
+- ✅ Live feed showing real-time extractions (`analytics-live.js`)
+- ✅ PHE encoding/decoding working
+- ❌ NO hand history viewer (past 100+ hands)
+- ❌ NO filters (date, room, hand rank)
+- ❌ NO pagination
+
+### **Architecture: Hand History Viewer**
+
+#### **Backend: `/api/analytics/hands/:userId` Endpoint**
+**File:** `routes/social.js` (or create `routes/analytics.js`)
+
+```javascript
+/**
+ * GET /api/analytics/hands/:userId
+ * Fetch paginated hand history for a user
+ * 
+ * Query params:
+ * - limit: 100 (default)
+ * - offset: 0 (default)
+ * - startDate: ISO date string
+ * - endDate: ISO date string
+ * - roomId: UUID filter
+ * - minHandRank: 1-10 (1=Royal Flush, 10=High Card)
+ * - maxHandRank: 1-10
+ */
+router.get('/analytics/hands/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { 
+      limit = 100, 
+      offset = 0, 
+      startDate, 
+      endDate, 
+      roomId,
+      minHandRank,
+      maxHandRank
+    } = req.query;
+    
+    // Security: Users can only view their own hands (unless admin)
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Build dynamic query
+    const conditions = ['$1 = ANY(player_ids)'];  // User was in hand
+    const params = [userId];
+    let paramIndex = 2;
+    
+    if (startDate) {
+      conditions.push(`created_at >= $${paramIndex}`);
+      params.push(new Date(startDate));
+      paramIndex++;
+    }
+    
+    if (endDate) {
+      conditions.push(`created_at <= $${paramIndex}`);
+      params.push(new Date(endDate));
+      paramIndex++;
+    }
+    
+    if (roomId) {
+      conditions.push(`room_id = $${paramIndex}`);
+      params.push(roomId);
+      paramIndex++;
+    }
+    
+    if (minHandRank) {
+      conditions.push(`hand_rank >= $${paramIndex}`);
+      params.push(parseInt(minHandRank));
+      paramIndex++;
+    }
+    
+    if (maxHandRank) {
+      conditions.push(`hand_rank <= $${paramIndex}`);
+      params.push(parseInt(maxHandRank));
+      paramIndex++;
+    }
+    
+    const whereClause = conditions.join(' AND ');
+    
+    // Get total count
+    const countResult = await db.query(
+      `SELECT COUNT(*) as total FROM hand_history WHERE ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].total);
+    
+    // Get hands
+    const handsResult = await db.query(
+      `SELECT 
+        id, game_id, room_id, hand_number, pot_size,
+        player_ids, winner_id, winning_hand, hand_rank,
+        board_cards, encoded_hand, created_at,
+        -- Get room name
+        (SELECT name FROM rooms WHERE id = hand_history.room_id) as room_name,
+        -- Get winner username
+        (SELECT username FROM user_profiles WHERE id = hand_history.winner_id) as winner_username
+       FROM hand_history
+       WHERE ${whereClause}
+       ORDER BY created_at DESC
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, parseInt(limit), parseInt(offset)]
+    );
+    
+    res.json({
+      hands: handsResult.rows,
+      total: total,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      hasMore: offset + handsResult.rows.length < total
+    });
+    
+  } catch (error) {
+    console.error('Error fetching hand history:', error);
+    res.status(500).json({ error: 'Failed to fetch hand history' });
+  }
+});
+```
+
+#### **Frontend: Hand History Viewer UI**
+**File:** `public/pages/analysis.html` (add after live feed section)
+
+```html
+<!-- Hand History Viewer -->
+<div class="liquid-glass-tile analysis-history-tile">
+  <div class="tile-content">
+    <h3 class="tile-title">📖 Hand History</h3>
+    <p class="tile-description">Review your past 100+ hands with filters</p>
+    
+    <!-- Filters -->
+    <div class="history-filters">
+      <div class="filter-row">
+        <label>Date Range:</label>
+        <input type="date" id="filter-start-date" class="filter-input">
+        <span>to</span>
+        <input type="date" id="filter-end-date" class="filter-input">
+      </div>
+      
+      <div class="filter-row">
+        <label>Room:</label>
+        <select id="filter-room" class="filter-input">
+          <option value="">All Rooms</option>
+          <!-- Populated dynamically -->
+        </select>
+      </div>
+      
+      <div class="filter-row">
+        <label>Hand Rank:</label>
+        <select id="filter-hand-rank" class="filter-input">
+          <option value="">All</option>
+          <option value="1">Royal Flush</option>
+          <option value="2">Straight Flush</option>
+          <option value="3">Four of a Kind</option>
+          <option value="4">Full House</option>
+          <option value="5">Flush</option>
+          <option value="6">Straight</option>
+          <option value="7">Three of a Kind</option>
+          <option value="8">Two Pair</option>
+          <option value="9">Pair</option>
+          <option value="10">High Card</option>
+        </select>
+      </div>
+      
+      <button onclick="applyHandHistoryFilters()" class="btn-primary">Apply Filters</button>
+      <button onclick="clearHandHistoryFilters()" class="btn-secondary">Clear</button>
+    </div>
+    
+    <!-- Hand List -->
+    <div id="hand-history-list" class="hand-history-container">
+      <p class="text-muted">Loading hands...</p>
+    </div>
+    
+    <!-- Pagination -->
+    <div id="history-pagination" class="pagination-controls">
+      <button onclick="loadPreviousPage()" id="btn-prev" disabled>← Previous</button>
+      <span id="page-info">Page 1</span>
+      <button onclick="loadNextPage()" id="btn-next">Next →</button>
+    </div>
+  </div>
+</div>
+```
+
+#### **Frontend: Hand History Service**
+**File:** `public/js/analytics-history.js` (NEW)
+
+```javascript
+class HandHistoryService {
+  constructor() {
+    this.hands = [];
+    this.currentPage = 0;
+    this.limit = 20;
+    this.total = 0;
+    this.filters = {};
+  }
+  
+  async loadHands(filters = {}, page = 0) {
+    try {
+      const userId = window.authManager.user?.id;
+      if (!userId) {
+        console.error('No user ID');
+        return;
+      }
+      
+      const token = await window.authManager.getAccessToken();
+      const offset = page * this.limit;
+      
+      const queryParams = new URLSearchParams({
+        limit: this.limit,
+        offset: offset,
+        ...filters
+      });
+      
+      const response = await fetch(`/api/analytics/hands/${userId}?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to load hands');
+      }
+      
+      const data = await response.json();
+      this.hands = data.hands;
+      this.total = data.total;
+      this.currentPage = page;
+      this.filters = filters;
+      
+      this.renderHands();
+      this.updatePagination();
+      
+    } catch (error) {
+      console.error('Error loading hands:', error);
+      document.getElementById('hand-history-list').innerHTML = 
+        '<p class="error">Failed to load hand history</p>';
+    }
+  }
+  
+  renderHands() {
+    const container = document.getElementById('hand-history-list');
+    
+    if (this.hands.length === 0) {
+      container.innerHTML = '<p class="text-muted">No hands found</p>';
+      return;
+    }
+    
+    container.innerHTML = this.hands.map((hand, index) => {
+      const date = new Date(hand.created_at).toLocaleString();
+      const isWinner = hand.winner_id === window.authManager.user?.id;
+      
+      // Decode PHE if available
+      let decodedHtml = '';
+      if (hand.encoded_hand && window.HandEncoder) {
+        try {
+          const decoded = window.HandEncoder.decode(hand.encoded_hand);
+          decodedHtml = this.renderDecodedHand(decoded, hand);
+        } catch (e) {
+          console.error('Failed to decode hand:', e);
+        }
+      }
+      
+      return `
+        <div class="hand-card ${isWinner ? 'hand-won' : 'hand-lost'}">
+          <div class="hand-summary" onclick="toggleHandDetails(${index})">
+            <div class="hand-info">
+              <span class="hand-number">#${hand.hand_number}</span>
+              <span class="hand-date">${date}</span>
+              <span class="hand-room">${hand.room_name || 'Unknown Room'}</span>
+            </div>
+            <div class="hand-stats">
+              <span class="hand-pot">💰 $${hand.pot_size}</span>
+              <span class="hand-result">${isWinner ? '🏆 Won' : '❌ Lost'}</span>
+              <span class="hand-rank">${this.getRankName(hand.hand_rank)}</span>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          
+          <div class="hand-details" id="hand-details-${index}" hidden>
+            ${decodedHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  renderDecodedHand(decoded, hand) {
+    const myUserId = window.authManager.user?.id;
+    
+    return `
+      <div class="decoded-hand">
+        <div class="decoded-section">
+          <h4>🎴 Players</h4>
+          <ul class="player-cards-list">
+            ${decoded.players.map(p => `
+              <li>
+                <span class="player-seat">Seat ${p.seatIndex}</span>
+                <span class="player-cards">${p.revealed ? p.cards.join(' ') : '🂠 🂠 (Mucked)'}</span>
+                ${p.seatIndex === decoded.winner ? '<span class="winner-badge">🏆 Winner</span>' : ''}
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+        
+        <div class="decoded-section">
+          <h4>🌍 Board</h4>
+          <div class="board-cards">
+            ${decoded.board.length > 0 ? decoded.board.join(' ') : 'No flop (everyone folded preflop)'}
+          </div>
+        </div>
+        
+        <div class="decoded-section">
+          <h4>📊 Actions (${decoded.actions.length})</h4>
+          <div class="actions-timeline">
+            ${decoded.actions.slice(0, 10).map(a => 
+              `<div class="action-item">Seat ${a.seatIndex}: ${a.action}${a.amount ? ` $${a.amount}` : ''}</div>`
+            ).join('')}
+            ${decoded.actions.length > 10 ? `<div class="action-more">... and ${decoded.actions.length - 10} more actions</div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  getRankName(rank) {
+    const ranks = {
+      1: 'Royal Flush',
+      2: 'Straight Flush',
+      3: 'Four of a Kind',
+      4: 'Full House',
+      5: 'Flush',
+      6: 'Straight',
+      7: 'Three of a Kind',
+      8: 'Two Pair',
+      9: 'Pair',
+      10: 'High Card'
+    };
+    return ranks[rank] || 'Unknown';
+  }
+  
+  updatePagination() {
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const pageInfo = document.getElementById('page-info');
+    
+    btnPrev.disabled = this.currentPage === 0;
+    btnNext.disabled = (this.currentPage + 1) * this.limit >= this.total;
+    
+    const totalPages = Math.ceil(this.total / this.limit);
+    pageInfo.textContent = `Page ${this.currentPage + 1} of ${totalPages} (${this.total} hands)`;
+  }
+}
+
+// Global instance
+window.handHistoryService = new HandHistoryService();
+
+// Global functions
+function toggleHandDetails(index) {
+  const details = document.getElementById(`hand-details-${index}`);
+  const isHidden = details.hasAttribute('hidden');
+  details.hidden = !isHidden;
+}
+
+function applyHandHistoryFilters() {
+  const filters = {
+    startDate: document.getElementById('filter-start-date').value || undefined,
+    endDate: document.getElementById('filter-end-date').value || undefined,
+    roomId: document.getElementById('filter-room').value || undefined,
+    minHandRank: document.getElementById('filter-hand-rank').value || undefined,
+    maxHandRank: document.getElementById('filter-hand-rank').value || undefined
+  };
+  
+  window.handHistoryService.loadHands(filters, 0);
+}
+
+function clearHandHistoryFilters() {
+  document.getElementById('filter-start-date').value = '';
+  document.getElementById('filter-end-date').value = '';
+  document.getElementById('filter-room').value = '';
+  document.getElementById('filter-hand-rank').value = '';
+  
+  window.handHistoryService.loadHands({}, 0);
+}
+
+function loadPreviousPage() {
+  if (window.handHistoryService.currentPage > 0) {
+    window.handHistoryService.loadHands(
+      window.handHistoryService.filters,
+      window.handHistoryService.currentPage - 1
+    );
+  }
+}
+
+function loadNextPage() {
+  const totalPages = Math.ceil(window.handHistoryService.total / window.handHistoryService.limit);
+  if (window.handHistoryService.currentPage < totalPages - 1) {
+    window.handHistoryService.loadHands(
+      window.handHistoryService.filters,
+      window.handHistoryService.currentPage + 1
+    );
+  }
+}
+
+// Auto-load on page load
+window.addEventListener('DOMContentLoaded', async () => {
+  await window.initializeAuth();
+  if (window.authManager.user) {
+    window.handHistoryService.loadHands({}, 0);
+  }
+});
+```
+
+#### **CSS Styling**
+**File:** `public/css/analytics-live.css` (append)
+
+```css
+/* Hand History Viewer */
+.analysis-history-tile {
+  grid-column: span 2;
+}
+
+.history-filters {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.filter-input {
+  flex: 1;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #fff;
+}
+
+.hand-history-container {
+  max-height: 600px;
+  overflow-y: auto;
+  margin: 1rem 0;
+}
+
+.hand-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.hand-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.hand-card.hand-won {
+  border-left: 4px solid #10b981;
+}
+
+.hand-card.hand-lost {
+  border-left: 4px solid #ef4444;
+}
+
+.hand-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hand-info, .hand-stats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.hand-details {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.decoded-section {
+  margin-bottom: 1rem;
+}
+
+.player-cards-list {
+  list-style: none;
+  padding: 0;
+}
+
+.player-cards-list li {
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.board-cards {
+  font-size: 1.5rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.pagination-controls button {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+```
+
+---
+
+## **🎯 TIER 1B: PROFILE ROBUSTNESS** ⏱️ 1-2 hours
+
+### **Current State**
+- ✅ Own profile modal working (`openProfileModal()`)
+- ❌ Can't view other players' profiles
+- ❌ No privacy controls
+- ❌ No link from friends list to profile
+
+### **Solution: View Any Player Profile**
+
+#### **Backend: GET `/api/social/profile/:userId`**
+```javascript
+// Add to routes/social.js
+router.get('/profile/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const requesterId = req.user.id;
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Get profile
+    const result = await db.query(
+      `SELECT 
+        id, username, display_name, avatar_url, bio,
+        total_hands_played, total_wins, win_rate,
+        (SELECT COUNT(DISTINCT room_id) FROM room_participations WHERE user_id = $1) as total_rooms_played,
+        total_winnings, 
+        best_hand, best_hand_date, biggest_pot,
+        show_game_history, show_online_status,
+        created_at
+       FROM user_profiles 
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    const profile = result.rows[0];
+    
+    // Check privacy: if not friends and show_game_history is false, hide stats
+    if (profile.show_game_history === false && requesterId !== userId) {
+      // Check if friends
+      const friendCheck = await db.query(
+        `SELECT id FROM friendships 
+         WHERE ((requester_id = $1 AND addressee_id = $2) OR (requester_id = $2 AND addressee_id = $1))
+           AND status = 'accepted'`,
+        [requesterId, userId]
+      );
+      
+      if (friendCheck.rowCount === 0) {
+        // Not friends, hide stats
+        profile.total_hands_played = null;
+        profile.total_wins = null;
+        profile.win_rate = null;
+        profile.total_rooms_played = null;
+        profile.total_winnings = null;
+        profile.best_hand = null;
+        profile.biggest_pot = null;
+      }
+    }
+    
+    // Get friend count
+    const { count: friendCount } = await supabase
+      .from('friendships')
+      .select('*', { count: 'exact', head: true })
+      .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
+      .eq('status', 'accepted');
+    
+    // Check if requester and profile user are friends
+    const areFriends = await db.query(
+      `SELECT id FROM friendships 
+       WHERE ((requester_id = $1 AND addressee_id = $2) OR (requester_id = $2 AND addressee_id = $1))
+         AND status = 'accepted'`,
+      [requesterId, userId]
+    );
+    
+    res.json({ 
+      ...profile, 
+      friend_count: friendCount || 0,
+      is_friend: areFriends.rowCount > 0,
+      is_own_profile: requesterId === userId
+    });
+    
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+```
+
+#### **Frontend: Update `social-modals.js`**
+```javascript
+// Add new function to view any player's profile
+async function openPlayerProfile(userId) {
+  try {
+    const token = await window.authManager.getAccessToken();
+    const response = await fetch(`/api/social/profile/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to load profile');
+    }
+    
+    const profile = await response.json();
+    
+    const modal = document.createElement('div');
+    modal.id = 'playerProfileModal';
+    modal.className = 'social-modal-overlay';
+    modal.innerHTML = `
+      <div class="social-modal large">
+        <div class="social-modal-header">
+          <h2>👤 ${profile.username}'s Profile</h2>
+          <button onclick="closePlayerProfileModal()" class="close-btn">×</button>
+        </div>
+        
+        <div class="social-modal-body">
+          <!-- Profile Info -->
+          <div class="profile-section">
+            <div class="profile-avatar-large">👤</div>
+            <h3>${profile.display_name || profile.username}</h3>
+            ${profile.bio ? `<p class="profile-bio">${profile.bio}</p>` : ''}
+          </div>
+          
+          ${profile.show_game_history !== false || profile.is_own_profile ? `
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">${profile.total_hands_played ?? 0}</div>
+                <div class="stat-label">Hands Played</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${profile.total_wins ?? 0}</div>
+                <div class="stat-label">Hands Won</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${profile.total_rooms_played ?? 0}</div>
+                <div class="stat-label">Rooms Played</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${parseFloat(profile.win_rate || 0).toFixed(1)}%</div>
+                <div class="stat-label">Win Rate</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${profile.friend_count ?? 0}</div>
+                <div class="stat-label">Friends</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">$${profile.biggest_pot ?? 0}</div>
+                <div class="stat-label">Biggest Pot</div>
+              </div>
+            </div>
+            
+            ${profile.best_hand ? `
+              <div class="best-hand-section">
+                <h4>🏆 Best Hand</h4>
+                <div class="best-hand-display">
+                  <span class="best-hand-cards">${profile.best_hand}</span>
+                  ${profile.best_hand_date ? `<span class="best-hand-date">${new Date(profile.best_hand_date).toLocaleDateString()}</span>` : ''}
+                </div>
+              </div>
+            ` : ''}
+          ` : `
+            <div class="privacy-notice">
+              🔒 This user's stats are private
+            </div>
+          `}
+          
+          <!-- Action Buttons -->
+          <div class="profile-actions">
+            ${!profile.is_own_profile ? `
+              ${profile.is_friend ? `
+                <button class="btn-primary" onclick="inviteToGame('${profile.id}')">🎮 Invite to Game</button>
+                <button class="btn-secondary" onclick="openChat('${profile.id}')">💬 Message</button>
+              ` : `
+                <button class="btn-primary" onclick="sendFriendRequest('${profile.id}')">➕ Add Friend</button>
+              `}
+            ` : ''}
+            <button class="btn-secondary" onclick="closePlayerProfileModal()">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Animate in
+    setTimeout(() => modal.classList.add('show'), 10);
+    
+  } catch (error) {
+    console.error('Error opening player profile:', error);
+    showNotification('error', 'Failed to load profile');
+  }
+}
+
+function closePlayerProfileModal() {
+  const modal = document.getElementById('playerProfileModal');
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 300);
+  }
+}
+
+// Expose globally
+window.openPlayerProfile = openPlayerProfile;
+```
+
+#### **Update Friends Page to Link to Profiles**
+```javascript
+// In public/js/friends-page.js, update renderFriendsList:
+function renderFriendsList(container) {
+  if (friends.length === 0) {
+    container.innerHTML = '<p class="empty-state">No friends yet. Search to add friends!</p>';
+    return;
+  }
+  
+  container.innerHTML = friends.map(friend => `
+    <div class="friend-item">
+      <div class="friend-avatar">👤</div>
+      <div class="friend-info">
+        <div class="friend-name">${friend.username}</div>
+        <div class="friend-status ${friend.is_online ? 'online' : 'offline'}">
+          ${friend.is_online ? '🟢 Online' : '⚪ Offline'}
+        </div>
+      </div>
+      <div class="friend-actions">
+        <button onclick="openPlayerProfile('${friend.user_id}')" class="btn-view-profile">View Profile</button>
+        <button onclick="inviteToGame('${friend.user_id}')" class="btn-invite">🎮 Invite</button>
+        <button onclick="removeFriend('${friend.user_id}')" class="btn-remove">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+```
+
+---
+
+## **🎯 TIER 2: FINALIZE FRIENDS SYSTEM** ⏱️ 1 hour
+
+### **Dependencies**
+- ✅ Username persistence (Tier 0) must be complete
+- ✅ Profile system (Tier 1B) ready
+
+### **Checklist**
+1. ✅ Friend search by username (already implemented, should work after Tier 0)
+2. ✅ Send friend request
+3. ✅ Accept/reject friend request
+4. ✅ View friends list
+5. ✅ View friend profile (Tier 1B)
+6. ❌ Invite friend to game (needs implementation)
+
+### **Missing: Invite Friend to Game**
+
+#### **Frontend: Add invite button functionality**
+```javascript
+// In public/js/social-modals.js or friends-page.js
+async function inviteToGame(friendUserId) {
+  try {
+    // Check if user is currently in a room
+    const currentRoomId = localStorage.getItem('currentRoomId');
+    
+    if (!currentRoomId) {
+      showNotification('info', 'You must be in a room to invite friends');
+      // Offer to create a room
+      if (confirm('Create a new room to invite friends?')) {
+        window.location.href = '/play';
+      }
+      return;
+    }
+    
+    const token = await window.authManager.getAccessToken();
+    const response = await fetch(`/api/rooms/${currentRoomId}/invite`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        user_id: window.authManager.user.id,
+        friendUserId: friendUserId
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to send invite');
+    }
+    
+    showNotification('success', 'Game invite sent!');
+    
+  } catch (error) {
+    console.error('Error inviting friend:', error);
+    showNotification('error', 'Failed to send invite');
+  }
+}
+
+window.inviteToGame = inviteToGame;
+```
+
+#### **Test Friends Flow**
+1. Login as User A
+2. Search for User B by username
+3. Send friend request
+4. Login as User B
+5. Accept friend request
+6. View User A's profile from friends list
+7. Invite User A to game (if in room)
+
+---
+
+## **📊 SUMMARY: COMPLETE TASK BREAKDOWN**
+
+| Tier | Task | Files | Estimated Time | Dependencies |
+|------|------|-------|----------------|--------------|
+| **0** | **Username Persistence** | | **1-2 hours** | **None** |
+| 0.1 | Make `normalizeUser()` async | `public/js/auth-manager.js` | 15 min | - |
+| 0.2 | Update `checkAuth()` to await | `public/js/auth-manager.js` | 5 min | 0.1 |
+| 0.3 | Create Migration 17 (NOT NULL) | `migrations/17_enforce_username.sql` | 10 min | - |
+| 0.4 | Update username change callback | `public/js/social-modals.js` | 15 min | - |
+| 0.5 | Test username persistence | Manual testing | 30 min | 0.1-0.4 |
+| **1A** | **Analytics Expansion** | | **2-3 hours** | **Tier 0** |
+| 1A.1 | Create `/api/analytics/hands/:userId` | `routes/social.js` | 45 min | Tier 0 |
+| 1A.2 | Add Hand History Viewer UI | `public/pages/analysis.html` | 30 min | - |
+| 1A.3 | Create `analytics-history.js` | `public/js/analytics-history.js` | 60 min | 1A.1 |
+| 1A.4 | Add CSS styling | `public/css/analytics-live.css` | 20 min | - |
+| 1A.5 | Test hand history viewer | Manual testing | 30 min | 1A.1-1A.4 |
+| **1B** | **Profile Robustness** | | **1-2 hours** | **Tier 0** |
+| 1B.1 | Create `/api/social/profile/:userId` | `routes/social.js` | 30 min | Tier 0 |
+| 1B.2 | Add `openPlayerProfile()` | `public/js/social-modals.js` | 30 min | 1B.1 |
+| 1B.3 | Update friends list with links | `public/js/friends-page.js` | 15 min | 1B.2 |
+| 1B.4 | Test profile viewing | Manual testing | 20 min | 1B.1-1B.3 |
+| **2** | **Friends Finalization** | | **1 hour** | **Tier 0, 1B** |
+| 2.1 | Add `inviteToGame()` function | `public/js/social-modals.js` | 20 min | Tier 0 |
+| 2.2 | Test friend search (should work) | Manual testing | 10 min | Tier 0 |
+| 2.3 | Test end-to-end friend flow | Manual testing | 30 min | Tier 0, 1B, 2.1 |
+
+**TOTAL ESTIMATED TIME: 5-8 hours**
+
+---
+
+## **🚀 RECOMMENDED EXECUTION ORDER**
+
+1. **Morning:** Tier 0 (Username Persistence) - 1-2 hours
+   - This unblocks everything else
+   - Test thoroughly before moving on
+
+2. **Midday:** Tier 1A (Analytics) - 2-3 hours
+   - Backend endpoint
+   - Frontend viewer
+   - Most complex feature
+
+3. **Afternoon:** Tier 1B (Profile) - 1-2 hours
+   - View any profile
+   - Link from friends list
+
+4. **Evening:** Tier 2 (Friends) - 1 hour
+   - Invite to game
+   - End-to-end testing
+
+---
+
+## **✅ APPROVAL CHECKLIST**
+
+Before we execute, confirm:
+- [ ] Username persistence architecture makes sense
+- [ ] Analytics hand history viewer meets vision
+- [ ] Profile viewing with privacy controls is acceptable
+- [ ] Friends invite flow is clear
+- [ ] No major gaps in the plan
+
+**Say "Execute Tier 0" to start, and I'll switch to Agent mode and begin implementation.**
+
+---
+
+_**User (2025-11-06 10:25Z)**_
+
+Lets begin
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+Perfect! The user has approved the plan and is ready to execute. They said "Lets begin" which means I should start with Tier 0 - Username Persistence.
+
+Let me start implementing:
+
+**Tier 0: Username Persistence (BLOCKING EVERYTHING)**
+
+1. Make `normalizeUser()` async in `auth-manager.js`
+2. Update `checkAuth()` to await it
+3. Create Migration 17 to enforce username NOT NULL
+4. Update username change callback in `social-modals.js`
+5. Test
+
+Let me start with the implementation.</details></think>
+
+---
+
+# 🚀 **EXECUTING TIER 0: USERNAME PERSISTENCE FIX**
+
+Starting with the foundation that blocks everything else. Let me implement this systematically.
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Fix username persistence - make normalizeUser() async and fetch from DB
+- [-] Make auth-manager.js normalizeUser() async + fetch from /api/auth/profile/:id
+- [ ] Update checkAuth() to await normalizeUser()
+- [ ] Create Migration 17: Enforce username NOT NULL constraint
+- [ ] Update social-modals.js username change to refresh authManager cache
 
 </details>
 </tool-use>
