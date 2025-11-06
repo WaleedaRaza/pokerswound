@@ -46,17 +46,20 @@ router.post('/sync-user', withIdempotency, async (req, res) => {
   try {
     const { id, email, username, provider, isGuest } = req.body;
     
-    if (!id || !username) {
-      return res.status(400).json({ error: 'Missing required fields: id, username' });
+    if (!id) {
+      return res.status(400).json({ error: 'Missing required field: id' });
     }
+    
+    // Username optional - will be set later via profile modal
+    const finalUsername = username || `user_${id.substring(0, 8)}`;
     
     // Skip syncing guest users
     if (isGuest) {
-      console.log('ℹ️ Skipping sync for guest user:', username);
+      console.log('ℹ️ Skipping sync for guest user:', finalUsername);
       return res.json({ 
         success: true, 
         message: 'Guest user - no sync needed',
-        user: { id, username, isGuest: true }
+        user: { id, username: finalUsername, isGuest: true }
       });
     }
     
@@ -64,7 +67,7 @@ router.post('/sync-user', withIdempotency, async (req, res) => {
     const db = getDb();
     if (!db) return res.status(500).json({ error: 'Database not configured' });
     
-    console.log('🔄 Syncing user to backend:', { id, email, username, provider });
+    console.log('🔄 Syncing user to backend:', { id, email, username: finalUsername, provider });
     
     // Check if user profile exists
     const existingProfile = await db.query(
@@ -78,25 +81,29 @@ router.post('/sync-user', withIdempotency, async (req, res) => {
         `INSERT INTO user_profiles (id, username, display_name, created_at)
          VALUES ($1, $2, $3, NOW())
          ON CONFLICT (id) DO NOTHING`,
-        [id, username, username]
+        [id, finalUsername, finalUsername]
       );
-      console.log('✅ Created new user profile:', username);
+      console.log('✅ Created new user profile:', finalUsername);
     } else {
-      // Update existing profile if needed
-      await db.query(
-        `UPDATE user_profiles 
-         SET username = $2, display_name = $3, updated_at = NOW()
-         WHERE id = $1`,
-        [id, username, username]
-      );
-      console.log('✅ Updated existing user profile:', username);
+      // Update existing profile if needed (only if username provided)
+      if (username) {
+        await db.query(
+          `UPDATE user_profiles 
+           SET username = $2, display_name = $3, updated_at = NOW()
+           WHERE id = $1`,
+          [id, finalUsername, finalUsername]
+        );
+        console.log('✅ Updated existing user profile:', finalUsername);
+      } else {
+        console.log('ℹ️ User profile exists, no username update needed');
+      }
     }
     
     res.json({ 
       success: true,
       user: {
         id,
-        username,
+        username: finalUsername,
         email: email || '',
         provider: provider || 'google'
       }

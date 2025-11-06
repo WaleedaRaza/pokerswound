@@ -234,7 +234,7 @@ async function openProfileModal() {
             </div>
             
             <div class="stat-card">
-              <div class="stat-value">${(profile.win_rate ?? 0).toFixed(1)}%</div>
+              <div class="stat-value">${parseFloat(profile.win_rate || 0).toFixed(1)}%</div>
               <div class="stat-label">Win Rate</div>
             </div>
             
