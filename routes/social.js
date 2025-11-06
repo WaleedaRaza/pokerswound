@@ -7,10 +7,26 @@ const express = require('express');
 const router = express.Router();
 const { createClient } = require('@supabase/supabase-js');
 
+// ✅ TWO CLIENTS: 
+// 1. Auth client (ANON key) for validating user tokens
+// 2. Admin client (SERVICE ROLE) for database operations
+const supabaseAuth = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
 );
+
+console.log('✅ Social router: Auth client (ANON) + Admin client (SERVICE ROLE)');
 
 // ============================================
 // MIDDLEWARE: AUTH CHECK
@@ -22,9 +38,12 @@ async function requireAuth(req, res, next) {
   }
 
   const token = authHeader.substring(7);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  
+  // ✅ Use ANON client to validate user token
+  const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
   
   if (error || !user) {
+    console.error('Auth error:', error);
     return res.status(401).json({ error: 'Invalid token' });
   }
 
