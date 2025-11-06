@@ -761,7 +761,7 @@ router.post('/action', async (req, res) => {
             roomId,
             updatedState.handNumber || 1,
             updatedState.pot || 0,
-            JSON.stringify(updatedState.communityCards || []),
+            updatedState.communityCards || [],  // ✅ FIXED: Pass array directly, not JSON string
             JSON.stringify(updatedState.winners || []),
             JSON.stringify(updatedState.actionHistory || []),
             JSON.stringify(updatedState.players.map(p => ({
