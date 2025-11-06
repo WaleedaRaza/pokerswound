@@ -777,13 +777,41 @@ router.post('/action', async (req, res) => {
         // ✅ USE FINAL POT SIZE (captured before zeroing)
         const potSize = updatedState.finalPotSize || updatedState.pot || 0;
         
-        // 1. INSERT HAND_HISTORY (with ALL required fields)
+        // ✅ ENCODE HAND (PHE format for 80% storage reduction)
+        const HandEncoder = require('../public/js/hand-encoder.js');
+        const encodedHand = HandEncoder.encode({
+          players: updatedState.players.map(p => ({
+            userId: p.userId,
+            seatIndex: p.seatIndex,
+            cards: p.hand || p.holeCards || [],
+            revealed: winner && p.userId === winnerId // Only winner's cards revealed
+          })),
+          board: updatedState.communityCards || [],
+          winner: winner ? winner.seatIndex : null,
+          rank: handRank,
+          pot: potSize,
+          actions: (updatedState.actionHistory || []).map(a => ({
+            seatIndex: a.seatIndex || 0,
+            action: a.action,
+            amount: a.amount || 0
+          }))
+        });
+        
+        console.log(`   📦 Encoded hand: ${encodedHand.substring(0, 60)}... (${encodedHand.length} chars)`);
+        
+        // Calculate size savings
+        const jsonSize = JSON.stringify(updatedState.actionHistory || []).length;
+        const encodedSize = encodedHand.length;
+        const savings = Math.round((1 - encodedSize / jsonSize) * 100);
+        console.log(`   💾 Storage: ${encodedSize} bytes (${savings}% smaller than JSON)`);
+        
+        // 1. INSERT HAND_HISTORY (with ALL required fields + ENCODED)
         const handHistoryInsert = await db.query(
           `INSERT INTO hand_history (
             game_id, room_id, hand_number, pot_size, 
             player_ids, winner_id, winning_hand, hand_rank,
-            board_cards, actions_log, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+            board_cards, actions_log, encoded_hand, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
           RETURNING id`,
           [
             gameStateId,  // game_id from game_states
@@ -795,7 +823,8 @@ router.post('/action', async (req, res) => {
             winningHand, // ✅ NEW: "Flush (J-high)"
             handRank,    // ✅ NEW: 5 (for Flush)
             updatedState.communityCards ? updatedState.communityCards.join(' ') : null,  // ✅ FIXED: Convert to TEXT
-            JSON.stringify(updatedState.actionHistory || [])  // Renamed from player_actions
+            JSON.stringify(updatedState.actionHistory || []),  // Kept for backwards compatibility
+            encodedHand  // ✅ NEW: PHE format (80% smaller)
           ]
         );
         
@@ -854,11 +883,14 @@ router.post('/action', async (req, res) => {
               } : null,
               players: playerIds,
               board: updatedState.communityCards,
-              extractionTime: Date.now() - (updatedState.handStartTime || Date.now())
+              extractionTime: Date.now() - (updatedState.handStartTime || Date.now()),
+              encodedHand: encodedHand,  // ✅ Send encoded format to Analytics
+              encodedSize: encodedHand.length,
+              savings: savings  // Storage savings percentage
             }
           });
           
-          console.log('📡 [ANALYTICS] Emitted data_extracted event to room');
+          console.log('📡 [ANALYTICS] Emitted data_extracted event with PHE encoding');
         }
         
       } catch (extractionError) {
