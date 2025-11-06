@@ -223,7 +223,8 @@ router.get('/profile/:userId', async (req, res) => {
       `SELECT 
         id, username, display_name, avatar_url, bio,
         total_hands_played, total_wins, win_rate,
-        total_games_played, total_winnings, best_hand,
+        total_games_played, total_winnings, 
+        best_hand, best_hand_date, biggest_pot,
         created_at
        FROM user_profiles 
        WHERE id = $1`,

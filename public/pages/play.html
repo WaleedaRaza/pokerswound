@@ -85,63 +85,52 @@
     
     <!-- Game Sections using liquid glass tiles -->
     <div class="game-sections">
-      <section class="game-section liquid-glass-tile">
-        <div class="tile-content">
-          <div class="tile-icon">🎯</div>
-          <h3 class="tile-title">Quick Play</h3>
-          <p class="tile-description">Jump into a game instantly with random opponents</p>
-          <div class="tile-actions">
-            <button class="btn btn-primary" onclick="openQuickPlayModal()">Start Game</button>
-            <button class="btn btn-secondary" onclick="openJoinModal()">Join Room</button>
-          </div>
-        </div>
-      </section>
-      
-      <section class="game-section liquid-glass-tile">
-        <div class="tile-content">
-          <div class="tile-icon">🏠</div>
-          <h3 class="tile-title">Create Room</h3>
-          <p class="tile-description">Host your own private poker room with friends</p>
-          <div class="tile-actions">
-            <button class="btn btn-primary" onclick="openCreateModal()">Create Room</button>
-            <button class="btn btn-secondary" onclick="openSettingsModal()">Settings</button>
-          </div>
-        </div>
-      </section>
-      
+      <!-- ACTIVE: Private Room (Main Game) -->
       <section class="game-section liquid-glass-tile" style="border: 2px solid #10b981;">
         <div class="tile-content">
-          <div class="tile-icon">🧪</div>
-          <h3 class="tile-title">Sandbox Table <span style="font-size: 0.7rem; color: #10b981; font-weight: bold;">TESTING</span></h3>
-          <p class="tile-description">Iterative test environment - build features one at a time</p>
+          <div class="tile-icon">🎮</div>
+          <h3 class="tile-title">Private Room</h3>
+          <p class="tile-description">Host or join a private poker room with friends</p>
           <div class="tile-actions">
-            <button class="btn btn-primary" style="background: #10b981;" onclick="createSandboxRoom()">Create Sandbox</button>
-            <button class="btn btn-secondary" onclick="joinSandboxRoom()">Join Sandbox</button>
-            <button class="btn btn-secondary" style="background: #3b82f6;" onclick="openRoomManagement()">🗂️ Room Management</button>
+            <button class="btn btn-primary" style="background: #10b981;" onclick="createSandboxRoom()">Create Room</button>
+            <button class="btn btn-secondary" onclick="joinSandboxRoom()">Join with Code</button>
+            <button class="btn btn-secondary" style="background: #3b82f6;" onclick="openRoomManagement()">🗂️ My Rooms</button>
           </div>
         </div>
       </section>
       
-      <section class="game-section liquid-glass-tile">
+      <!-- COMING SOON: Public Rooms -->
+      <section class="game-section liquid-glass-tile" style="opacity: 0.6; cursor: not-allowed; border: 1px dashed rgba(255,255,255,0.3);">
+        <div class="tile-content">
+          <div class="tile-icon">🌐</div>
+          <h3 class="tile-title">Public Rooms <span style="font-size: 0.7rem; color: #fbbf24; font-weight: bold;">🔒 PHASE 2</span></h3>
+          <p class="tile-description">Join open tables and play with anyone</p>
+          <div class="tile-actions">
+            <button class="btn btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">Coming Soon</button>
+          </div>
+        </div>
+      </section>
+      
+      <!-- COMING SOON: Tournaments -->
+      <section class="game-section liquid-glass-tile" style="opacity: 0.6; cursor: not-allowed; border: 1px dashed rgba(255,255,255,0.3);">
         <div class="tile-content">
           <div class="tile-icon">🏆</div>
-          <h3 class="tile-title">Tournaments</h3>
-          <p class="tile-description">Compete in scheduled tournaments and win prizes</p>
+          <h3 class="tile-title">Tournaments <span style="font-size: 0.7rem; color: #fbbf24; font-weight: bold;">🔒 PHASE 2</span></h3>
+          <p class="tile-description">Compete in scheduled tournament events</p>
           <div class="tile-actions">
-            <button class="btn btn-primary" onclick="openTournamentsModal()">View Tournaments</button>
-            <button class="btn btn-secondary" onclick="openCreateTournamentModal()">Create Tournament</button>
+            <button class="btn btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">Coming Soon</button>
           </div>
         </div>
       </section>
       
-      <section class="game-section liquid-glass-tile">
+      <!-- COMING SOON: Blitz Mode -->
+      <section class="game-section liquid-glass-tile" style="opacity: 0.6; cursor: not-allowed; border: 1px dashed rgba(255,255,255,0.3);">
         <div class="tile-content">
-          <div class="tile-icon">👥</div>
-          <h3 class="tile-title">Public Tables</h3>
-          <p class="tile-description">Join public tables and meet new players</p>
+          <div class="tile-icon">⚡</div>
+          <h3 class="tile-title">Blitz Mode <span style="font-size: 0.7rem; color: #fbbf24; font-weight: bold;">🔒 PHASE 3</span></h3>
+          <p class="tile-description">Fast-paced poker with increasing blinds (10k starting chips)</p>
           <div class="tile-actions">
-            <button class="btn btn-primary" onclick="openPublicModal()">Browse Tables</button>
-            <button class="btn btn-secondary" onclick="openTableManageModal()">Manage Tables</button>
+            <button class="btn btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">Coming Soon</button>
           </div>
         </div>
       </section>

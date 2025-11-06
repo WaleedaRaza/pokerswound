@@ -244,7 +244,7 @@ async function openProfileModal() {
             </div>
             
             <div class="stat-card">
-              <div class="stat-value">$${formatChips(profile.biggest_pot_won ?? 0)}</div>
+              <div class="stat-value">$${formatChips(profile.biggest_pot ?? 0)}</div>
               <div class="stat-label">Biggest Pot</div>
             </div>
           </div>
@@ -253,9 +253,9 @@ async function openProfileModal() {
           <div class="best-hand-section">
             <h4>🏆 Best Hand</h4>
             <div class="best-hand-display">
-              ${profile.best_hand_rank ? `
-                <div class="hand-rank">${profile.best_hand_rank}</div>
-                ${profile.best_hand_cards ? `<div class="hand-cards">${profile.best_hand_cards}</div>` : ''}
+              ${profile.best_hand ? `
+                <div class="hand-rank">${profile.best_hand}</div>
+                ${profile.best_hand_date ? `<div class="hand-date" style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">${new Date(profile.best_hand_date).toLocaleDateString()}</div>` : ''}
               ` : '<p class="text-muted">No hands recorded yet</p>'}
             </div>
           </div>

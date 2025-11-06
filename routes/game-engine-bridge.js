@@ -749,33 +749,59 @@ router.post('/action', async (req, res) => {
       console.log('📊 [MINIMAL] Extracting hand data to hand_history + player_statistics');
       
       try {
-        // 1. INSERT HAND_HISTORY
+        // Helper function to get hand rank from description
+        const getHandRank = (handDescription) => {
+          if (!handDescription) return 10;
+          const desc = handDescription.toLowerCase();
+          if (desc.includes('royal flush')) return 1;
+          if (desc.includes('straight flush')) return 2;
+          if (desc.includes('four of a kind') || desc.includes('quads')) return 3;
+          if (desc.includes('full house')) return 4;
+          if (desc.includes('flush')) return 5;
+          if (desc.includes('straight')) return 6;
+          if (desc.includes('three of a kind') || desc.includes('trips')) return 7;
+          if (desc.includes('two pair')) return 8;
+          if (desc.includes('pair')) return 9;
+          return 10; // High card
+        };
+        
+        // Extract winner data
+        const winner = (updatedState.winners && updatedState.winners[0]) ? updatedState.winners[0] : null;
+        const winnerId = winner ? winner.userId : null;
+        const winningHand = winner ? winner.handDescription : null;
+        const handRank = getHandRank(winningHand);
+        
+        // Extract all player IDs
+        const playerIds = updatedState.players.map(p => p.userId);
+        
+        // 1. INSERT HAND_HISTORY (with ALL required fields)
         const handHistoryInsert = await db.query(
           `INSERT INTO hand_history (
             game_id, room_id, hand_number, pot_size, 
-            community_cards, winners, player_actions, final_stacks, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+            player_ids, winner_id, winning_hand, hand_rank,
+            board_cards, actions_log, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
           RETURNING id`,
           [
             gameStateId,  // game_id from game_states
             roomId,
             updatedState.handNumber || 1,
             updatedState.pot || 0,
-            updatedState.communityCards || [],  // ✅ FIXED: Pass array directly, not JSON string
-            JSON.stringify(updatedState.winners || []),
-            JSON.stringify(updatedState.actionHistory || []),
-            JSON.stringify(updatedState.players.map(p => ({
-              userId: p.userId,
-              seatIndex: p.seatIndex,
-              finalChips: p.chips
-            })))
+            playerIds,  // ✅ NEW: Array of UUIDs
+            winnerId,   // ✅ NEW: Winner UUID for trigger
+            winningHand, // ✅ NEW: "Flush (J-high)"
+            handRank,    // ✅ NEW: 5 (for Flush)
+            updatedState.communityCards ? updatedState.communityCards.join(' ') : null,  // ✅ FIXED: Convert to TEXT
+            JSON.stringify(updatedState.actionHistory || [])  // Renamed from player_actions
           ]
         );
         
         console.log(`   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}`);
+        console.log(`      Winner: ${winnerId ? winnerId.substr(0, 8) : 'none'} | Hand: ${winningHand || 'none'} | Rank: ${handRank}`);
         
         // 2. UPDATE PLAYER_STATISTICS
         const winnerIds = new Set((updatedState.winners || []).map(w => w.userId));
+        const potSize = updatedState.pot || 0;
         
         for (const player of updatedState.players) {
           const isWinner = winnerIds.has(player.userId);
@@ -794,7 +820,20 @@ router.post('/action', async (req, res) => {
           console.log(`   ✅ player_statistics updated: ${player.userId.substr(0, 8)} (won: ${isWinner})`);
         }
         
-        console.log('📊 [MINIMAL] Data extraction complete - trigger will sync to user_profiles');
+        // 3. UPDATE BIGGEST_POT FOR WINNERS (backup to trigger)
+        if (winner && potSize > 0) {
+          await db.query(`
+            UPDATE user_profiles
+            SET 
+              biggest_pot = GREATEST(COALESCE(biggest_pot, 0), $1),
+              updated_at = NOW()
+            WHERE id = $2
+          `, [potSize, winnerId]);
+          
+          console.log(`   💰 Updated biggest_pot for ${winnerId.substr(0, 8)}: $${potSize}`);
+        }
+        
+        console.log('📊 [MINIMAL] Data extraction complete - triggers will sync to user_profiles');
         
       } catch (extractionError) {
         console.error('❌ [MINIMAL] Data extraction failed (non-critical):', extractionError.message);
