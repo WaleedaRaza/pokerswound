@@ -85,25 +85,33 @@ class AuthManager {
    */
   async normalizeUser(supabaseUser, provider) {
     const email = supabaseUser.email || null;
-    let username = email 
-      ? email.split('@')[0] 
-      : `Guest_${supabaseUser.id.substring(0, 6)}`;
-    
-    // ✅ Fetch actual username from database (for non-guests)
     const isGuest = provider === 'guest' || provider === 'anonymous';
+    
+    let username = null;
+    
+    // ✅ CRITICAL: For non-guests, ALWAYS fetch from database (single source of truth)
     if (!isGuest) {
       try {
         const response = await fetch(`/api/auth/profile/${supabaseUser.id}`);
         if (response.ok) {
           const profile = await response.json();
-          if (profile.username) {
-            username = profile.username;
-            console.log(`✅ AuthManager: Loaded username from DB: ${username}`);
-          }
+          username = profile.username;
+          console.log(`✅ AuthManager: Loaded username from DB: ${username}`);
+        } else {
+          console.error(`❌ AuthManager: Failed to fetch profile (${response.status})`);
         }
       } catch (error) {
-        console.warn('⚠️ AuthManager: Failed to load username from DB, using fallback:', error);
+        console.error('❌ AuthManager: Failed to load username from DB:', error);
       }
+      
+      // ❌ NO FALLBACK FOR LOGGED-IN USERS
+      // If fetch failed, username stays null - this will trigger username modal
+      if (!username) {
+        console.warn('⚠️ AuthManager: No username in DB - user needs to set one');
+      }
+    } else {
+      // Only guests get auto-generated usernames
+      username = `Guest_${supabaseUser.id.substring(0, 6)}`;
     }
     
     return {
