@@ -43,6 +43,7 @@ async function requireAuth(req, res, next) {
 router.post('/username/check', requireAuth, async (req, res) => {
   try {
     const { username } = req.body;
+    const currentUserId = req.user.id;
 
     if (!username) {
       return res.status(400).json({ error: 'Username required' });
@@ -55,18 +56,21 @@ router.post('/username/check', requireAuth, async (req, res) => {
       });
     }
 
-    // Check availability in database
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('username', username)
-      .maybeSingle();
-
-    if (error) {
-      throw error;
+    // Check availability in database using PostgreSQL
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
     }
+    
+    // Check if username exists (excluding current user)
+    const result = await db.query(
+      'SELECT id FROM user_profiles WHERE LOWER(username) = LOWER($1) AND id != $2',
+      [username, currentUserId]
+    );
 
-    const available = !data;
+    const available = result.rowCount === 0;
     res.json({ available, username });
   } catch (error) {
     console.error('Error checking username:', error);
