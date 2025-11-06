@@ -222,6 +222,7 @@ router.get('/profile/:userId', async (req, res) => {
     const result = await db.query(
       `SELECT 
         id, username, display_name, avatar_url, bio,
+        total_hands_played, total_wins, win_rate,
         total_games_played, total_winnings, best_hand,
         created_at
        FROM user_profiles 
