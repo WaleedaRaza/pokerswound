@@ -288,6 +288,183 @@ function closeProfileModal() {
 }
 
 // ============================================
+// VIEW ANY PLAYER'S PROFILE
+// ============================================
+
+/**
+ * Open profile modal for any user (with privacy checks)
+ * @param {string} userId - The user ID to view
+ */
+async function openPlayerProfile(userId) {
+  try {
+    const token = await window.authManager.getAccessToken();
+    const response = await fetch(`/api/social/profile/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to load profile');
+    }
+    
+    const profile = await response.json();
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'playerProfileModal';
+    modal.className = 'social-modal-overlay';
+    
+    // Check if stats are hidden due to privacy
+    const statsHidden = profile.total_hands_played === null;
+    
+    modal.innerHTML = `
+      <div class="social-modal profile-modal-wide">
+        <div class="social-modal-header">
+          <h2>👤 ${profile.username || 'Unknown User'}'s Profile</h2>
+          <button onclick="closePlayerProfileModal()" class="close-btn">×</button>
+        </div>
+        
+        <div class="social-modal-body">
+          ${profile.bio ? `<p class="profile-bio">${profile.bio}</p>` : ''}
+          
+          ${statsHidden ? `
+            <div class="privacy-notice">
+              <p>🔒 This player's stats are private. Add them as a friend to see their stats!</p>
+            </div>
+          ` : `
+            <div class="profile-stats-grid">
+              <div class="stat-box">
+                <div class="stat-label">Hands Played</div>
+                <div class="stat-value">${profile.total_hands_played || 0}</div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label">Rooms Played</div>
+                <div class="stat-value">${profile.total_rooms_played || 0}</div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label">Total Wins</div>
+                <div class="stat-value">${profile.total_wins || 0}</div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label">Win Rate</div>
+                <div class="stat-value">${parseFloat(profile.win_rate || 0).toFixed(1)}%</div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label">Friends</div>
+                <div class="stat-value">${profile.friend_count || 0}</div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label">Biggest Pot</div>
+                <div class="stat-value">$${profile.biggest_pot || 0}</div>
+              </div>
+              
+              ${profile.best_hand ? `
+                <div class="stat-box stat-box-wide">
+                  <div class="stat-label">Best Hand</div>
+                  <div class="stat-value">${profile.best_hand}</div>
+                  ${profile.best_hand_date ? `<div class="stat-sublabel">${new Date(profile.best_hand_date).toLocaleDateString()}</div>` : ''}
+                </div>
+              ` : ''}
+            </div>
+          `}
+        </div>
+        
+        <div class="social-modal-actions">
+          ${profile.is_own_profile ? '' : 
+            profile.is_friend ? 
+              '<button class="btn btn-secondary" disabled>✅ Already Friends</button>' :
+              profile.pending_friend_request.exists ?
+                (profile.pending_friend_request.sent_by_me ? 
+                  '<button class="btn btn-secondary" disabled>⏳ Request Sent</button>' : 
+                  '<button onclick="acceptFriendRequestFromProfile(\'' + userId + '\')" class="btn btn-primary">✅ Accept Friend Request</button>') :
+                '<button onclick="sendFriendRequestFromProfile(\'' + userId + '\')" class="btn btn-primary">➕ Add Friend</button>'
+          }
+          <button onclick="closePlayerProfileModal()" class="btn btn-secondary">Close</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+  } catch (error) {
+    console.error('Error loading player profile:', error);
+    showNotification('error', 'Failed to load profile');
+  }
+}
+
+function closePlayerProfileModal() {
+  const modal = document.getElementById('playerProfileModal');
+  if (modal) modal.remove();
+}
+
+async function sendFriendRequestFromProfile(userId) {
+  try {
+    const token = await window.authManager.getAccessToken();
+    const response = await fetch('/api/social/friends/request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ addressee_id: userId })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to send friend request');
+    }
+    
+    showNotification('success', 'Friend request sent!');
+    closePlayerProfileModal();
+    
+    // Refresh if on friends page
+    if (typeof loadFriends === 'function') {
+      loadFriends();
+    }
+  } catch (error) {
+    console.error('Error sending friend request:', error);
+    showNotification('error', error.message || 'Failed to send friend request');
+  }
+}
+
+async function acceptFriendRequestFromProfile(userId) {
+  try {
+    const token = await window.authManager.getAccessToken();
+    const response = await fetch(`/api/social/friends/accept`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ requester_id: userId })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to accept friend request');
+    }
+    
+    showNotification('success', 'Friend request accepted!');
+    closePlayerProfileModal();
+    
+    // Refresh if on friends page
+    if (typeof loadFriends === 'function') {
+      loadFriends();
+    }
+  } catch (error) {
+    console.error('Error accepting friend request:', error);
+    showNotification('error', error.message || 'Failed to accept request');
+  }
+}
+
+// Make function globally available
+window.openPlayerProfile = openPlayerProfile;
+
+// ============================================
 // CHANGE USERNAME MODAL
 // ============================================
 

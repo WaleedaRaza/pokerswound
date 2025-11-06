@@ -248,6 +248,107 @@ router.get('/username/:username', requireAuth, async (req, res) => {
 // ============================================
 
 /**
+ * GET /api/social/profile/:userId
+ * Get any user's profile (with privacy controls)
+ */
+router.get('/profile/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const requesterId = req.user.id;
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Get profile
+    const result = await db.query(
+      `SELECT 
+        id, username, display_name, avatar_url, bio,
+        total_hands_played, total_wins, win_rate,
+        (SELECT COUNT(DISTINCT room_id) FROM room_participations WHERE user_id = $1) as total_rooms_played,
+        total_winnings, 
+        best_hand, best_hand_date, biggest_pot,
+        show_game_history, show_online_status,
+        created_at
+       FROM user_profiles 
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    const profile = result.rows[0];
+    
+    // Check privacy: if not friends and show_game_history is false, hide stats
+    if (profile.show_game_history === false && requesterId !== userId) {
+      // Check if friends
+      const friendCheck = await db.query(
+        `SELECT id FROM friendships 
+         WHERE ((requester_id = $1 AND addressee_id = $2) OR (requester_id = $2 AND addressee_id = $1))
+           AND status = 'accepted'`,
+        [requesterId, userId]
+      );
+      
+      if (friendCheck.rowCount === 0) {
+        // Not friends, hide stats
+        profile.total_hands_played = null;
+        profile.total_wins = null;
+        profile.win_rate = null;
+        profile.total_rooms_played = null;
+        profile.total_winnings = null;
+        profile.best_hand = null;
+        profile.biggest_pot = null;
+      }
+    }
+    
+    // Get friend count
+    const friendCountResult = await db.query(
+      `SELECT COUNT(*) as count FROM friendships 
+       WHERE ((requester_id = $1) OR (addressee_id = $1))
+         AND status = 'accepted'`,
+      [userId]
+    );
+    const friendCount = parseInt(friendCountResult.rows[0]?.count || 0);
+    
+    // Check if requester and profile user are friends
+    const areFriends = await db.query(
+      `SELECT id FROM friendships 
+       WHERE ((requester_id = $1 AND addressee_id = $2) OR (requester_id = $2 AND addressee_id = $1))
+         AND status = 'accepted'`,
+      [requesterId, userId]
+    );
+    
+    // Check if there's a pending friend request
+    const pendingRequest = await db.query(
+      `SELECT id, requester_id FROM friendships 
+       WHERE ((requester_id = $1 AND addressee_id = $2) OR (requester_id = $2 AND addressee_id = $1))
+         AND status = 'pending'`,
+      [requesterId, userId]
+    );
+    
+    res.json({ 
+      ...profile, 
+      friend_count: friendCount,
+      is_friend: areFriends.rowCount > 0,
+      is_own_profile: requesterId === userId,
+      pending_friend_request: pendingRequest.rowCount > 0 ? {
+        exists: true,
+        sent_by_me: pendingRequest.rows[0]?.requester_id === requesterId
+      } : { exists: false }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+/**
  * GET /api/social/profile/me
  * Get current user's profile with stats
  */
