@@ -254,23 +254,41 @@ router.get('/username/:username', requireAuth, async (req, res) => {
 router.get('/profile/me', requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
-
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error) throw error;
-
-    // Get friend count (using existing schema)
+    
+    // ✅ USE POSTGRESQL QUERY (like /api/auth/profile/:userId) for computed fields
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    const result = await db.query(
+      `SELECT 
+        id, username, display_name, avatar_url, bio,
+        total_hands_played, total_wins, win_rate,
+        (SELECT COUNT(DISTINCT room_id) FROM room_participations WHERE user_id = $1) as total_rooms_played,
+        total_winnings, 
+        best_hand, best_hand_date, biggest_pot,
+        created_at
+       FROM user_profiles 
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    // Get friend count using Supabase (for RLS compatibility)
     const { count: friendCount } = await supabase
       .from('friendships')
       .select('*', { count: 'exact', head: true })
       .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
       .eq('status', 'accepted');
-
-    res.json({ ...data, friend_count: friendCount || 0 });
+    
+    res.json({ ...result.rows[0], friend_count: friendCount || 0 });
+    
   } catch (error) {
     console.error('Error fetching profile:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });

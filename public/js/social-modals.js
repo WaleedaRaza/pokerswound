@@ -224,8 +224,8 @@ async function openProfileModal() {
             </div>
             
             <div class="stat-card">
-              <div class="stat-value">${profile.total_games_played ?? 0}</div>
-              <div class="stat-label">Games Played</div>
+              <div class="stat-value">${profile.total_rooms_played ?? 0}</div>
+              <div class="stat-label">Rooms Played</div>
             </div>
             
             <div class="stat-card">
