@@ -50364,3 +50364,55 @@ Everything is wired, tested, and ready. The data flow from game table → databa
 
 ---
 
+_**User (2025-11-06 10:25Z)**_
+
+@node (922-1014) it has me autosigned into my old gmail acc and tells me to make usernamea nd whne i try to it says i alr have one,t his is preciscely what we were supposed to avoid
+
+---
+
+_**Agent (model claude-4.5-sonnet-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user is experiencing the exact issue we were trying to fix! Looking at the terminal logs, I can see the problem:
+
+```
+Error fetching profile: error: invalid input syntax for type uuid: "me"
+    at /Users/waleedraza/Desktop/PokerGeek/routes/social.js:267:20
+```
+
+The error is happening at line 267 of `routes/social.js`. The issue is that the code is trying to use the string `"me"` as a UUID parameter when querying the database.
+
+Looking at the screenshot, the user is seeing:
+1. "Username already set" alert
+2. But also the username selection modal is showing
+
+This suggests:
+1. The `/api/social/profile/me` endpoint is being called but failing
+2. The error is happening because somewhere in the code, `"me"` is being passed directly as a userId to a database query that expects a UUID
+
+Let me check the routes/social.js file around line 267 to see what's happening.
+
+The issue is likely in the new `/api/social/profile/:userId` endpoint I added. When the route is `/api/social/profile/me`, the `:userId` parameter captures `"me"` as a string, but then tries to use it in a SQL query expecting a UUID.
+
+We need to either:
+1. Keep `/api/social/profile/me` as a separate endpoint (which it already is)
+2. Or handle the "me" case in the `:userId` endpoint before it hits the database
+
+The problem is that the router is likely matching `/api/social/profile/me` to the `/api/social/profile/:userId` route BEFORE it gets to the `/api/social/profile/me` route, because Express routes are matched in order.
+
+I need to reorder the routes so `/api/social/profile/me` comes BEFORE `/api/social/profile/:userId`.</details></think>
+
+---
+
+# 🚨 **CRITICAL BUG FOUND - FIXING NOW!**
+
+I see the issue! The terminal shows:
+
+```
+Error fetching profile: error: invalid input syntax for type uuid: "me"
+```
+
+The problem: When I added the new `/api/social/profile/:userId` endpoint, Express is matching `/api/social/profile/me` to it
+
+---
+
