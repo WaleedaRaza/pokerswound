@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/pokergeek.css">
     <link rel="stylesheet" href="/css/analytics-live.css">
+    <link rel="stylesheet" href="/css/analytics-modern.css">
     
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -27,6 +28,12 @@
     
     <!-- Analytics Hand History Service -->
     <script src="/js/analytics-history.js"></script>
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Analytics Components -->
+    <script src="/js/analytics-components.js"></script>
     
     <!-- SVG Filter for Liquid Glass Effect -->
     <svg width="0" height="0" class="svg-filter">
@@ -48,164 +55,139 @@
     <div id="navbar-container"></div>
 
     <!-- Main Content -->
-    <main class="main-content">
-        <div class="page-header">
-            <h1 class="page-title">Analysis & Data Observatory</h1>
-            <p class="page-subtitle">Real-time data extraction monitoring and hand history analysis</p>
-            <div id="connection-status" class="status-badge status-disconnected">🔴 Disconnected</div>
+    <main class="analytics-page">
+        <div class="analytics-header">
+            <h1>📊 Analytics Dashboard</h1>
+            <p>Track your performance, analyze your hands, and level up your game</p>
         </div>
         
-        <!-- Analysis content using diverse liquid glass tile layouts -->
-        <div class="analysis-grid">
-            <!-- Live Data Feed -->
-            <div class="liquid-glass-tile analysis-main-tile">
-                <div class="tile-content">
-                    <h3 class="tile-title">🔴 LIVE DATA STREAM</h3>
-                    <p class="tile-description">Real-time data extraction events from active games</p>
-                    <div id="live-data-feed" class="data-feed-container">
-                        <p class="text-muted">Waiting for hand completions...</p>
+        <div class="stats-dashboard">
+            <!-- Stats Dashboard -->
+            <div id="analytics-stats-grid" class="stats-grid">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+
+            <!-- Hand History Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">📖 Hand History</h2>
+                        <p class="section-description">Review and analyze your past hands</p>
                     </div>
                 </div>
-            </div>
-
-            <!-- Extraction Health Metrics -->
-            <div class="liquid-glass-tile analysis-stat-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">📊 Hands Tracked</h4>
-                    <div class="stat-value" id="total-hands">0</div>
-                    <div class="stat-label">Total Extractions</div>
+                
+                <!-- Filters -->
+                <div class="filters-modern">
+                    <div class="filter-group-modern">
+                        <label>Start Date</label>
+                        <input type="date" id="filter-start-date" class="filter-input-modern">
+                    </div>
+                    
+                    <div class="filter-group-modern">
+                        <label>End Date</label>
+                        <input type="date" id="filter-end-date" class="filter-input-modern">
+                    </div>
+                    
+                    <div class="filter-group-modern">
+                        <label>Room</label>
+                        <select id="filter-room" class="filter-input-modern">
+                            <option value="">All Rooms</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group-modern">
+                        <label>Min Pot ($)</label>
+                        <input type="number" id="filter-min-pot" class="filter-input-modern" placeholder="0" min="0">
+                    </div>
+                    
+                    <div class="filter-group-modern">
+                        <label>Hand Rank</label>
+                        <select id="filter-hand-rank" class="filter-input-modern">
+                            <option value="">All Ranks</option>
+                            <option value="1">Royal Flush</option>
+                            <option value="2">Straight Flush</option>
+                            <option value="3">Four of a Kind</option>
+                            <option value="4">Full House</option>
+                            <option value="5">Flush</option>
+                            <option value="6">Straight</option>
+                            <option value="7">Three of a Kind</option>
+                            <option value="8">Two Pair</option>
+                            <option value="9">Pair</option>
+                            <option value="10">High Card</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-buttons-modern">
+                        <button onclick="applyHandHistoryFilters()" class="btn-modern btn-primary-modern">Apply Filters</button>
+                        <button onclick="clearHandHistoryFilters()" class="btn-modern btn-secondary-modern">Clear</button>
+                    </div>
+                </div>
+                
+                <!-- Hand List -->
+                <div id="hand-history-list" style="overflow-x: auto;">
+                    <p style="text-align: center; color: #9aa3b2; padding: 40px;">Loading hands...</p>
+                </div>
+                
+                <!-- Pagination -->
+                <div id="history-pagination" class="pagination-modern">
+                    <button onclick="loadPreviousPage()" id="btn-prev" class="pagination-btn-modern" disabled>← Previous</button>
+                    <span id="page-info" class="pagination-info-modern">Page 1 of 1</span>
+                    <button onclick="loadNextPage()" id="btn-next" class="pagination-btn-modern">Next →</button>
                 </div>
             </div>
 
-            <div class="liquid-glass-tile analysis-stat-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">✅ Success Rate</h4>
-                    <div class="stat-value" id="success-rate">0 (0%)</div>
-                    <div class="stat-label">Successful Extractions</div>
+            <!-- Charts Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">📈 Performance Trends</h2>
+                        <p class="section-description">Track your win rate and profit over time</p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="liquid-glass-tile analysis-stat-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">⚡ Performance</h4>
-                    <div class="stat-value" id="avg-extraction-time">0ms</div>
-                    <div class="stat-label">Avg Extraction Time</div>
+                
+                <div class="chart-section">
+                    <div class="chart-card">
+                        <div id="win-rate-chart-container"></div>
+                    </div>
+                    <div class="chart-card">
+                        <div id="profit-loss-chart-container"></div>
+                    </div>
                 </div>
             </div>
             
-            <div class="liquid-glass-tile analysis-stat-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">💰 Total Extracted</h4>
-                    <div class="stat-value" id="total-pot-extracted">$0</div>
-                    <div class="stat-label">Cumulative Pot Size</div>
-                </div>
-            </div>
-
-            <!-- Hand History Viewer (FULL WIDTH) -->
-            <div class="liquid-glass-tile analysis-history-tile">
-                <div class="tile-content">
-                    <h3 class="tile-title">📖 Hand History</h3>
-                    <p class="tile-description">Review your past hands with advanced filters</p>
-                    
-                    <!-- Filters -->
-                    <div class="history-filters">
-                        <div class="filter-row">
-                            <label>Date Range:</label>
-                            <input type="date" id="filter-start-date" class="filter-input">
-                            <span>to</span>
-                            <input type="date" id="filter-end-date" class="filter-input">
-                        </div>
-                        
-                        <div class="filter-row">
-                            <label>Room:</label>
-                            <select id="filter-room" class="filter-input">
-                                <option value="">All Rooms</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-row">
-                            <label>Hand Rank:</label>
-                            <select id="filter-hand-rank" class="filter-input">
-                                <option value="">All</option>
-                                <option value="1">Royal Flush</option>
-                                <option value="2">Straight Flush</option>
-                                <option value="3">Four of a Kind</option>
-                                <option value="4">Full House</option>
-                                <option value="5">Flush</option>
-                                <option value="6">Straight</option>
-                                <option value="7">Three of a Kind</option>
-                                <option value="8">Two Pair</option>
-                                <option value="9">Pair</option>
-                                <option value="10">High Card</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-buttons">
-                            <button onclick="applyHandHistoryFilters()" class="btn-primary">Apply Filters</button>
-                            <button onclick="clearHandHistoryFilters()" class="btn-secondary">Clear</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Hand List -->
-                    <div id="hand-history-list" class="hand-history-container">
-                        <p class="text-muted">Loading hands...</p>
-                    </div>
-                    
-                    <!-- Pagination -->
-                    <div id="history-pagination" class="pagination-controls">
-                        <button onclick="loadPreviousPage()" id="btn-prev" disabled>← Previous</button>
-                        <span id="page-info">Page 1</span>
-                        <button onclick="loadNextPage()" id="btn-next">Next →</button>
+            <!-- Positional Analysis -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">🎯 Positional Analysis</h2>
+                        <p class="section-description">See how you perform from different positions</p>
                     </div>
                 </div>
+                
+                <div id="positional-stats-container"></div>
             </div>
-
-            <!-- Feature tiles -->
-            <div class="liquid-glass-tile analysis-feature-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">🎬 Hand History</h4>
-                    <p class="tile-description">Detailed replay and analysis of every hand</p>
+            
+            <!-- Badges & Achievements -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">🏆 Badges & Achievements</h2>
+                        <p class="section-description">Unlock achievements and level up your rank</p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="liquid-glass-tile analysis-feature-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">🔍 Session Reviews</h4>
-                    <p class="tile-description">In-depth insights for each session</p>
-                </div>
-            </div>
-
-            <!-- Wide chart tile -->
-            <div class="liquid-glass-tile analysis-chart-tile">
-                <div class="tile-content">
-                    <h4 class="tile-title">📈 Bankroll Tracking</h4>
-                    <p class="tile-description">Visual charts and tracking for your bankroll management over time</p>
-                    <div class="chart-placeholder">📊 Chart visualization coming soon</div>
-                </div>
-            </div>
-
-            <!-- Small action tiles -->
-            <div class="liquid-glass-tile analysis-action-tile">
-                <div class="tile-content">
-                    <h5 class="tile-title">⚙️ Filters</h5>
-                </div>
-            </div>
-
-            <div class="liquid-glass-tile analysis-action-tile">
-                <div class="tile-content">
-                    <h5 class="tile-title">📋 Reports</h5>
-                </div>
-            </div>
-
-            <div class="liquid-glass-tile analysis-action-tile">
-                <div class="tile-content">
-                    <h5 class="tile-title">📤 Export</h5>
-                </div>
-            </div>
-
-            <div class="liquid-glass-tile analysis-action-tile">
-                <div class="tile-content">
-                    <h5 class="tile-title">🎯 Goals</h5>
+                
+                <div id="badges-container" class="badges-section"></div>
+                
+                <div id="rank-container" class="rank-card-modern">
+                    <div class="rank-icon-modern">⭐</div>
+                    <div class="rank-info-modern">
+                        <div class="rank-label-modern">Your Rank</div>
+                        <div id="rank-title" class="rank-title-modern">Novice</div>
+                        <div class="rank-details-modern">
+                            Level <strong id="rank-level">1</strong> • 
+                            <strong id="rank-xp">0</strong> XP
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -650,11 +632,365 @@
         
         // Initialize auth on page load
         let currentUser = null;
+        let currentPage = 1;
+        let currentFilters = {};
+        
+        // ============================================
+        // ANALYTICS DATA LOADING
+        // ============================================
+        
+        async function loadAnalyticsData() {
+            if (!currentUser || !currentUser.id) {
+                console.warn('⚠️ No user logged in');
+                return;
+            }
+            
+            const userId = currentUser.id;
+            const token = await window.authManager?.getAccessToken();
+            
+            if (!token) {
+                console.warn('⚠️ No auth token');
+                return;
+            }
+            
+            try {
+                // Load stats
+                await loadStats(userId, token);
+                
+                // Load hand history
+                await loadHandHistory(userId, token, currentPage, currentFilters);
+                
+                // Load charts
+                await loadCharts(userId, token);
+                
+                // Load positional stats
+                await loadPositionalStats(userId, token);
+                
+                // Load badges
+                await loadBadges(userId, token);
+                
+            } catch (error) {
+                console.error('❌ Error loading analytics data:', error);
+            }
+        }
+        
+        async function loadStats(userId, token) {
+            try {
+                const response = await fetch(`/api/social/analytics/stats/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch stats');
+                
+                const data = await response.json();
+                const statsGrid = document.getElementById('analytics-stats-grid');
+                
+                if (!statsGrid) return;
+                
+                statsGrid.innerHTML = `
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '📊',
+                        label: 'Hands Played',
+                        value: data.lifetime.handsPlayed || 0,
+                        color: 'teal'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '🎯',
+                        label: 'Win Rate',
+                        value: `${data.lifetime.winRate || 0}%`,
+                        color: 'green'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '💰',
+                        label: 'Biggest Pot',
+                        value: `$${data.lifetime.biggestPot || 0}`,
+                        color: 'orange'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '🏆',
+                        label: 'Best Hand',
+                        value: data.lifetime.bestHand || 'N/A',
+                        subtitle: data.lifetime.bestHandDate ? new Date(data.lifetime.bestHandDate).toLocaleDateString() : '',
+                        color: 'purple'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '📈',
+                        label: 'VPIP',
+                        value: `${data.advanced.vpip || 0}%`,
+                        subtitle: 'Voluntarily Put $ In Pot',
+                        color: 'blue'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '⚡',
+                        label: 'PFR',
+                        value: `${data.advanced.pfr || 0}%`,
+                        subtitle: 'Pre-Flop Raise',
+                        color: 'yellow'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '🔥',
+                        label: 'Aggression',
+                        value: data.advanced.aggressionFactor || 0,
+                        color: 'red'
+                    })}
+                    ${window.AnalyticsComponents.createStatCard({
+                        icon: '💪',
+                        label: 'Current Streak',
+                        value: data.advanced.currentStreak || 0,
+                        subtitle: `Longest: ${data.advanced.longestStreak || 0}`,
+                        color: 'pink'
+                    })}
+                `;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        async function loadHandHistory(userId, token, page = 1, filters = {}) {
+            try {
+                const params = new URLSearchParams({ page, limit: 20, ...filters });
+                const response = await fetch(`/api/social/analytics/hands/${userId}?${params}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch hand history');
+                
+                const data = await response.json();
+                const container = document.getElementById('hand-history-list');
+                
+                if (!container) return;
+                
+                container.innerHTML = window.AnalyticsComponents.createHandHistoryTable(
+                    data.hands,
+                    (handId) => {
+                        console.log('Hand clicked:', handId);
+                        // TODO: Open hand detail modal
+                    }
+                );
+                
+                // Update pagination
+                updatePagination(data.pagination);
+                
+            } catch (error) {
+                console.error('Error loading hand history:', error);
+                const container = document.getElementById('hand-history-list');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state-modern">
+                            <div class="empty-state-modern-icon">⚠️</div>
+                            <h3>Error loading hands</h3>
+                            <p>Please try again later</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        async function loadCharts(userId, token) {
+            try {
+                const response = await fetch(`/api/social/analytics/charts/${userId}?period=weekly`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch chart data');
+                
+                const data = await response.json();
+                
+                // Win Rate Chart
+                const winRateContainer = document.getElementById('win-rate-chart-container');
+                if (winRateContainer && data.winRate && data.winRate.length > 0) {
+                    winRateContainer.innerHTML = window.AnalyticsComponents.createChartContainer({
+                        id: 'winRateChart',
+                        title: 'Win Rate Over Time',
+                        type: 'line'
+                    });
+                    setTimeout(() => {
+                        window.AnalyticsComponents.renderWinRateChart('winRateChart', data.winRate);
+                    }, 100);
+                }
+                
+                // Profit/Loss Chart
+                const profitLossContainer = document.getElementById('profit-loss-chart-container');
+                if (profitLossContainer && data.profitLoss && data.profitLoss.length > 0) {
+                    profitLossContainer.innerHTML = window.AnalyticsComponents.createChartContainer({
+                        id: 'profitLossChart',
+                        title: 'Profit/Loss Over Time',
+                        type: 'bar'
+                    });
+                    setTimeout(() => {
+                        window.AnalyticsComponents.renderProfitLossChart('profitLossChart', data.profitLoss);
+                    }, 100);
+                }
+                
+            } catch (error) {
+                console.error('Error loading charts:', error);
+            }
+        }
+        
+        async function loadPositionalStats(userId, token) {
+            try {
+                const response = await fetch(`/api/social/analytics/positional/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch positional stats');
+                
+                const data = await response.json();
+                const container = document.getElementById('positional-stats-container');
+                
+                if (!container) return;
+                
+                container.innerHTML = window.AnalyticsComponents.createPositionalStatsTable(data);
+                
+            } catch (error) {
+                console.error('Error loading positional stats:', error);
+            }
+        }
+        
+        async function loadBadges(userId, token) {
+            try {
+                const response = await fetch(`/api/social/badges/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch badges');
+                
+                const data = await response.json();
+                
+                // Display badges
+                const badgesContainer = document.getElementById('badges-container');
+                if (badgesContainer) {
+                    badgesContainer.innerHTML = window.AnalyticsComponents.createBadgeDisplay(data.badges);
+                }
+                
+                // Display rank
+                if (data.rank) {
+                    const rankTitle = document.getElementById('rank-title');
+                    const rankLevel = document.getElementById('rank-level');
+                    const rankXp = document.getElementById('rank-xp');
+                    
+                    if (rankTitle) rankTitle.textContent = data.rank.title;
+                    if (rankLevel) rankLevel.textContent = data.rank.level;
+                    if (rankXp) rankXp.textContent = data.rank.xp.toLocaleString();
+                }
+                
+            } catch (error) {
+                console.error('Error loading badges:', error);
+            }
+        }
+        
+        function updatePagination(pagination) {
+            const pageInfo = document.getElementById('page-info');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            
+            if (pageInfo) {
+                pageInfo.textContent = `Page ${pagination.page} of ${pagination.totalPages}`;
+            }
+            
+            if (btnPrev) {
+                btnPrev.disabled = pagination.page <= 1;
+            }
+            
+            if (btnNext) {
+                btnNext.disabled = pagination.page >= pagination.totalPages;
+            }
+        }
+        
+        // Hand history filter functions
+        window.applyHandHistoryFilters = async function() {
+            const filters = {
+                startDate: document.getElementById('filter-start-date')?.value,
+                endDate: document.getElementById('filter-end-date')?.value,
+                roomId: document.getElementById('filter-room')?.value,
+                minPot: document.getElementById('filter-min-pot')?.value,
+                handRank: document.getElementById('filter-hand-rank')?.value
+            };
+            
+            // Remove empty filters
+            Object.keys(filters).forEach(key => {
+                if (!filters[key]) delete filters[key];
+            });
+            
+            currentFilters = filters;
+            currentPage = 1;
+            
+            if (currentUser && currentUser.id) {
+                const token = await window.authManager?.getAccessToken();
+                await loadHandHistory(currentUser.id, token, currentPage, currentFilters);
+            }
+        };
+        
+        window.clearHandHistoryFilters = async function() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('filter-room').value = '';
+            document.getElementById('filter-min-pot').value = '';
+            document.getElementById('filter-hand-rank').value = '';
+            
+            currentFilters = {};
+            currentPage = 1;
+            
+            if (currentUser && currentUser.id) {
+                const token = await window.authManager?.getAccessToken();
+                await loadHandHistory(currentUser.id, token, currentPage, currentFilters);
+            }
+        };
+        
+        window.loadNextPage = async function() {
+            currentPage++;
+            if (currentUser && currentUser.id) {
+                const token = await window.authManager?.getAccessToken();
+                await loadHandHistory(currentUser.id, token, currentPage, currentFilters);
+            }
+        };
+        
+        window.loadPreviousPage = async function() {
+            if (currentPage > 1) {
+                currentPage--;
+                if (currentUser && currentUser.id) {
+                    const token = await window.authManager?.getAccessToken();
+                    await loadHandHistory(currentUser.id, token, currentPage, currentFilters);
+                }
+            }
+        };
+        
+        window.handleHandClick = function(handId) {
+            console.log('Hand clicked:', handId);
+            // TODO: Open hand detail modal with LLM analysis
+        };
         
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('📊 Analysis page initializing...');
-            currentUser = await initializeAuth();
+            
+            // Initialize auth
+            if (typeof initializeAuth === 'function') {
+                currentUser = await initializeAuth();
+            } else if (window.authManager && window.authManager.user) {
+                currentUser = window.authManager.user;
+            }
+            
             console.log('✅ Analysis page loaded with user:', currentUser);
+            
+            // Load analytics data
+            if (currentUser && (currentUser.id || currentUser.userId)) {
+                const userId = currentUser.id || currentUser.userId;
+                currentUser.id = userId; // Normalize
+                await loadAnalyticsData();
+            } else {
+                console.warn('⚠️ No user logged in - analytics data will not load');
+                const statsGrid = document.getElementById('analytics-stats-grid');
+                if (statsGrid) {
+                    statsGrid.innerHTML = `
+                        <div class="empty-state-modern" style="grid-column: 1 / -1;">
+                            <div class="empty-state-modern-icon">🔐</div>
+                            <h3>Please log in</h3>
+                            <p>Sign in to view your analytics dashboard</p>
+                        </div>
+                    `;
+                }
+            }
             
             // Connect to live data stream
             if (window.analyticsService) {

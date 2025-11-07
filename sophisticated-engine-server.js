@@ -76,7 +76,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
 }));
-app.use(express.json());
+// Increase JSON body size limit to handle large avatar data URLs (up to 10MB)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (card images and UI)
 app.use('/cards', express.static(path.join(__dirname, 'public/cards')));

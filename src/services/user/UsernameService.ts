@@ -39,7 +39,7 @@ export class UsernameService {
   async checkAvailability(username: string): Promise<boolean> {
     const result = await this.db.query(`
       SELECT COUNT(*) FROM user_profiles 
-      WHERE global_username = $1
+      WHERE username = $1
     `, [username]);
     
     return result.rows[0].count === '0';
@@ -77,14 +77,14 @@ export class UsernameService {
       }
       
       const oldUsernameResult = await client.query(`
-        SELECT global_username FROM user_profiles WHERE id = $1
+        SELECT username FROM user_profiles WHERE id = $1
       `, [userId]);
       
-      const oldUsername = oldUsernameResult.rows[0]?.global_username;
+      const oldUsername = oldUsernameResult.rows[0]?.username;
       
       await client.query(`
         UPDATE user_profiles 
-        SET global_username = $2, 
+        SET username = $2, 
             username_changed_at = NOW(),
             username_change_count = username_change_count + 1,
             updated_at = NOW()

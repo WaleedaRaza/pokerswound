@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PokerGeek.ai — Elite Poker Lounge</title>
+<title>PokerGeek.ai — The Poker Enthusiasts Platform</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/pokergeek.css">
+<link rel="stylesheet" href="/css/index-modern.css">
 
-<!-- All styles moved to global style.css -->
 </head>
 <body>
   <div class="bg-animation"></div>
@@ -18,125 +18,263 @@
   <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
   <div id="navbar-container"></div>
 
-  <section class="hero">
-    <div class="hero-content">
-      <h1 class="hero-title">PokerGeek<span class="suit-symbol">♠</span>ai</h1>
-      <p class="hero-subtitle"><b>
-        The all in one Poker platform 
-        <br>Provably fair shuffling
-        <br>Data driven, AI powered
-        <br></b>
+  <!-- Hero Section -->
+  <section class="index-hero">
+    <div class="card-animation-container">
+      <div class="animated-card"></div>
+      <div class="animated-card"></div>
+      <div class="animated-card"></div>
+      <div class="animated-card"></div>
+      <div class="animated-card"></div>
+    </div>
+    
+    <div class="hero-content-modern">
+      <h1 class="hero-title-modern">PokerGeek<span class="suit-symbol">♠</span>ai</h1>
+      <p class="hero-tagline">The poker enthusiasts platform</p>
+      <p class="hero-description-modern">
+        True random shuffles, seamless games, data driven analysis, ai powered insights
       </p>
-      <p class="hero-description">
-        Experience the future of online poker with our cutting-edge platform featuring 
-        provably fair shuffling, AI-powered analysis, and transparent gameplay.
-      </p>
-      <div class="cta-buttons">
-        <a href="/play" class="btn btn-primary">Play Now</a>
-        <a href="#" class="btn btn-secondary" onclick="openLoginModal(); return false;">Log In / Sign Up</a>
-        <a href="/friends" class="btn btn-secondary">Add Friends</a>
+      <div class="cta-buttons-modern">
+        <a href="/play" class="btn-hero-primary">Play Now</a>
+        <a href="/pages/friends.html" class="btn-hero-secondary">Add Friends</a>
+        <a href="/pages/analysis.html" class="btn-hero-secondary">View Analysis</a>
       </div>
     </div>
   </section>
 
-  <section class="features">
-    <h2 class="features-title">Why Choose PokerGeek.ai?</h2>
-    <div class="liquid-tiles-container">
-      <div class="liquid-glass-tile">
-        <div class="tile-icon">🔐</div>
-        <h3 class="tile-title">Provably Fair Shuffling</h3>
-        <p class="tile-description">Entropy from real-world sources + crypto randomness. Verify any shuffle independently.</p>
-      </div>
-      <div class="liquid-glass-tile">
-        <div class="tile-icon">⚡</div>
-        <h3 class="tile-title">Real-Time Multiplayer</h3>
-        <p class="tile-description">Sub-100ms WebSockets for private rooms, public games, and tournaments.</p>
-      </div>
-      <div class="liquid-glass-tile">
-        <div class="tile-icon">🤖</div>
-        <h3 class="tile-title">GTO + LLM</h3>
-        <p class="tile-description">GTO solver fused with LLM coaching for strategy and study.</p>
-      </div>
-      <div class="liquid-glass-tile">
-        <div class="tile-icon">📊</div>
-        <h3 class="tile-title">Audit Trail</h3>
-        <p class="tile-description">Every action + shuffle logged and auditable.</p>
-      </div>
-      <div class="liquid-glass-tile">
-        <div class="tile-icon">📈</div>
-        <h3 class="tile-title">Performance</h3>
-        <p class="tile-description">Deep stats after 1000+ hands: VPIP, PFR, AF, position, etc.</p>
-      </div>
-      <div class="liquid-glass-tile">
-        <div class="tile-icon">🛡️</div>
-        <h3 class="tile-title">Anti-Cheat</h3>
-        <p class="tile-description">Timing & behavior analysis, multi-account prevention, collusion monitoring.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="why-pokergeek">
-    <div class="why-content">
-      <h2 class="why-title">Why PokerGeek?</h2>
-      <div class="why-story">
-          <p class="why-intro">
-            PokerGeek aims to leverage AI, data, and a deep focus on real poker players to deliver a holistic, all-in-one platform built around the full poker world. The platform supports private and public gameplay, comprehensive performance analytics, GTO and AI-driven coaching, social features, and more.
-          </p>
-          <p class="why-mission">
-            Our mission is to focus on the needs of players, and leverage tools across software, data and AI to provide features that unlock a deeper experience. We are committed to avoiding fake shuffles, outdated technology, and weak community involvement. Our mission is to give players and the broader poker community a platform that is transparent, empowering, and focused on more than just dealing cards.
-          </p>
-          <p class="why-story">
-            PokerGeek started as a small project among a group of frustrated poker enthusiasts who wanted something different. What began as a private experiment quickly grew into a larger vision. Today, the platform is designed from the ground up to put control back in the players' hands.
-          </p>
-          <p class="why-vision">
-            Our shuffle system uses real-world entropy and cryptographic randomness to eliminate manipulation. Our analytics and AI tools exist to help players understand and improve their game over time. Our product roadmap is shaped directly by the community, ensuring that our features continue to evolve in collaboration with the people who use them.
-          </p>
-          <p class="why-commitment">
-            PokerGeek is focused on realignment, not reinvention. The goal is simple: make online poker transparent, data-driven, and player-first, so every hand is authentic and every session is about growth. To ensure the best player experience, we seek all kinds of feedback. If you see a problem, or something you feel can be improved, feel free to reach out and a member of our staff will respond!
-          </p>
+  <!-- Problems Section - Aggressive, Confident -->
+  <section class="problems-section">
+    <div class="problems-grid">
+      <div class="problem-card">
+        <div class="problem-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
         </div>
+        <h3 class="problem-title">No BS Shuffling or Engagement Algos</h3>
+        <p class="problem-description">
+          Other platforms use pseudorandom generators you can't verify. 
+          We hash Twitch stream entropy sources and use that seed to expand 
+          Fisher-Yates shuffles. Every shuffle is independently verifiable. 
+          <a href="/pages/learning.html" style="color: #00d4aa; text-decoration: underline;">Read about our algorithm →</a>
+        </p>
       </div>
-  </section>
-
-  <section class="stats">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-number">10,000+</div>
-        <div class="stat-label">Active Players</div>
-         </div>
-      <div class="stat-item">
-        <div class="stat-number">1M+</div>
-        <div class="stat-label">Hands Played</div>
-         </div>
-      <div class="stat-item">
-        <div class="stat-number">99.9%</div>
-        <div class="stat-label">Uptime</div>
-         </div>
-      <div class="stat-item">
-        <div class="stat-number">$0</div>
-        <div class="stat-label">Rake</div>
-       </div>
+      
+      <div class="problem-card">
+        <div class="problem-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+          </svg>
+        </div>
+        <h3 class="problem-title">Track Every Hand. Improve Your Style.</h3>
+        <p class="problem-description">
+          We log every action, every decision, every outcome. VPIP, PFR, 
+          aggression factor, positional stats—all calculated in real-time. 
+          Your data becomes your edge. 
+          <a href="/pages/analysis.html" style="color: #00d4aa; text-decoration: underline;">View your analytics →</a>
+        </p>
+      </div>
+      
+      <div class="problem-card">
+        <div class="problem-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="problem-title">Holistic Features, Not Just Cards</h3>
+        <p class="problem-description">
+          Real-time multiplayer, GTO analysis, AI coaching, social features, 
+          hand history, performance tracking—all in one platform. 
+          <a href="/pages/ai-solver.html" style="color: #00d4aa; text-decoration: underline;">Explore our tools →</a>
+        </p>
+      </div>
     </div>
   </section>
 
-  <footer class="footer">
-    <div class="footer-content">
-      <a href="index.html" class="footer-logo">PokerGeek.ai</a>
-      <p class="footer-desc">Building the world's most transparent poker platform with provably fair shuffling and cryptographic verification.</p>
-      <div class="footer-links">
-        <a href="#privacy">Privacy Policy</a>
-        <a href="#terms">Terms of Service</a>
+  <!-- Features Section - Varied Sizes Apple-like -->
+  <section class="solutions-section">
+    <div class="solutions-grid-apple">
+      <a href="/play" class="solution-tile-large liquid-glass liquid-glass--xl solution-card-link">
+        <div class="solution-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">Play</h3>
+        <p class="solution-description">
+          Real-time multiplayer. Sub-100ms latency. Private rooms, public games, tournaments.
+        </p>
+        <span class="solution-link">Play Now →</span>
+      </a>
+      
+      <a href="/pages/analysis.html" class="solution-tile-medium solution-tile-analytics liquid-glass liquid-glass--lg solution-card-link">
+        <div class="solution-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">Analytics</h3>
+        <p class="solution-description">
+          VPIP, PFR, aggression factor, positional stats. Every hand tracked. Every decision analyzed.
+        </p>
+        <span class="solution-link">View Analytics →</span>
+      </a>
+      
+      <a href="/pages/ai-solver.html" class="solution-tile-medium solution-tile-solver liquid-glass liquid-glass--lg solution-card-link">
+        <div class="solution-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">AI GTO Solver</h3>
+        <p class="solution-description">
+          GTO solver fused with LLM coaching. Post-hand insights. Range analysis. Real-time recommendations.
+        </p>
+        <span class="solution-link">Explore Solver →</span>
+      </a>
+      
+      <a href="/pages/learning.html" class="solution-tile-medium solution-tile-learning liquid-glass liquid-glass--lg solution-card-link">
+        <div class="solution-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">Learning Center</h3>
+        <p class="solution-description">
+          Interactive lessons, practice scenarios, AI coaching. Master the fundamentals and advanced concepts.
+        </p>
+        <span class="solution-link">Start Learning →</span>
+      </a>
+      
+      <a href="/pages/friends.html" class="solution-tile-small solution-tile-friends liquid-glass liquid-glass--md solution-card-link">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">Friends & Social</h3>
+        <p class="solution-description">
+          Build your network. Share stats. Challenge friends. Your reputation becomes your identity.
+        </p>
+        <span class="solution-link">Add Friends →</span>
+      </a>
+      
+      <div class="solution-tile-small solution-tile-audit liquid-glass liquid-glass--md">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">Complete Audit Trail</h3>
+        <p class="solution-description">
+          Every action logged. Every shuffle traceable. Every decision auditable. Full transparency.
+        </p>
+      </div>
+      
+      <div class="solution-tile-small solution-tile-anticheat liquid-glass liquid-glass--md">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 8v4"/>
+            <path d="M12 16h.01"/>
+          </svg>
+        </div>
+        <h3 class="solution-title">Anti-Cheat System</h3>
+        <p class="solution-description">
+          Timing analysis. Behavior monitoring. Multi-account prevention. Collusion detection.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section - Apple-like with varied sizes -->
+  <section class="stats-section-apple">
+    <div class="stats-grid-apple">
+      <div class="stat-tile-large liquid-glass liquid-glass--lg">
+        <div class="stat-number-apple">10,000+</div>
+        <div class="stat-label-apple">Active Players</div>
+      </div>
+      <div class="stat-tile-medium liquid-glass liquid-glass--md">
+        <div class="stat-number-apple">1M+</div>
+        <div class="stat-label-apple">Hands Played</div>
+      </div>
+      <div class="stat-tile-medium liquid-glass liquid-glass--md">
+        <div class="stat-number-apple">99.9%</div>
+        <div class="stat-label-apple">Uptime</div>
+      </div>
+      <div class="stat-tile-small liquid-glass liquid-glass--sm">
+        <div class="stat-number-apple">$0</div>
+        <div class="stat-label-apple">Rake</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Section - Visual Tiles -->
+  <section class="why-section-apple">
+    <div class="why-grid-apple">
+      <div class="why-tile-large liquid-glass liquid-glass--xl">
+        <h2 class="why-title-apple">Why PokerGeek?</h2>
+        <p class="why-lead-apple">
+          We built this for players who care about truth.
+        </p>
+      </div>
+      <div class="why-tile-medium liquid-glass liquid-glass--lg">
+        <p class="why-text-apple">
+          Most poker sites hide behind black boxes. We show you the math. 
+          We show you the data. We show you who you are at the table.
+        </p>
+      </div>
+      <div class="why-tile-medium liquid-glass liquid-glass--lg">
+        <p class="why-text-apple">
+          Your stats become your reputation. Your reputation becomes your identity.
+        </p>
+      </div>
+      <div class="why-tile-small liquid-glass liquid-glass--md">
+        <p class="why-tagline-apple">
+          This is where serious poker lives.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer - Minimal Apple-like -->
+  <footer class="footer-apple">
+    <div class="footer-apple-content">
+      <div class="footer-brand">
+        <a href="index.html" class="footer-logo-apple">PokerGeek.ai</a>
+        <p class="footer-tagline-apple">Transparent poker. Provably fair. Data-driven.</p>
+      </div>
+      <nav class="footer-nav-apple">
+        <a href="#privacy">Privacy</a>
+        <a href="#terms">Terms</a>
         <a href="#support">Support</a>
         <a href="#contact">Contact</a>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2024 PokerGeek.ai. All rights reserved.</p>
+      </nav>
+      <div class="footer-copyright-apple">
+        <p>&copy; 2024 PokerGeek.ai</p>
       </div>
     </div>
   </footer>
 
-  <!-- Liquid Glass Controls -->
-  <div class="glass-controls">
+  <!-- Liquid Glass Controls (Hidden in production) -->
+  <div class="glass-controls" style="display: none;">
     <h3>Liquid Glass Controls</h3>
     <div>
       <label>Shadow Blur:</label>
@@ -155,7 +293,7 @@
       <input type="range" min="0" max="100" value="77" id="distortion-strength">
     </div>
     <div class="button-group">
-      <button id="lock-values">🔓 Lock</button>
+      <button id="lock-values">Lock</button>
       <button onclick="toggleControls()">Hide</button>
     </div>
   </div>
@@ -189,7 +327,7 @@
         </button>
         
         <button class="btn btn-secondary" onclick="handleGuestSignIn()" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; background: rgba(108,117,125,0.2); border: 1px solid rgba(108,117,125,0.5); color: #fff;">
-          👤 Continue as Guest
+          Continue as Guest
         </button>
         
         <div class="divider">
@@ -205,7 +343,12 @@
           <label class="form-label">Password</label>
           <div class="password-input">
             <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
-            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')" aria-label="Toggle password visibility">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
           </div>
           <div class="form-error" id="loginPasswordError"></div>
         </div>
@@ -265,7 +408,12 @@
           <label class="form-label">Password</label>
           <div class="password-input">
             <input type="password" class="form-input" id="signupPassword" placeholder="Create a strong password" required>
-            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')">👁️</button>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')" aria-label="Toggle password visibility">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
           </div>
           <div class="password-strength" id="passwordStrength"></div>
           <div class="form-error" id="signupPasswordError"></div>
@@ -274,7 +422,12 @@
           <label class="form-label">Confirm Password</label>
           <div class="password-input">
             <input type="password" class="form-input" id="signupConfirmPassword" placeholder="Confirm your password" required>
-            <button type="button" class="password-toggle" onclick="togglePassword('signupConfirmPassword')">👁️</button>
+            <button type="button" class="password-toggle" onclick="togglePassword('signupConfirmPassword')" aria-label="Toggle password visibility">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
           </div>
           <div class="form-error" id="signupConfirmPasswordError"></div>
         </div>
@@ -336,19 +489,15 @@
           <h3 class="section-title">Profile Information</h3>
           
           <div class="avatar-section">
-            <div class="current-avatar" id="currentAvatar">👤</div>
+            <div class="current-avatar" id="currentAvatar">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
             <div class="avatar-options">
               <h4>Choose Avatar</h4>
-              <div class="avatar-grid">
-                <div class="avatar-option" onclick="selectAvatar('👤')">👤</div>
-                <div class="avatar-option" onclick="selectAvatar('🎯')">🎯</div>
-                <div class="avatar-option" onclick="selectAvatar('👑')">👑</div>
-                <div class="avatar-option" onclick="selectAvatar('🃏')">🃏</div>
-                <div class="avatar-option" onclick="selectAvatar('💎')">💎</div>
-                <div class="avatar-option" onclick="selectAvatar('⚡')">⚡</div>
-                <div class="avatar-option" onclick="selectAvatar('🎮')">🎮</div>
-                <div class="avatar-option" onclick="selectAvatar('🏆')">🏆</div>
-              </div>
+              <p style="color: #9aa3b2; font-size: 14px; margin-top: 8px;">Upload a profile picture or choose from defaults</p>
             </div>
         </div>
 
@@ -389,7 +538,12 @@
             <label class="form-label">Current Password</label>
             <div class="password-input">
               <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password">
-              <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">👁️</button>
+              <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')" aria-label="Toggle password visibility">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
           
@@ -397,7 +551,12 @@
             <label class="form-label">New Password</label>
             <div class="password-input">
               <input type="password" class="form-input" id="newPassword" placeholder="Enter new password">
-              <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">👁️</button>
+              <button type="button" class="password-toggle" onclick="togglePassword('newPassword')" aria-label="Toggle password visibility">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
             <div class="password-strength" id="settingsPasswordStrength"></div>
           </div>
@@ -406,7 +565,12 @@
             <label class="form-label">Confirm New Password</label>
             <div class="password-input">
               <input type="password" class="form-input" id="confirmNewPassword" placeholder="Confirm new password">
-              <button type="button" class="password-toggle" onclick="togglePassword('confirmNewPassword')">👁️</button>
+              <button type="button" class="password-toggle" onclick="togglePassword('confirmNewPassword')" aria-label="Toggle password visibility">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
           
@@ -526,7 +690,7 @@
       const frostBlur = document.getElementById('frost-blur');
       const distortionStrength = document.getElementById('distortion-strength');
       
-      lockButton.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+      lockButton.textContent = isLocked ? 'Unlock' : 'Lock';
       lockButton.style.background = isLocked ? 'var(--warning)' : 'var(--teal)';
       
       // Disable/enable sliders
@@ -629,7 +793,7 @@
       document.getElementById('navbarAuth').style.display = 'none';
       document.getElementById('navbarUser').style.display = 'flex';
       document.getElementById('userName').textContent = currentUser.username || currentUser.name || 'User';
-      document.getElementById('userAvatar').textContent = currentUser.avatar || '👤';
+      // Avatar handled by image or SVG, not emoji
     }
 
     // Update navbar to show login/signup buttons
@@ -719,10 +883,10 @@
       
       if (input.type === 'password') {
         input.type = 'text';
-        button.textContent = '🙈';
+        button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
       } else {
         input.type = 'password';
-        button.textContent = '👁️';
+        button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
       }
     }
 
@@ -758,7 +922,7 @@
         id: data.user.id,
         email: email,
         username: email.split('@')[0],
-        avatar: '👤'
+        avatar: null
       };
       
       setCurrentUser(currentUser);
@@ -805,7 +969,7 @@
         name: `${firstName} ${lastName}`,
         username: username,
         email: email,
-        avatar: '👤'
+        avatar: null
       };
       
       setCurrentUser(currentUser);
@@ -841,7 +1005,7 @@
       } else {
         // Update dropdown content with current user data
         const user = getCurrentUser();
-        document.getElementById('dropdownAvatar').textContent = user?.avatar || '👤';
+        // Avatar handled by image or SVG, not emoji
         document.getElementById('dropdownUsername').textContent = user?.username || 'Username';
         document.getElementById('dropdownEmail').textContent = user?.email || 'user@example.com';
         dropdown.style.display = 'block';
@@ -914,22 +1078,7 @@
     // Avatar Picker (placeholder)
     function openAvatarPicker() {
       toggleUserDropdown();
-      
-      const avatars = ['👤', '😎', '🤓', '🎯', '👑', '🃏', '🎲', '🎰', '💎', '⭐', '🔥', '💪', '🧠', '🚀', '👻'];
-      const choice = prompt('Choose an avatar:\n' + avatars.map((a, i) => `${i + 1}. ${a}`).join('\n'));
-      
-      if (choice && !isNaN(choice)) {
-        const index = parseInt(choice) - 1;
-        if (index >= 0 && index < avatars.length) {
-          const user = getCurrentUser();
-          if (user) {
-            user.avatar = avatars[index];
-            setCurrentUser(user);
-            document.getElementById('userAvatar').textContent = avatars[index];
-            showNotification('Avatar updated!', 'success');
-          }
-        }
-      }
+      showNotification('Avatar upload coming soon', 'info');
     }
 
     // Notification system
@@ -943,9 +1092,14 @@
       // Create notification element
       const notification = document.createElement('div');
       notification.className = `notification notification-${type}`;
+      const iconSvg = type === 'success' 
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+        : type === 'error'
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
       notification.innerHTML = `
         <div class="notification-content">
-          <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+          <span class="notification-icon">${iconSvg}</span>
           <span class="notification-message">${message}</span>
         </div>
       `;
@@ -1017,7 +1171,7 @@
       document.getElementById('settingsUsername').value = currentUser.username || '';
       document.getElementById('settingsEmail').value = currentUser.email || '';
       document.getElementById('settingsBio').value = currentUser.bio || '';
-      document.getElementById('currentAvatar').textContent = currentUser.avatar || '👤';
+      // Avatar handled by image upload, not emoji
       
       // Load preferences
       document.getElementById('defaultStakes').value = currentUser.defaultStakes || 'micro';
@@ -1033,12 +1187,8 @@
     }
 
     function selectAvatar(avatar) {
-      document.getElementById('currentAvatar').textContent = avatar;
-      // Add visual feedback
-      document.querySelectorAll('.avatar-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-      event.target.classList.add('selected');
+      // Avatar selection handled by image upload
+      // This function can be removed or repurposed for image selection
     }
 
     function saveSettings() {
@@ -1050,7 +1200,7 @@
       const username = document.getElementById('settingsUsername').value;
       const email = document.getElementById('settingsEmail').value;
       const bio = document.getElementById('settingsBio').value;
-      const avatar = document.getElementById('currentAvatar').textContent;
+      const avatar = null; // Avatar handled by image upload
       
       // Basic validation
       if (!firstName || !lastName || !username || !email) {

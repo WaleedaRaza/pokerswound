@@ -10,7 +10,7 @@ class DisplayService {
       WITH display_info AS (
         SELECT 
           up.id as user_id,
-          up.global_username,
+          up.username,
           up.display_name,
           up.is_online,
           up.avatar_url,
@@ -35,7 +35,7 @@ class DisplayService {
           WHEN admin_alias IS NOT NULL THEN admin_alias
           WHEN user_alias IS NOT NULL THEN user_alias
           WHEN display_name IS NOT NULL THEN display_name
-          ELSE global_username
+          ELSE username
         END as display_name,
         CASE 
           WHEN admin_alias IS NOT NULL THEN 'admin_override'
@@ -63,7 +63,7 @@ class DisplayService {
       display_info AS (
         SELECT 
           up.id as user_id,
-          up.global_username,
+          up.username,
           up.display_name,
           up.is_online,
           up.avatar_url,
@@ -88,7 +88,7 @@ class DisplayService {
           WHEN admin_alias IS NOT NULL THEN admin_alias
           WHEN user_alias IS NOT NULL THEN user_alias
           WHEN display_name IS NOT NULL THEN display_name
-          ELSE global_username
+          ELSE username
         END as display_name,
         CASE 
           WHEN admin_alias IS NOT NULL THEN 'admin_override'

@@ -11,6 +11,34 @@ let friendsData = {
 };
 
 // ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Format username with @ prefix (ensures no double @)
+ * @param {string} username - Username to format
+ * @returns {string} Formatted username with @ prefix
+ */
+function formatUsername(username) {
+  if (!username) return '@unknown';
+  // Remove existing @ if present, then add it
+  const clean = username.replace(/^@+/, '');
+  return `@${clean}`;
+}
+
+/**
+ * Sanitize username for display (escape HTML)
+ * @param {string} username - Username to sanitize
+ * @returns {string} Sanitized username
+ */
+function sanitizeUsername(username) {
+  if (!username) return 'unknown';
+  const div = document.createElement('div');
+  div.textContent = username.replace(/^@+/, ''); // Remove @ for sanitization
+  return div.innerHTML;
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -156,19 +184,24 @@ function renderFriendsList(container) {
     <div class="friends-grid">
       ${friendsData.friends.map(friend => `
         <div class="friend-card liquid-glass-tile">
-          <div class="friend-avatar">${friend.avatar_url || '👤'}</div>
+          <div class="friend-avatar">
+            ${friend.avatar_url ? 
+              `<img src="${friend.avatar_url}" alt="${sanitizeUsername(friend.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤';" />` : 
+              '👤'
+            }
+          </div>
           <div class="friend-info">
-            <div class="friend-name">@${friend.username}</div>
-            <div class="friend-display-name">${friend.display_name || 'Player'}</div>
+            <div class="friend-name" title="${formatUsername(friend.username || 'unknown')}">${formatUsername(friend.username || 'unknown')}</div>
+            <div class="friend-display-name" title="${friend.display_name || 'Player'}">${friend.display_name || 'Player'}</div>
           </div>
           <div class="friend-actions">
-            <button onclick="window.openPlayerProfile('${friend.id}')" class="btn btn-sm btn-primary">
-              👤 Profile
+            <button onclick="window.openPlayerProfile('${friend.id}')" class="btn btn-sm btn-primary" title="View Profile">
+              👤
             </button>
-            <button onclick="inviteToGame('${friend.id}')" class="btn btn-sm btn-success">
-              🎮 Invite
+            <button onclick="inviteToGame('${friend.id}')" class="btn btn-sm btn-success" title="Invite to Game">
+              🎮
             </button>
-            <button onclick="removeFriend('${friend.id}')" class="btn btn-sm btn-danger">
+            <button onclick="removeFriend('${friend.id}')" class="btn btn-sm btn-danger" title="Remove Friend">
               ❌
             </button>
           </div>
@@ -195,10 +228,15 @@ function renderRequestsList(container) {
       ${friendsData.requests.map(request => `
         <div class="request-card liquid-glass-tile">
           <div class="request-info">
-            <div class="request-avatar">${request.sender.avatar_url || '👤'}</div>
-            <div>
-              <div class="request-name">@${request.sender.username}</div>
-              <div class="request-display-name">${request.sender.display_name || 'Player'}</div>
+            <div class="request-avatar">
+              ${request.sender.avatar_url ? 
+                `<img src="${request.sender.avatar_url}" alt="${sanitizeUsername(request.sender.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤';" />` : 
+                '👤'
+              }
+            </div>
+            <div class="request-details">
+              <div class="request-name" title="${formatUsername(request.sender.username || 'unknown')}">${formatUsername(request.sender.username || 'unknown')}</div>
+              <div class="request-display-name" title="${request.sender.display_name || 'Player'}">${request.sender.display_name || 'Player'}</div>
               <div class="request-time">${formatTimestamp(request.created_at)}</div>
             </div>
           </div>
@@ -253,7 +291,10 @@ function renderSearchView(container) {
 async function searchUsers() {
   const input = document.getElementById('searchInput');
   const resultsDiv = document.getElementById('searchResults');
-  const username = input.value.trim();
+  let username = input.value.trim();
+  
+  // Remove @ prefix if user typed it
+  username = username.replace(/^@+/, '');
   
   if (!username) {
     resultsDiv.innerHTML = '<p class="text-muted">Enter a username to search</p>';
@@ -264,7 +305,7 @@ async function searchUsers() {
   
   try {
     const token = await window.authManager.getAccessToken();
-    const response = await fetch(`/api/social/username/${username}`, {
+    const response = await fetch(`/api/social/username/${encodeURIComponent(username)}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -282,10 +323,15 @@ async function searchUsers() {
     
     resultsDiv.innerHTML = `
       <div class="search-result-card">
-        <div class="result-avatar">${user.avatar_url || '👤'}</div>
+        <div class="result-avatar">
+          ${user.avatar_url ? 
+            `<img src="${user.avatar_url}" alt="${sanitizeUsername(user.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤';" />` : 
+            '👤'
+          }
+        </div>
         <div class="result-info">
-          <div class="result-name">@${user.username}</div>
-          <div class="result-display-name">${user.display_name || 'Player'}</div>
+          <div class="result-name" title="${formatUsername(user.username || 'unknown')}">${formatUsername(user.username || 'unknown')}</div>
+          <div class="result-display-name" title="${user.display_name || 'Player'}">${user.display_name || 'Player'}</div>
           <div class="result-stats">
             ${user.total_hands_played || 0} hands played • 
             ${user.win_rate || 0}% win rate
@@ -294,8 +340,8 @@ async function searchUsers() {
         <div class="result-actions">
           ${isFriend ? 
             '<span class="text-success">✅ Already friends</span>' : 
-            `<button onclick="sendFriendRequest('${user.username}')" class="btn btn-primary">
-              ➕ Add Friend
+            `<button onclick="sendFriendRequest('${sanitizeUsername(user.username)}')" class="btn btn-primary btn-sm">
+              ➕ Add
             </button>`
           }
         </div>
@@ -309,6 +355,9 @@ async function searchUsers() {
 
 async function sendFriendRequest(username) {
   try {
+    // Remove @ prefix if present (username from DB doesn't have @)
+    const cleanUsername = username.replace(/^@+/, '');
+    
     const token = await window.authManager.getAccessToken();
     const response = await fetch('/api/social/friends/request', {
       method: 'POST',
@@ -316,7 +365,7 @@ async function sendFriendRequest(username) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ username })
+      body: JSON.stringify({ username: cleanUsername })
     });
     
     const data = await response.json();

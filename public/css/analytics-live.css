@@ -96,6 +96,250 @@
   letter-spacing: 0.05em;
 }
 
+/* ============================================
+   ANALYTICS COMPONENTS STYLES
+   ============================================ */
+
+/* Stat Card */
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  border-color: rgba(0, 212, 170, 0.3);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #9aa3b2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #00d4aa;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 4px;
+}
+
+.stat-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.stat-trend.positive {
+  color: #10b981;
+}
+
+.stat-trend.negative {
+  color: #ef4444;
+}
+
+.stat-subtitle {
+  font-size: 0.75rem;
+  color: #9aa3b2;
+  margin-top: 4px;
+}
+
+/* Hand History Table */
+.hand-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.hand-history-table thead {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.hand-history-table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #9aa3b2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.hand-history-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e9eef7;
+  font-size: 0.9rem;
+}
+
+.hand-row {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hand-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.hand-row.won {
+  border-left: 3px solid #10b981;
+}
+
+.hand-row.lost {
+  border-left: 3px solid #ef4444;
+}
+
+.hand-date .time {
+  font-size: 0.75rem;
+  color: #9aa3b2;
+}
+
+.hand-pot {
+  font-weight: 600;
+  color: #00d4aa;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.hand-result {
+  font-weight: 600;
+}
+
+.hand-row.won .hand-result {
+  color: #10b981;
+}
+
+.hand-row.lost .hand-result {
+  color: #ef4444;
+}
+
+/* Chart Container */
+.chart-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 1rem;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #00d4aa;
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.chart-container canvas {
+  max-height: 300px;
+}
+
+/* Positional Stats Table */
+.positional-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.positional-stats-table thead {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.positional-stats-table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #9aa3b2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.positional-stats-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e9eef7;
+  font-size: 0.9rem;
+}
+
+.position-name {
+  font-weight: 600;
+  color: #00d4aa;
+}
+
+.position-vpip,
+.position-wr {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+/* Badges Grid */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  margin-top: 1rem;
+}
+
+.badge-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.badge-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  border-color: rgba(0, 212, 170, 0.3);
+}
+
+.badge-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.badge-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e9eef7;
+  margin-bottom: 4px;
+}
+
+.badge-date {
+  font-size: 0.75rem;
+  color: #9aa3b2;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9aa3b2;
+  font-size: 0.9rem;
+}
+
 /* Auto-scroll indicator */
 .data-feed-container::-webkit-scrollbar {
   width: 8px;

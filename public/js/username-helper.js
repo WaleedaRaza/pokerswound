@@ -1,0 +1,106 @@
+/**
+ * Username Helper - Single Source of Truth
+ * All username operations go through this module
+ * Database is the ONLY source of truth
+ */
+
+/**
+ * Get username from database (single source of truth)
+ * @param {string} userId - User ID
+ * @returns {Promise<string|null>} Username or null
+ */
+async function getUsernameFromDB(userId) {
+  if (!userId) {
+    console.warn('⚠️ getUsernameFromDB: No userId provided');
+    return null;
+  }
+  
+  try {
+    const response = await fetch(`/api/auth/profile/${userId}`);
+    if (response.ok) {
+      const profile = await response.json();
+      const username = profile.username || null;
+      console.log(`✅ getUsernameFromDB: Fetched username "${username}" for user ${userId}`);
+      return username;
+    } else {
+      console.error(`❌ getUsernameFromDB: Failed to fetch profile (${response.status})`);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ getUsernameFromDB: Error fetching username from DB:', error);
+    return null;
+  }
+}
+
+/**
+ * Refresh username in all UI components
+ * Fetches fresh from DB and updates all displays
+ * @param {string} userId - User ID
+ * @returns {Promise<void>}
+ */
+async function refreshUsernameInUI(userId) {
+  if (!userId) {
+    console.warn('⚠️ refreshUsernameInUI: No userId provided');
+    return;
+  }
+  
+  const username = await getUsernameFromDB(userId);
+  if (!username) {
+    console.warn('⚠️ refreshUsernameInUI: Could not fetch username from DB');
+    return;
+  }
+  
+  console.log(`🔄 refreshUsernameInUI: Refreshing username "${username}" in all UI components`);
+  
+  // Update navbar username
+  const userNameEl = document.getElementById('userName');
+  if (userNameEl) {
+    const formatted = username.startsWith('@') ? username : `@${username}`;
+    userNameEl.textContent = formatted;
+    console.log('✅ Updated navbar username');
+  }
+  
+  // Update dropdown username
+  const dropdownUsernameEl = document.getElementById('dropdownUsername');
+  if (dropdownUsernameEl) {
+    const formatted = username.startsWith('@') ? username : `@${username}`;
+    dropdownUsernameEl.textContent = formatted;
+    console.log('✅ Updated dropdown username');
+  }
+  
+  // Update auth manager cache (for session, not display)
+  if (window.authManager && window.authManager.user) {
+    window.authManager.user.username = username;
+    window.authManager.saveToCache();
+    console.log('✅ Updated auth manager cache');
+  }
+  
+  // Update window.currentUser if it exists
+  if (window.currentUser) {
+    window.currentUser.username = username;
+    console.log('✅ Updated window.currentUser');
+  }
+  
+  // Trigger custom event for other components to listen
+  window.dispatchEvent(new CustomEvent('usernameUpdated', { 
+    detail: { userId, username } 
+  }));
+  console.log('✅ Dispatched usernameUpdated event');
+}
+
+/**
+ * Remove any localStorage username caching
+ * Username should NEVER be cached in localStorage
+ */
+function clearUsernameCache() {
+  localStorage.removeItem('pokergeek_username');
+  console.log('✅ Cleared username from localStorage');
+}
+
+// Make functions globally available
+window.getUsernameFromDB = getUsernameFromDB;
+window.refreshUsernameInUI = refreshUsernameInUI;
+window.clearUsernameCache = clearUsernameCache;
+
+console.log('✅ Username helper loaded - DB is single source of truth');
+

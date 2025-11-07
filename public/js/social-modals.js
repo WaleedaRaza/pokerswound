@@ -149,8 +149,10 @@ async function checkUsernameAndSet() {
       if (userNameEl) userNameEl.textContent = `@${username}`;
       if (dropdownUsernameEl) dropdownUsernameEl.textContent = `@${username}`;
       
-      // Store username locally
-      localStorage.setItem('pokergeek_username', username);
+      // ✅ Username stored in DB - refresh UI from DB (single source of truth)
+      if (window.refreshUsernameInUI) {
+        await window.refreshUsernameInUI(window.authManager?.user?.id);
+      }
       
       // Show success message
       showNotification('success', 'Username set successfully!');
@@ -206,7 +208,7 @@ async function openProfileModal() {
         <div class="social-modal-body">
           <!-- Profile Info -->
           <div class="profile-section">
-            <div class="profile-avatar-large">
+            <div class="profile-avatar-large" id="profileAvatarDisplay">
               ${profile.avatar_url 
                 ? `<img src="${profile.avatar_url}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
                 : '👤'
@@ -214,6 +216,40 @@ async function openProfileModal() {
             </div>
             <h3>@${profile.username || 'No username set'}</h3>
             <p class="profile-display-name">${profile.display_name || 'Player'}</p>
+            
+            <!-- Avatar Upload Section -->
+            <div class="avatar-upload-section" style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+              <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #9aa3b2;">Change Profile Picture</h4>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <input 
+                  type="text" 
+                  id="avatarUrlInput" 
+                  placeholder="Paste image URL" 
+                  style="flex: 1; min-width: 200px; padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #e9eef7; font-size: 14px;"
+                />
+                <input 
+                  type="file" 
+                  id="avatarFileInput" 
+                  accept="image/*" 
+                  style="display: none;"
+                />
+                <button 
+                  onclick="document.getElementById('avatarFileInput').click()" 
+                  class="btn btn-secondary"
+                  style="padding: 8px 16px; font-size: 14px;"
+                >
+                  📁 Choose File
+                </button>
+                <button 
+                  onclick="saveAvatar()" 
+                  class="btn btn-primary"
+                  style="padding: 8px 16px; font-size: 14px;"
+                >
+                  💾 Save Avatar
+                </button>
+              </div>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #9aa3b2;">Upload an image file or paste an image URL</p>
+            </div>
           </div>
           
           <!-- Stats Grid -->
@@ -276,6 +312,11 @@ async function openProfileModal() {
     `;
     
     document.body.appendChild(modal);
+    
+    // Setup avatar upload handlers
+    setTimeout(() => {
+      setupAvatarUpload();
+    }, 100);
   } catch (error) {
     console.error('Error loading profile:', error);
     alert('Failed to load profile');
@@ -285,6 +326,152 @@ async function openProfileModal() {
 function closeProfileModal() {
   const modal = document.getElementById('profileModal');
   if (modal) modal.remove();
+}
+
+// ============================================
+// AVATAR UPLOAD FUNCTIONS
+// ============================================
+
+// Handle file input change
+document.addEventListener('DOMContentLoaded', () => {
+  // This will be set up when the modal opens
+});
+
+function setupAvatarUpload() {
+  const fileInput = document.getElementById('avatarFileInput');
+  const urlInput = document.getElementById('avatarUrlInput');
+  
+  if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showNotification('error', 'Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showNotification('error', 'Image must be less than 5MB');
+        return;
+      }
+      
+      // Convert to data URL
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        urlInput.value = dataUrl;
+        previewAvatar(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  
+  if (urlInput) {
+    urlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url && (url.startsWith('http') || url.startsWith('data:image'))) {
+        previewAvatar(url);
+      }
+    });
+  }
+}
+
+function previewAvatar(url) {
+  const avatarDisplay = document.getElementById('profileAvatarDisplay');
+  if (avatarDisplay && url) {
+    avatarDisplay.innerHTML = `<img src="${url}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.innerHTML='👤';" />`;
+  }
+}
+
+async function saveAvatar() {
+  const urlInput = document.getElementById('avatarUrlInput');
+  if (!urlInput) {
+    showNotification('error', 'Avatar input not found');
+    return;
+  }
+  
+  const avatarUrl = urlInput.value.trim();
+  if (!avatarUrl) {
+    showNotification('error', 'Please enter an image URL or upload a file');
+    return;
+  }
+  
+  // Validate URL format
+  if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:image')) {
+    showNotification('error', 'Please enter a valid image URL or upload a file');
+    return;
+  }
+  
+  try {
+    const token = await window.authManager.getAccessToken();
+    if (!token) {
+      showNotification('error', 'Not authenticated');
+      return;
+    }
+    
+    // Try /api/social/profile first (has proper Supabase auth)
+    let response = await fetch('/api/social/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ avatar_url: avatarUrl })
+    });
+    
+    // If that doesn't work, try /api/user/profile (TypeScript route)
+    if (!response.ok && response.status === 404) {
+      response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar_url: avatarUrl })
+      });
+    }
+    
+    // If that doesn't work, try /api/auth/profile as final fallback
+    if (!response.ok && response.status === 404) {
+      response = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar_url: avatarUrl })
+      });
+    }
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to update avatar' }));
+      throw new Error(error.error || 'Failed to update avatar');
+    }
+    
+    const data = await response.json();
+    
+    // Update the display
+    previewAvatar(avatarUrl);
+    
+    // Refresh username in UI (which also refreshes avatar)
+    if (window.refreshUsernameInUI && window.authManager?.user?.id) {
+      await window.refreshUsernameInUI(window.authManager.user.id);
+    }
+    
+    showNotification('success', 'Profile picture updated successfully!');
+    
+    // Clear the input
+    urlInput.value = '';
+    const fileInput = document.getElementById('avatarFileInput');
+    if (fileInput) fileInput.value = '';
+    
+  } catch (error) {
+    console.error('Error saving avatar:', error);
+    showNotification('error', error.message || 'Failed to update profile picture');
+  }
 }
 
 // ============================================
@@ -778,10 +965,9 @@ async function checkIfNeedsUsername() {
     // If no username, show modal
     if (!profile.username) {
       setTimeout(() => showUsernameModal(), 500); // Small delay for better UX
-    } else {
-      // Store username locally
-      localStorage.setItem('pokergeek_username', profile.username);
     }
+    // ✅ Username is in DB - no localStorage caching needed
+    // UI will fetch fresh from DB when displaying
   } catch (error) {
     console.error('Error checking username:', error);
   }

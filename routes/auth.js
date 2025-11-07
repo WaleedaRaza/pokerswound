@@ -145,6 +145,8 @@ router.post('/check-username', async (req, res) => {
     
     const available = result.rowCount === 0;
     
+    console.log(`🔍 Username check: "${username}" - ${available ? 'AVAILABLE' : 'TAKEN'} (found ${result.rowCount} matches)`);
+    
     res.json({ 
       available,
       username,
@@ -179,6 +181,31 @@ router.post('/set-username', async (req, res) => {
     const db = getDb();
     if (!db) return res.status(500).json({ error: 'Database not configured' });
     
+    // Check current username first
+    const currentUser = await db.query(
+      'SELECT username FROM user_profiles WHERE id = $1',
+      [userId]
+    );
+    
+    if (currentUser.rowCount === 0) {
+      console.error(`❌ Set username: User ${userId} not found in database`);
+      return res.status(404).json({ 
+        error: 'User not found',
+        message: 'Your user profile was not found. Please try logging in again.'
+      });
+    }
+    
+    const currentUsername = currentUser.rows[0].username;
+    
+    // If username is the same, no change needed
+    if (currentUsername && currentUsername.toLowerCase() === username.toLowerCase()) {
+      return res.json({ 
+        success: true,
+        username,
+        message: 'Username unchanged'
+      });
+    }
+    
     // Check if username is already taken by another user
     const existingUser = await db.query(
       'SELECT id FROM user_profiles WHERE LOWER(username) = LOWER($1) AND id != $2',
@@ -186,6 +213,7 @@ router.post('/set-username', async (req, res) => {
     );
     
     if (existingUser.rowCount > 0) {
+      console.log(`❌ Username "${username}" already taken by user ${existingUser.rows[0].id}`);
       return res.status(409).json({ 
         error: 'Username already taken',
         message: 'This username is already in use. Please choose another.'
@@ -193,17 +221,26 @@ router.post('/set-username', async (req, res) => {
     }
     
     // Update username
-    await db.query(
+    const updateResult = await db.query(
       `UPDATE user_profiles 
        SET username = $1, 
            username_changed_at = NOW(),
            username_change_count = COALESCE(username_change_count, 0) + 1,
            updated_at = NOW()
-       WHERE id = $2`,
+       WHERE id = $2
+       RETURNING username`,
       [username, userId]
     );
     
-    console.log(`✅ Username set for user ${userId}: ${username}`);
+    if (updateResult.rowCount === 0) {
+      console.error(`❌ Set username: Update failed - user ${userId} not found`);
+      return res.status(404).json({ 
+        error: 'Update failed',
+        message: 'Failed to update username. User profile not found.'
+      });
+    }
+    
+    console.log(`✅ Username updated for user ${userId}: "${currentUsername}" → "${username}"`);
     
     res.json({ 
       success: true,
@@ -248,6 +285,69 @@ router.get('/profile/:userId', async (req, res) => {
   } catch (error) {
     console.error('❌ Get profile error:', error);
     res.status(500).json({ error: 'Failed to get user profile' });
+  }
+});
+
+// PUT /api/auth/profile - Update own profile (avatar_url, display_name)
+router.put('/profile', async (req, res) => {
+  try {
+    // Get user from token (if using Supabase, extract from Authorization header)
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const token = authHeader.substring(7);
+    
+    // Verify token and get user ID (simplified - you may need to use Supabase client)
+    // For now, we'll use a simple approach: get user from token
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Try to get user from Supabase token
+    // This is a simplified version - you may need to use Supabase client
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return res.status(500).json({ error: 'Supabase not configured' });
+    }
+    
+    // Use Supabase to verify token and get user
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    const userId = user.id;
+    const { avatar_url, display_name } = req.body;
+    
+    // Update profile
+    const result = await db.query(
+      `UPDATE user_profiles 
+       SET 
+         avatar_url = COALESCE($1, avatar_url),
+         display_name = COALESCE($2, display_name),
+         updated_at = NOW()
+       WHERE id = $3
+       RETURNING id, username, display_name, avatar_url, updated_at`,
+      [avatar_url || null, display_name || null, userId]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    res.json({ success: true, profile: result.rows[0] });
+    
+  } catch (error) {
+    console.error('❌ Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 

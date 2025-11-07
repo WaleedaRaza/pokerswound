@@ -319,6 +319,47 @@ router.get('/profile/me', requireAuth, async (req, res) => {
 });
 
 /**
+ * PUT /api/social/profile
+ * Update current user's profile (avatar_url, display_name)
+ */
+router.put('/profile', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { avatar_url, display_name } = req.body;
+    
+    if (!avatar_url && !display_name) {
+      return res.status(400).json({ error: 'At least one field (avatar_url or display_name) is required' });
+    }
+    
+    // ✅ Use Supabase to update profile
+    const updates = {};
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+    if (display_name !== undefined) updates.display_name = display_name;
+    
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select('id, username, display_name, avatar_url, updated_at')
+      .single();
+    
+    if (error) {
+      console.error('Error updating profile:', error);
+      return res.status(500).json({ error: 'Failed to update profile' });
+    }
+    
+    if (!data) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    
+    res.json({ success: true, profile: data });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+/**
  * GET /api/social/profile/:userId
  * Get any user's profile (with privacy controls)
  * ⚠️ MUST BE AFTER /me TO AVOID ROUTE COLLISION
@@ -949,6 +990,386 @@ router.get('/analytics/hands/:userId', requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/social/analytics/stats/:userId
+ * Get comprehensive analytics stats (lifetime stats, VPIP/PFR, aggression factor)
+ */
+router.get('/analytics/stats/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Security check
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Get profile stats
+    const profileResult = await db.query(
+      `SELECT 
+        total_hands_played,
+        total_wins,
+        win_rate,
+        biggest_pot,
+        best_hand,
+        best_hand_date,
+        (SELECT COUNT(DISTINCT room_id) FROM room_participations WHERE user_id = $1) as total_rooms_played
+       FROM user_profiles
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    // Get player statistics (VPIP/PFR/Aggression)
+    const statsResult = await db.query(
+      `SELECT 
+        vpip_percentage,
+        pfr_percentage,
+        aggression_factor,
+        total_profit_loss,
+        current_win_streak,
+        longest_win_streak
+       FROM player_statistics
+       WHERE user_id = $1`,
+      [userId]
+    );
+    
+    // Calculate profit/loss from hand history
+    const profitLossResult = await db.query(
+      `SELECT 
+        SUM(CASE WHEN winner_id = $1 THEN pot_size ELSE 0 END) as total_winnings,
+        COUNT(*) as total_hands
+       FROM hand_history
+       WHERE $1 = ANY(player_ids)`,
+      [userId]
+    );
+    
+    const profile = profileResult.rows[0] || {};
+    const stats = statsResult.rows[0] || {};
+    const profitLoss = profitLossResult.rows[0] || {};
+    
+    // Calculate estimated profit (simplified: winnings - estimated losses)
+    // In a real system, you'd track buy-ins and cash-outs per hand
+    const estimatedProfit = profitLoss.total_winnings 
+      ? Math.round(profitLoss.total_winnings * 0.3) // Rough estimate
+      : 0;
+    
+    res.json({
+      lifetime: {
+        handsPlayed: profile.total_hands_played || 0,
+        handsWon: profile.total_wins || 0,
+        winRate: parseFloat(profile.win_rate || 0).toFixed(2),
+        roomsPlayed: parseInt(profile.total_rooms_played || 0),
+        biggestPot: profile.biggest_pot || 0,
+        bestHand: profile.best_hand || null,
+        bestHandDate: profile.best_hand_date || null
+      },
+      advanced: {
+        vpip: parseFloat(stats.vpip_percentage || 0).toFixed(2),
+        pfr: parseFloat(stats.pfr_percentage || 0).toFixed(2),
+        aggressionFactor: parseFloat(stats.aggression_factor || 0).toFixed(2),
+        profitLoss: stats.total_profit_loss || estimatedProfit,
+        currentStreak: stats.current_win_streak || 0,
+        longestStreak: stats.longest_win_streak || 0
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching analytics stats:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics stats' });
+  }
+});
+
+/**
+ * GET /api/social/analytics/hands/:userId
+ * Get paginated hand history with filters
+ */
+router.get('/analytics/hands/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 20, roomId, startDate, endDate, minPot, handRank } = req.query;
+    
+    // Security check
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Build WHERE clause
+    let whereClause = `$1 = ANY(hh.player_ids)`;
+    const params = [userId];
+    let paramIndex = 2;
+    
+    if (roomId) {
+      whereClause += ` AND hh.room_id = $${paramIndex}`;
+      params.push(roomId);
+      paramIndex++;
+    }
+    
+    if (startDate) {
+      whereClause += ` AND hh.created_at >= $${paramIndex}`;
+      params.push(startDate);
+      paramIndex++;
+    }
+    
+    if (endDate) {
+      whereClause += ` AND hh.created_at <= $${paramIndex}`;
+      params.push(endDate);
+      paramIndex++;
+    }
+    
+    if (minPot) {
+      whereClause += ` AND hh.pot_size >= $${paramIndex}`;
+      params.push(parseInt(minPot));
+      paramIndex++;
+    }
+    
+    if (handRank) {
+      whereClause += ` AND hh.hand_rank = $${paramIndex}`;
+      params.push(parseInt(handRank));
+      paramIndex++;
+    }
+    
+    // Get total count
+    const countResult = await db.query(
+      `SELECT COUNT(*) as total FROM hand_history hh WHERE ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].total);
+    
+    // Get hands
+    const handsResult = await db.query(
+      `SELECT 
+        hh.id,
+        hh.game_id,
+        hh.room_id,
+        hh.hand_number,
+        hh.pot_size,
+        hh.winner_id,
+        hh.winning_hand,
+        hh.hand_rank,
+        hh.board_cards,
+        hh.created_at,
+        r.name as room_name,
+        CASE WHEN hh.winner_id = $1 THEN true ELSE false END as won
+       FROM hand_history hh
+       LEFT JOIN rooms r ON r.id = hh.room_id
+       WHERE ${whereClause}
+       ORDER BY hh.created_at DESC
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, parseInt(limit), offset]
+    );
+    
+    res.json({
+      hands: handsResult.rows.map(row => ({
+        id: row.id,
+        gameId: row.game_id,
+        roomId: row.room_id,
+        roomName: row.room_name || 'Unknown Room',
+        handNumber: row.hand_number,
+        potSize: row.pot_size,
+        won: row.won,
+        winningHand: row.winning_hand,
+        handRank: row.hand_rank,
+        boardCards: row.board_cards,
+        createdAt: row.created_at
+      })),
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / parseInt(limit))
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching hand history:', error);
+    res.status(500).json({ error: 'Failed to fetch hand history' });
+  }
+});
+
+/**
+ * GET /api/social/analytics/positional/:userId
+ * Get stats broken down by position
+ */
+router.get('/analytics/positional/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Security check
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Get positional stats from player_statistics
+    const statsResult = await db.query(
+      `SELECT 
+        vpip_early_position,
+        vpip_middle_position,
+        vpip_late_position,
+        vpip_blinds
+       FROM player_statistics
+       WHERE user_id = $1`,
+      [userId]
+    );
+    
+    const stats = statsResult.rows[0] || {};
+    
+    // Get win rate by position from player_hand_history
+    const winRateResult = await db.query(
+      `SELECT 
+        position,
+        COUNT(*) as hands_played,
+        SUM(CASE WHEN hand_outcome = 'WIN' THEN 1 ELSE 0 END) as hands_won
+       FROM player_hand_history
+       WHERE user_id = $1 AND position IS NOT NULL
+       GROUP BY position`,
+      [userId]
+    );
+    
+    const positionalWinRates = {};
+    winRateResult.rows.forEach(row => {
+      const winRate = row.hands_played > 0 
+        ? ((row.hands_won / row.hands_played) * 100).toFixed(2)
+        : 0;
+      positionalWinRates[row.position] = {
+        handsPlayed: parseInt(row.hands_played),
+        handsWon: parseInt(row.hands_won),
+        winRate: parseFloat(winRate)
+      };
+    });
+    
+    res.json({
+      vpip: {
+        early: parseFloat(stats.vpip_early_position || 0).toFixed(2),
+        middle: parseFloat(stats.vpip_middle_position || 0).toFixed(2),
+        late: parseFloat(stats.vpip_late_position || 0).toFixed(2),
+        blinds: parseFloat(stats.vpip_blinds || 0).toFixed(2)
+      },
+      winRates: positionalWinRates
+    });
+    
+  } catch (error) {
+    console.error('Error fetching positional stats:', error);
+    res.status(500).json({ error: 'Failed to fetch positional stats' });
+  }
+});
+
+/**
+ * GET /api/social/analytics/charts/:userId
+ * Get chart data (win rate over time, profit/loss)
+ */
+router.get('/analytics/charts/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { period = 'weekly' } = req.query; // daily, weekly, monthly
+    
+    // Security check
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Determine date grouping
+    let dateFormat, interval;
+    if (period === 'daily') {
+      dateFormat = 'YYYY-MM-DD';
+      interval = '1 day';
+    } else if (period === 'weekly') {
+      dateFormat = 'YYYY-"W"WW';
+      interval = '1 week';
+    } else {
+      dateFormat = 'YYYY-MM';
+      interval = '1 month';
+    }
+    
+    // Win rate over time
+    const winRateResult = await db.query(
+      `SELECT 
+        TO_CHAR(hh.created_at, $1) as period,
+        COUNT(*) as total_hands,
+        SUM(CASE WHEN hh.winner_id = $2 THEN 1 ELSE 0 END) as wins
+       FROM hand_history hh
+       WHERE $2 = ANY(hh.player_ids)
+       GROUP BY period
+       ORDER BY period DESC
+       LIMIT 30`,
+      [dateFormat, userId]
+    );
+    
+    const winRateData = winRateResult.rows.map(row => ({
+      period: row.period,
+      winRate: row.total_hands > 0 
+        ? parseFloat(((row.wins / row.total_hands) * 100).toFixed(2))
+        : 0,
+      handsPlayed: parseInt(row.total_hands)
+    })).reverse(); // Oldest first for chart
+    
+    // Profit/loss over time (simplified)
+    const profitLossResult = await db.query(
+      `SELECT 
+        TO_CHAR(hh.created_at, $1) as period,
+        SUM(CASE WHEN hh.winner_id = $2 THEN hh.pot_size ELSE 0 END) as winnings,
+        COUNT(*) as total_hands
+       FROM hand_history hh
+       WHERE $2 = ANY(hh.player_ids)
+       GROUP BY period
+       ORDER BY period DESC
+       LIMIT 30`,
+      [dateFormat, userId]
+    );
+    
+    const profitLossData = profitLossResult.rows.map(row => {
+      // Estimate losses (rough calculation)
+      const estimatedLoss = row.total_hands > 0 
+        ? Math.round(row.winnings * 0.7) // Rough estimate
+        : 0;
+      return {
+        period: row.period,
+        profit: row.winnings - estimatedLoss,
+        winnings: parseInt(row.winnings),
+        handsPlayed: parseInt(row.total_hands)
+      };
+    }).reverse();
+    
+    res.json({
+      winRate: winRateData,
+      profitLoss: profitLossData,
+      period
+    });
+    
+  } catch (error) {
+    console.error('Error fetching chart data:', error);
+    res.status(500).json({ error: 'Failed to fetch chart data' });
+  }
+});
+
+/**
  * GET /api/social/analytics/rooms/:userId
  * Get list of rooms user has played in (for filter dropdown)
  */
@@ -985,6 +1406,80 @@ router.get('/analytics/rooms/:userId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching rooms:', error);
     res.status(500).json({ error: 'Failed to fetch rooms' });
+  }
+});
+
+/**
+ * GET /api/social/badges/:userId
+ * Get user's earned badges and rank
+ */
+router.get('/badges/:userId', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Security check
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    
+    if (!db) {
+      return res.status(500).json({ error: 'Database not configured' });
+    }
+    
+    // Get user badges
+    const badgesResult = await db.query(
+      `SELECT 
+        ub.id,
+        ub.earned_at,
+        bd.name,
+        bd.description,
+        bd.icon,
+        bd.category,
+        bd.rarity
+       FROM user_badges ub
+       JOIN badge_definitions bd ON bd.id = ub.badge_id
+       WHERE ub.user_id = $1
+       ORDER BY ub.earned_at DESC`,
+      [userId]
+    );
+    
+    // Get user rank
+    const rankResult = await db.query(
+      `SELECT level, experience_points, rank_title
+       FROM user_ranks
+       WHERE user_id = $1`,
+      [userId]
+    );
+    
+    const rank = rankResult.rows[0] || {
+      level: 1,
+      experience_points: 0,
+      rank_title: 'Novice'
+    };
+    
+    res.json({
+      badges: badgesResult.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        icon: row.icon,
+        category: row.category,
+        rarity: row.rarity,
+        earnedAt: row.earned_at
+      })),
+      rank: {
+        level: parseInt(rank.level),
+        xp: parseInt(rank.experience_points),
+        title: rank.rank_title
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    res.status(500).json({ error: 'Failed to fetch badges' });
   }
 });
 

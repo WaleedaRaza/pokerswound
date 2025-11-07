@@ -337,15 +337,25 @@ function showUsernameModal(userId, currentUsername) {
         body: JSON.stringify({ userId, username })
       });
       
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || errorData.message || `Server error: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (response.ok) {
         console.log('✅ Username set successfully:', username);
         
-        // Update auth manager
+        // ✅ Username updated in DB - refresh all UI from DB (single source of truth)
+        if (window.refreshUsernameInUI && userId) {
+          await window.refreshUsernameInUI(userId);
+        } else {
+          // Fallback: Update auth manager cache
         if (window.authManager && window.authManager.user) {
           window.authManager.user.username = username;
           window.authManager.saveToCache();
+          }
         }
         
         // Hide modal
@@ -359,7 +369,8 @@ function showUsernameModal(userId, currentUsername) {
         // Success notification
         alert(`✅ Username set to @${username}`);
       } else {
-        throw new Error(data.message || 'Failed to set username');
+        const errorMsg = data.error || data.message || `Server error: ${response.status}`;
+        throw new Error(errorMsg);
       }
       
     } catch (error) {
@@ -368,6 +379,13 @@ function showUsernameModal(userId, currentUsername) {
       errorDiv.style.display = 'block';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Confirm Username';
+      
+      // Also show in validation area
+      const validation = document.getElementById('usernameValidation');
+      if (validation) {
+        validation.textContent = '❌ ' + error.message;
+        validation.className = 'username-validation taken';
+      }
     }
   });
   
@@ -388,7 +406,17 @@ async function checkUsernameAvailability(username) {
       body: JSON.stringify({ username })
     });
     
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || errorData.message || `Server error: ${response.status}`);
+    }
+    
     const data = await response.json();
+    
+    if (!data.hasOwnProperty('available')) {
+      console.error('❌ Invalid response format:', data);
+      throw new Error('Invalid response from server');
+    }
     
     lastCheckedUsername = username;
     isUsernameAvailable = data.available;
@@ -405,7 +433,7 @@ async function checkUsernameAvailability(username) {
     
   } catch (error) {
     console.error('❌ Error checking username:', error);
-    validation.textContent = '⚠️ Error checking availability';
+    validation.textContent = '⚠️ Error checking availability - ' + (error.message || 'Unknown error');
     validation.className = 'username-validation taken';
     submitBtn.disabled = true;
   }

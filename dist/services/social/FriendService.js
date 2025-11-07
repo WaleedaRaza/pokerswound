@@ -15,7 +15,7 @@ class FriendService {
           WHEN f.requester_id = $1 THEN f.addressee_id
           ELSE f.requester_id
         END as user_id,
-        up.global_username,
+        up.username,
         up.display_name,
         up.is_online,
         up.last_seen
@@ -33,7 +33,7 @@ class FriendService {
         return result.rows.map(row => ({
             id: row.friendship_id,
             user_id: row.user_id,
-            global_username: row.global_username,
+            username: row.username,
             display_name: row.display_name,
             is_online: row.is_online,
             last_seen: new Date(row.last_seen),
@@ -46,7 +46,7 @@ class FriendService {
       SELECT 
         f.id,
         f.requester_id,
-        up.global_username as requester_username,
+        up.username as requester_username,
         up.display_name as requester_display_name,
         f.created_at
       FROM friendships f
@@ -66,7 +66,7 @@ class FriendService {
     async sendFriendRequest(requesterId, addresseeUsername) {
         try {
             const addresseeResult = await this.db.query(`
-        SELECT id FROM user_profiles WHERE global_username = $1
+        SELECT id FROM user_profiles WHERE username = $1
       `, [addresseeUsername]);
             if (addresseeResult.rows.length === 0) {
                 return { success: false, error: 'User not found' };
