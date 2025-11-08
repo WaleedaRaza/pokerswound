@@ -12,6 +12,7 @@
   <!-- Styles -->
   <link rel="stylesheet" href="/css/pokergeek.css">
   <link rel="stylesheet" href="/css/social-modals.css">
+  <link rel="stylesheet" href="/css/friends-modern.css">
   
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,511 +23,41 @@
   <script src="/js/nav-shared.js"></script>
   <script src="/js/navbar-template.js"></script>
   
+  <!-- Liquid Glass Controller -->
+  <script src="/js/liquid-glass-controller.js"></script>
+  
+  <!-- Liquid Glass SVG Filter - Locked Values -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute; overflow:hidden">
+    <defs>
+      <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+        <feDisplacementMap in="SourceGraphic" in2="blurred" scale="39" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+  
   <!-- Social Features -->
   <script src="/js/social-modals.js"></script>
   
-  <style>
-    body {
-      background: #0b0b12;
-      color: #e9eef7;
-      min-height: 100vh;
-    }
-    
-    .main-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-    
-    .page-header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    
-    .page-title {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 48px;
-      font-weight: 800;
-      color: #00d4aa;
-      margin: 0 0 12px 0;
-    }
-    
-    .page-subtitle {
-      font-size: 18px;
-      color: #9aa3b2;
-      margin: 0;
-    }
-    
-    /* Friends Layout */
-    .friends-layout {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-    
-    /* Sidebar */
-    .friends-sidebar {
-      background: rgba(15, 15, 25, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 24px;
-      height: fit-content;
-    }
-    
-    .sidebar-title {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 20px;
-      color: #e9eef7;
-      margin: 0 0 16px 0;
-    }
-    
-    .sidebar-stat {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .sidebar-stat:last-child {
-      border-bottom: none;
-    }
-    
-    .stat-label {
-      color: #9aa3b2;
-      font-size: 16px;
-    }
-    
-    .stat-value {
-      color: #00d4aa;
-      font-family: "JetBrains Mono", monospace;
-      font-weight: 700;
-      font-size: 24px;
-    }
-    
-    /* Tabs */
-    .friends-tabs {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .friends-tab {
-      padding: 12px 24px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: #9aa3b2;
-      font-family: "JetBrains Mono", monospace;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .friends-tab:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(0, 212, 170, 0.3);
-    }
-    
-    .friends-tab.active {
-      background: #00d4aa;
-      color: #0b0b12;
-      border-color: #00d4aa;
-    }
-    
-    .tab-badge {
-      display: inline-block;
-      background: #ff5100;
-      color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      margin-left: 8px;
-    }
-    
-    /* Content Area */
-    .friends-content {
-      background: rgba(15, 15, 25, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 32px;
-      min-height: 500px;
-    }
-    
-    /* Friends Grid */
-    .friends-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 16px;
-    }
-    
-    .friend-card {
-      background: rgba(11, 11, 18, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      transition: all 0.2s;
-      overflow: hidden;
-    }
-    
-    .friend-card:hover {
-      border-color: rgba(0, 212, 170, 0.3);
-      transform: translateY(-2px);
-    }
-    
-    .friend-avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff5100, #00d4aa);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    
-    .friend-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-    
-    .friend-info {
-      flex-grow: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
-    
-    .friend-name {
-      font-family: "JetBrains Mono", monospace;
-      font-weight: 700;
-      color: #00d4aa;
-      font-size: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 400px;
-    }
-    
-    .friend-display-name {
-      color: #9aa3b2;
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 400px;
-    }
-    
-    .friend-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 8px;
-      font-family: "JetBrains Mono", monospace;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    
-    .btn-sm {
-      padding: 6px 10px;
-      font-size: 12px;
-      min-width: 32px;
-      height: 32px;
-    }
-    
-    .btn-primary {
-      background: #00d4aa;
-      color: #0b0b12;
-    }
-    
-    .btn-primary:hover {
-      background: #00b894;
-      transform: translateY(-1px);
-    }
-    
-    .btn-success {
-      background: #00d4aa;
-      color: #0b0b12;
-    }
-    
-    .btn-success:hover {
-      background: #00b894;
-      transform: translateY(-1px);
-    }
-    
-    .btn-danger {
-      background: #ff3b3b;
-      color: white;
-    }
-    
-    .btn-danger:hover {
-      background: #ff1a1a;
-      transform: translateY(-1px);
-    }
-    
-    /* Requests List */
-    .requests-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .request-card {
-      background: rgba(11, 11, 18, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      overflow: hidden;
-    }
-    
-    .request-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 0;
-    }
-    
-    .request-avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff5100, #00d4aa);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    
-    .request-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-    
-    .request-details {
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
-    
-    .request-name {
-      font-family: "JetBrains Mono", monospace;
-      font-weight: 700;
-      color: #00d4aa;
-      font-size: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 400px;
-    }
-    
-    .request-display-name {
-      color: #9aa3b2;
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 400px;
-    }
-    
-    .request-time {
-      color: #9aa3b2;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-    
-    .request-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    
-    /* Search View */
-    .search-container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    
-    .search-box {
-      background: rgba(11, 11, 18, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 32px;
-    }
-    
-    .search-box h3 {
-      font-family: "JetBrains Mono", monospace;
-      color: #00d4aa;
-      margin: 0 0 24px 0;
-    }
-    
-    .search-input-group {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    
-    .search-results {
-      min-height: 100px;
-    }
-    
-    .search-result-card {
-      background: rgba(15, 15, 25, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      overflow: hidden;
-    }
-    
-    .result-avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff5100, #00d4aa);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    
-    .result-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-    
-    .result-info {
-      flex-grow: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
-    
-    .result-name {
-      font-family: "JetBrains Mono", monospace;
-      font-weight: 700;
-      color: #00d4aa;
-      font-size: 18px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 450px;
-    }
-    
-    .result-display-name {
-      color: #9aa3b2;
-      font-size: 15px;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 450px;
-    }
-    
-    .result-stats {
-      color: #9aa3b2;
-      font-size: 14px;
-    }
-    
-    .result-actions {
-      flex-shrink: 0;
-    }
-    
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-    }
-    
-    .empty-icon {
-      font-size: 80px;
-      margin-bottom: 24px;
-    }
-    
-    .empty-state h3 {
-      font-family: "JetBrains Mono", monospace;
-      color: #e9eef7;
-      margin: 0 0 12px 0;
-    }
-    
-    .empty-state p {
-      color: #9aa3b2;
-      margin: 0 0 24px 0;
-    }
-    
-    /* Utility */
-    .text-success {
-      color: #00d4aa;
-      font-weight: 600;
-    }
-    
-    .text-error {
-      color: #ff3b3b;
-    }
-    
-    .text-muted {
-      color: #9aa3b2;
-      text-align: center;
-      padding: 20px;
-    }
-    
-    @media (max-width: 1024px) {
-      .friends-layout {
-        grid-template-columns: 1fr;
-      }
-      
-      .friends-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- UNIFIED NAVBAR -->
   <div id="navbar-container"></div>
   
+  <!-- Global floating animations container -->
+  <div id="floating-cards" class="floating-cards"></div>
+
   <!-- Main Content -->
   <main class="main-content">
-    <div class="page-header">
-      <h1 class="page-title">👥 Friends</h1>
-      <p class="page-subtitle">Connect with poker players and build your network</p>
+    <div class="friends-hero">
+      <h1 class="friends-hero-title">Friends</h1>
+      <p class="friends-hero-subtitle">Connect with poker players and build your network</p>
     </div>
     
     <div class="friends-layout">
       <!-- Sidebar -->
-      <aside class="friends-sidebar">
+      <aside class="friends-sidebar liquid-glass liquid-glass--lg">
         <h3 class="sidebar-title">Stats</h3>
         <div class="sidebar-stat">
           <span class="stat-label">Total Friends</span>
@@ -550,14 +81,23 @@
             <span class="tab-badge" id="requestsBadge" style="display: none;">0</span>
           </button>
           <button class="friends-tab" data-tab="search" onclick="switchTab('search')">
-            🔍 Find Friends
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            Find Friends
           </button>
         </div>
         
         <!-- Content Area -->
-        <div class="friends-content" id="friendsContent">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
+        <div class="friends-content liquid-glass liquid-glass--xl" id="friendsContent">
+          <div class="empty-state-modern">
+            <div class="empty-state-modern-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
             <h3>Loading...</h3>
           </div>
         </div>

@@ -13,7 +13,31 @@
 // ============================================
 
 (function() {
-  console.clear();
+  console.clear();dataset.seatIndex);
+      
+      // MULTI-SELECT: Ctrl/Cmd+Click
+      if (e.ctrlKey || e.metaKey) {
+        if (selectedSeats.has(seat)) {
+          deselectSeat(seat);
+          console.log(`%c➖ Removed Seat ${index} from selection`, 'color: #ff5100; font-size: 14px');
+        } else {
+          selectSeat(seat);
+          console.log(`%c➕ Added Seat ${index} to selection`, 'color: #00d4aa; font-size: 14px');
+        }
+      }
+      // RANGE SELECT: Shift+Click
+      else if (e.shiftKey && lastSelectedIndex !== null) {
+        const allSeats = Array.from(document.querySelectorAll('.seat')).filter(s => s.dataset.seatIndex !== undefined);
+        const start = Math.min(lastSelectedIndex, index);
+        const end = Math.max(lastSelectedIndex, index);
+        
+        allSeats.forEach(s => {
+          const idx = parseInt(s.dataset.seatIndex);
+          if (idx >= start && idx <= end) {
+            selectSeat(s);
+          }
+        });
+        console.log(`%c📐 Selected range: Seat ${start} to Sea
   console.log(`%c
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
@@ -241,31 +265,7 @@
     
     if (seat && seat.dataset.seatIndex !== undefined) {
       e.stopPropagation();
-      const index = parseInt(seat.dataset.seatIndex);
-      
-      // MULTI-SELECT: Ctrl/Cmd+Click
-      if (e.ctrlKey || e.metaKey) {
-        if (selectedSeats.has(seat)) {
-          deselectSeat(seat);
-          console.log(`%c➖ Removed Seat ${index} from selection`, 'color: #ff5100; font-size: 14px');
-        } else {
-          selectSeat(seat);
-          console.log(`%c➕ Added Seat ${index} to selection`, 'color: #00d4aa; font-size: 14px');
-        }
-      }
-      // RANGE SELECT: Shift+Click
-      else if (e.shiftKey && lastSelectedIndex !== null) {
-        const allSeats = Array.from(document.querySelectorAll('.seat')).filter(s => s.dataset.seatIndex !== undefined);
-        const start = Math.min(lastSelectedIndex, index);
-        const end = Math.max(lastSelectedIndex, index);
-        
-        allSeats.forEach(s => {
-          const idx = parseInt(s.dataset.seatIndex);
-          if (idx >= start && idx <= end) {
-            selectSeat(s);
-          }
-        });
-        console.log(`%c📐 Selected range: Seat ${start} to Seat ${end}`, 'color: #00d4aa; font-size: 14px');
+      const index = parseInt(seat.t ${end}`, 'color: #00d4aa; font-size: 14px');
       }
       // SINGLE SELECT: Regular click
       else {

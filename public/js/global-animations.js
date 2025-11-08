@@ -9,18 +9,20 @@ const FX = {
     verticalDuration: [5, 7],  // short, punchy
     staggerSec: 1.0,           // start window for all wave items
     cardOverlap: 0.70,         // ↓ = more columns = denser
-    chipEveryNCols: 6,         // one chip per N card columns
-    extraRandomChips: 4,
-    backWeight: 2,
+    chipEveryNCols: 8,         // one chip per N card columns (less frequent)
+    extraRandomChips: 2,       // fewer extra chips
+    logoInWave: 1,             // only 1 logo in initial wave
+    backWeight: 3,             // more card backs than fronts (3:1 ratio)
     faceWeight: 1
   },
   // SPORADIC ongoing: single spawns with exponential gaps (no batches)
   ongoing: {
-    minActive: 10,              // try to keep at least this many concurrently
-    maxActive: 20,              // never exceed this many concurrently
-    meanGapSec: 2.8,           // average time between spawns
-    jitterSec: 1.2,            // +/- randomization on top of exponential
-    chipBias: 0.25,            // probability a spawn is a chip
+    minActive: 3,               // try to keep at least this many concurrently
+    maxActive: 8,               // never exceed this many concurrently
+    meanGapSec: 4.0,           // average time between spawns (increased to reduce frequency)
+    jitterSec: 1.5,            // +/- randomization on top of exponential
+    chipBias: 0.15,            // probability a spawn is a chip (cards are default, so 85% cards)
+    logoBias: 0.05,            // probability a spawn is a logo (rare, special) - 5% logos, 15% chips, 80% cards
     duration: [7, 12],         // fall duration for ongoing items
     startDelaySec: 1.0         // begin shortly after wave starts
   },
@@ -53,6 +55,10 @@ function onSpawned(el){
   active++;
   el.addEventListener('animationend', () => {
     active = Math.max(0, active-1);
+    // ✅ REMOVE FROM DOM after animation completes to prevent accumulation
+    if (el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
     // If we dipped below the floor, spawn immediately to top-up
     if (!document.hidden && active < FX.ongoing.minActive) { spawnOne(); }
   }, { once:true });
@@ -61,6 +67,8 @@ function onSpawned(el){
 function spawnCard({xPct, delaySec, durationSec, backWeight, faceWeight}) {
   const el = document.createElement('div');
   el.className = 'floating-card falling-once';
+  el.dataset.isBack = 'true'; // Track if showing back
+  
   const img = document.createElement('img');
   img.src = pickCardImg(backWeight, faceWeight);
   img.alt = 'Playing Card';
@@ -70,25 +78,192 @@ function spawnCard({xPct, delaySec, durationSec, backWeight, faceWeight}) {
   el.style.setProperty('--rotStart', `${Math.floor(rand(0,360))}deg`);
   el.style.setProperty('--rotEnd',   `${Math.floor(rand(720,1440))}deg`);
   el.style.animation = `fallDown ${durationSec}s linear ${delaySec}s 1`;
+  
+  // ✅ CLICK TO FLIP: Reveal card face/back (can flip multiple times)
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    flipCard(el);
+  });
+  
   $container().appendChild(el);
   onSpawned(el);
+}
+
+function flipCard(el) {
+  const img = el.querySelector('img');
+  const isBack = el.dataset.isBack === 'true';
+  
+  // Flip animation
+  el.style.transition = 'transform 0.3s ease';
+  el.style.transform = 'rotateY(90deg)';
+  
+  setTimeout(() => {
+    // Switch to opposite side (back and forth)
+    if (isBack) {
+      // Show random face card
+      const faceCards = cardImages.face;
+      img.src = faceCards[Math.floor(Math.random() * faceCards.length)];
+      el.dataset.isBack = 'false';
+    } else {
+      // Show random back
+      img.src = cardImages.back[0];
+      el.dataset.isBack = 'true';
+    }
+    
+    el.style.transform = 'rotateY(0deg)';
+  }, 150);
 }
 
 function spawnChip({xPct, delaySec, durationSec}) {
   const el = document.createElement('div');
   el.className = 'floating-chip falling-once';
-  // Randomly select one of the four chip images
-  const chipNum = Math.floor(rand(1, 5)); // Random number between 1-4
-  el.style.backgroundImage = `url("/public/chip${chipNum}.png")`;
-  el.style.backgroundSize = 'contain';
-  el.style.backgroundRepeat = 'no-repeat';
-  el.style.backgroundPosition = 'center';
+  // Randomly start with teal or orange
+  const startColor = Math.random() < 0.5 ? 'teal' : 'orange';
+  el.dataset.chipColor = startColor;
+  
+  const img = document.createElement('img');
+  img.src = `/public/chip_${startColor}.svg`;
+  img.alt = 'Poker Chip';
+  img.style.width = '60px';
+  img.style.height = '60px';
+  el.appendChild(img);
+  
   el.style.left = `${xPct}%`;
   el.style.setProperty('--rotStart', `${Math.floor(rand(0,360))}deg`);
   el.style.setProperty('--rotEnd',   `${Math.floor(rand(720,1440))}deg`);
   el.style.animation = `fallDown ${durationSec}s linear ${delaySec}s 1`;
+  
+  // ✅ CLICK TO FLIP: Switch between teal and orange
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    flipChip(el);
+  });
+  
   $container().appendChild(el);
   onSpawned(el);
+}
+
+function flipChip(el) {
+  const img = el.querySelector('img');
+  const currentColor = el.dataset.chipColor;
+  const newColor = currentColor === 'teal' ? 'orange' : 'teal';
+  
+  // Flip animation
+  el.style.transition = 'transform 0.3s ease';
+  el.style.transform = 'rotateY(90deg)';
+  
+  setTimeout(() => {
+    el.dataset.chipColor = newColor;
+    img.src = `/public/chip_${newColor}.svg`;
+    el.style.transform = 'rotateY(0deg)';
+  }, 150);
+}
+
+function spawnLogo({xPct, delaySec, durationSec}) {
+  const el = document.createElement('div');
+  el.className = 'floating-logo falling-once logo-glow';
+  el.dataset.caught = 'false';
+  
+  const img = document.createElement('img');
+  img.src = '/public/Logo.svg';
+  img.alt = 'PokerGeek Logo';
+  img.style.width = '50px';  // Smaller logo
+  img.style.height = '50px';
+  el.appendChild(img);
+  
+  el.style.left = `${xPct}%`;
+  el.style.setProperty('--rotStart', `${Math.floor(rand(0,360))}deg`);
+  el.style.setProperty('--rotEnd',   `${Math.floor(rand(180,360))}deg`); // Less rotation
+  el.style.animation = `fallDown ${durationSec}s linear ${delaySec}s 1`;
+  
+  // ✅ CLICK TO CATCH: Open popup
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    catchLogo(el);
+  });
+  
+  $container().appendChild(el);
+  onSpawned(el);
+}
+
+function catchLogo(el) {
+  if (el.dataset.caught === 'true') return; // Already caught
+  
+  el.dataset.caught = 'true';
+  
+  // Pause animation
+  el.style.animationPlayState = 'paused';
+  
+  // Glow effect
+  el.classList.add('logo-caught');
+  
+  // Open popup
+  openLogoPopup();
+  
+  // Remove after popup closes
+  setTimeout(() => {
+    if (el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  }, 500);
+}
+
+// PokerGeek quotes (inspired by Minecraft opening messages)
+const POKERGEEK_QUOTES = [
+  "If a tree falls in the forest and no one hears it, does it make a sound?",
+  "The only constant in life is change. He who knows, knows he knows nothing.",
+  "Less is more.",
+  "To know yourself is the beginning of all wisdom.",
+  "The map is not the territory.",
+  "We see things not as they are, but as we are.",
+  "No man ever steps in the same river twice.",
+  "The eyes are useless when the mind is blind.",
+  "You reap what you sow. If everyone plays optimally, does anyone win?",
+  "If luck is fair, is it still luck?",
+  "When you fold, do your cards miss you?",
+  "Fold your ego, not your hand.",
+  "Maybe the real rake was the friends we made along the way.",
+  "The house always wins, but the mind always wonders.",
+  "We all start as 2-7 offsuit.",
+  "Some days are like slow-playing aces, some days are like bluffing a 2-7.",
+  "Your probability of reading this is 100%.",
+  "We simulated this moment 1,000,000,000,000 times.",
+  "Go all-in on you.",
+  "Everything you've ever done has led you here.",
+  "If a chip drops in the lobby and no one's online, does it make a sound?"
+];
+
+function openLogoPopup() {
+  // Random quote selection
+  const randomQuote = POKERGEEK_QUOTES[Math.floor(Math.random() * POKERGEEK_QUOTES.length)];
+  
+  // Create popup overlay (Minecraft-inspired style)
+  const overlay = document.createElement('div');
+  overlay.className = 'logo-popup-overlay';
+  overlay.innerHTML = `
+    <div class="logo-popup">
+      <div class="logo-popup-header">
+        <img src="/public/Logo.svg" alt="PokerGeek" class="logo-popup-icon" />
+      </div>
+      <div class="logo-popup-content">
+        <p class="logo-popup-quote">${randomQuote}</p>
+      </div>
+      <button class="logo-popup-close" onclick="this.closest('.logo-popup-overlay').remove()">Accept.</button>
+    </div>
+  `;
+  
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+  
+  document.body.appendChild(overlay);
+  
+  // Animate in
+  setTimeout(() => {
+    overlay.classList.add('show');
+  }, 10);
 }
 
 // ===== Initial wave (landing page only) =====
@@ -118,6 +293,13 @@ function initialWaveCover() {
     const dur = rand(FX.wave.verticalDuration[0], FX.wave.verticalDuration[1]);
     spawnChip({ xPct, delaySec: delay, durationSec: dur });
   }
+  // Add 1 logo in the initial wave (rare and special)
+  for (let i = 0; i < FX.wave.logoInWave; i++) {
+    const xPct = Math.random() * 100;
+    const delay = Math.random() * FX.wave.staggerSec;
+    const dur = rand(FX.wave.verticalDuration[0], FX.wave.verticalDuration[1]);
+    spawnLogo({ xPct, delaySec: delay, durationSec: dur });
+  }
   return FX.wave.staggerSec + FX.wave.verticalDuration[1];
 }
 
@@ -126,10 +308,14 @@ let spawnTimer = null;
 
 function spawnOne(){
   if (active >= FX.ongoing.maxActive) return; // ceiling guard
-  const isChip = Math.random() < FX.ongoing.chipBias;
+  const randVal = Math.random();
   const dur = rand(FX.ongoing.duration[0], FX.ongoing.duration[1]);
   const xPct = Math.random() * 100;
-  if (isChip) {
+  
+  // Determine spawn type: logo (rare), chip, or card
+  if (randVal < FX.ongoing.logoBias) {
+    spawnLogo({ xPct, delaySec: 0, durationSec: dur });
+  } else if (randVal < FX.ongoing.logoBias + FX.ongoing.chipBias) {
     spawnChip({ xPct, delaySec: 0, durationSec: dur });
   } else {
     spawnCard({
@@ -173,6 +359,16 @@ function stopOngoing(){
   if (spawnTimer) { clearTimeout(spawnTimer); spawnTimer = null; }
 }
 
+// ===== Cleanup on page unload =====
+window.addEventListener('beforeunload', () => {
+  stopOngoing();
+  const container = $container();
+  if (container) {
+    container.innerHTML = ''; // Clear all cards
+    active = 0;
+  }
+});
+
 // ===== Public API =====
 
 // For landing page: wave + ongoing
@@ -186,14 +382,30 @@ function initOngoingOnly() {
   startOngoing();
 }
 
-// ===== Suit cycling (all pages) =====
+// ===== Suit cycling for hero title =====
 function initSuitCycling() {
-  const suits=['♠','♥','♣','♦']; 
-  let i=0;
-  setInterval(()=>{
-    document.querySelectorAll('.suit-symbol').forEach(el=> el.textContent = suits[i]);
-    i=(i+1)%suits.length;
-  },1000);
+  const suits = ['♠', '♥', '♣', '♦'];
+  let heroIndex = 0;
+  let legacyIndex = 0;
+  
+  // Update hero spinning suit (the dot in "PokerGeek.ai")
+  const heroSuitEls = document.querySelectorAll('.spinning-suit');
+  if (heroSuitEls.length > 0) {
+    setInterval(() => {
+      heroSuitEls.forEach(el => {
+        el.textContent = suits[heroIndex];
+      });
+      heroIndex = (heroIndex + 1) % suits.length;
+    }, 500); // Change every 500ms for smooth spin
+  }
+  
+  // Legacy: Update any remaining .suit-symbol elements
+  setInterval(() => {
+    document.querySelectorAll('.suit-symbol').forEach(el => {
+      el.textContent = suits[legacyIndex];
+    });
+    legacyIndex = (legacyIndex + 1) % suits.length;
+  }, 1000);
 }
 
 // ===== Visibility handling =====

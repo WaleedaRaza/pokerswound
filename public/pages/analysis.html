@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/pokergeek.css">
+    <link rel="stylesheet" href="/css/index-modern.css">
     <link rel="stylesheet" href="/css/analytics-live.css">
     <link rel="stylesheet" href="/css/analytics-modern.css">
     
@@ -16,6 +17,9 @@
     <script src="/js/auth-manager.js"></script>
     <script src="/js/nav-shared.js"></script>
     <script src="/js/navbar-template.js"></script>
+    
+    <!-- Liquid Glass Controller -->
+    <script src="/js/liquid-glass-controller.js"></script>
     
     <!-- Socket.IO for live data -->
     <script src="/socket.io/socket.io.js"></script>
@@ -35,16 +39,15 @@
     <!-- Analytics Components -->
     <script src="/js/analytics-components.js"></script>
     
-    <!-- SVG Filter for Liquid Glass Effect -->
-    <svg width="0" height="0" class="svg-filter">
-        <defs>
-            <filter id="glass-distortion" x="-50%" y="-50%" width="200%" height="200%">
-                <feTurbulence baseFrequency="var(--glass-noise-frequency)" numOctaves="4" result="noise" type="fractalNoise"/>
-                <feGaussianBlur in="noise" stdDeviation="2" result="blur"/>
-                <feDisplacementMap in="SourceGraphic" in2="blur" scale="var(--glass-distortion-strength)" result="distorted"/>
-                <feComposite in="distorted" in2="SourceGraphic" operator="over"/>
-            </filter>
-        </defs>
+    <!-- Liquid Glass SVG Filter - Locked Values -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute; overflow:hidden">
+      <defs>
+        <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+          <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+          <feDisplacementMap in="SourceGraphic" in2="blurred" scale="39" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
     </svg>
 </head>
 <body>
@@ -56,79 +59,75 @@
 
     <!-- Main Content -->
     <main class="analytics-page">
-        <div class="analytics-header">
-            <h1>📊 Analytics Dashboard</h1>
-            <p>Track your performance, analyze your hands, and level up your game</p>
+        <div class="analytics-hero">
+            <h1 class="analytics-hero-title">Analysis</h1>
+            <p class="analytics-hero-subtitle">Your poker command center</p>
         </div>
         
         <div class="stats-dashboard">
-            <!-- Stats Dashboard -->
-            <div id="analytics-stats-grid" class="stats-grid">
+            <!-- Critical Metrics Row (Mission Control Style) -->
+            <div id="analytics-stats-grid" class="stats-grid stats-grid-critical">
                 <!-- Stats will be populated by JavaScript -->
             </div>
 
-            <!-- Hand History Section -->
-            <div class="section-card">
+            <!-- Post-Game Insights Section -->
+            <div class="section-card liquid-glass liquid-glass--xl">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">📖 Hand History</h2>
-                        <p class="section-description">Review and analyze your past hands</p>
+                        <h2 class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                                <path d="M9 11l3 3L22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                            Post-Game Insights
+                        </h2>
+                        <p class="section-description">Key moments and learning opportunities from your recent hands</p>
                     </div>
                 </div>
-                
-                <!-- Filters -->
+                <div id="insights-container" class="insights-container">
+                    <!-- Insights will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Hand History Section -->
+            <div class="section-card liquid-glass liquid-glass--xl">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                            Hand History
+                        </h2>
+                        <p class="section-description">Review and analyze your past hands</p>
+                </div>
+            </div>
+
+                <!-- Filters - Simplified Dropdown -->
                 <div class="filters-modern">
                     <div class="filter-group-modern">
-                        <label>Start Date</label>
-                        <input type="date" id="filter-start-date" class="filter-input-modern">
-                    </div>
-                    
-                    <div class="filter-group-modern">
-                        <label>End Date</label>
-                        <input type="date" id="filter-end-date" class="filter-input-modern">
-                    </div>
-                    
-                    <div class="filter-group-modern">
-                        <label>Room</label>
-                        <select id="filter-room" class="filter-input-modern">
-                            <option value="">All Rooms</option>
+                        <label>Filter Hands</label>
+                        <select id="hand-filter-dropdown" class="filter-input-modern" onchange="applyHandHistoryFilters()">
+                            <option value="">All Hands</option>
+                            <option value="won">Won Hands</option>
+                            <option value="lost">Lost Hands</option>
+                            <option value="big-pot">Big Pots ($500+)</option>
+                            <option value="royal-flush">Royal Flush</option>
+                            <option value="straight-flush">Straight Flush</option>
+                            <option value="four-kind">Four of a Kind</option>
+                            <option value="full-house">Full House</option>
+                            <option value="flush">Flush</option>
                         </select>
-                    </div>
-                    
-                    <div class="filter-group-modern">
-                        <label>Min Pot ($)</label>
-                        <input type="number" id="filter-min-pot" class="filter-input-modern" placeholder="0" min="0">
-                    </div>
-                    
-                    <div class="filter-group-modern">
-                        <label>Hand Rank</label>
-                        <select id="filter-hand-rank" class="filter-input-modern">
-                            <option value="">All Ranks</option>
-                            <option value="1">Royal Flush</option>
-                            <option value="2">Straight Flush</option>
-                            <option value="3">Four of a Kind</option>
-                            <option value="4">Full House</option>
-                            <option value="5">Flush</option>
-                            <option value="6">Straight</option>
-                            <option value="7">Three of a Kind</option>
-                            <option value="8">Two Pair</option>
-                            <option value="9">Pair</option>
-                            <option value="10">High Card</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-buttons-modern">
-                        <button onclick="applyHandHistoryFilters()" class="btn-modern btn-primary-modern">Apply Filters</button>
-                        <button onclick="clearHandHistoryFilters()" class="btn-modern btn-secondary-modern">Clear</button>
                     </div>
                 </div>
-                
-                <!-- Hand List -->
+                    
+                    <!-- Hand List -->
                 <div id="hand-history-list" style="overflow-x: auto;">
                     <p style="text-align: center; color: #9aa3b2; padding: 40px;">Loading hands...</p>
-                </div>
-                
-                <!-- Pagination -->
+                    </div>
+                    
+                    <!-- Pagination -->
                 <div id="history-pagination" class="pagination-modern">
                     <button onclick="loadPreviousPage()" id="btn-prev" class="pagination-btn-modern" disabled>← Previous</button>
                     <span id="page-info" class="pagination-info-modern">Page 1 of 1</span>
@@ -136,58 +135,41 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="section-card">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">📈 Performance Trends</h2>
-                        <p class="section-description">Track your win rate and profit over time</p>
-                    </div>
-                </div>
-                
-                <div class="chart-section">
-                    <div class="chart-card">
-                        <div id="win-rate-chart-container"></div>
-                    </div>
-                    <div class="chart-card">
-                        <div id="profit-loss-chart-container"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Positional Analysis -->
-            <div class="section-card">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">🎯 Positional Analysis</h2>
-                        <p class="section-description">See how you perform from different positions</p>
-                    </div>
-                </div>
-                
-                <div id="positional-stats-container"></div>
-            </div>
-            
             <!-- Badges & Achievements -->
-            <div class="section-card">
+            <div class="section-card liquid-glass liquid-glass--xl">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">🏆 Badges & Achievements</h2>
+                        <h2 class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                                <path d="M4 22h16"/>
+                                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                            </svg>
+                            Badges & Achievements
+                        </h2>
                         <p class="section-description">Unlock achievements and level up your rank</p>
                     </div>
                 </div>
                 
                 <div id="badges-container" class="badges-section"></div>
-                
-                <div id="rank-container" class="rank-card-modern">
-                    <div class="rank-icon-modern">⭐</div>
+
+                <div id="rank-container" class="rank-card-modern liquid-glass liquid-glass--lg">
+                    <div class="rank-icon-modern">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
                     <div class="rank-info-modern">
                         <div class="rank-label-modern">Your Rank</div>
                         <div id="rank-title" class="rank-title-modern">Novice</div>
                         <div class="rank-details-modern">
                             Level <strong id="rank-level">1</strong> • 
                             <strong id="rank-xp">0</strong> XP
-                        </div>
-                    </div>
+                </div>
+            </div>
                 </div>
             </div>
         </div>
@@ -660,11 +642,11 @@
                 // Load hand history
                 await loadHandHistory(userId, token, currentPage, currentFilters);
                 
+                // Generate insights from recent hands
+                await generateInsights(userId, token);
+                
                 // Load charts
                 await loadCharts(userId, token);
-                
-                // Load positional stats
-                await loadPositionalStats(userId, token);
                 
                 // Load badges
                 await loadBadges(userId, token);
@@ -687,58 +669,34 @@
                 
                 if (!statsGrid) return;
                 
+                const winRate = parseFloat(data.lifetime.winRate || 0);
+                const status = winRate >= 50 ? 'positive' : winRate >= 40 ? 'warning' : 'negative';
+                
                 statsGrid.innerHTML = `
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '📊',
-                        label: 'Hands Played',
-                        value: data.lifetime.handsPlayed || 0,
-                        color: 'teal'
+                    ${window.AnalyticsComponents.createMetricCard({
+                        label: 'WIN RATE',
+                        value: `${winRate.toFixed(1)}%`,
+                        trend: winRate >= 50 ? 3.1 : -2.4,
+                        trendPeriod: 'last 30 days',
+                        status: status
                     })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '🎯',
-                        label: 'Win Rate',
-                        value: `${data.lifetime.winRate || 0}%`,
-                        color: 'green'
+                    ${window.AnalyticsComponents.createMetricCard({
+                        label: 'HANDS PLAYED',
+                        value: (data.lifetime.handsPlayed || 0).toLocaleString(),
+                        trend: null,
+                        status: 'positive'
                     })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '💰',
-                        label: 'Biggest Pot',
-                        value: `$${data.lifetime.biggestPot || 0}`,
-                        color: 'orange'
+                    ${window.AnalyticsComponents.createMetricCard({
+                        label: 'BIGGEST POT',
+                        value: `$${(data.lifetime.biggestPot || 0).toLocaleString()}`,
+                        trend: null,
+                        status: 'positive'
                     })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '🏆',
-                        label: 'Best Hand',
-                        value: data.lifetime.bestHand || 'N/A',
-                        subtitle: data.lifetime.bestHandDate ? new Date(data.lifetime.bestHandDate).toLocaleDateString() : '',
-                        color: 'purple'
-                    })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '📈',
-                        label: 'VPIP',
-                        value: `${data.advanced.vpip || 0}%`,
-                        subtitle: 'Voluntarily Put $ In Pot',
-                        color: 'blue'
-                    })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '⚡',
-                        label: 'PFR',
-                        value: `${data.advanced.pfr || 0}%`,
-                        subtitle: 'Pre-Flop Raise',
-                        color: 'yellow'
-                    })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '🔥',
-                        label: 'Aggression',
-                        value: data.advanced.aggressionFactor || 0,
-                        color: 'red'
-                    })}
-                    ${window.AnalyticsComponents.createStatCard({
-                        icon: '💪',
-                        label: 'Current Streak',
-                        value: data.advanced.currentStreak || 0,
-                        subtitle: `Longest: ${data.advanced.longestStreak || 0}`,
-                        color: 'pink'
+                    ${window.AnalyticsComponents.createMetricCard({
+                        label: 'CURRENT STREAK',
+                        value: (data.advanced.currentStreak || 0).toString(),
+                        trend: null,
+                        status: (data.advanced.currentStreak || 0) > 0 ? 'positive' : 'negative'
                     })}
                 `;
                 
@@ -749,7 +707,13 @@
         
         async function loadHandHistory(userId, token, page = 1, filters = {}) {
             try {
-                const params = new URLSearchParams({ page, limit: 20, ...filters });
+                // Build query params - handle won/lost filters client-side
+                const params = new URLSearchParams({ page, limit: 20 });
+                
+                // Add API-compatible filters
+                if (filters.minPot) params.append('minPot', filters.minPot);
+                if (filters.handRank) params.append('handRank', filters.handRank);
+                
                 const response = await fetch(`/api/social/analytics/hands/${userId}?${params}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -761,16 +725,29 @@
                 
                 if (!container) return;
                 
+                // Filter client-side for won/lost
+                let hands = data.hands || [];
+                if (filters.won) {
+                    hands = hands.filter(h => h.won === true);
+                } else if (filters.lost) {
+                    hands = hands.filter(h => h.won === false);
+                }
+                
                 container.innerHTML = window.AnalyticsComponents.createHandHistoryTable(
-                    data.hands,
+                    hands,
                     (handId) => {
                         console.log('Hand clicked:', handId);
                         // TODO: Open hand detail modal
                     }
                 );
                 
-                // Update pagination
-                updatePagination(data.pagination);
+                // Update pagination with filtered results
+                const filteredPagination = {
+                    ...data.pagination,
+                    total: hands.length,
+                    totalPages: Math.ceil(hands.length / 20)
+                };
+                updatePagination(filteredPagination);
                 
             } catch (error) {
                 console.error('Error loading hand history:', error);
@@ -778,73 +755,18 @@
                 if (container) {
                     container.innerHTML = `
                         <div class="empty-state-modern">
-                            <div class="empty-state-modern-icon">⚠️</div>
+                            <div class="empty-state-modern-icon">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
                             <h3>Error loading hands</h3>
                             <p>Please try again later</p>
                         </div>
                     `;
                 }
-            }
-        }
-        
-        async function loadCharts(userId, token) {
-            try {
-                const response = await fetch(`/api/social/analytics/charts/${userId}?period=weekly`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!response.ok) throw new Error('Failed to fetch chart data');
-                
-                const data = await response.json();
-                
-                // Win Rate Chart
-                const winRateContainer = document.getElementById('win-rate-chart-container');
-                if (winRateContainer && data.winRate && data.winRate.length > 0) {
-                    winRateContainer.innerHTML = window.AnalyticsComponents.createChartContainer({
-                        id: 'winRateChart',
-                        title: 'Win Rate Over Time',
-                        type: 'line'
-                    });
-                    setTimeout(() => {
-                        window.AnalyticsComponents.renderWinRateChart('winRateChart', data.winRate);
-                    }, 100);
-                }
-                
-                // Profit/Loss Chart
-                const profitLossContainer = document.getElementById('profit-loss-chart-container');
-                if (profitLossContainer && data.profitLoss && data.profitLoss.length > 0) {
-                    profitLossContainer.innerHTML = window.AnalyticsComponents.createChartContainer({
-                        id: 'profitLossChart',
-                        title: 'Profit/Loss Over Time',
-                        type: 'bar'
-                    });
-                    setTimeout(() => {
-                        window.AnalyticsComponents.renderProfitLossChart('profitLossChart', data.profitLoss);
-                    }, 100);
-                }
-                
-            } catch (error) {
-                console.error('Error loading charts:', error);
-            }
-        }
-        
-        async function loadPositionalStats(userId, token) {
-            try {
-                const response = await fetch(`/api/social/analytics/positional/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!response.ok) throw new Error('Failed to fetch positional stats');
-                
-                const data = await response.json();
-                const container = document.getElementById('positional-stats-container');
-                
-                if (!container) return;
-                
-                container.innerHTML = window.AnalyticsComponents.createPositionalStatsTable(data);
-                
-            } catch (error) {
-                console.error('Error loading positional stats:', error);
             }
         }
         
@@ -898,20 +820,32 @@
             }
         }
         
-        // Hand history filter functions
+        // Hand history filter functions - Simplified dropdown
         window.applyHandHistoryFilters = async function() {
-            const filters = {
-                startDate: document.getElementById('filter-start-date')?.value,
-                endDate: document.getElementById('filter-end-date')?.value,
-                roomId: document.getElementById('filter-room')?.value,
-                minPot: document.getElementById('filter-min-pot')?.value,
-                handRank: document.getElementById('filter-hand-rank')?.value
-            };
+            const dropdown = document.getElementById('hand-filter-dropdown');
+            const filterValue = dropdown?.value || '';
             
-            // Remove empty filters
-            Object.keys(filters).forEach(key => {
-                if (!filters[key]) delete filters[key];
-            });
+            const filters = {};
+            
+            // Map dropdown values to API filters
+            if (filterValue === 'won') {
+                // Filter for won hands - we'll need to check winner_id in the response
+                filters.won = true;
+            } else if (filterValue === 'lost') {
+                filters.lost = true;
+            } else if (filterValue === 'big-pot') {
+                filters.minPot = 500;
+            } else if (filterValue === 'royal-flush') {
+                filters.handRank = 1;
+            } else if (filterValue === 'straight-flush') {
+                filters.handRank = 2;
+            } else if (filterValue === 'four-kind') {
+                filters.handRank = 3;
+            } else if (filterValue === 'full-house') {
+                filters.handRank = 4;
+            } else if (filterValue === 'flush') {
+                filters.handRank = 5;
+            }
             
             currentFilters = filters;
             currentPage = 1;
@@ -923,11 +857,8 @@
         };
         
         window.clearHandHistoryFilters = async function() {
-            document.getElementById('filter-start-date').value = '';
-            document.getElementById('filter-end-date').value = '';
-            document.getElementById('filter-room').value = '';
-            document.getElementById('filter-min-pot').value = '';
-            document.getElementById('filter-hand-rank').value = '';
+            const dropdown = document.getElementById('hand-filter-dropdown');
+            if (dropdown) dropdown.value = '';
             
             currentFilters = {};
             currentPage = 1;
@@ -961,12 +892,132 @@
             // TODO: Open hand detail modal with LLM analysis
         };
         
+        // ============================================
+        // GENERATE POST-GAME INSIGHTS
+        // ============================================
+        async function generateInsights(userId, token) {
+            try {
+                // Fetch recent hands (last 10)
+                const response = await fetch(`/api/social/analytics/hand-history/${userId}?limit=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch hand history');
+                
+                const data = await response.json();
+                const hands = data.hands || [];
+                
+                if (hands.length === 0) {
+                    const container = document.getElementById('insights-container');
+                    if (container) {
+                        container.innerHTML = '<p style="text-align: center; color: var(--muted); padding: 40px;">Play some games to see insights!</p>';
+                    }
+                    return;
+                }
+                
+                const insights = [];
+                
+                // Find biggest pot won
+                const biggestPot = hands.filter(h => h.winner_id === userId)
+                    .sort((a, b) => (b.pot_size || 0) - (a.pot_size || 0))[0];
+                
+                if (biggestPot && biggestPot.pot_size > 100) {
+                    const boardCards = biggestPot.board_cards ? biggestPot.board_cards.split(' ') : [];
+                    insights.push({
+                        type: 'good-move',
+                        title: `Biggest Pot Won: $${biggestPot.pot_size}`,
+                        message: `You won your biggest pot of $${biggestPot.pot_size} with ${biggestPot.winning_hand || 'a strong hand'}.`,
+                        handPreview: `
+                            <div class="board">Board: ${boardCards.length > 0 ? boardCards.join(' ') : 'N/A'}</div>
+                            <div class="your-hand">Your Hand: ${biggestPot.winning_hand || 'N/A'}</div>
+                        `,
+                        handId: biggestPot.id
+                    });
+                }
+                
+                // Find best hand
+                const bestHand = hands.filter(h => h.winner_id === userId)
+                    .sort((a, b) => (a.hand_rank || 10) - (b.hand_rank || 10))[0];
+                
+                if (bestHand && bestHand.hand_rank && bestHand.hand_rank <= 5) {
+                    const handNames = {
+                        1: 'Royal Flush',
+                        2: 'Straight Flush',
+                        3: 'Four of a Kind',
+                        4: 'Full House',
+                        5: 'Flush'
+                    };
+                    const handName = handNames[bestHand.hand_rank] || 'Strong Hand';
+                    insights.push({
+                        type: 'good-move',
+                        title: `Best Hand: ${handName}`,
+                        message: `You made ${handName}! This is one of the strongest hands in poker.`,
+                        handPreview: `
+                            <div class="board">Board: ${bestHand.board_cards || 'N/A'}</div>
+                            <div class="your-hand">Your Hand: ${bestHand.winning_hand || 'N/A'}</div>
+                        `,
+                        handId: bestHand.id
+                    });
+                }
+                
+                // Find recent win streak
+                const recentWins = hands.filter(h => h.winner_id === userId).length;
+                if (recentWins >= 3) {
+                    insights.push({
+                        type: 'good-move',
+                        title: `Win Streak: ${recentWins} Recent Wins`,
+                        message: `You've won ${recentWins} out of your last ${Math.min(hands.length, 10)} hands. Keep it up!`,
+                        handId: null
+                    });
+                }
+                
+                // Find learning opportunities (big pots lost)
+                const bigLosses = hands.filter(h => h.winner_id !== userId && h.pot_size > 200)
+                    .sort((a, b) => (b.pot_size || 0) - (a.pot_size || 0))
+                    .slice(0, 1);
+                
+                if (bigLosses.length > 0) {
+                    const loss = bigLosses[0];
+                    insights.push({
+                        type: 'learning',
+                        title: `Learning Opportunity: $${loss.pot_size} Pot`,
+                        message: `You lost a $${loss.pot_size} pot. Review this hand to see what you could have done differently.`,
+                        handPreview: `
+                            <div class="board">Board: ${loss.board_cards || 'N/A'}</div>
+                            <div class="your-hand">Opponent's Hand: ${loss.winning_hand || 'N/A'}</div>
+                        `,
+                        handId: loss.id
+                    });
+                }
+                
+                // Render insights
+                const container = document.getElementById('insights-container');
+                if (container && insights.length > 0) {
+                    container.innerHTML = insights.map(insight => 
+                        window.AnalyticsComponents.createInsightCard({
+                            ...insight,
+                            onClick: insight.handId ? `handleHandClick('${insight.handId}')` : null
+                        })
+                    ).join('');
+                } else if (container) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--muted); padding: 40px;">Play more games to see insights!</p>';
+                }
+                
+            } catch (error) {
+                console.error('❌ Error generating insights:', error);
+                const container = document.getElementById('insights-container');
+                if (container) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--muted); padding: 40px;">Unable to load insights</p>';
+                }
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('📊 Analysis page initializing...');
             
             // Initialize auth
             if (typeof initializeAuth === 'function') {
-                currentUser = await initializeAuth();
+            currentUser = await initializeAuth();
             } else if (window.authManager && window.authManager.user) {
                 currentUser = window.authManager.user;
             }

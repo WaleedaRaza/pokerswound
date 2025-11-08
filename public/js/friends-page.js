@@ -168,8 +168,15 @@ function renderCurrentTab() {
 function renderFriendsList(container) {
   if (friendsData.friends.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">👥</div>
+      <div class="empty-state-modern">
+        <div class="empty-state-modern-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
         <h3>No friends yet</h3>
         <p>Add friends to start playing together!</p>
         <button onclick="switchTab('search')" class="btn btn-primary">
@@ -183,11 +190,11 @@ function renderFriendsList(container) {
   container.innerHTML = `
     <div class="friends-grid">
       ${friendsData.friends.map(friend => `
-        <div class="friend-card liquid-glass-tile">
+        <div class="friend-card liquid-glass liquid-glass--lg">
           <div class="friend-avatar">
             ${friend.avatar_url ? 
-              `<img src="${friend.avatar_url}" alt="${sanitizeUsername(friend.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤';" />` : 
-              '👤'
+              `<img src="${friend.avatar_url}" alt="${sanitizeUsername(friend.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='<svg width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'/><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'/></svg>';" />` : 
+              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
             }
           </div>
           <div class="friend-info">
@@ -196,13 +203,23 @@ function renderFriendsList(container) {
           </div>
           <div class="friend-actions">
             <button onclick="window.openPlayerProfile('${friend.id}')" class="btn btn-sm btn-primary" title="View Profile">
-              👤
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
             </button>
             <button onclick="inviteToGame('${friend.id}')" class="btn btn-sm btn-success" title="Invite to Game">
-              🎮
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
             </button>
             <button onclick="removeFriend('${friend.id}')" class="btn btn-sm btn-danger" title="Remove Friend">
-              ❌
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -214,8 +231,13 @@ function renderFriendsList(container) {
 function renderRequestsList(container) {
   if (friendsData.requests.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📬</div>
+      <div class="empty-state-modern">
+        <div class="empty-state-modern-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
         <h3>No pending requests</h3>
         <p>You're all caught up!</p>
       </div>
@@ -226,12 +248,12 @@ function renderRequestsList(container) {
   container.innerHTML = `
     <div class="requests-list">
       ${friendsData.requests.map(request => `
-        <div class="request-card liquid-glass-tile">
+        <div class="request-card liquid-glass liquid-glass--lg">
           <div class="request-info">
             <div class="request-avatar">
               ${request.sender.avatar_url ? 
-                `<img src="${request.sender.avatar_url}" alt="${sanitizeUsername(request.sender.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤';" />` : 
-                '👤'
+                `<img src="${request.sender.avatar_url}" alt="${sanitizeUsername(request.sender.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='<svg width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'/><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'/></svg>';" />` : 
+                '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
               }
             </div>
             <div class="request-details">
@@ -242,10 +264,17 @@ function renderRequestsList(container) {
           </div>
           <div class="request-actions">
             <button onclick="acceptFriendRequest('${request.id}')" class="btn btn-sm btn-success">
-              ✅ Accept
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Accept
             </button>
             <button onclick="rejectFriendRequest('${request.id}')" class="btn btn-sm btn-danger">
-              ❌ Reject
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Reject
             </button>
           </div>
         </div>
@@ -257,7 +286,7 @@ function renderRequestsList(container) {
 function renderSearchView(container) {
   container.innerHTML = `
     <div class="search-container">
-      <div class="search-box liquid-glass-tile">
+      <div class="search-box liquid-glass liquid-glass--lg">
         <h3>Find Friends</h3>
         <div class="search-input-group">
           <input 
@@ -268,7 +297,11 @@ function renderSearchView(container) {
             autocomplete="off"
           />
           <button onclick="searchUsers()" class="btn btn-primary">
-            🔍 Search
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            Search
           </button>
         </div>
         <div id="searchResults" class="search-results"></div>
@@ -301,7 +334,7 @@ async function searchUsers() {
     return;
   }
   
-  resultsDiv.innerHTML = '<p class="text-muted">⏳ Searching...</p>';
+  resultsDiv.innerHTML = '<p class="text-muted">Searching...</p>';
   
   try {
     const token = await window.authManager.getAccessToken();
@@ -312,7 +345,7 @@ async function searchUsers() {
     });
     
     if (response.status === 404) {
-      resultsDiv.innerHTML = '<p class="text-muted">❌ User not found</p>';
+      resultsDiv.innerHTML = '<p class="text-muted">User not found</p>';
       return;
     }
     
@@ -322,11 +355,11 @@ async function searchUsers() {
     const isFriend = friendsData.friends.some(f => f.id === user.id);
     
     resultsDiv.innerHTML = `
-      <div class="search-result-card">
+      <div class="search-result-card liquid-glass liquid-glass--lg">
         <div class="result-avatar">
           ${user.avatar_url ? 
-            `<img src="${user.avatar_url}" alt="${sanitizeUsername(user.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤';" />` : 
-            '👤'
+            `<img src="${user.avatar_url}" alt="${sanitizeUsername(user.username)}" onerror="this.style.display='none'; this.parentElement.innerHTML='<svg width=\\'30\\' height=\\'30\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'/><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'/></svg>';" />` : 
+            '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
           }
         </div>
         <div class="result-info">
@@ -339,9 +372,13 @@ async function searchUsers() {
         </div>
         <div class="result-actions">
           ${isFriend ? 
-            '<span class="text-success">✅ Already friends</span>' : 
+            '<span class="text-success">Already friends</span>' : 
             `<button onclick="sendFriendRequest('${sanitizeUsername(user.username)}')" class="btn btn-primary btn-sm">
-              ➕ Add
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add
             </button>`
           }
         </div>
@@ -485,7 +522,7 @@ async function inviteToGame(friendId) {
     modal.innerHTML = `
       <div class="social-modal">
         <div class="social-modal-header">
-          <h2>🎮 Invite ${friend?.username || 'Friend'} to Game</h2>
+          <h2>Invite ${friend?.username || 'Friend'} to Game</h2>
           <button onclick="closeInviteGameModal()" class="close-btn">×</button>
         </div>
         

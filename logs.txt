@@ -1,1 +1,1816 @@
-logs.txt
+b708-b2e89ef66a31', code: '8949XK' }
+💧 [GAME] Hydrating game state for: { roomId: '37e7f3c1', userId: '7d3c1161' }
+🔌 New WebSocket connection: 0jmnjui9K9gzkB7lAAAD
+✅ User 7d3c1161-b937-4e7b-ac1e-793217cf4f73 joined room 37e7f3c1-29a0-4335-b708-b2e89ef66a31 (lobby only)
+   ⏸️  Room not active or no game - lobby state
+🏠 [MINIMAL] Get room: 37e7f3c1-29a0-4335-b708-b2e89ef66a31
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 37e7f3c1-29a0-4335-b708-b2e89ef66a31
+✅ [MINIMAL] Seats retrieved: 0 occupied
+🎛️ [HOST] Get controls data: { roomId: '37e7f3c1', userId: '7d3c1161' }
+✅ [HOST] Controls data retrieved: 0 players
+✅ Database client connected to pool
+🔌 Socket 0jmnjui9K9gzkB7lAAAD disconnected (user: 7d3c1161-b937-4e7b-ac1e-793217cf4f73)
+✅ Database client connected to pool
+🔌 New WebSocket connection: XCP6-W6VKI2mDXX8AAAF
+🗂️ [SANDBOX] My rooms request: { userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73' }
+✅ [SANDBOX] Found 50 rooms for user 7d3c1161
+🗑️ [SANDBOX] Delete room request: {
+  roomId: '37e7f3c1-29a0-4335-b708-b2e89ef66a31',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  forceDelete: true
+}
+✅ [SANDBOX] Room deleted: 37e7f3c1-29a0-4335-b708-b2e89ef66a31 (FORCED)
+🗂️ [SANDBOX] My rooms request: { userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73' }
+✅ [SANDBOX] Found 50 rooms for user 7d3c1161
+✅ Database client connected to pool
+🔌 New WebSocket connection: 7qB-xh5bc0vC9WvzAAAH
+🔌 New WebSocket connection: kFCdLRkGPinvoQWjAAAJ
+🔌 New WebSocket connection: 0tOK4S7cg18rGyQWAAAL
+✅ Database client connected to pool
+🧪 [SANDBOX] Create room request: {
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  name: "Guest's Sandbox"
+}
+✅ [SANDBOX] Room created: { roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef', code: '2UZKA5' }
+💧 [GAME] Hydrating game state for: { roomId: '4c70d81d', userId: '576de186' }
+🔌 New WebSocket connection: mucMGI-0ZPlY3w2lAAAN
+✅ User 576de186-0f03-4c15-99ab-c3eb0ced5723 joined room 4c70d81d-cf17-4956-b765-e35c9bdf3aef (lobby only)
+   ⏸️  Room not active or no game - lobby state
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 0 occupied
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [HOST] Controls data retrieved: 0 players
+✅ Database client connected to pool
+🧪 [SANDBOX] Join room request: { code: '2UZKA5' }
+✅ [SANDBOX] Room found: { roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef' }
+💧 [GAME] Hydrating game state for: { roomId: '4c70d81d', userId: '7d3c1161' }
+🔌 New WebSocket connection: YcOIBIAVeiLbYuq1AAAP
+✅ User 7d3c1161-b937-4e7b-ac1e-793217cf4f73 joined room 4c70d81d-cf17-4956-b765-e35c9bdf3aef (lobby only)
+   ⏸️  Room not active or no game - lobby state
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 0 occupied
+🪑 [MINIMAL] Claim seat: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  seatIndex: 0,
+  nickname: 'War'
+}
+✅ [MINIMAL] Seat claimed: {
+  id: '97edaecf-ad7f-4d6a-8d9b-ba6a29920449',
+  room_id: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  user_id: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  seat_index: 0,
+  status: 'SEATED',
+  chips_in_play: '1000',
+  joined_at: 2025-11-05T16:27:37.191Z,
+  last_action_at: 2025-11-05T16:27:37.191Z,
+  left_at: null,
+  nickname: 'War'
+}
+📡 [MINIMAL] Broadcast seat_update to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 1 occupied
+✅ [MINIMAL] Seats retrieved: 1 occupied
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [HOST] Controls data retrieved: 1 players
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 1 occupied
+🪑 [MINIMAL] Claim seat: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  seatIndex: 1,
+  nickname: 'Raw'
+}
+✅ [MINIMAL] Seat claimed: {
+  id: '8c309f39-42b7-46c6-b1f7-6a7eb6e4d447',
+  room_id: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  user_id: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  seat_index: 1,
+  status: 'SEATED',
+  chips_in_play: '1000',
+  joined_at: 2025-11-05T16:27:43.994Z,
+  last_action_at: 2025-11-05T16:27:43.994Z,
+  left_at: null,
+  nickname: 'Raw'
+}
+📡 [MINIMAL] Broadcast seat_update to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [HOST] Controls data retrieved: 2 players
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [HOST] Controls data retrieved: 2 players
+🃏 [MINIMAL] Starting real hand: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+✅ Database client connected to pool
+✅ [MINIMAL] Host verified: 576de186-0f03-4c15-99ab-c3eb0ced5723
+🎲 Starting hand with 2 players
+🃏 Deck shuffled, total cards: 52
+🎴 Dealt hole cards to all players
+🆕 First hand, dealer starts at seat 0
+💰 Blinds posted: SB=5, BB=10, Pot=15
+👉 First to act: Seat 0
+💾 Game state saved: minimal_1762360110577_4c70d81d
+📡 Broadcast hand_started to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73'
+}
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Hole cards retrieved for 576de186
+✅ Database client connected to pool
+✅ Database client connected to pool
+✅ [MINIMAL] Hole cards retrieved for 7d3c1161
+✅ [MINIMAL] Game state retrieved: minimal_1762360110577_4c70d81d
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360110577_4c70d81d
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360110577_4c70d81d
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [HOST] Controls data retrieved: 2 players
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [HOST] Controls data retrieved: 2 players
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CALL',
+  amount: 5
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 10,
+  playerBets: [ { seat: 0, bet: 10 }, { seat: 1, bet: 10 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CALL $5
+   Pot: 20, Current Bet: 10, Street: PREFLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'RAISE',
+  amount: 40
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: false,
+  allActed: true,
+  currentBet: 40,
+  playerBets: [ { seat: 0, bet: 10 }, { seat: 1, bet: 40 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 RAISE $40
+   Pot: 50, Current Bet: 40, Street: PREFLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CALL',
+  amount: 30
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 40,
+  playerBets: [ { seat: 0, bet: 40 }, { seat: 1, bet: 40 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CALL $30
+   Pot: 80, Current Bet: 0, Street: FLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'FLOP',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 80, Current Bet: 0, Street: FLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'FLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 80, Current Bet: 0, Street: TURN
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+❌ Database pool error: {:shutdown, :db_termination}
+⚠️  Database connection terminated (likely Supabase auto-pause)
+🔄 Database will reconnect automatically on next query...
+✅ Database pool reset, ready to reconnect
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+✅ Database client connected to pool
+🔍 Betting round check: {
+  street: 'TURN',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 80, Current Bet: 0, Street: TURN
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'TURN',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 80, Current Bet: 0, Street: RIVER
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'RIVER',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 80, Current Bet: 0, Street: RIVER
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'RIVER',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+🏆 Reached SHOWDOWN after RIVER, evaluating hands
+🏆 [GAME] SHOWDOWN - Evaluating hands
+   Community cards: [ '7s', '2c', 'Kc', 'Qh', '6c' ]
+🔍 [GAME] Evaluating 2 players
+   Player 7d3c1161 (Seat 0): [ '2h', 'Jh' ]
+   → Pair (2s)
+   Player 576de186 (Seat 1): [ 'Th', '4d' ]
+   → High Card (K)
+🏆 [GAME] Winner(s): Single winner
+   7d3c1161 (Seat 0): Pair (2s)
+✅ [GAME] Showdown complete, chips awarded
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 0, Current Bet: 0, Street: SHOWDOWN
+💰 [MINIMAL] Hand complete - persisting chips to DB
+   Players in updatedState: [
+  { userId: '7d3c1161', chips: 1040 },
+  { userId: '576de186', chips: 960 }
+]
+   🔄 Attempting UPDATE for 7d3c1161: chips=1040, roomId=4c70d81d
+   ✅ Updated chips for 7d3c1161: $1040
+   🔄 Attempting UPDATE for 576de186: chips=960, roomId=4c70d81d
+   ✅ Updated chips for 576de186: $960
+🔍 [MINIMAL] VERIFICATION - room_seats after update:
+   7d3c1161: $1040
+   576de186: $960
+✅ [MINIMAL] Chips persisted, game marked complete, room ready for next hand
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🃏 [MINIMAL] Starting real hand: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+✅ [MINIMAL] Host verified: 576de186-0f03-4c15-99ab-c3eb0ced5723
+🎲 Starting hand with 2 players
+🃏 Deck shuffled, total cards: 52
+🎴 Dealt hole cards to all players
+🔄 Dealer rotated from seat 0 → 1
+💰 Blinds posted: SB=5, BB=10, Pot=15
+👉 First to act: Seat 1
+💾 Game state saved: minimal_1762360161922_4c70d81d
+📡 Broadcast hand_started to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73'
+}
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Hole cards retrieved for 576de186
+✅ Database client connected to pool
+✅ Database client connected to pool
+✅ [MINIMAL] Game state retrieved: minimal_1762360161922_4c70d81d
+✅ [MINIMAL] Hole cards retrieved for 7d3c1161
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360161922_4c70d81d
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360161922_4c70d81d
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [HOST] Controls data retrieved: 2 players
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ Database client connected to pool
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [HOST] Controls data retrieved: 2 players
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CALL',
+  amount: 5
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 10,
+  playerBets: [ { seat: 0, bet: 10 }, { seat: 1, bet: 10 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CALL $5
+   Pot: 20, Current Bet: 10, Street: PREFLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 10,
+  playerBets: [ { seat: 0, bet: 10 }, { seat: 1, bet: 10 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 20, Current Bet: 0, Street: FLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'FLOP',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 20, Current Bet: 0, Street: FLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+✅ Database client connected to pool
+🔍 Betting round check: {
+  street: 'FLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 20, Current Bet: 0, Street: TURN
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'TURN',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 20, Current Bet: 0, Street: TURN
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+✅ Database client connected to pool
+🔍 Betting round check: {
+  street: 'TURN',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 20, Current Bet: 0, Street: RIVER
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'RIVER',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 20, Current Bet: 0, Street: RIVER
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'RIVER',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+🏆 Reached SHOWDOWN after RIVER, evaluating hands
+🏆 [GAME] SHOWDOWN - Evaluating hands
+   Community cards: [ '7h', 'Ac', '4c', '2c', 'As' ]
+🔍 [GAME] Evaluating 2 players
+   Player 7d3c1161 (Seat 0): [ 'Js', '4h' ]
+   → Two Pair (As and 4s)
+   Player 576de186 (Seat 1): [ 'Th', '6h' ]
+   → Pair (As)
+🏆 [GAME] Winner(s): Single winner
+   7d3c1161 (Seat 0): Two Pair (As and 4s)
+✅ [GAME] Showdown complete, chips awarded
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 0, Current Bet: 0, Street: SHOWDOWN
+💰 [MINIMAL] Hand complete - persisting chips to DB
+   Players in updatedState: [
+  { userId: '7d3c1161', chips: 1050 },
+  { userId: '576de186', chips: 950 }
+]
+   🔄 Attempting UPDATE for 7d3c1161: chips=1050, roomId=4c70d81d
+   ✅ Updated chips for 7d3c1161: $1050
+   🔄 Attempting UPDATE for 576de186: chips=950, roomId=4c70d81d
+   ✅ Updated chips for 576de186: $950
+🔍 [MINIMAL] VERIFICATION - room_seats after update:
+   7d3c1161: $1050
+   576de186: $950
+✅ [MINIMAL] Chips persisted, game marked complete, room ready for next hand
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🃏 [SHOWDOWN] SHOW cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+✅ [SHOWDOWN] Player 576de186 chose to SHOW
+📡 [SHOWDOWN] Broadcast SHOW action to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🃏 [MINIMAL] Starting real hand: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+✅ [MINIMAL] Host verified: 576de186-0f03-4c15-99ab-c3eb0ced5723
+🎲 Starting hand with 2 players
+🃏 Deck shuffled, total cards: 52
+🎴 Dealt hole cards to all players
+🔄 Dealer rotated from seat 1 → 0
+💰 Blinds posted: SB=5, BB=10, Pot=15
+👉 First to act: Seat 0
+💾 Game state saved: minimal_1762360418692_4c70d81d
+📡 Broadcast hand_started to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73'
+}
+✅ [MINIMAL] Hole cards retrieved for 576de186
+✅ Database client connected to pool
+✅ Database client connected to pool
+✅ [MINIMAL] Game state retrieved: minimal_1762360418692_4c70d81d
+✅ [MINIMAL] Hole cards retrieved for 7d3c1161
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360418692_4c70d81d
+✅ [MINIMAL] Game state retrieved: minimal_1762360418692_4c70d81d
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [HOST] Controls data retrieved: 2 players
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [HOST] Controls data retrieved: 2 players
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CALL',
+  amount: 5
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 10,
+  playerBets: [ { seat: 0, bet: 10 }, { seat: 1, bet: 10 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CALL $5
+   Pot: 20, Current Bet: 10, Street: PREFLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'PREFLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 10,
+  playerBets: [ { seat: 0, bet: 10 }, { seat: 1, bet: 10 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 20, Current Bet: 0, Street: FLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'FLOP',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 20, Current Bet: 0, Street: FLOP
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'FLOP',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 20, Current Bet: 0, Street: TURN
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'TURN',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 20, Current Bet: 0, Street: TURN
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'TURN',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 20, Current Bet: 0, Street: RIVER
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'RIVER',
+  activePlayers: 2,
+  playersWhoActed: 1,
+  allMatched: true,
+  allActed: false,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+✅ [MINIMAL] Action processed: 576de186 CHECK $0
+   Pot: 20, Current Bet: 0, Street: RIVER
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎮 [MINIMAL] Action: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73',
+  action: 'CHECK',
+  amount: 0
+}
+🔍 Betting round check: {
+  street: 'RIVER',
+  activePlayers: 2,
+  playersWhoActed: 2,
+  allMatched: true,
+  allActed: true,
+  currentBet: 0,
+  playerBets: [ { seat: 0, bet: 0 }, { seat: 1, bet: 0 } ]
+}
+🏆 Reached SHOWDOWN after RIVER, evaluating hands
+🏆 [GAME] SHOWDOWN - Evaluating hands
+   Community cards: [ '9d', '2h', '5h', '9h', '5s' ]
+🔍 [GAME] Evaluating 2 players
+   Player 7d3c1161 (Seat 0): [ 'Qh', 'Jd' ]
+   → Two Pair (9s and 5s)
+   Player 576de186 (Seat 1): [ '3h', 'Qs' ]
+   → Two Pair (9s and 5s)
+🏆 [GAME] Winner(s): 2-way tie
+   7d3c1161 (Seat 0): Two Pair (9s and 5s)
+   576de186 (Seat 1): Two Pair (9s and 5s)
+✅ [GAME] Showdown complete, chips awarded
+✅ [MINIMAL] Action processed: 7d3c1161 CHECK $0
+   Pot: 0, Current Bet: 0, Street: SHOWDOWN
+💰 [MINIMAL] Hand complete - persisting chips to DB
+   Players in updatedState: [
+  { userId: '7d3c1161', chips: 1050 },
+  { userId: '576de186', chips: 950 }
+]
+   🔄 Attempting UPDATE for 7d3c1161: chips=1050, roomId=4c70d81d
+   ✅ Updated chips for 7d3c1161: $1050
+   🔄 Attempting UPDATE for 576de186: chips=950, roomId=4c70d81d
+   ✅ Updated chips for 576de186: $950
+🔍 [MINIMAL] VERIFICATION - room_seats after update:
+   7d3c1161: $1050
+   576de186: $950
+✅ [MINIMAL] Chips persisted, game marked complete, room ready for next hand
+📡 [MINIMAL] Broadcast action_processed to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🃏 [MINIMAL] Starting real hand: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+✅ [MINIMAL] Host verified: 576de186-0f03-4c15-99ab-c3eb0ced5723
+🎲 Starting hand with 2 players
+🃏 Deck shuffled, total cards: 52
+🎴 Dealt hole cards to all players
+🔄 Dealer rotated from seat 0 → 1
+💰 Blinds posted: SB=5, BB=10, Pot=15
+👉 First to act: Seat 1
+💾 Game state saved: minimal_1762360448024_4c70d81d
+📡 Broadcast hand_started to room:4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '576de186-0f03-4c15-99ab-c3eb0ced5723'
+}
+🔒 [MINIMAL] Get my hole cards: {
+  roomId: '4c70d81d-cf17-4956-b765-e35c9bdf3aef',
+  userId: '7d3c1161-b937-4e7b-ac1e-793217cf4f73'
+}
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Hole cards retrieved for 576de186
+✅ [MINIMAL] Hole cards retrieved for 7d3c1161
+✅ [MINIMAL] Game state retrieved: minimal_1762360448024_4c70d81d
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360448024_4c70d81d
+🎲 [MINIMAL] Get game state: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Game state retrieved: minimal_1762360448024_4c70d81d
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+🏠 [MINIMAL] Get room: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+✅ [MINIMAL] Room retrieved: Guest's Sandbox
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [MINIMAL] Seats retrieved: 2 occupied
+🔍 [MINIMAL] Get seats: 4c70d81d-cf17-4956-b765-e35c9bdf3aef
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [MINIMAL] Seats retrieved: 2 occupied
+✅ [HOST] Controls data retrieved: 2 players
+🎛️ [HOST] Get controls data: { roomId: '4c70d81d', userId: '576de186' }
+✅ [HOST] Controls data retrieved: 2 players
+✅ Database client connected to pool
+🔌 Socket YcOIBIAVeiLbYuq1AAAP disconnected (user: 7d3c1161-b937-4e7b-ac1e-793217cf4f73)
+auth-manager.js:406 ✅ AuthManager loaded
+nav-shared.js:541 ✅ NavbarController and global auth functions loaded
+navbar-template.js:88 ✅ Navbar template loaded
+social-modals.js:612 ✅ Social modals loaded
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Loaded saved felt color: green
+navbar-template.js:67 ✅ Navbar injected
+nav-shared.js:425 🔐 Initializing auth for page: /sandbox-table
+nav-shared.js:26 ✅ NavbarController initialized
+auth-manager.js:23 🔍 AuthManager: Checking auth state...
+navbar-template.js:72 ✅ Auth auto-initialized
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎬 Initializing minimal table... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Initialized Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚙️ Host settings initialized from localStorage null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔌 Connecting WebSocket... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💧 Hydrating game state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Zoom lock initialized null
+auth-manager.js:30 ✅ AuthManager: Found Supabase session
+auth-manager.js:268 [AuthManager] Saved user cache entry
+auth-manager.js:341 🔄 AuthManager: Syncing user to backend...
+nav-shared.js:439 ✅ User authenticated: wal33draza (Registered)
+nav-shared.js:40 👤 NavbarController: Showing user: wal33draza
+auth-manager.js:208 🔑 getAccessToken: Token exists (eyJhbGciOiJIUzI1NiIs...)
+nav-shared.js:528 🔄 Supabase auth state changed: INITIAL_SESSION
+:3000/api/auth/sync-user:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+auth-manager.js:359 ⚠️ AuthManager: Backend sync failed: Error: Backend sync failed: Bad Request
+    at AuthManager.syncToBackend (auth-manager.js:350:15)
+syncToBackend @ auth-manager.js:359
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Socket connected Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📡 Sent join_room event Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️  No active game - loading lobby null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+nav-shared.js:69 ✅ Login buttons hidden
+nav-shared.js:80 ✅ User tile shown
+nav-shared.js:108 ✅ User display complete
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🪑 Seat update received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🪑 Attempting to claim seat 1... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🪑 Seat update received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seat claimed successfully Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 START HAND button enabled (HOST) Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 START HAND button enabled (HOST) Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+nav-shared.js:528 🔄 Supabase auth state changed: SIGNED_IN
+nav-shared.js:531 ✅ Supabase session established
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Starting FIRST hand... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Hand started event Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 1 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 2 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 3 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 4 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 5 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 6 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 7 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ❌ Not showing cards for seat 8 (hasPlayer: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔒 Fetching my hole cards... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Hand started Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state displayed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ My cards fetched Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (T)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (T)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: RAISE $40 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (K)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🏆 Hand complete Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🏆 Winner: Seat 0 wins $80 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Show/muck check: Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Showing show/muck controls (you didn't win) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: COMPLETED) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎬 Auto-starting next hand (HOST)... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Starting FIRST hand... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Hand started event Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 1 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔒 Fetching my hole cards... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Hand started Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state displayed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ My cards fetched Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (T)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (T)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CALL $5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (A)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (A)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Game pause toggled: true
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (A)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (A)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Pair (AA)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Pair (AA)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Pair (AA)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🏆 Hand complete Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🏆 Winner: Seat 0 wins $20 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Show/muck check: Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Showing show/muck controls (you didn't win) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: COMPLETED) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Player chose to SHOW cards null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Showdown action received: Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ @Raw showed cards: Th 6h null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards shown to table Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎬 Auto-starting next hand (HOST)... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Starting FIRST hand... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Hand started event Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 1 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔒 Fetching my hole cards... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Hand started Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state displayed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ My cards fetched Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (Q)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (Q)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (Q)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (Q)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Pair (99)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Pair (99)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Two Pair (99 55)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Performing action: CHECK $0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Two Pair (99 55)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏸️ Not your turn - buttons blurred null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 0 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Action performed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔓 Action debounce released null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Action processed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering community cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: Two Pair (99 55)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🏆 Hand complete Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🏆 Winner: Seat 0 wins $10 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Show/muck check: Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Showing show/muck controls (you didn't win) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: COMPLETED) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💰 Updating seat chips Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎬 Auto-starting next hand (HOST)... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Starting FIRST hand... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Hand started event Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 1 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎰 Updating position badges Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔒 Fetching my hole cards... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Hand started Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Game state displayed Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ My cards fetched Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Rendering hole cards Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (A)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔄 Updating buttons Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Your turn - buttons active with pulse null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 💡 Highlighted seat 1 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎴 Hand strength: High Card (A)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Cards rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🌊 Fetching room state... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Room data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats data received Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎨 Rendering seats... Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 2 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 3 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 4 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 5 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 6 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 7 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 8 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⏩ Skipping empty seat 9 (game active) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 📍 Applied custom seat positions with sizes null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🃏 Updating seat card backings Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding card backs for seat 0 (folded: false, status: IN_PROGRESS) null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Adding MY actual cards for seat 1 Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 2 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 3 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 4 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 5 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 6 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 7 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ⚠️ No card backs container found for seat 8 null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Seats rendered null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎮 Game active - START button hidden null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🎛️ Loading host controls... null
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 ✅ Host controls loaded Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793 Error loading host controls: TypeError: Cannot set properties of null (setting 'textContent')
+    at renderHostPlayerList (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3801:27)
+    at loadHostControls (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3787:9)
+loadHostControls @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:3793
+:3000/api/engine/host-controls/end-game:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:4183 Error ending game: Error: Failed to end game
+    at endGame (sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:4177:33)
+endGame @ sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:4183
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+sandbox-table?room=4c70d81d-cf17-4956-b765-e35c9bdf3aef:2076 🔍 Zoom lock updated Object
+

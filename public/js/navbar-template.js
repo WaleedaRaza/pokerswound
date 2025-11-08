@@ -6,7 +6,10 @@
 
 window.NAVBAR_HTML = `
 <nav class="navbar">
-  <a href="/" class="navbar-brand">PokerGeek.ai</a>
+  <a href="/" class="navbar-brand">
+    <img src="/public/Logo.svg" alt="PokerGeek" class="navbar-logo" />
+    PokerGeek.ai
+  </a>
   <ul class="navbar-links">
     <li><a href="/">Home</a></li>
     <li><a href="/play">Play Now</a></li>

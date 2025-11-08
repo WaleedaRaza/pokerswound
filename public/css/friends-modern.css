@@ -1,0 +1,704 @@
+/* ============================================
+   FRIENDS PAGE - MODERN DESIGN
+   Design Language Migration from Play Page
+   ============================================ */
+
+/* ============================================
+   DESIGN TOKENS (Inherit from index-modern.css)
+   ============================================ */
+
+:root {
+  /* Ma - Negative Space Ratios */
+  --ma-3xs: 4px;
+  --ma-xs: 8px;
+  --ma-sm: 16px;
+  --ma-md: 32px;
+  --ma-lg: 64px;
+  --ma-xl: 120px;
+  --ma-2xl: 180px;
+  
+  /* Typography Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-md: 18px;
+  --text-lg: 24px;
+  --text-xl: 32px;
+  --text-2xl: 40px;
+  --text-3xl: 56px;
+  --text-4xl: 72px;
+  --text-5xl: 96px;
+  
+  /* Colors */
+  --orange: #ff5100;
+  --teal: #00d4aa;
+  --mint: #00d4aa;
+  --muted: #9aa3b2;
+  --text: #e9eef7;
+  --bg: #0b0b12;
+  --card: rgba(15, 15, 25, 0.8);
+  --border: rgba(255, 255, 255, 0.1);
+  
+  /* Fonts */
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-main: 'Inter', sans-serif;
+  
+  /* Animation Tempo */
+  --tempo-fast: 0.15s;
+  --tempo-normal: 0.3s;
+  --tempo-slow: 0.6s;
+  
+  /* Glow Levels */
+  --glow-small: 0 4px 15px rgba(0, 212, 170, 0.2);
+  --glow-medium: 0 8px 25px rgba(0, 212, 170, 0.3);
+  --glow-large: 0 12px 40px rgba(0, 212, 170, 0.4);
+}
+
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--ma-lg) var(--ma-md);
+  position: relative;
+  z-index: 500; /* Above cards (z-index: 50) but below liquid glass tiles (z-index: 1000) */
+}
+
+/* ============================================
+   HERO-STYLE PAGE HEADER
+   ============================================ */
+
+.friends-hero {
+  text-align: center;
+  padding: var(--ma-lg) var(--ma-md) var(--ma-md);
+  margin-bottom: var(--ma-md);
+  position: relative;
+  z-index: 500; /* Above cards (z-index: 50) but below liquid glass tiles (z-index: 1000) */
+}
+
+.friends-hero-title {
+  font-family: var(--font-mono);
+  font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+  font-weight: 800;
+  color: var(--orange);
+  margin: 0 0 var(--ma-xs) 0;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.friends-hero-subtitle {
+  font-size: var(--text-sm);
+  color: var(--mint);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================
+   FRIENDS LAYOUT
+   ============================================ */
+
+.friends-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--ma-md);
+  margin-bottom: var(--ma-md);
+}
+
+@media (max-width: 1024px) {
+  .friends-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   SIDEBAR (STATS)
+   ============================================ */
+
+.friends-sidebar {
+  height: fit-content;
+  /* Liquid glass styling handled by liquid-glass class */
+}
+
+.sidebar-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  color: var(--text);
+  margin: 0 0 var(--ma-sm) 0;
+  font-weight: 700;
+}
+
+.sidebar-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--ma-sm) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-stat:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-family: var(--font-main);
+}
+
+.stat-value {
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-xl);
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+
+.friends-tabs {
+  display: flex;
+  gap: var(--ma-xs);
+  margin-bottom: var(--ma-md);
+  padding-bottom: var(--ma-sm);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.friends-tab {
+  padding: var(--ma-xs) var(--ma-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--tempo-fast) ease;
+  display: flex;
+  align-items: center;
+  gap: var(--ma-xs);
+}
+
+.friends-tab svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.friends-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(0, 212, 170, 0.3);
+  color: var(--text);
+}
+
+.friends-tab.active {
+  background: var(--teal);
+  color: var(--bg);
+  border-color: var(--teal);
+}
+
+.tab-badge {
+  display: inline-block;
+  background: var(--orange);
+  color: white;
+  padding: 2px var(--ma-xs);
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  margin-left: var(--ma-xs);
+  font-weight: 700;
+}
+
+/* ============================================
+   CONTENT AREA
+   ============================================ */
+
+.friends-content {
+  min-height: 500px;
+  /* Liquid glass styling handled by liquid-glass class */
+}
+
+/* ============================================
+   FRIENDS GRID
+   ============================================ */
+
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--ma-md); /* Match index/play spacing */
+}
+
+@media (max-width: 768px) {
+  .friends-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Friend Card - Uses liquid-glass system */
+.friend-card.liquid-glass {
+  display: flex;
+  align-items: center;
+  gap: var(--ma-sm);
+  overflow: hidden;
+  /* Remove conflicting styles - liquid-glass handles background, border, etc. */
+  background: none !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.friend-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), var(--teal));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.friend-info {
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.friend-name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--teal);
+  font-size: var(--text-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.friend-display-name {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.friend-actions {
+  display: flex;
+  gap: var(--ma-xs);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   REQUESTS LIST
+   ============================================ */
+
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ma-md); /* Match index/play spacing */
+}
+
+/* Request Card - Uses liquid-glass system */
+.request-card.liquid-glass {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ma-sm);
+  overflow: hidden;
+  /* Remove conflicting styles - liquid-glass handles background, border, etc. */
+  background: none !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.request-info {
+  display: flex;
+  align-items: center;
+  gap: var(--ma-xs);
+  flex: 1;
+  min-width: 0;
+}
+
+.request-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), var(--teal));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.request-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.request-details {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.request-name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--teal);
+  font-size: var(--text-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.request-display-name {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.request-time {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  margin-top: var(--ma-3xs);
+}
+
+.request-actions {
+  display: flex;
+  gap: var(--ma-xs);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   SEARCH VIEW
+   ============================================ */
+
+.search-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Search Box - Uses liquid-glass system */
+.search-box.liquid-glass {
+  /* Remove conflicting styles - liquid-glass handles background, border, etc. */
+  background: none !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.search-box h3 {
+  font-family: var(--font-mono);
+  color: var(--teal);
+  margin: 0 0 var(--ma-md) 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.search-input-group {
+  display: flex;
+  gap: var(--ma-xs);
+  margin-bottom: var(--ma-md);
+}
+
+.search-input-group input {
+  flex: 1;
+  padding: var(--ma-xs) var(--ma-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: var(--text-sm);
+  transition: all var(--tempo-fast) ease;
+}
+
+.search-input-group input:focus {
+  outline: none;
+  border-color: var(--teal);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+.search-results {
+  min-height: 100px;
+}
+
+/* Search Result Card - Uses liquid-glass system */
+.search-result-card.liquid-glass {
+  display: flex;
+  align-items: center;
+  gap: var(--ma-xs);
+  overflow: hidden;
+  /* Remove conflicting styles - liquid-glass handles background, border, etc. */
+  background: none !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.result-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), var(--teal));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.result-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.result-info {
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.result-name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--teal);
+  font-size: var(--text-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 450px;
+}
+
+.result-display-name {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  margin-bottom: var(--ma-3xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 450px;
+}
+
+.result-stats {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.result-actions {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn {
+  padding: var(--ma-xs) var(--ma-sm);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--tempo-fast) ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ma-xs);
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.btn-sm {
+  padding: 6px var(--ma-xs);
+  font-size: var(--text-xs);
+  min-width: 32px;
+  height: 32px;
+}
+
+.btn-sm svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: #00b894;
+  transform: translateY(-1px);
+  box-shadow: var(--glow-small);
+}
+
+.btn-success {
+  background: var(--teal);
+  color: var(--bg);
+}
+
+.btn-success:hover {
+  background: #00b894;
+  transform: translateY(-1px);
+  box-shadow: var(--glow-small);
+}
+
+.btn-danger {
+  background: #ff3b3b;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #ff1a1a;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.empty-state-modern {
+  text-align: center;
+  padding: var(--ma-xl) var(--ma-md);
+}
+
+.empty-state-modern-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--ma-md);
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.empty-state-modern-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.empty-state-modern h3 {
+  font-family: var(--font-mono);
+  color: var(--text);
+  margin: 0 0 var(--ma-xs) 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.empty-state-modern p {
+  color: var(--muted);
+  margin: 0 0 var(--ma-md) 0;
+  font-size: var(--text-sm);
+}
+
+/* Legacy empty state (for compatibility) */
+.empty-state {
+  text-align: center;
+  padding: var(--ma-xl) var(--ma-md);
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: var(--ma-md);
+}
+
+.empty-state h3 {
+  font-family: var(--font-mono);
+  color: var(--text);
+  margin: 0 0 var(--ma-xs) 0;
+}
+
+.empty-state p {
+  color: var(--muted);
+  margin: 0 0 var(--ma-md) 0;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-success {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.text-error {
+  color: #ff3b3b;
+}
+
+.text-muted {
+  color: var(--muted);
+  text-align: center;
+  padding: var(--ma-sm);
+}
+
+.social-input {
+  width: 100%;
+  padding: var(--ma-xs) var(--ma-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: var(--text-sm);
+  transition: all var(--tempo-fast) ease;
+}
+
+.social-input:focus {
+  outline: none;
+  border-color: var(--teal);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+

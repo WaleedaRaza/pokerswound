@@ -1,27 +1,34 @@
 /**
- * POKER HAND ENCODER (PHE)
+ * POKER HAND ENCODER (PHE v2.0)
  * Compact, privacy-preserving hand serialization
  * 
- * Format: P[seat]:[cards]|B:[board]|W:[winner]|R:[rank]|P:[pot]|A:[actions]
+ * Format: P[seat]:[cards]|B:[board]|W:[winner]|R:[rank]|P:[pot]|D:[dealer]|S:[seat]:[stack],...|A:[actions]
  * 
- * Example: P0:AhKd|P1:XX|B:Jh9h5h|W:0|R:5|P:120|A:0R20,1C20,0R50
+ * Example: P0:AhKd|P1:XX|B:Jh9h5h|W:0|R:5|P:120|D:2|S:0:5000,1:3000|A:P0R20,F1C20,T0R50
+ * 
+ * New in v2.0:
+ * - D:[dealer] - Dealer position (BTN)
+ * - S:[seat]:[stack],... - Starting stacks
+ * - A:[street][seat][action][amount] - Street-specific actions (P=Preflop, F=Flop, T=Turn, R=River)
  * 
  * Benefits:
  * - 80-90% size reduction vs JSON
  * - Privacy: Mucked cards = XX (not stored)
  * - Searchable: grep "P0:AhKd" works
  * - Human readable for debugging
+ * - Position data for VPIP/PFR analysis
  */
 
 const HandEncoder = {
   /**
-   * Encode a hand into PHE format
+   * Encode a hand into PHE format (v2.0 with positions & stacks)
    * @param {Object} handData
-   * @param {Array} handData.players - [{userId, seatIndex, cards, revealed}]
+   * @param {Array} handData.players - [{userId, seatIndex, cards, revealed, stack}]
    * @param {Array} handData.board - Board cards
    * @param {Object} handData.winner - {userId, seatIndex}
    * @param {number} handData.rank - Hand rank (1-10)
    * @param {number} handData.pot - Final pot size
+   * @param {number} handData.dealerPosition - Dealer seat index (BTN)
    * @param {Array} handData.actions - [{seatIndex, action, amount, street}]
    * @returns {string} Encoded hand string
    */
@@ -73,15 +80,52 @@ const HandEncoder = {
     const pot = handData.pot || 0;
     parts.push(`P:${pot}`);
     
-    // Actions: A:[seat][action][amount],... (compressed)
+    // Dealer Position: D:[seat] (NEW in v2.0)
+    if (handData.dealerPosition !== null && handData.dealerPosition !== undefined) {
+      parts.push(`D:${handData.dealerPosition}`);
+    } else {
+      parts.push('D:-1'); // Unknown dealer
+    }
+    
+    // Starting Stacks: S:[seat]:[stack],... (NEW in v2.0)
+    if (handData.players && handData.players.length > 0) {
+      const stackParts = handData.players
+        .filter(p => p.stack !== null && p.stack !== undefined)
+        .map(p => `${p.seatIndex}:${p.stack}`)
+        .join(',');
+      if (stackParts) {
+        parts.push(`S:${stackParts}`);
+      } else {
+        parts.push('S:--');
+      }
+    } else {
+      parts.push('S:--');
+    }
+    
+    // Actions: A:[street][seat][action][amount],... (ENHANCED in v2.0)
     if (handData.actions && handData.actions.length > 0) {
-      const actionStr = handData.actions.map(a => {
+      // Group by street
+      const byStreet = {
+        P: [], // Preflop
+        F: [], // Flop
+        T: [], // Turn
+        R: []  // River
+      };
+      
+      handData.actions.forEach(a => {
+        const street = this._compressStreet(a.street || 'PREFLOP');
         const seat = a.seatIndex || 0;
         const action = this._compressAction(a.action);
         const amount = a.amount ? a.amount : '';
-        return `${seat}${action}${amount}`;
-      }).join(',');
-      parts.push(`A:${actionStr}`);
+        byStreet[street].push(`${seat}${action}${amount}`);
+      });
+      
+      const actionStr = Object.keys(byStreet)
+        .filter(street => byStreet[street].length > 0)
+        .map(street => `${street}${byStreet[street].join(',')}`)
+        .join('|');
+      
+      parts.push(`A:${actionStr || '--'}`);
     } else {
       parts.push('A:--'); // No actions recorded
     }
@@ -105,6 +149,8 @@ const HandEncoder = {
       winner: null,
       rank: 0,
       pot: 0,
+      dealerPosition: null,
+      startingStacks: {},
       actions: []
     };
     
@@ -149,10 +195,32 @@ const HandEncoder = {
       else if (key === 'P') {
         data.pot = parseInt(value);
       }
-      // Actions: A:0R20,1C20,0R50
+      // Dealer Position: D:2 (NEW in v2.0)
+      else if (key === 'D') {
+        data.dealerPosition = parseInt(value);
+        if (data.dealerPosition === -1) data.dealerPosition = null;
+      }
+      // Starting Stacks: S:0:5000,1:3000 (NEW in v2.0)
+      else if (key === 'S') {
+        if (value !== '--') {
+          value.split(',').forEach(stackStr => {
+            const [seat, stack] = stackStr.split(':');
+            if (seat && stack) {
+              data.startingStacks[parseInt(seat)] = parseInt(stack);
+            }
+          });
+        }
+      }
+      // Actions: A:P0R20,F1C20,T0R50 or A:0R20,1C20 (legacy) (ENHANCED in v2.0)
       else if (key === 'A') {
         if (value !== '--') {
-          data.actions = this._decodeActions(value);
+          // Check if new format (has street prefixes)
+          if (value.includes('P') || value.includes('F') || value.includes('T') || value.includes('R')) {
+            data.actions = this._decodeActionsByStreet(value);
+          } else {
+            // Legacy format (no street info)
+            data.actions = this._decodeActions(value);
+          }
         }
       }
     });
@@ -180,6 +248,38 @@ const HandEncoder = {
       'all_in': 'A'
     };
     return map[action] || action.charAt(0).toUpperCase();
+  },
+  
+  /**
+   * Compress street to single character
+   * @private
+   */
+  _compressStreet(street) {
+    const map = {
+      'PREFLOP': 'P',
+      'preflop': 'P',
+      'FLOP': 'F',
+      'flop': 'F',
+      'TURN': 'T',
+      'turn': 'T',
+      'RIVER': 'R',
+      'river': 'R'
+    };
+    return map[street] || 'P'; // Default to preflop
+  },
+  
+  /**
+   * Expand street from single character
+   * @private
+   */
+  _expandStreet(shortStreet) {
+    const map = {
+      'P': 'PREFLOP',
+      'F': 'FLOP',
+      'T': 'TURN',
+      'R': 'RIVER'
+    };
+    return map[shortStreet] || 'PREFLOP';
   },
   
   /**
@@ -216,7 +316,7 @@ const HandEncoder = {
   },
   
   /**
-   * Decode compressed actions string
+   * Decode compressed actions string (legacy format)
    * @private
    */
   _decodeActions(actionsStr) {
@@ -230,9 +330,44 @@ const HandEncoder = {
       return {
         seatIndex: seat,
         action: action,
-        amount: amount
+        amount: amount,
+        street: null // Legacy format has no street info
       };
     }).filter(a => a !== null);
+  },
+  
+  /**
+   * Decode actions by street (v2.0 format)
+   * @private
+   */
+  _decodeActionsByStreet(actionsStr) {
+    const actions = [];
+    // Format: P0R20,1C20|F1C20|T0R50
+    const streetGroups = actionsStr.split('|');
+    
+    streetGroups.forEach(group => {
+      if (!group || group.length < 2) return;
+      
+      const street = this._expandStreet(group.charAt(0));
+      const actionsInStreet = group.substring(1).split(',');
+      
+      actionsInStreet.forEach(actionStr => {
+        if (actionStr.length < 2) return;
+        
+        const seat = parseInt(actionStr.charAt(0));
+        const action = this._expandAction(actionStr.charAt(1));
+        const amount = actionStr.length > 2 ? parseInt(actionStr.substring(2)) : 0;
+        
+        actions.push({
+          seatIndex: seat,
+          action: action,
+          amount: amount,
+          street: street
+        });
+      });
+    });
+    
+    return actions;
   },
   
   /**
@@ -263,5 +398,5 @@ if (typeof window !== 'undefined') {
   window.HandEncoder = HandEncoder;
 }
 
-console.log('✅ HandEncoder loaded (PHE v1.0)');
+console.log('✅ HandEncoder loaded (PHE v2.0 - with positions & stacks)');
 

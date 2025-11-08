@@ -777,23 +777,41 @@ router.post('/action', async (req, res) => {
         // ✅ USE FINAL POT SIZE (captured before zeroing)
         const potSize = updatedState.finalPotSize || updatedState.pot || 0;
         
-        // ✅ ENCODE HAND (PHE format for 80% storage reduction)
-        const HandEncoder = require('../public/js/hand-encoder.js');
-        const encodedHand = HandEncoder.encode({
-          players: updatedState.players.map(p => ({
+        // Extract position data
+        const dealerPosition = updatedState.dealerPosition !== undefined ? updatedState.dealerPosition : null;
+        const sbPosition = updatedState.sbPosition !== undefined ? updatedState.sbPosition : null;
+        const bbPosition = updatedState.bbPosition !== undefined ? updatedState.bbPosition : null;
+        
+        // Calculate starting stacks (current stack + total bet this hand)
+        // Note: We approximate starting stacks by adding back bets, but ideally we'd store this at hand start
+        const startingStacks = {};
+        const playersWithStacks = updatedState.players.map(p => {
+          // Estimate starting stack: current stack + betThisHand (if available) or use current stack as approximation
+          const startingStack = p.stack + (p.betThisHand || p.bet || 0);
+          startingStacks[p.seatIndex] = startingStack;
+          return {
             userId: p.userId,
             seatIndex: p.seatIndex,
             cards: p.hand || p.holeCards || [],
-            revealed: winner && p.userId === winnerId // Only winner's cards revealed
-          })),
+            revealed: winner && p.userId === winnerId, // Only winner's cards revealed
+            stack: startingStack
+          };
+        });
+        
+        // ✅ ENCODE HAND (PHE v2.0 format with positions & stacks)
+        const HandEncoder = require('../public/js/hand-encoder.js');
+        const encodedHand = HandEncoder.encode({
+          players: playersWithStacks,
           board: updatedState.communityCards || [],
           winner: winner ? winner.seatIndex : null,
           rank: handRank,
           pot: potSize,
+          dealerPosition: dealerPosition,
           actions: (updatedState.actionHistory || []).map(a => ({
             seatIndex: a.seatIndex || 0,
             action: a.action,
-            amount: a.amount || 0
+            amount: a.amount || 0,
+            street: a.street || updatedState.street || 'PREFLOP' // Include street if available
           }))
         });
         
@@ -805,13 +823,15 @@ router.post('/action', async (req, res) => {
         const savings = Math.round((1 - encodedSize / jsonSize) * 100);
         console.log(`   💾 Storage: ${encodedSize} bytes (${savings}% smaller than JSON)`);
         
-        // 1. INSERT HAND_HISTORY (with ALL required fields + ENCODED)
+        // 1. INSERT HAND_HISTORY (with ALL required fields + ENCODED + POSITIONS)
         const handHistoryInsert = await db.query(
           `INSERT INTO hand_history (
             game_id, room_id, hand_number, pot_size, 
             player_ids, winner_id, winning_hand, hand_rank,
-            board_cards, actions_log, encoded_hand, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+            board_cards, actions_log, encoded_hand,
+            dealer_position, sb_position, bb_position, starting_stacks,
+            created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
           RETURNING id`,
           [
             gameStateId,  // game_id from game_states
@@ -824,7 +844,11 @@ router.post('/action', async (req, res) => {
             handRank,    // ✅ NEW: 5 (for Flush)
             updatedState.communityCards ? updatedState.communityCards.join(' ') : null,  // ✅ FIXED: Convert to TEXT
             JSON.stringify(updatedState.actionHistory || []),  // Kept for backwards compatibility
-            encodedHand  // ✅ NEW: PHE format (80% smaller)
+            encodedHand,  // ✅ NEW: PHE format (80% smaller)
+            dealerPosition, // ✅ NEW: Dealer position for VPIP/PFR analysis
+            sbPosition,     // ✅ NEW: Small blind position
+            bbPosition,     // ✅ NEW: Big blind position
+            JSON.stringify(startingStacks) // ✅ NEW: Starting stacks per seat
           ]
         );
         

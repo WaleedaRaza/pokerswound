@@ -1,0 +1,718 @@
+/**
+ * PLAY PAGE - MODERN DESIGN SYSTEM
+ * Extends index-modern.css design tokens
+ * Japanese Principles: Ma (space), Kanso (simplicity), Shibui (subtle beauty)
+ */
+
+/* ============================================
+   DESIGN TOKENS (Inherit from index-modern.css)
+   ============================================ */
+
+/* Import design tokens - these should match index-modern.css */
+:root {
+  /* Ma - Negative Space Ratios */
+  --ma-3xs: 4px;
+  --ma-xs: 8px;
+  --ma-sm: 16px;
+  --ma-md: 32px;
+  --ma-lg: 64px;
+  --ma-xl: 120px;
+  --ma-2xl: 180px;
+  
+  /* Typography Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-md: 18px;
+  --text-lg: 24px;
+  --text-xl: 32px;
+  --text-2xl: 40px;
+  --text-3xl: 56px;
+  --text-4xl: 72px;
+  --text-5xl: 96px;
+  
+  /* Colors */
+  --orange: #ff5100;
+  --teal: #00d4aa;
+  --mint: #00d4aa;
+  
+  /* Warmth - Subtle Color Accents */
+  --warmth-teal: rgba(0, 212, 170, 0.15);
+  --warmth-orange: rgba(255, 81, 0, 0.12);
+  --warmth-glow: rgba(0, 212, 170, 0.2);
+  
+  /* Interactivity - Tempo */
+  --tempo-fast: 0.2s;
+  --tempo-normal: 0.3s;
+  --tempo-slow: 0.5s;
+  
+  /* Depth - Glow Levels */
+  --glow-subtle: 0 4px 20px rgba(0, 212, 170, 0.1);
+  --glow-medium: 0 8px 32px rgba(0, 212, 170, 0.15);
+  --glow-strong: 0 16px 48px rgba(0, 212, 170, 0.2);
+}
+
+/* ============================================
+   MAIN CONTENT - Z-INDEX HIERARCHY
+   ============================================ */
+
+.main-content {
+  position: relative;
+  z-index: 500; /* Above cards (z-index: 50) but below liquid glass tiles (z-index: 1000) */
+}
+
+/* ============================================
+   HERO-STYLE PAGE HEADER
+   ============================================ */
+
+.play-hero {
+  text-align: center;
+  padding: var(--ma-lg) var(--ma-md) var(--ma-md);
+  margin-bottom: var(--ma-lg);
+  position: relative;
+  z-index: 500; /* Above cards (z-index: 50) but below liquid glass tiles (z-index: 1000) */
+}
+
+.play-hero-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(var(--text-3xl), 6vw, var(--text-4xl));
+  font-weight: 800;
+  color: var(--orange);
+  margin: 0 0 var(--ma-xs) 0;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-shadow: 0 0 20px rgba(255, 81, 0, 0.4), 0 0 40px rgba(255, 81, 0, 0.2);
+}
+
+.play-hero-subtitle {
+  font-size: var(--text-sm);
+  color: var(--mint);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================
+   GAME SECTIONS - IMPACTFUL LAYOUT
+   Uses solutions-section and solutions-grid-apple from index-modern.css
+   Override grid layout for 1 large + 4 medium tiles
+   ============================================ */
+
+/* Override grid layout for play page: 1 large central tile on top, 4 medium tiles below */
+.solutions-grid-apple {
+  grid-template-areas: 
+    "large large large large"
+    "medium1 medium2 medium3 medium4";
+  gap: var(--ma-md); /* Match index spacing */
+}
+
+.solution-tile-large {
+  grid-area: large;
+}
+
+.solution-tile-medium:nth-of-type(1) {
+  grid-area: medium1;
+}
+
+.solution-tile-medium:nth-of-type(2) {
+  grid-area: medium2;
+}
+
+.solution-tile-medium:nth-of-type(3) {
+  grid-area: medium3;
+}
+
+.solution-tile-medium:nth-of-type(4) {
+  grid-area: medium4;
+}
+
+/* Coming Soon Text Styling */
+.coming-soon-text {
+  color: var(--teal);
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  text-shadow: 0 0 10px rgba(0, 212, 170, 0.8), 0 0 20px rgba(0, 212, 170, 0.6), 0 0 30px rgba(0, 212, 170, 0.4);
+  opacity: 1;
+}
+
+/* ERADICATE solution-card conflicts - liquid-glass handles ALL styling */
+.solution-tile-large.liquid-glass,
+.solution-tile-medium.liquid-glass {
+  /* Remove ALL solution-card styling - liquid-glass handles everything */
+  background: none !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  /* liquid-glass--xl/lg handles padding - don't override */
+  position: relative;
+  z-index: 1000; /* Above cards (z-index: 50) */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Ensure proper internal spacing for tile content */
+.solution-tile-large.liquid-glass .solution-icon {
+  margin-bottom: var(--ma-md); /* Match index spacing */
+}
+
+.solution-tile-medium.liquid-glass .solution-icon {
+  margin-bottom: var(--ma-sm); /* Match index spacing */
+}
+
+.solution-tile-large.liquid-glass .solution-title {
+  margin: 0 0 var(--ma-sm) 0; /* Match index spacing */
+  font-size: clamp(var(--text-xl), 3vw, var(--text-2xl)); /* Bigger and brighter */
+  font-weight: 700;
+  color: var(--orange);
+  text-shadow: 0 0 15px rgba(255, 81, 0, 0.3), 0 0 30px rgba(255, 81, 0, 0.15);
+}
+
+.solution-tile-medium.liquid-glass .solution-title {
+  margin: 0 0 var(--ma-sm) 0; /* Match index spacing */
+  font-size: clamp(var(--text-base), 1.5vw, var(--text-lg)); /* Bigger: 16px-24px */
+  font-weight: 700;
+  color: var(--orange);
+  text-shadow: 0 0 12px rgba(255, 81, 0, 0.3), 0 0 24px rgba(255, 81, 0, 0.15);
+}
+
+.solution-tile-large.liquid-glass .solution-description {
+  margin: 0 0 var(--ma-md) 0; /* Match index spacing - more space before buttons */
+  flex-grow: 1;
+}
+
+.solution-tile-medium.liquid-glass .solution-description {
+  margin: 0 0 var(--ma-sm) 0; /* Match index spacing */
+  flex-grow: 1;
+  font-size: clamp(11px, 1.1vw, 13px); /* Much smaller: 11px-13px for wider appearance */
+  line-height: 1.5;
+}
+
+/* Button container spacing for Private Room tile */
+.solution-tile-large.liquid-glass > div:last-child {
+  margin-top: var(--ma-sm); /* Space above buttons */
+}
+
+/* Playable Modal Tiles - Increase EXISTING blur on hover (don't add new effects) */
+.playable-modal-tile {
+  cursor: pointer;
+  transition: all var(--tempo-normal) ease;
+}
+
+/* Increase the EXISTING backdrop-filter blur on hover (not adding new blur) */
+/* Base blur is 0px, so we increase it to 12px on hover for modal feeling */
+.playable-modal-tile:hover::after {
+  backdrop-filter: blur(12px) !important; /* Increase existing blur for modal depth */
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Mock Play Button - Conveys playable modal feeling */
+.btn-mock-play {
+  width: 100%;
+  margin-top: auto;
+  padding: 10px var(--ma-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 212, 170, 0.1) 100%);
+  border: 1px solid rgba(0, 212, 170, 0.3);
+  color: rgba(0, 212, 170, 0.9);
+  cursor: not-allowed;
+  opacity: 0.7;
+  transition: all var(--tempo-normal) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.playable-modal-tile:hover .btn-mock-play {
+  opacity: 0.95;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.25) 0%, rgba(0, 212, 170, 0.15) 100%);
+  border-color: rgba(0, 212, 170, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2);
+}
+
+.btn-mock-play svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.9;
+}
+
+/* Prevent solution-card pseudo-elements from interfering */
+.solution-tile-large.liquid-glass::before,
+.solution-tile-medium.liquid-glass::before {
+  /* Liquid glass ::before handles background - solution-card ::before must not interfere */
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1000 !important;
+  border-radius: inherit !important;
+  box-shadow: inset 0 0 var(--glass-shadow-blur) var(--glass-shadow-spread) var(--glass-shadow-color) !important;
+  background-color: rgba(255, 255, 255, var(--glass-tint-opacity)) !important;
+  height: auto !important; /* Override solution-card's height: 3px */
+  background: rgba(255, 255, 255, var(--glass-tint-opacity)) !important; /* Override solution-card gradient */
+  opacity: 1 !important; /* Override solution-card's opacity: 0 */
+  pointer-events: none !important;
+}
+
+.solution-tile-large.liquid-glass::after,
+.solution-tile-medium.liquid-glass::after {
+  /* Liquid glass ::after handles backdrop-filter - solution-card ::after must not interfere */
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 999 !important;
+  border-radius: inherit !important;
+  backdrop-filter: blur(var(--glass-frost-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-frost-blur)) !important;
+  filter: url(#glass-distortion) !important;
+  background: none !important; /* Override solution-card's radial-gradient */
+  opacity: 1 !important; /* Override solution-card's opacity: 0 */
+  pointer-events: none !important;
+}
+
+
+/* ============================================
+   ROOM MANAGEMENT SECTION
+   ============================================ */
+
+.manage-rooms-section {
+  max-width: 1200px;
+  margin: 0 auto var(--ma-md);
+  padding: 0 var(--ma-md);
+}
+
+.manage-rooms-container {
+  background: rgba(15, 15, 25, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: var(--ma-lg);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.manage-rooms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--ma-md);
+}
+
+.manage-rooms-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(var(--text-xl), 2.5vw, var(--text-2xl));
+  font-weight: 700;
+  color: var(--orange);
+  margin: 0;
+  text-shadow: 0 0 15px rgba(255, 81, 0, 0.3), 0 0 30px rgba(255, 81, 0, 0.15);
+}
+
+.manage-rooms-refresh-btn {
+  padding: var(--ma-xs) var(--ma-md);
+  font-size: var(--text-sm);
+}
+
+.room-limit-warning {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  padding: var(--ma-md);
+  border-radius: 12px;
+  margin-bottom: var(--ma-md);
+  color: #FFC107;
+  font-size: var(--text-sm);
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--ma-md);
+}
+
+.rooms-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ma-sm);
+}
+
+.rooms-column-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(var(--text-lg), 2vw, var(--text-xl));
+  color: var(--orange);
+  margin-bottom: var(--ma-sm);
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(255, 81, 0, 0.3), 0 0 24px rgba(255, 81, 0, 0.15);
+}
+
+.rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ma-xs);
+}
+
+.empty-rooms-state {
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: var(--ma-xl);
+  font-size: var(--text-sm);
+}
+
+/* ============================================
+   LOBBY SECTION
+   ============================================ */
+
+.lobby-section {
+  padding: var(--ma-lg) var(--ma-md);
+}
+
+.lobby-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--ma-xl);
+  background: rgba(15, 15, 25, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.lobby-title {
+  text-align: center;
+  margin-bottom: var(--ma-lg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.room-code-display {
+  text-align: center;
+  margin-bottom: var(--ma-xl);
+  padding: var(--ma-lg);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-code-label {
+  font-size: var(--text-base);
+  opacity: 0.7;
+  margin-bottom: var(--ma-sm);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.room-code-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ma-md);
+  flex-wrap: wrap;
+}
+
+.room-code-text {
+  font-size: clamp(var(--text-xl), 4vw, var(--text-3xl));
+  font-weight: 700;
+  letter-spacing: 0.3rem;
+  color: var(--teal);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.lobby-actions {
+  text-align: center;
+  margin-bottom: var(--ma-lg);
+}
+
+.host-controls {
+  margin-top: var(--ma-lg);
+}
+
+.host-controls-title {
+  margin-bottom: var(--ma-md);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--orange);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.game-settings {
+  background: rgba(255, 255, 255, 0.05);
+  padding: var(--ma-lg);
+  border-radius: 16px;
+  margin-bottom: var(--ma-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-settings-title {
+  margin-bottom: var(--ma-md);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.game-settings-grid {
+  display: grid;
+  gap: var(--ma-md);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ma-xs);
+}
+
+.form-label {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--ma-xs) var(--ma-sm);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: var(--text-sm);
+  font-family: 'Inter', sans-serif;
+  transition: all var(--tempo-fast) ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--teal);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+.players-approval-text {
+  opacity: 0.8;
+  margin-bottom: var(--ma-md);
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.players-list {
+  margin-bottom: var(--ma-lg);
+}
+
+.start-game-btn {
+  width: 100%;
+  padding: var(--ma-md) var(--ma-lg);
+  font-size: var(--text-md);
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.guest-waiting {
+  text-align: center;
+  padding: var(--ma-xl);
+}
+
+.waiting-icon {
+  font-size: var(--text-4xl);
+  margin-bottom: var(--ma-md);
+}
+
+.waiting-status {
+  font-size: var(--text-lg);
+  margin-bottom: var(--ma-xs);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.waiting-message {
+  opacity: 0.7;
+  font-size: var(--text-base);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.footer-apple {
+  padding: var(--ma-xl) var(--ma-md) var(--ma-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+  position: relative;
+  margin-top: var(--ma-2xl);
+}
+
+.footer-apple::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.3), transparent);
+}
+
+.footer-apple-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ma-xs);
+}
+
+.footer-logo-apple {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 800;
+  color: #e9eef7;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-logo-apple:hover {
+  color: #00d4aa;
+}
+
+.footer-tagline-apple {
+  font-size: 14px;
+  color: #9aa3b2;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.footer-nav-apple {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-nav-apple a {
+  font-size: 14px;
+  color: #9aa3b2;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-weight: 400;
+}
+
+.footer-nav-apple a:hover {
+  color: #e9eef7;
+}
+
+.footer-copyright-apple {
+  grid-column: 1 / -1;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.footer-copyright-apple p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .game-sections-impactful {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .game-section-large {
+    grid-column: 1 / -1;
+  }
+  
+  .game-section-small:nth-of-type(2) {
+    grid-column: 1;
+  }
+  
+  .game-section-small:nth-of-type(3) {
+    grid-column: 2;
+  }
+  
+  .game-section-small:nth-of-type(4) {
+    grid-column: 1;
+  }
+  
+  .game-section-small:nth-of-type(5) {
+    grid-column: 2;
+  }
+  
+  .game-section-large .tile-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ma-md);
+  }
+  
+  .tile-actions-large {
+    margin-left: 0;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .play-hero {
+    padding: var(--ma-lg) var(--ma-sm) var(--ma-md);
+  }
+  
+  .game-sections-impactful {
+    grid-template-columns: 1fr;
+    gap: var(--ma-md);
+  }
+  
+  .game-section-large {
+    grid-column: 1;
+    min-height: auto;
+    padding: var(--ma-lg);
+  }
+  
+  .game-section-small {
+    grid-column: 1;
+    min-height: auto;
+  }
+  
+  .tile-icon-large {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .tile-title-large {
+    font-size: var(--text-xl);
+  }
+  
+  .tile-description-large {
+    font-size: var(--text-sm);
+  }
+  
+  .tile-actions-large {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .tile-actions-large .btn {
+    width: 100%;
+  }
+  
+  .rooms-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tile-actions {
+    flex-direction: column;
+  }
+  
+  .footer-apple-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
