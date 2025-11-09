@@ -164,7 +164,7 @@ router.post('/claim-seat', async (req, res) => {
     
     // Check room status (is game active?)
     const roomResult = await db.query(
-      'SELECT status, host_user_id FROM rooms WHERE id = $1',
+      'SELECT game_id, host_user_id FROM rooms WHERE id = $1',
       [roomId]
     );
     
@@ -172,8 +172,8 @@ router.post('/claim-seat', async (req, res) => {
       return res.status(404).json({ error: 'Room not found' });
     }
     
-    const roomStatus = roomResult.rows[0].status;
-    const isGameActive = roomStatus === 'ACTIVE';
+    const gameId = roomResult.rows[0].game_id;
+    const isGameActive = gameId !== null && gameId !== undefined;
     
     // Check if seat is available
     const checkResult = await db.query(

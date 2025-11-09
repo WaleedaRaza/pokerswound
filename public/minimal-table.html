@@ -3257,7 +3257,7 @@
         // Detect if user is a spectator (not seated, game active)
         const mySeat = seatsData.seats?.find(s => s && s.userId === userId);
         isHost = roomData.room?.hostId === userId; // Update global isHost
-        const roomIsActive = roomData.room?.status === 'ACTIVE';
+        const roomIsActive = !!(roomData.room?.gameId || roomData.room?.game_id); // Game active if gameId exists
         isSpectator = !mySeat && roomIsActive && !isHost; // Spectator = not seated, game active, not host
         mySeatIndex = mySeat ? mySeat.seatIndex : null;
         
@@ -3367,7 +3367,7 @@
         if (isEmpty) {
           // Empty seat - allow claiming (even for spectators during active game)
           player.textContent = '🪑 EMPTY';
-          const roomIsActive = room?.status === 'ACTIVE';
+          const roomIsActive = !!(room?.gameId || room?.game_id); // Game active if gameId exists
           if (roomIsActive && !isHost) {
             chips.textContent = 'Request seat';
           } else {
@@ -3609,8 +3609,11 @@
       debug(`🪑 Attempting to claim seat ${seatIndex}...`);
       
       // Check if game is active (requires approval)
+      // Game is active if: currentGameState exists OR startBtn is hidden OR gameId exists
+      const startBtn = document.getElementById('startBtn');
       const roomIsActive = currentGameState?.status === 'IN_PROGRESS' || 
-                           document.getElementById('startBtn').style.display === 'none';
+                           (startBtn && startBtn.style.display === 'none') ||
+                           !!gameId;
       
       // Prompt for nickname (only if not already set and pre-game)
       let nickname = null;
