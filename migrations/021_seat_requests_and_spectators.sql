@@ -18,15 +18,13 @@ CREATE TABLE IF NOT EXISTS seat_requests (
   -- Timing
   requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   resolved_at TIMESTAMP WITH TIME ZONE,
-  resolved_by UUID, -- host user_id who approved/rejected
-  
-  -- Prevent duplicate pending requests
-  CONSTRAINT unique_pending_request UNIQUE (room_id, user_id) 
-    WHERE status = 'PENDING',
-  
-  -- Index for fast lookups
-  CONSTRAINT valid_seat_index CHECK (seat_index >= 0 AND seat_index < 10)
+  resolved_by UUID -- host user_id who approved/rejected
 );
+
+-- Prevent duplicate pending requests (partial unique index)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_seat_requests_unique_pending 
+  ON seat_requests(room_id, user_id) 
+  WHERE status = 'PENDING';
 
 -- Index for host queries (pending requests)
 CREATE INDEX IF NOT EXISTS idx_seat_requests_pending 

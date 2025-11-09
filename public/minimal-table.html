@@ -794,6 +794,11 @@
       margin-bottom: 0;
     }
     
+    .host-section.priority-section {
+      border: 2px solid #ff5100;
+      background: rgba(255, 81, 0, 0.1);
+    }
+    
     .host-section h4 {
       color: #00d4aa;
       font-size: 0.95rem;
@@ -2238,19 +2243,20 @@
       </div>
       
       <div class="panel-content" id="hostControlsContent">
-        <!-- ESSENTIAL ACTIONS -->
+        <!-- SEAT REQUESTS (Priority - Most Important) -->
+        <div class="host-section priority-section">
+          <h4>🪑 Pending Seat Requests</h4>
+          <p class="section-hint">Players requesting to join mid-game</p>
+          <div id="pendingSeatRequests">
+            <div class="empty-state">No pending requests</div>
+          </div>
+        </div>
+        
+        <!-- ACTIVE GAME CONTROLS -->
         <div class="host-section">
-          <h4>⚡ Essential Actions</h4>
-          <p class="section-hint">Quick controls for managing your game</p>
+          <h4>⚡ Active Game Controls</h4>
+          <p class="section-hint">Manage the current game</p>
           <div class="host-actions-grid">
-            <button class="host-control-btn action" onclick="toggleRoomLock()">
-              <span class="btn-icon">🔒</span>
-              <span class="btn-text" id="lockBtnText">LOCK ROOM</span>
-            </button>
-            <button class="host-control-btn action" onclick="openKickPlayerModal()">
-              <span class="btn-icon">👢</span>
-              <span class="btn-text">KICK PLAYER</span>
-            </button>
             <button class="host-control-btn action" onclick="togglePauseGame()" id="pauseGameBtn">
               <span class="btn-icon">⏸️</span>
               <span class="btn-text">PAUSE GAME</span>
@@ -2259,6 +2265,39 @@
               <span class="btn-icon">⏭️</span>
               <span class="btn-text">NEXT HAND</span>
             </button>
+            <button class="host-control-btn action" onclick="openKickPlayerModal()">
+              <span class="btn-icon">👢</span>
+              <span class="btn-text">KICK PLAYER</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- ROOM MANAGEMENT -->
+        <div class="host-section">
+          <h4>🔒 Room Management</h4>
+          <p class="section-hint">Control who can join</p>
+          <div class="host-actions-grid">
+            <button class="host-control-btn action" onclick="toggleRoomLock()">
+              <span class="btn-icon">🔒</span>
+              <span class="btn-text" id="lockBtnText">LOCK ROOM</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- BLIND CONTROLS -->
+        <div class="host-section">
+          <h4>💰 Blind Controls</h4>
+          <p class="section-hint">Adjust blinds between hands</p>
+          <div class="blinds-controls">
+            <div class="blind-input-group">
+              <label>Small Blind:</label>
+              <input type="number" id="hostSmallBlindInput" value="10" min="1" class="form-input">
+            </div>
+            <div class="blind-input-group">
+              <label>Big Blind:</label>
+              <input type="number" id="hostBigBlindInput" value="20" min="2" class="form-input">
+            </div>
+            <button class="host-control-btn update" onclick="updateBlinds()">UPDATE BLINDS</button>
           </div>
         </div>
         
@@ -2306,32 +2345,6 @@
               <input type="checkbox" id="spectatorToggle" onchange="toggleSpectatorMode()" checked>
               <span class="toggle-slider"></span>
             </label>
-          </div>
-        </div>
-        
-        <!-- BLIND CONTROLS -->
-        <div class="host-section">
-          <h4>💰 Blind Controls</h4>
-          <p class="section-hint">Adjust blinds between hands</p>
-          <div class="blinds-controls">
-            <div class="blind-input-group">
-              <label>Small Blind:</label>
-              <input type="number" id="hostSmallBlindInput" value="10" min="1" class="form-input">
-            </div>
-            <div class="blind-input-group">
-              <label>Big Blind:</label>
-              <input type="number" id="hostBigBlindInput" value="20" min="2" class="form-input">
-            </div>
-            <button class="host-control-btn update" onclick="updateBlinds()">UPDATE BLINDS</button>
-          </div>
-        </div>
-        
-        <!-- SEAT REQUESTS -->
-        <div class="host-section">
-          <h4>🪑 Pending Seat Requests</h4>
-          <p class="section-hint">Players requesting to join mid-game</p>
-          <div id="pendingSeatRequests">
-            <div class="empty-state">No pending requests</div>
           </div>
         </div>
         
@@ -2625,6 +2638,8 @@
     let isClaimingSeat = false; // Prevent duplicate seat claims
     let currentGameState = null; // Track current game state for UI logic
     let myHoleCards = null; // Track user's hole cards to show on their seat tile
+    let isSpectator = false; // Track if user is a spectator (not seated, game active)
+    let mySeatIndex = null; // Track which seat the user is in (null if spectator)
     
     // ============================================
     // NAVIGATION PROTECTION
@@ -3239,13 +3254,26 @@
         // Render seats
         renderSeats(seatsData.seats, roomData.room);
         
+        // Detect if user is a spectator (not seated, game active)
+        const mySeat = seatsData.seats?.find(s => s && s.userId === userId);
+        isHost = roomData.room?.hostId === userId; // Update global isHost
+        const roomIsActive = roomData.room?.status === 'ACTIVE';
+        isSpectator = !mySeat && roomIsActive && !isHost; // Spectator = not seated, game active, not host
+        mySeatIndex = mySeat ? mySeat.seatIndex : null;
+        
+        debug('👁️ Spectator check:', { 
+          isSpectator, 
+          mySeat: !!mySeat, 
+          roomIsActive, 
+          isHost,
+          mySeatIndex 
+        });
+        
         // Show START button ONLY if:
         // 1. Room status is NOT ACTIVE (no game in progress)
         // 2. 2+ players seated
         // 3. User is host (or show "waiting" if not host)
         const seatedCount = seatsData.occupiedCount || 0;
-        isHost = roomData.room?.hostId === userId; // Update global isHost
-        const roomIsActive = roomData.room?.status === 'ACTIVE';
         
         // CRITICAL: If room is ACTIVE, NEVER show START button (game is in progress)
         if (roomIsActive) {
@@ -3337,8 +3365,14 @@
         positionBadges.dataset.seatIndex = i;
         
         if (isEmpty) {
+          // Empty seat - allow claiming (even for spectators during active game)
           player.textContent = '🪑 EMPTY';
-          chips.textContent = 'Click to claim';
+          const roomIsActive = room?.status === 'ACTIVE';
+          if (roomIsActive && !isHost) {
+            chips.textContent = 'Request seat';
+          } else {
+            chips.textContent = 'Click to claim';
+          }
           div.onclick = () => claimSeat(i);
         } else {
           // Display nickname with rank color and badge (async)
@@ -3507,8 +3541,26 @@
         if (shouldShowCards) {
           const isMe = player.userId === userId;
           
-          // If it's MY seat and I have hole cards, show actual cards
-          if (isMe && myHoleCards && myHoleCards.length === 2) {
+          // SPECTATOR LOGIC: Spectators NEVER see hole cards (only card backs)
+          // UNLESS cards are shown at showdown (handled by showdown_action event)
+          if (isSpectator) {
+            // Spectators always see card backs (never hole cards)
+            debug(`👁️ Spectator view: Showing card backs for seat ${i} (folded: ${player.folded})`);
+            for (let j = 0; j < 2; j++) {
+              const cardBack = document.createElement('img');
+              cardBack.className = 'seat-card-back';
+              cardBack.src = '/cards/back.png';
+              cardBack.alt = 'Card';
+              
+              // Grey out if folded
+              if (player.folded) {
+                cardBack.classList.add('folded');
+              }
+              
+              cardBacksContainer.appendChild(cardBack);
+            }
+          } else if (isMe && myHoleCards && myHoleCards.length === 2) {
+            // MY seat - show actual cards (only if I'm seated, not spectator)
             debug(`✅ Adding MY actual cards for seat ${i}`, { cards: myHoleCards });
             myHoleCards.forEach(card => {
               const cardImg = document.createElement('img');
