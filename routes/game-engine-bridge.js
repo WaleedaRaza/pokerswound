@@ -261,19 +261,18 @@ router.post('/claim-seat', async (req, res) => {
     
     // Claim the seat with nickname
     const insertResult = await db.query(
-      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, nickname, joined_at, is_spectator)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), FALSE)
+      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, nickname, joined_at, is_spectator)
+       VALUES ($1, $2, $3, $4, $5, NOW(), FALSE)
        ON CONFLICT (room_id, seat_index) 
        DO UPDATE SET 
          user_id = $2,
          chips_in_play = $4,
-         status = $5,
-         nickname = $6,
+         nickname = $5,
          joined_at = NOW(),
          left_at = NULL,
          is_spectator = FALSE
        RETURNING *`,
-      [roomId, userId, seatIndex, requestedChips, 'SEATED', finalNickname]
+      [roomId, userId, seatIndex, requestedChips, finalNickname]
     );
     
     const seat = insertResult.rows[0];
@@ -856,7 +855,7 @@ router.post('/action', async (req, res) => {
           for (const busted of bustedPlayers) {
             await client.query(
               `UPDATE room_seats 
-               SET left_at = NOW(), status = 'LEFT' 
+               SET left_at = NOW() 
                WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
               [roomId, busted.userId]
             );
@@ -1756,7 +1755,7 @@ router.post('/host-controls/kick-player', async (req, res) => {
     // Remove player from seat
     const result = await db.query(
       `UPDATE room_seats
-       SET left_at = NOW(), status = 'LEFT'
+       SET left_at = NOW()
        WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL
        RETURNING seat_index`,
       [roomId, targetUserId]

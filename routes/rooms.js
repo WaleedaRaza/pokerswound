@@ -247,10 +247,10 @@ router.post('/:roomId/claim-seat', async (req, res) => {
     
     // Pre-game: Direct claim (no approval needed)
     await db.query(`
-      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, is_spectator)
-      VALUES ($1, $2, $3, $4, 'SEATED', FALSE)
+      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, is_spectator)
+      VALUES ($1, $2, $3, $4, FALSE)
       ON CONFLICT (room_id, seat_index) 
-      DO UPDATE SET user_id = $2, chips_in_play = $4, status = 'SEATED', left_at = NULL, is_spectator = FALSE
+      DO UPDATE SET user_id = $2, chips_in_play = $4, left_at = NULL, is_spectator = FALSE
     `, [roomId, userId, seatIndex, requestedChips]);
     
     console.log('✅ Seat claimed directly (pre-game):', { roomId, userId, seatIndex });
@@ -1657,7 +1657,7 @@ router.get('/:roomId', async (req, res) => {
           r.*,
           COUNT(DISTINCT rs.user_id) as player_count
         FROM rooms r
-        LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.status = 'occupied'
+        LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.left_at IS NULL
         WHERE r.id = $1
         GROUP BY r.id
       `, [roomId]);
@@ -1668,7 +1668,7 @@ router.get('/:roomId', async (req, res) => {
           r.*,
           COUNT(DISTINCT rs.user_id) as player_count
         FROM rooms r
-        LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.status = 'occupied'
+        LEFT JOIN room_seats rs ON r.id = rs.room_id AND rs.left_at IS NULL
         WHERE r.invite_code = $1
         GROUP BY r.id
       `, [roomId]);
@@ -2077,10 +2077,10 @@ router.post('/:roomId/approve-seat-request', async (req, res) => {
     
     // Create/update seat
     await db.query(`
-      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, is_spectator)
-      VALUES ($1, $2, $3, $4, 'SEATED', FALSE)
+      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, is_spectator)
+      VALUES ($1, $2, $3, $4, FALSE)
       ON CONFLICT (room_id, seat_index) 
-      DO UPDATE SET user_id = $2, chips_in_play = $4, status = 'SEATED', left_at = NULL, is_spectator = FALSE
+      DO UPDATE SET user_id = $2, chips_in_play = $4, left_at = NULL, is_spectator = FALSE
     `, [roomId, request.user_id, request.seat_index, finalChips]);
     
     // Mark request as approved
