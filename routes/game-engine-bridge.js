@@ -198,12 +198,18 @@ router.post('/claim-seat', async (req, res) => {
       );
       const displayName = usernameResult.rows[0]?.username || usernameResult.rows[0]?.display_name || `Guest_${userId.substring(0, 6)}`;
       
-      // Create or update seat request
+      // Create or update seat request (handle partial unique index)
+      // First, delete any existing pending request from this user
+      await db.query(
+        `DELETE FROM seat_requests 
+         WHERE room_id = $1 AND user_id = $2 AND status = 'PENDING'`,
+        [roomId, userId]
+      );
+      
+      // Then insert new request
       const requestResult = await db.query(`
         INSERT INTO seat_requests (room_id, user_id, seat_index, requested_chips, status)
         VALUES ($1, $2, $3, $4, 'PENDING')
-        ON CONFLICT (room_id, user_id) WHERE status = 'PENDING'
-        DO UPDATE SET seat_index = $3, requested_chips = $4, requested_at = NOW()
         RETURNING id
       `, [roomId, userId, seatIndex, requestedChips]);
       
