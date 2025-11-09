@@ -37,7 +37,23 @@ async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const token = authHeader.substring(7);
+  const token = authHeader.substring(7).trim();
+  
+  // Validate token format (JWT should have 3 parts separated by dots)
+  if (!token || token.length === 0) {
+    console.error('Auth error: Empty token');
+    return res.status(401).json({ error: 'Invalid token: token is empty' });
+  }
+  
+  // Basic JWT format check (should have 3 parts: header.payload.signature)
+  const tokenParts = token.split('.');
+  if (tokenParts.length !== 3) {
+    console.error('Auth error: Malformed token - invalid number of segments', { 
+      segments: tokenParts.length,
+      tokenPreview: token.substring(0, 20) + '...' 
+    });
+    return res.status(401).json({ error: 'Invalid token: malformed JWT' });
+  }
   
   // ✅ Use ANON client to validate user token
   const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
@@ -1161,6 +1177,7 @@ router.get('/analytics/hands/:userId', requireAuth, async (req, res) => {
         hh.winning_hand,
         hh.hand_rank,
         hh.board_cards,
+        hh.encoded_hand,
         hh.created_at,
         r.name as room_name,
         CASE WHEN hh.winner_id = $1 THEN true ELSE false END as won
@@ -1184,6 +1201,7 @@ router.get('/analytics/hands/:userId', requireAuth, async (req, res) => {
         winningHand: row.winning_hand,
         handRank: row.hand_rank,
         boardCards: row.board_cards,
+        encodedHand: row.encoded_hand,
         createdAt: row.created_at
       })),
       pagination: {
@@ -1446,9 +1464,9 @@ router.get('/badges/:userId', requireAuth, async (req, res) => {
       [userId]
     );
     
-    // Get user rank
+    // Get user rank (including rank_tier and hands_played)
     const rankResult = await db.query(
-      `SELECT level, experience_points, rank_title
+      `SELECT level, experience_points, rank_title, rank_tier, hands_played
        FROM user_ranks
        WHERE user_id = $1`,
       [userId]
@@ -1457,7 +1475,9 @@ router.get('/badges/:userId', requireAuth, async (req, res) => {
     const rank = rankResult.rows[0] || {
       level: 1,
       experience_points: 0,
-      rank_title: 'Novice'
+      rank_title: 'Novice',
+      rank_tier: 'NOVICE',
+      hands_played: 0
     };
     
     res.json({
@@ -1473,7 +1493,9 @@ router.get('/badges/:userId', requireAuth, async (req, res) => {
       rank: {
         level: parseInt(rank.level),
         xp: parseInt(rank.experience_points),
-        title: rank.rank_title
+        title: rank.rank_title,
+        tier: rank.rank_tier || 'NOVICE',
+        handsPlayed: parseInt(rank.hands_played || 0)
       }
     });
     

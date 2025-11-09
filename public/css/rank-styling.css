@@ -1,0 +1,99 @@
+/**
+ * Rank Styling CSS - MVP
+ * Simple rank colors, no complex animations
+ */
+
+/* Rank color classes */
+.username-rank-novice { 
+  color: #9CA3AF; 
+}
+
+.username-rank-apprentice { 
+  color: #6B7280; 
+}
+
+.username-rank-competent { 
+  color: #4B5563; 
+}
+
+.username-rank-skilled { 
+  color: #10B981; 
+  font-weight: 600;
+}
+
+.username-rank-expert { 
+  color: #3B82F6; 
+  font-weight: 700;
+}
+
+.username-rank-master { 
+  color: #8B5CF6; 
+  font-weight: 700;
+}
+
+/* Badge icon styling */
+.badge-icon {
+  font-size: 14px;
+  margin-left: 4px;
+  vertical-align: middle;
+  cursor: help;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.badge-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Rank display card (for Analysis page) */
+.rank-display-card {
+  padding: var(--ma-lg);
+  border-radius: 16px;
+  margin-bottom: var(--ma-md);
+}
+
+.rank-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ma-sm);
+}
+
+.rank-tier {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--teal);
+  margin-bottom: var(--ma-xs);
+}
+
+.rank-hands {
+  font-size: var(--text-md);
+  color: var(--muted);
+}
+
+.rank-progress {
+  margin-top: var(--ma-sm);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--ma-xs);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--mint));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  text-align: center;
+}
+

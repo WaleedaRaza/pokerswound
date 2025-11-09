@@ -1,7 +1,7 @@
 // ===== GLOBAL ANIMATION SYSTEM =====
-// Shared across all pages - ongoing animations only
-// Landing page can call initFallingFX() for full wave + ongoing
-// Other pages call initOngoingOnly() for just ongoing
+// Shared across all pages - random falling animations
+// Landing page calls initFallingFX() for random falling (no initial wave)
+// Other pages call initOngoingOnly() for random falling
 
 // ===== KNOBS =====
 const FX = {
@@ -24,7 +24,7 @@ const FX = {
     chipBias: 0.15,            // probability a spawn is a chip (cards are default, so 85% cards)
     logoBias: 0.05,            // probability a spawn is a logo (rare, special) - 5% logos, 15% chips, 80% cards
     duration: [7, 12],         // fall duration for ongoing items
-    startDelaySec: 1.0         // begin shortly after wave starts
+    startDelaySec: 0.1         // start almost immediately (no big wave)
   },
   cardSize: { width: 50, height: 70 }
 };
@@ -67,10 +67,23 @@ function onSpawned(el){
 function spawnCard({xPct, delaySec, durationSec, backWeight, faceWeight}) {
   const el = document.createElement('div');
   el.className = 'floating-card falling-once';
-  el.dataset.isBack = 'true'; // Track if showing back
+  
+  // Determine initial side (back or face) based on weights
+  const total = backWeight + faceWeight;
+  const startsAsBack = Math.random() * total < backWeight;
+  
+  // Pick FIXED back and FIXED face for this card
+  const backImg = cardImages.back[Math.floor(Math.random() * cardImages.back.length)];
+  const faceImg = cardImages.face[Math.floor(Math.random() * cardImages.face.length)];
+  
+  // Store both images in dataset
+  el.dataset.cardBack = backImg;
+  el.dataset.cardFace = faceImg;
+  el.dataset.isBack = startsAsBack ? 'true' : 'false';
   
   const img = document.createElement('img');
-  img.src = pickCardImg(backWeight, faceWeight);
+  // Set initial image based on starting side
+  img.src = startsAsBack ? backImg : faceImg;
   img.alt = 'Playing Card';
   el.appendChild(img);
 
@@ -79,7 +92,7 @@ function spawnCard({xPct, delaySec, durationSec, backWeight, faceWeight}) {
   el.style.setProperty('--rotEnd',   `${Math.floor(rand(720,1440))}deg`);
   el.style.animation = `fallDown ${durationSec}s linear ${delaySec}s 1`;
   
-  // ✅ CLICK TO FLIP: Reveal card face/back (can flip multiple times)
+  // ✅ CLICK TO FLIP: Alternate between fixed back and fixed face
   el.addEventListener('click', (e) => {
     e.stopPropagation();
     flipCard(el);
@@ -93,20 +106,23 @@ function flipCard(el) {
   const img = el.querySelector('img');
   const isBack = el.dataset.isBack === 'true';
   
+  // Get the FIXED back and face for this card
+  const cardBack = el.dataset.cardBack;
+  const cardFace = el.dataset.cardFace;
+  
   // Flip animation
   el.style.transition = 'transform 0.3s ease';
   el.style.transform = 'rotateY(90deg)';
   
   setTimeout(() => {
-    // Switch to opposite side (back and forth)
+    // Switch to opposite side using the FIXED images
     if (isBack) {
-      // Show random face card
-      const faceCards = cardImages.face;
-      img.src = faceCards[Math.floor(Math.random() * faceCards.length)];
+      // Show the FIXED face card for this card
+      img.src = cardFace;
       el.dataset.isBack = 'false';
     } else {
-      // Show random back
-      img.src = cardImages.back[0];
+      // Show the FIXED back for this card
+      img.src = cardBack;
       el.dataset.isBack = 'true';
     }
     
@@ -214,16 +230,13 @@ const POKERGEEK_QUOTES = [
   "The only constant in life is change. He who knows, knows he knows nothing.",
   "Less is more.",
   "To know yourself is the beginning of all wisdom.",
-  "The map is not the territory.",
   "We see things not as they are, but as we are.",
-  "No man ever steps in the same river twice.",
+  "No man ever steps in the same river twice, for it's not the same river and he's not the same man.",
   "The eyes are useless when the mind is blind.",
-  "You reap what you sow. If everyone plays optimally, does anyone win?",
+  "If everyone plays optimally, does anyone win?",
   "If luck is fair, is it still luck?",
   "When you fold, do your cards miss you?",
   "Fold your ego, not your hand.",
-  "Maybe the real rake was the friends we made along the way.",
-  "The house always wins, but the mind always wonders.",
   "We all start as 2-7 offsuit.",
   "Some days are like slow-playing aces, some days are like bluffing a 2-7.",
   "Your probability of reading this is 100%.",
@@ -233,9 +246,28 @@ const POKERGEEK_QUOTES = [
   "If a chip drops in the lobby and no one's online, does it make a sound?"
 ];
 
+// Ultra-rare quotes (very low probability of appearing)
+const RARE_QUOTES = [
+  "Swounder!",
+  "Waleed says hi!"
+];
+
+// Probability of selecting a rare quote (3% chance)
+const RARE_QUOTE_PROBABILITY = 0.03;
+
+function getRandomQuote() {
+  // Ultra-rare chance: 3% probability
+  if (Math.random() < RARE_QUOTE_PROBABILITY) {
+    return RARE_QUOTES[Math.floor(Math.random() * RARE_QUOTES.length)];
+  }
+  
+  // Otherwise, select from regular quotes (equally likely)
+  return POKERGEEK_QUOTES[Math.floor(Math.random() * POKERGEEK_QUOTES.length)];
+}
+
 function openLogoPopup() {
-  // Random quote selection
-  const randomQuote = POKERGEEK_QUOTES[Math.floor(Math.random() * POKERGEEK_QUOTES.length)];
+  // Get random quote (equally likely for regular, ultra-rare for special ones)
+  const randomQuote = getRandomQuote();
   
   // Create popup overlay (Minecraft-inspired style)
   const overlay = document.createElement('div');
@@ -371,9 +403,9 @@ window.addEventListener('beforeunload', () => {
 
 // ===== Public API =====
 
-// For landing page: wave + ongoing
+// For landing page: random falling only (no initial wave)
 function initFallingFX() {
-  initialWaveCover();
+  // Removed initialWaveCover() - just start random falling immediately
   setTimeout(startOngoing, FX.ongoing.startDelaySec * 1000);
 }
 

@@ -163,7 +163,9 @@
   justify-content: center;
 }
 
-.btn {
+/* Profile modal buttons - NO liquid glass effect */
+.social-modal .btn,
+.social-modal-actions .btn {
   padding: 12px 24px;
   font-family: "JetBrains Mono", monospace;
   font-weight: 600;
@@ -172,6 +174,21 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  /* Explicitly remove any liquid glass effects */
+  position: relative;
+  background: inherit;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none;
+}
+
+/* Ensure no pseudo-elements interfere */
+.social-modal .btn::before,
+.social-modal .btn::after,
+.social-modal-actions .btn::before,
+.social-modal-actions .btn::after {
+  display: none !important;
+  content: none !important;
 }
 
 .btn-primary {

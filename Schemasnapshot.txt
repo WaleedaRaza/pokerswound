@@ -805,7 +805,7 @@ CREATE TABLE public.user_blocks (
 );
 CREATE TABLE public.user_profiles (
   id uuid NOT NULL,
-  username character varying UNIQUE,
+  username character varying NOT NULL UNIQUE,
   display_name character varying,
   avatar_url text,
   bio text,

@@ -12,6 +12,28 @@ class AuthManager {
     );
     this.user = null;
     this.listeners = [];
+    
+    // Set up Supabase auth state listener for automatic token refresh
+    this.supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Supabase auth state changed:', event);
+      
+      if (event === 'TOKEN_REFRESHED' && session) {
+        console.log('✅ Token refreshed automatically by Supabase');
+        // Update user state if needed
+        if (session.user && this.user) {
+          // Token refreshed, user should still be authenticated
+          this.notifyListeners();
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('🚪 User signed out');
+        this.user = null;
+        localStorage.removeItem('pokerUser');
+        this.notifyListeners();
+      } else if (event === 'SIGNED_IN' && session) {
+        console.log('✅ User signed in');
+        // Will be handled by checkAuth() calls
+      }
+    });
   }
 
   /**
@@ -226,11 +248,27 @@ class AuthManager {
 
   /**
    * Get current JWT access token
+   * Attempts to refresh session if token is missing but user is authenticated
    * @returns {Promise<string|null>} JWT token or null
    */
   async getAccessToken() {
     try {
-      const { data: { session }, error } = await this.supabase.auth.getSession();
+      // First, try to get current session
+      let { data: { session }, error } = await this.supabase.auth.getSession();
+      
+      // If no session but user exists in memory, try to refresh
+      if (!session && this.user && !this.user.isGuest) {
+        console.log('🔄 No session found but user exists, attempting refresh...');
+        // Supabase automatically refreshes expired tokens when getSession() is called
+        // But if that didn't work, check if we need to re-authenticate
+        const refreshed = await this.checkAuth();
+        if (refreshed) {
+          // Re-check session after refresh
+          const { data: { session: newSession } } = await this.supabase.auth.getSession();
+          session = newSession;
+        }
+      }
+      
       if (error) throw error;
       
       const token = session?.access_token || null;

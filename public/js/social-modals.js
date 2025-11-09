@@ -175,30 +175,99 @@ async function checkUsernameAndSet() {
 
 async function openProfileModal() {
   try {
-    const token = await window.authManager.getAccessToken();
+    // First check if user is authenticated (don't rely solely on token)
+    const currentUser = await window.authManager.getCurrentUser();
+    if (!currentUser) {
+      console.error('❌ Cannot load profile: Not authenticated');
+      showNotification('error', 'Please log in to view your profile');
+      return;
+    }
+    
+    // Try to get token (will attempt refresh if needed)
+    let token = await window.authManager.getAccessToken();
+    
+    // If no token but user exists, try refreshing auth state
+    if (!token && currentUser && !currentUser.isGuest) {
+      console.log('🔄 Token missing, refreshing auth state...');
+      await window.authManager.checkAuth();
+      token = await window.authManager.getAccessToken();
+    }
+    
+    // If still no token and user is not a guest, there's an auth issue
+    if (!token && !currentUser.isGuest) {
+      console.error('❌ Cannot load profile: Authentication token unavailable');
+      showNotification('error', 'Unable to authenticate. Please try refreshing the page.');
+      return;
+    }
+    
+    // For guests, we might not have a token but that's okay for some endpoints
+    // But profile/me requires auth, so skip if no token
+    if (!token) {
+      console.error('❌ Cannot load profile: No authentication token');
+      showNotification('error', 'Please log in to view your profile');
+      return;
+    }
+    
     const response = await fetch('/api/social/profile/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     
+    // Handle auth errors gracefully
+    if (response.status === 401 || response.status === 403) {
+      // Token might be expired - try refreshing auth
+      console.log('🔄 Auth error, refreshing session...');
+      await window.authManager.checkAuth();
+      const newToken = await window.authManager.getAccessToken();
+      
+      if (newToken) {
+        // Retry with new token
+        const retryResponse = await fetch('/api/social/profile/me', {
+          headers: {
+            'Authorization': `Bearer ${newToken}`
+          }
+        });
+        
+        if (!retryResponse.ok) {
+          throw new Error('Failed to load profile after refresh');
+        }
+        
+        const profile = await retryResponse.json();
+        // Continue with profile display...
+        displayProfileModalContent(profile);
+        return;
+      } else {
+        throw new Error('Authentication failed. Please log in again.');
+      }
+    }
+    
     if (!response.ok) {
       throw new Error('Failed to load profile');
     }
     
     const profile = await response.json();
-    
-    // Handle legacy users (no username yet)
-    if (!profile.username) {
-      showNotification('info', 'Please set your username first');
-      showUsernameModal();
-      return;
-    }
-    
-    const modal = document.createElement('div');
-    modal.id = 'profileModal';
-    modal.className = 'social-modal-overlay';
-    modal.innerHTML = `
+    displayProfileModalContent(profile);
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    const errorMessage = error.message || 'Failed to load profile';
+    showNotification('error', errorMessage);
+  }
+}
+
+// Helper function to display profile modal content (extracted for reuse)
+function displayProfileModalContent(profile) {
+  // Handle legacy users (no username yet)
+  if (!profile.username) {
+    showNotification('info', 'Please set your username first');
+    showUsernameModal();
+    return;
+  }
+  
+  const modal = document.createElement('div');
+  modal.id = 'profileModal';
+  modal.className = 'social-modal-overlay';
+  modal.innerHTML = `
       <div class="social-modal large">
         <div class="social-modal-header">
           <h2>👤 Your Profile</h2>
@@ -251,50 +320,6 @@ async function openProfileModal() {
               <p style="margin: 8px 0 0 0; font-size: 12px; color: #9aa3b2;">Upload an image file or paste an image URL</p>
             </div>
           </div>
-          
-          <!-- Stats Grid -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-value">${profile.total_hands_played ?? 0}</div>
-              <div class="stat-label">Hands Played</div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-value">${profile.total_rooms_played ?? 0}</div>
-              <div class="stat-label">Rooms Played</div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-value">${profile.total_wins ?? 0}</div>
-              <div class="stat-label">Total Wins</div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-value">${parseFloat(profile.win_rate || 0).toFixed(1)}%</div>
-              <div class="stat-label">Win Rate</div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-value">${profile.friend_count ?? 0}</div>
-              <div class="stat-label">Friends</div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-value">$${formatChips(profile.biggest_pot ?? 0)}</div>
-              <div class="stat-label">Biggest Pot</div>
-            </div>
-          </div>
-          
-          <!-- Best Hand -->
-          <div class="best-hand-section">
-            <h4>🏆 Best Hand</h4>
-            <div class="best-hand-display">
-              ${profile.best_hand ? `
-                <div class="hand-rank">${profile.best_hand}</div>
-                ${profile.best_hand_date ? `<div class="hand-date" style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">${new Date(profile.best_hand_date).toLocaleDateString()}</div>` : ''}
-              ` : '<p class="text-muted">No hands recorded yet</p>'}
-            </div>
-          </div>
         </div>
         
         <div class="social-modal-actions">
@@ -311,16 +336,12 @@ async function openProfileModal() {
       </div>
     `;
     
-    document.body.appendChild(modal);
-    
-    // Setup avatar upload handlers
-    setTimeout(() => {
-      setupAvatarUpload();
-    }, 100);
-  } catch (error) {
-    console.error('Error loading profile:', error);
-    alert('Failed to load profile');
-  }
+  document.body.appendChild(modal);
+  
+  // Setup avatar upload handlers
+  setTimeout(() => {
+    setupAvatarUpload();
+  }, 100);
 }
 
 function closeProfileModal() {

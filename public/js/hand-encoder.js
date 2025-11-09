@@ -219,7 +219,7 @@ const HandEncoder = {
             data.actions = this._decodeActionsByStreet(value);
           } else {
             // Legacy format (no street info)
-            data.actions = this._decodeActions(value);
+          data.actions = this._decodeActions(value);
           }
         }
       }

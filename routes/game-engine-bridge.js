@@ -73,6 +73,16 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
     const gameState = gameResult.rows[0].current_state;
     console.log(`   🎮 Active game found - Hand #${gameState.handNumber}, Street: ${gameState.street}`);
     
+    // BACKWARDS COMPATIBILITY: Ensure betThisStreet exists for all players
+    if (gameState.players) {
+      gameState.players.forEach(p => {
+        if (p.betThisStreet === undefined) {
+          // Initialize betThisStreet from bet (approximation for old hands)
+          p.betThisStreet = p.bet || 0;
+        }
+      });
+    }
+    
     // Get player's hole cards (private)
     const myPlayer = gameState.players.find(p => p.userId === userId);
     const myHoleCards = myPlayer ? myPlayer.holeCards : [];
@@ -115,9 +125,9 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
 
 router.post('/claim-seat', async (req, res) => {
   try {
-    const { roomId, userId, seatIndex, nickname } = req.body;
+    const { roomId, userId, seatIndex, nickname, requestedChips = 1000 } = req.body;
     
-    console.log('🪑 [MINIMAL] Claim seat:', { roomId, userId, seatIndex, nickname });
+    console.log('🪑 [MINIMAL] Claim seat:', { roomId, userId, seatIndex, nickname, requestedChips });
     
     // Validate input
     if (!roomId || !userId || seatIndex === undefined) {
@@ -152,6 +162,19 @@ router.post('/claim-seat', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
+    // Check room status (is game active?)
+    const roomResult = await db.query(
+      'SELECT status, host_user_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const roomStatus = roomResult.rows[0].status;
+    const isGameActive = roomStatus === 'ACTIVE';
+    
     // Check if seat is available
     const checkResult = await db.query(
       `SELECT user_id FROM room_seats 
@@ -166,8 +189,56 @@ router.post('/claim-seat', async (req, res) => {
       });
     }
     
+    // If game is active, create seat request (requires host approval)
+    if (isGameActive) {
+      // Get username for notification
+      const usernameResult = await db.query(
+        'SELECT username, display_name FROM user_profiles WHERE id = $1',
+        [userId]
+      );
+      const displayName = usernameResult.rows[0]?.username || usernameResult.rows[0]?.display_name || `Guest_${userId.substring(0, 6)}`;
+      
+      // Create or update seat request
+      const requestResult = await db.query(`
+        INSERT INTO seat_requests (room_id, user_id, seat_index, requested_chips, status)
+        VALUES ($1, $2, $3, $4, 'PENDING')
+        ON CONFLICT (room_id, user_id) WHERE status = 'PENDING'
+        DO UPDATE SET seat_index = $3, requested_chips = $4, requested_at = NOW()
+        RETURNING id
+      `, [roomId, userId, seatIndex, requestedChips]);
+      
+      console.log('✅ [MINIMAL] Seat request created:', { requestId: requestResult.rows[0].id, roomId, userId, seatIndex });
+      
+      // Notify host via WebSocket
+      const io = req.app.locals.io;
+      if (io) {
+        io.to(`room:${roomId}`).emit('seat_request_pending', {
+          requestId: requestResult.rows[0].id,
+          userId,
+          username: displayName,
+          seatIndex,
+          requestedChips,
+          requestedAt: new Date().toISOString()
+        });
+        
+        // Also notify the requester
+        io.to(`user:${userId}`).emit('seat_request_sent', {
+          requestId: requestResult.rows[0].id,
+          seatIndex,
+          message: 'Seat request sent to host. Waiting for approval...'
+        });
+      }
+      
+      return res.json({ 
+        success: true, 
+        requiresApproval: true,
+        requestId: requestResult.rows[0].id,
+        message: 'Seat request sent to host'
+      });
+    }
+    
+    // Pre-game: Direct claim (no approval needed)
     // Ensure user profile exists (for guest users)
-    // This prevents foreign key constraint violations
     try {
       await db.query(
         `INSERT INTO user_profiles (id, username, created_at)
@@ -184,8 +255,8 @@ router.post('/claim-seat', async (req, res) => {
     
     // Claim the seat with nickname
     const insertResult = await db.query(
-      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, nickname, joined_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, nickname, joined_at, is_spectator)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), FALSE)
        ON CONFLICT (room_id, seat_index) 
        DO UPDATE SET 
          user_id = $2,
@@ -193,14 +264,15 @@ router.post('/claim-seat', async (req, res) => {
          status = $5,
          nickname = $6,
          joined_at = NOW(),
-         left_at = NULL
+         left_at = NULL,
+         is_spectator = FALSE
        RETURNING *`,
-      [roomId, userId, seatIndex, 1000, 'SEATED', finalNickname]
+      [roomId, userId, seatIndex, requestedChips, 'SEATED', finalNickname]
     );
     
     const seat = insertResult.rows[0];
     
-    console.log('✅ [MINIMAL] Seat claimed:', seat);
+    console.log('✅ [MINIMAL] Seat claimed directly (pre-game):', seat);
     
     // Broadcast to room (if Socket.IO available)
     const io = req.app.locals.io;
@@ -216,11 +288,13 @@ router.post('/claim-seat', async (req, res) => {
     
     res.json({ 
       success: true, 
+      requiresApproval: false,
       seat: {
         seatIndex: seat.seat_index,
         userId: seat.user_id,
         chips: seat.chips_in_play,
-        status: seat.status
+        status: seat.status,
+        nickname: seat.nickname
       }
     });
     
@@ -427,29 +501,34 @@ router.post('/deal-cards', async (req, res) => {
       console.warn('⚠️ Could not fetch last dealer, defaulting to 0:', rotationError.message);
       dealerPosition = 0;
     }
-    const sbPosition = (dealerPosition + 1) % players.length;
-    const bbPosition = (dealerPosition + 2) % players.length;
-    
-    // Heads-up exception: dealer posts SB, other player posts BB
+    // HEADS-UP LOGIC: In heads-up (2 players), dealer posts SB, other posts BB
+    // Normal (3+ players): SB = dealer+1, BB = dealer+2
+    let sbPosition, bbPosition;
     if (players.length === 2) {
-      players[dealerPosition].bet = small_blind;
-      players[dealerPosition].chips -= small_blind;
-      players[(dealerPosition + 1) % 2].bet = big_blind;
-      players[(dealerPosition + 1) % 2].chips -= big_blind;
+      // Heads-up: dealer = SB, other = BB
+      sbPosition = dealerPosition;
+      bbPosition = (dealerPosition + 1) % 2;
     } else {
-      // 3+ players: normal blinds
-      players[sbPosition].bet = small_blind;
-      players[sbPosition].chips -= small_blind;
-      players[bbPosition].bet = big_blind;
-      players[bbPosition].chips -= big_blind;
+      // Normal: SB = dealer+1, BB = dealer+2
+      sbPosition = (dealerPosition + 1) % players.length;
+      bbPosition = (dealerPosition + 2) % players.length;
     }
+    
+    // Post blinds
+    players[sbPosition].bet = small_blind;
+    players[sbPosition].chips -= small_blind;
+    players[sbPosition].betThisStreet = small_blind; // Track street bet
+    
+    players[bbPosition].bet = big_blind;
+    players[bbPosition].chips -= big_blind;
+    players[bbPosition].betThisStreet = big_blind; // Track street bet
     
     const pot = small_blind + big_blind;
     
     console.log(`💰 Blinds posted: SB=${small_blind}, BB=${big_blind}, Pot=${pot}`);
     
     // ===== STEP 4: DETERMINE FIRST ACTOR =====
-    // First to act is player after BB (in heads-up, it's the dealer/SB)
+    // First to act: after BB in normal play, dealer/SB in heads-up
     const firstActorIndex = players.length === 2 ? dealerPosition : (bbPosition + 1) % players.length;
     const currentActorSeat = players[firstActorIndex].seatIndex;
     
@@ -462,17 +541,19 @@ router.post('/deal-cards', async (req, res) => {
       street: 'PREFLOP',
       pot,
       currentBet: big_blind,
+      minRaise: big_blind, // Initialize min raise to big blind (minimum raise amount)
       communityCards: [],
       deck: deck, // Remaining cards for flop/turn/river
       dealerPosition: players[dealerPosition].seatIndex,
-      sbPosition: players.length === 2 ? players[dealerPosition].seatIndex : players[sbPosition].seatIndex,
-      bbPosition: players.length === 2 ? players[(dealerPosition + 1) % 2].seatIndex : players[bbPosition].seatIndex,
+      sbPosition: players[sbPosition].seatIndex,
+      bbPosition: players[bbPosition].seatIndex,
       currentActorSeat,
       players: players.map(p => ({
         userId: p.userId,
         seatIndex: p.seatIndex,
         chips: p.chips,
         bet: p.bet,
+        betThisStreet: p.bet || 0, // Track bet on current street (starts with blinds)
         holeCards: p.holeCards, // Stored in DB but only sent to card owner
         folded: p.folded,
         status: p.status
@@ -688,6 +769,16 @@ router.post('/action', async (req, res) => {
     const gameStateId = gameStateResult.rows[0].id;
     const currentState = gameStateResult.rows[0].current_state;
     
+    // BACKWARDS COMPATIBILITY: Ensure betThisStreet exists for all players
+    if (currentState.players) {
+      currentState.players.forEach(p => {
+        if (p.betThisStreet === undefined) {
+          // Initialize betThisStreet from bet (approximation for old hands)
+          p.betThisStreet = p.bet || 0;
+        }
+      });
+    }
+    
     // ===== STEP 2: PROCESS ACTION (PRODUCTION LOGIC) =====
     const result = MinimalBettingAdapter.processAction(currentState, userId, action, amount);
     
@@ -718,37 +809,138 @@ router.post('/action', async (req, res) => {
         chips: p.chips 
       })));
       
-      // Update room_seats with final chip counts
-      for (const player of updatedState.players) {
-        console.log(`   🔄 Attempting UPDATE for ${player.userId.substr(0, 8)}: chips=${player.chips}, roomId=${roomId.substr(0, 8)}`);
+      // ✅ TRANSACTION: Wrap all hand completion writes for atomicity
+      const client = await db.connect();
+      try {
+        await client.query('BEGIN');
+        console.log('   🔒 Transaction started');
         
-        const updateResult = await db.query(
-          `UPDATE room_seats 
-           SET chips_in_play = $1 
-           WHERE room_id = $2 AND user_id = $3
-           RETURNING user_id, chips_in_play`,
-          [player.chips, roomId, player.userId]
+        // Update room_seats with final chip counts and auto-kick busted players
+        const bustedPlayers = [];
+        for (const player of updatedState.players) {
+          console.log(`   🔄 Attempting UPDATE for ${player.userId.substr(0, 8)}: chips=${player.chips}, roomId=${roomId.substr(0, 8)}`);
+          
+          // Check if player is busted (chips === 0)
+          if (player.chips === 0) {
+            bustedPlayers.push({
+              userId: player.userId,
+              seatIndex: player.seatIndex
+            });
+          }
+          
+          const updateResult = await client.query(
+            `UPDATE room_seats 
+             SET chips_in_play = $1 
+             WHERE room_id = $2 AND user_id = $3
+             RETURNING user_id, chips_in_play`,
+            [player.chips, roomId, player.userId]
+          );
+          
+          if (updateResult.rows.length === 0) {
+            console.error(`   ❌ UPDATE failed - no rows matched! userId=${player.userId.substr(0, 8)}, roomId=${roomId.substr(0, 8)}`);
+            throw new Error(`Failed to update chips for player ${player.userId.substr(0, 8)}`);
+          } else {
+            console.log(`   ✅ Updated chips for ${updateResult.rows[0].user_id.substr(0, 8)}: $${updateResult.rows[0].chips_in_play}`);
+          }
+        }
+        
+        // Auto-kick busted players (chips === 0)
+        if (bustedPlayers.length > 0) {
+          console.log(`   💀 Auto-kicking ${bustedPlayers.length} busted player(s)`);
+          for (const busted of bustedPlayers) {
+            await client.query(
+              `UPDATE room_seats 
+               SET left_at = NOW(), status = 'LEFT' 
+               WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
+              [roomId, busted.userId]
+            );
+            console.log(`   ✅ Auto-kicked busted player: ${busted.userId.substr(0, 8)} from seat ${busted.seatIndex}`);
+          }
+        }
+        
+        // Mark game_states as completed
+        await client.query(
+          `UPDATE game_states 
+           SET status = 'completed' 
+           WHERE room_id = $1 AND status = 'active'`,
+          [roomId]
         );
         
-        if (updateResult.rows.length === 0) {
-          console.error(`   ❌ UPDATE failed - no rows matched! userId=${player.userId.substr(0, 8)}, roomId=${roomId.substr(0, 8)}`);
-        } else {
-          console.log(`   ✅ Updated chips for ${updateResult.rows[0].user_id.substr(0, 8)}: $${updateResult.rows[0].chips_in_play}`);
+        // Commit transaction - chip updates and auto-kicks are now atomic
+        await client.query('COMMIT');
+        console.log('   ✅ Transaction committed - chip updates and auto-kicks atomic');
+        
+        // Broadcast busted player events (after commit)
+        if (bustedPlayers.length > 0) {
+          const io = req.app.locals.io;
+          if (io) {
+            for (const busted of bustedPlayers) {
+              io.to(`room:${roomId}`).emit('player_busted', {
+                userId: busted.userId,
+                seatIndex: busted.seatIndex,
+                message: 'Player busted and removed from table'
+              });
+              
+              // Notify the busted player
+              io.to(`user:${busted.userId}`).emit('you_busted', {
+                message: 'You went all-in and lost. You can request a seat again.',
+                canRequestSeat: true
+              });
+            }
+          }
         }
+      } catch (error) {
+        // Rollback on any error
+        await client.query('ROLLBACK');
+        console.error('   ❌ Transaction rolled back due to error:', error.message);
+        throw error; // Re-throw to be handled by outer try/catch
+      } finally {
+        client.release(); // Always release the client back to the pool
       }
       
-      // Mark game_states as completed
-      await db.query(
-        `UPDATE game_states 
-         SET status = 'completed' 
-         WHERE room_id = $1 AND status = 'active'`,
-        [roomId]
-      );
+      // ===== EMIT HAND COMPLETE EVENT =====
+      const io = req.app.locals.io;
+      if (io && roomId) {
+        const winners = updatedState.winners || [];
+        const publicState = {
+          ...updatedState,
+          players: updatedState.players.map(p => ({
+            userId: p.userId,
+            seatIndex: p.seatIndex,
+            chips: p.chips,
+            bet: p.bet,
+            folded: p.folded,
+            status: p.status,
+            nickname: p.nickname || `Player_${p.seatIndex}`
+          }))
+        };
+        
+        io.to(`room:${roomId}`).emit('hand_complete', {
+          type: 'hand_complete',
+          roomId,
+          gameState: publicState,
+          winners: winners.map(w => ({
+            userId: w.userId,
+            seatIndex: w.seatIndex,
+            amount: w.amount,
+            handDescription: w.handDescription
+          })),
+          finalPot: updatedState.finalPotSize || updatedState.pot || 0
+        });
+        
+        console.log(`📡 [MINIMAL] Emitted hand_complete event to room:${roomId}`);
+      }
       
       // ===== STEP 3C: EXTRACT HAND DATA TO HISTORY =====
       console.log('📊 [MINIMAL] Extracting hand data to hand_history + player_statistics');
       
       try {
+        // ✅ TRANSACTION: Wrap all hand history writes for atomicity
+        const historyClient = await db.connect();
+        try {
+          await historyClient.query('BEGIN');
+          console.log('   🔒 Transaction started for hand history');
+        
         // Helper function to get hand rank from description
         const getHandRank = (handDescription) => {
           if (!handDescription) return 10;
@@ -765,34 +957,45 @@ router.post('/action', async (req, res) => {
           return 10; // High card
         };
         
+        // ✅ USE SNAPSHOT BEFORE SHOWDOWN (captured before any mutations)
+        // This ensures accurate pot size, chip counts, and bets for hand history
+        const snapshot = updatedState.snapshotBeforeShowdown || {
+          pot: updatedState.finalPotSize || updatedState.pot || 0,
+          players: updatedState.players,
+          communityCards: updatedState.communityCards || [],
+          dealerPosition: updatedState.dealerPosition,
+          sbPosition: updatedState.sbPosition,
+          bbPosition: updatedState.bbPosition,
+          actionHistory: updatedState.actionHistory || []
+        };
+        
         // Extract winner data
         const winner = (updatedState.winners && updatedState.winners[0]) ? updatedState.winners[0] : null;
         const winnerId = winner ? winner.userId : null;
         const winningHand = winner ? winner.handDescription : null;
         const handRank = getHandRank(winningHand);
         
-        // Extract all player IDs
-        const playerIds = updatedState.players.map(p => p.userId);
+        // Extract all player IDs from snapshot
+        const playerIds = snapshot.players.map(p => p.userId);
         
-        // ✅ USE FINAL POT SIZE (captured before zeroing)
-        const potSize = updatedState.finalPotSize || updatedState.pot || 0;
+        // ✅ USE POT SIZE FROM SNAPSHOT (before zeroing)
+        const potSize = snapshot.pot || 0;
         
-        // Extract position data
-        const dealerPosition = updatedState.dealerPosition !== undefined ? updatedState.dealerPosition : null;
-        const sbPosition = updatedState.sbPosition !== undefined ? updatedState.sbPosition : null;
-        const bbPosition = updatedState.bbPosition !== undefined ? updatedState.bbPosition : null;
+        // Extract position data from snapshot
+        const dealerPosition = snapshot.dealerPosition !== undefined ? snapshot.dealerPosition : null;
+        const sbPosition = snapshot.sbPosition !== undefined ? snapshot.sbPosition : null;
+        const bbPosition = snapshot.bbPosition !== undefined ? snapshot.bbPosition : null;
         
-        // Calculate starting stacks (current stack + total bet this hand)
-        // Note: We approximate starting stacks by adding back bets, but ideally we'd store this at hand start
+        // Calculate starting stacks from snapshot (chips + bets = starting stack)
         const startingStacks = {};
-        const playersWithStacks = updatedState.players.map(p => {
-          // Estimate starting stack: current stack + betThisHand (if available) or use current stack as approximation
-          const startingStack = p.stack + (p.betThisHand || p.bet || 0);
+        const playersWithStacks = snapshot.players.map(p => {
+          // Starting stack = current chips + total bet (from snapshot, before distribution)
+          const startingStack = p.chips + (p.bet || 0);
           startingStacks[p.seatIndex] = startingStack;
           return {
             userId: p.userId,
             seatIndex: p.seatIndex,
-            cards: p.hand || p.holeCards || [],
+            cards: p.holeCards || [],
             revealed: winner && p.userId === winnerId, // Only winner's cards revealed
             stack: startingStack
           };
@@ -802,29 +1005,29 @@ router.post('/action', async (req, res) => {
         const HandEncoder = require('../public/js/hand-encoder.js');
         const encodedHand = HandEncoder.encode({
           players: playersWithStacks,
-          board: updatedState.communityCards || [],
+          board: snapshot.communityCards || [],
           winner: winner ? winner.seatIndex : null,
           rank: handRank,
           pot: potSize,
           dealerPosition: dealerPosition,
-          actions: (updatedState.actionHistory || []).map(a => ({
+          actions: snapshot.actionHistory.map(a => ({
             seatIndex: a.seatIndex || 0,
             action: a.action,
             amount: a.amount || 0,
-            street: a.street || updatedState.street || 'PREFLOP' // Include street if available
+            street: a.street || 'PREFLOP' // Include street if available
           }))
         });
         
         console.log(`   📦 Encoded hand: ${encodedHand.substring(0, 60)}... (${encodedHand.length} chars)`);
         
         // Calculate size savings
-        const jsonSize = JSON.stringify(updatedState.actionHistory || []).length;
+        const jsonSize = JSON.stringify(snapshot.actionHistory || []).length;
         const encodedSize = encodedHand.length;
         const savings = Math.round((1 - encodedSize / jsonSize) * 100);
         console.log(`   💾 Storage: ${encodedSize} bytes (${savings}% smaller than JSON)`);
         
         // 1. INSERT HAND_HISTORY (with ALL required fields + ENCODED + POSITIONS)
-        const handHistoryInsert = await db.query(
+        const handHistoryInsert = await historyClient.query(
           `INSERT INTO hand_history (
             game_id, room_id, hand_number, pot_size, 
             player_ids, winner_id, winning_hand, hand_rank,
@@ -861,7 +1064,7 @@ router.post('/action', async (req, res) => {
         for (const player of updatedState.players) {
           const isWinner = winnerIds.has(player.userId);
           
-          await db.query(
+          await historyClient.query(
             `INSERT INTO player_statistics (user_id, total_hands_played, total_hands_won, last_hand_played_at, created_at)
              VALUES ($1, 1, $2, NOW(), NOW())
              ON CONFLICT (user_id) DO UPDATE SET
@@ -872,12 +1075,22 @@ router.post('/action', async (req, res) => {
             [player.userId, isWinner ? 1 : 0]
           );
           
-          console.log(`   ✅ player_statistics updated: ${player.userId.substr(0, 8)} (won: ${isWinner})`);
+          // Update user_profiles.total_hands_played (triggers rank update)
+          await historyClient.query(
+            `UPDATE user_profiles
+             SET total_hands_played = COALESCE(total_hands_played, 0) + 1,
+                 total_wins = COALESCE(total_wins, 0) + $2,
+                 updated_at = NOW()
+             WHERE id = $1`,
+            [player.userId, isWinner ? 1 : 0]
+          );
+          
+          console.log(`   ✅ player_statistics + user_profiles updated: ${player.userId.substr(0, 8)} (won: ${isWinner})`);
         }
         
         // 3. UPDATE BIGGEST_POT FOR WINNERS (backup to trigger)
         if (winner && potSize > 0) {
-          await db.query(`
+          await historyClient.query(`
             UPDATE user_profiles
             SET 
               biggest_pot = GREATEST(COALESCE(biggest_pot, 0), $1),
@@ -888,42 +1101,52 @@ router.post('/action', async (req, res) => {
           console.log(`   💰 Updated biggest_pot for ${winnerId.substr(0, 8)}: $${potSize}`);
         }
         
+        // Commit transaction - all hand history writes are now atomic
+        await historyClient.query('COMMIT');
+        console.log('   ✅ Transaction committed - hand history writes atomic');
         console.log('📊 [MINIMAL] Data extraction complete - triggers will sync to user_profiles');
+      } catch (error) {
+        // Rollback on any error
+        await historyClient.query('ROLLBACK');
+        console.error('   ❌ Transaction rolled back due to error:', error.message);
+        throw error; // Re-throw to be handled by outer try/catch
+      } finally {
+        historyClient.release(); // Always release the client back to the pool
+      }
+      
+      // ===== EMIT DATA EXTRACTION EVENT FOR ANALYTICS =====
+      // Reuse io from hand_complete event section (line 795)
+      if (io && roomId) {
+        io.to(`room:${roomId}`).emit('data_extracted', {
+          type: 'hand_extraction',
+          timestamp: Date.now(),
+          data: {
+            roomId,
+            handNumber: updatedState.handNumber,
+            pot: potSize,
+            winner: winnerId ? {
+              userId: winnerId,
+              hand: winningHand,
+              rank: handRank
+            } : null,
+            players: playerIds,
+            board: updatedState.communityCards,
+            extractionTime: Date.now() - (updatedState.handStartTime || Date.now()),
+            encodedHand: encodedHand,  // ✅ Send encoded format to Analytics
+            encodedSize: encodedHand.length,
+            savings: savings  // Storage savings percentage
+          }
+        });
         
-        // ===== EMIT DATA EXTRACTION EVENT FOR ANALYTICS =====
-        const io = req.app.locals.io;
-        if (io && roomId) {
-          io.to(`room:${roomId}`).emit('data_extracted', {
-            type: 'hand_extraction',
-            timestamp: Date.now(),
-            data: {
-              roomId,
-              handNumber: updatedState.handNumber,
-              pot: potSize,
-              winner: winnerId ? {
-                userId: winnerId,
-                hand: winningHand,
-                rank: handRank
-              } : null,
-              players: playerIds,
-              board: updatedState.communityCards,
-              extractionTime: Date.now() - (updatedState.handStartTime || Date.now()),
-              encodedHand: encodedHand,  // ✅ Send encoded format to Analytics
-              encodedSize: encodedHand.length,
-              savings: savings  // Storage savings percentage
-            }
-          });
-          
-          console.log('📡 [ANALYTICS] Emitted data_extracted event with PHE encoding');
-        }
-        
+        console.log('📡 [ANALYTICS] Emitted data_extracted event with PHE encoding');
+      }
       } catch (extractionError) {
         console.error('❌ [MINIMAL] Data extraction failed (non-critical):', extractionError.message);
         
         // Emit failure event
-        const io = req.app.locals.io;
-        if (io && roomId) {
-          io.to(`room:${roomId}`).emit('data_extraction_failed', {
+        const ioExtraction = req.app.locals.io;
+        if (ioExtraction && roomId) {
+          ioExtraction.to(`room:${roomId}`).emit('data_extraction_failed', {
             type: 'extraction_error',
             timestamp: Date.now(),
             error: extractionError.message
@@ -1321,6 +1544,7 @@ router.post('/next-hand', async (req, res) => {
       street: 'PREFLOP',
       pot,
       currentBet: big_blind,
+      minRaise: big_blind, // Initialize min raise to big blind (minimum raise amount)
       communityCards: [],
       deck: deck, // Remaining cards
       dealerPosition: dealerSeatIndex,
@@ -1332,6 +1556,16 @@ router.post('/next-hand', async (req, res) => {
       status: 'IN_PROGRESS',
       createdAt: new Date().toISOString()
     };
+    
+    // ===== STEP 9.5: MARK OLD GAME STATES AS COMPLETED =====
+    // Ensure only one active game state exists per room
+    await db.query(
+      `UPDATE game_states 
+       SET status = 'completed' 
+       WHERE room_id = $1 AND status = 'active'`,
+      [roomId]
+    );
+    console.log('🧹 [GAME] Marked old game states as completed');
     
     // ===== STEP 10: SAVE TO DATABASE =====
     await db.query(
@@ -1673,6 +1907,14 @@ router.post('/showdown-action', async (req, res) => {
     const player = gameState.players.find(p => p.userId === userId);
     if (!player) {
       return res.status(404).json({ error: 'Player not in game' });
+    }
+    
+    // PRINCIPLE: Only players who reached showdown (didn't fold) can show/muck
+    if (player.folded) {
+      return res.status(400).json({ 
+        error: 'Cannot show/muck - you folded before showdown',
+        playerFolded: true
+      });
     }
     
     // Track the action

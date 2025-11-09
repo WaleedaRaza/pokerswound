@@ -1221,6 +1221,27 @@ body {
   color: var(--text);
 }
 
+/* Ensure profile tile is clickable - override any liquid glass pointer-events */
+.user-profile-tile {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 100;
+}
+
+/* Ensure profile tile content is above liquid glass pseudo-elements */
+.user-profile-tile > * {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1001 !important; /* Above liquid-glass-tile pseudo-elements (z-index: 1000) */
+}
+
+/* Override liquid-glass-tile pseudo-elements for profile tile */
+.user-profile-tile.liquid-glass-tile::before,
+.user-profile-tile.liquid-glass-tile::after {
+  pointer-events: none !important; /* Ensure glass effect doesn't block clicks */
+}
+
 /* User Dropdown Menu */
 .user-dropdown {
   display: none;
@@ -2716,6 +2737,7 @@ h1, h2, h3, h4, h5, h6, p, div, section, article, .section-title, .stat-item {
   border-radius: 20px;
   box-shadow: inset 0 0 var(--glass-shadow-blur) var(--glass-shadow-spread) var(--glass-shadow-color);
   background-color: rgba(255, 255, 255, var(--glass-tint-opacity));
+  pointer-events: none; /* Don't block clicks */
 }
 
 .hero-content::after {
@@ -2727,6 +2749,7 @@ h1, h2, h3, h4, h5, h6, p, div, section, article, .section-title, .stat-item {
   backdrop-filter: blur(var(--glass-frost-blur));
   -webkit-backdrop-filter: blur(var(--glass-frost-blur));
   filter: url(#glass-distortion);
+  pointer-events: none; /* Don't block clicks */
 }
 
 .hero-content:hover {

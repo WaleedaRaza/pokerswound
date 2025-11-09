@@ -156,9 +156,9 @@ router.get('/:roomId/seats', async (req, res) => {
 router.post('/:roomId/claim-seat', async (req, res) => {
   try {
     const { roomId } = req.params;
-    const { userId, seatIndex, username } = req.body;
+    const { userId, seatIndex, username, requestedChips = 1000 } = req.body;
     
-    console.log('🪑 Claim seat request:', { roomId, userId, seatIndex, username });
+    console.log('🪑 Claim seat request:', { roomId, userId, seatIndex, username, requestedChips });
     
     if (!userId || seatIndex === undefined) {
       return res.status(400).json({ error: 'Missing userId or seatIndex' });
@@ -168,9 +168,22 @@ router.post('/:roomId/claim-seat', async (req, res) => {
     const db = getDb();
     if (!db) return res.status(500).json({ error: 'Database not configured' });
     
+    // Check room status (is game active?)
+    const roomResult = await db.query(
+      'SELECT status, host_user_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const roomStatus = roomResult.rows[0].status;
+    const isGameActive = roomStatus === 'ACTIVE';
+    
     // Check if seat is available
     const existing = await db.query(
-      'SELECT * FROM room_seats WHERE room_id = $1 AND seat_index = $2',
+      'SELECT * FROM room_seats WHERE room_id = $1 AND seat_index = $2 AND left_at IS NULL',
       [roomId, seatIndex]
     );
     
@@ -178,15 +191,63 @@ router.post('/:roomId/claim-seat', async (req, res) => {
       return res.status(409).json({ error: 'Seat already taken' });
     }
     
-    // Claim the seat (1000 starting chips by default)
-    await db.query(`
-      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status)
-      VALUES ($1, $2, $3, 1000, 'SEATED')
-      ON CONFLICT (room_id, seat_index) 
-      DO UPDATE SET user_id = $2, chips_in_play = 1000, status = 'SEATED', left_at = NULL
-    `, [roomId, userId, seatIndex]);
+    // If game is active, create seat request (requires host approval)
+    if (isGameActive) {
+      // Get username for notification
+      const usernameResult = await db.query(
+        'SELECT username, display_name FROM user_profiles WHERE id = $1',
+        [userId]
+      );
+      const displayName = usernameResult.rows[0]?.username || usernameResult.rows[0]?.display_name || `Guest_${userId.substring(0, 6)}`;
+      
+      // Create or update seat request
+      const requestResult = await db.query(`
+        INSERT INTO seat_requests (room_id, user_id, seat_index, requested_chips, status)
+        VALUES ($1, $2, $3, $4, 'PENDING')
+        ON CONFLICT (room_id, user_id) WHERE status = 'PENDING'
+        DO UPDATE SET seat_index = $3, requested_chips = $4, requested_at = NOW()
+        RETURNING id
+      `, [roomId, userId, seatIndex, requestedChips]);
+      
+      console.log('✅ Seat request created:', { requestId: requestResult.rows[0].id, roomId, userId, seatIndex });
+      
+      // Notify host via WebSocket
+      const io = req.app.locals.io;
+      if (io) {
+        io.to(`room:${roomId}`).emit('seat_request_pending', {
+          requestId: requestResult.rows[0].id,
+          userId,
+          username: displayName,
+          seatIndex,
+          requestedChips,
+          requestedAt: new Date().toISOString()
+        });
+        
+        // Also notify the requester
+        io.to(`user:${userId}`).emit('seat_request_sent', {
+          requestId: requestResult.rows[0].id,
+          seatIndex,
+          message: 'Seat request sent to host. Waiting for approval...'
+        });
+      }
+      
+      return res.json({ 
+        success: true, 
+        requiresApproval: true,
+        requestId: requestResult.rows[0].id,
+        message: 'Seat request sent to host'
+      });
+    }
     
-    console.log('✅ Seat claimed:', { roomId, userId, seatIndex });
+    // Pre-game: Direct claim (no approval needed)
+    await db.query(`
+      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, is_spectator)
+      VALUES ($1, $2, $3, $4, 'SEATED', FALSE)
+      ON CONFLICT (room_id, seat_index) 
+      DO UPDATE SET user_id = $2, chips_in_play = $4, status = 'SEATED', left_at = NULL, is_spectator = FALSE
+    `, [roomId, userId, seatIndex, requestedChips]);
+    
+    console.log('✅ Seat claimed directly (pre-game):', { roomId, userId, seatIndex });
     
     // Broadcast seat update
     const io = req.app.locals.io;
@@ -199,7 +260,7 @@ router.post('/:roomId/claim-seat', async (req, res) => {
       });
     }
     
-    res.json({ success: true, seatIndex });
+    res.json({ success: true, seatIndex, requiresApproval: false });
   } catch (error) {
     console.error('❌ Claim seat error:', error);
     res.status(500).json({ error: error.message });
@@ -1884,6 +1945,258 @@ router.post('/:roomId/pause-game', withIdempotency, async (req, res) => {
     res.json({ ok: true, status: 'PAUSED' });
   } catch (error) {
     console.error('Pause game error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// SEAT REQUEST MANAGEMENT
+// ============================================
+
+// GET /api/rooms/:roomId/seat-requests - Get pending seat requests (host only)
+router.get('/:roomId/seat-requests', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const hostId = req.query.hostId || req.body.hostId;
+    
+    if (!hostId) {
+      return res.status(400).json({ error: 'Missing hostId' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify host
+    const roomCheck = await db.query(
+      'SELECT host_user_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomCheck.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Only host can view seat requests' });
+    }
+    
+    // Get pending requests with user info
+    const requestsResult = await db.query(`
+      SELECT 
+        sr.id,
+        sr.user_id,
+        sr.seat_index,
+        sr.requested_chips,
+        sr.requested_at,
+        up.username,
+        up.display_name
+      FROM seat_requests sr
+      LEFT JOIN user_profiles up ON sr.user_id = up.id
+      WHERE sr.room_id = $1 AND sr.status = 'PENDING'
+      ORDER BY sr.requested_at ASC
+    `, [roomId]);
+    
+    const requests = requestsResult.rows.map(row => ({
+      id: row.id,
+      userId: row.user_id,
+      username: row.username || row.display_name || `Guest_${row.user_id.substring(0, 6)}`,
+      seatIndex: row.seat_index,
+      requestedChips: row.requested_chips,
+      requestedAt: row.requested_at
+    }));
+    
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error('❌ Get seat requests error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/rooms/:roomId/approve-seat-request - Host approves seat request
+router.post('/:roomId/approve-seat-request', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { hostId, requestId, approvedChips } = req.body;
+    
+    if (!hostId || !requestId) {
+      return res.status(400).json({ error: 'Missing hostId or requestId' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify host
+    const roomCheck = await db.query(
+      'SELECT host_user_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomCheck.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Only host can approve seat requests' });
+    }
+    
+    // Get request details
+    const requestResult = await db.query(
+      'SELECT * FROM seat_requests WHERE id = $1 AND room_id = $2 AND status = $3',
+      [requestId, roomId, 'PENDING']
+    );
+    
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Seat request not found or already processed' });
+    }
+    
+    const request = requestResult.rows[0];
+    const finalChips = approvedChips !== undefined ? approvedChips : request.requested_chips;
+    
+    // Check if seat is still available
+    const seatCheck = await db.query(
+      'SELECT * FROM room_seats WHERE room_id = $1 AND seat_index = $2 AND left_at IS NULL',
+      [roomId, request.seat_index]
+    );
+    
+    if (seatCheck.rows.length > 0 && seatCheck.rows[0].user_id !== request.user_id) {
+      // Seat was taken - reject request
+      await db.query(
+        'UPDATE seat_requests SET status = $1, resolved_at = NOW(), resolved_by = $2 WHERE id = $3',
+        ['REJECTED', hostId, requestId]
+      );
+      return res.status(409).json({ error: 'Seat is no longer available' });
+    }
+    
+    // Create/update seat
+    await db.query(`
+      INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, status, is_spectator)
+      VALUES ($1, $2, $3, $4, 'SEATED', FALSE)
+      ON CONFLICT (room_id, seat_index) 
+      DO UPDATE SET user_id = $2, chips_in_play = $4, status = 'SEATED', left_at = NULL, is_spectator = FALSE
+    `, [roomId, request.user_id, request.seat_index, finalChips]);
+    
+    // Mark request as approved
+    await db.query(
+      'UPDATE seat_requests SET status = $1, resolved_at = NOW(), resolved_by = $2 WHERE id = $3',
+      ['APPROVED', hostId, requestId]
+    );
+    
+    // Cancel any other pending requests from this user
+    await db.query(
+      'UPDATE seat_requests SET status = $1, resolved_at = NOW(), resolved_by = $2 WHERE room_id = $3 AND user_id = $4 AND status = $5 AND id != $6',
+      ['CANCELLED', hostId, roomId, request.user_id, 'PENDING', requestId]
+    );
+    
+    console.log(`✅ Seat request approved: User ${request.user_id.substr(0, 8)} -> Seat ${request.seat_index} with $${finalChips}`);
+    
+    // Broadcast updates
+    const io = req.app.locals.io;
+    if (io) {
+      // Notify requester
+      io.to(`user:${request.user_id}`).emit('seat_request_approved', {
+        requestId,
+        seatIndex: request.seat_index,
+        chips: finalChips,
+        message: 'Your seat request was approved!'
+      });
+      
+      // Broadcast seat update to room
+      io.to(`room:${roomId}`).emit('seat_update', {
+        type: 'seat_claimed',
+        roomId,
+        seatIndex: request.seat_index,
+        userId: request.user_id
+      });
+      
+      // Notify host that request was processed
+      io.to(`room:${roomId}`).emit('seat_request_resolved', {
+        requestId,
+        status: 'APPROVED',
+        userId: request.user_id
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      seatIndex: request.seat_index,
+      chips: finalChips 
+    });
+  } catch (error) {
+    console.error('❌ Approve seat request error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/rooms/:roomId/reject-seat-request - Host rejects seat request
+router.post('/:roomId/reject-seat-request', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { hostId, requestId } = req.body;
+    
+    if (!hostId || !requestId) {
+      return res.status(400).json({ error: 'Missing hostId or requestId' });
+    }
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) return res.status(500).json({ error: 'Database not configured' });
+    
+    // Verify host
+    const roomCheck = await db.query(
+      'SELECT host_user_id FROM rooms WHERE id = $1',
+      [roomId]
+    );
+    
+    if (roomCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomCheck.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Only host can reject seat requests' });
+    }
+    
+    // Get request to get user_id
+    const requestResult = await db.query(
+      'SELECT user_id FROM seat_requests WHERE id = $1 AND room_id = $2 AND status = $3',
+      [requestId, roomId, 'PENDING']
+    );
+    
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Seat request not found or already processed' });
+    }
+    
+    const userId = requestResult.rows[0].user_id;
+    
+    // Mark request as rejected
+    await db.query(
+      'UPDATE seat_requests SET status = $1, resolved_at = NOW(), resolved_by = $2 WHERE id = $3',
+      ['REJECTED', hostId, requestId]
+    );
+    
+    console.log(`❌ Seat request rejected: Request ${requestId}`);
+    
+    // Broadcast rejection
+    const io = req.app.locals.io;
+    if (io) {
+      // Notify requester
+      io.to(`user:${userId}`).emit('seat_request_rejected', {
+        requestId,
+        message: 'Your seat request was rejected by the host'
+      });
+      
+      // Notify host
+      io.to(`room:${roomId}`).emit('seat_request_resolved', {
+        requestId,
+        status: 'REJECTED',
+        userId
+      });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Reject seat request error:', error);
     res.status(500).json({ error: error.message });
   }
 });

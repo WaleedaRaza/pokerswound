@@ -454,29 +454,58 @@
       border-color: #ff6666;
     }
     
-    /* 🏆 WINNER BANNER */
+    /* 🏆 WINNER BANNER - Modern Design */
     .winner-banner {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95));
-      border: 3px solid gold;
-      border-radius: 16px;
-      padding: 30px 50px;
+      background: linear-gradient(135deg, rgba(15,15,25,0.98), rgba(20,20,30,0.98));
+      border: 2px solid #ff5100;
+      border-radius: 20px;
+      padding: 40px 60px;
       font-size: 2rem;
       font-weight: 700;
-      color: #0b0b12;
-      box-shadow: 0 10px 40px rgba(255,215,0,0.6);
+      color: #e9eef7;
+      box-shadow: 0 16px 48px rgba(255, 81, 0, 0.4), 0 0 0 1px rgba(255, 81, 0, 0.2);
       z-index: 1000;
-      animation: winnerBannerPop 0.5s ease-out;
+      animation: winnerBannerPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: none;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      text-align: center;
+      min-width: 400px;
+      max-width: 600px;
+    }
+    
+    .winner-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 81, 0, 0.1), rgba(0, 212, 170, 0.05));
+      opacity: 0.5;
+    }
+    
+    .winner-banner::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      z-index: -2;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255, 81, 0, 0.3), rgba(0, 212, 170, 0.2));
+      filter: blur(20px);
+      opacity: 0.6;
     }
     
     @keyframes winnerBannerPop {
       0% {
-        transform: translate(-50%, -50%) scale(0.5);
+        transform: translate(-50%, -50%) scale(0.8);
         opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.05);
       }
       100% {
         transform: translate(-50%, -50%) scale(1);
@@ -486,6 +515,24 @@
     
     .winner-banner.show {
       display: block;
+    }
+    
+    .winner-banner small {
+      display: block;
+      margin-top: 12px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    
+    .winner-banner .winner-name {
+      color: #ff5100;
+      text-shadow: 0 0 20px rgba(255, 81, 0, 0.5);
+    }
+    
+    .winner-banner .winner-amount {
+      color: #00d4aa;
+      text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
     }
     
     /* 🃏 SHOW/MUCK CONTROLS */
@@ -547,6 +594,136 @@
     .showdown-controls button.muck-btn:hover {
       background: linear-gradient(135deg, #777, #555);
       transform: scale(1.05);
+    }
+    
+    /* 🚨 CUSTOM ALL-IN CONFIRMATION MODAL */
+    .allin-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    .allin-confirm-overlay.show {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .allin-confirm-modal {
+      background: linear-gradient(135deg, rgba(15,15,25,0.98), rgba(20,20,30,0.98));
+      border: 3px solid #ff5100;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 16px 48px rgba(255, 81, 0, 0.4);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .allin-confirm-header h2 {
+      margin: 0 0 20px 0;
+      color: #ff5100;
+      font-size: 1.5rem;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .allin-confirm-body {
+      margin-bottom: 24px;
+    }
+    
+    .allin-confirm-body p {
+      color: #e9eef7;
+      font-size: 1rem;
+      margin: 12px 0;
+      text-align: center;
+    }
+    
+    .allin-confirm-body strong {
+      color: #ff5100;
+      font-size: 1.2em;
+    }
+    
+    .allin-warning {
+      color: #ff6b6b !important;
+      font-weight: 600;
+    }
+    
+    .allin-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      cursor: pointer;
+      color: #9aa3b2;
+      font-size: 0.9rem;
+    }
+    
+    .allin-checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #ff5100;
+    }
+    
+    .allin-confirm-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .allin-confirm-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .allin-confirm-btn.allin-cancel {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e9eef7;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .allin-confirm-btn.allin-cancel:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .allin-confirm-btn.allin-confirm {
+      background: linear-gradient(135deg, #ff5100, #ff3300);
+      color: white;
+      border: 2px solid #ff5100;
+    }
+    
+    .allin-confirm-btn.allin-confirm:hover {
+      background: linear-gradient(135deg, #ff6600, #ff4400);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 81, 0, 0.4);
     }
     
     /* 🎛️ HOST CONTROLS PANEL */
@@ -683,6 +860,229 @@
     .host-btn.kick:hover {
       background: #ff5555;
       transform: scale(1.05);
+    }
+    
+    /* 🪑 SEAT REQUEST NOTIFICATION POPUP */
+    .host-notification-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .host-notification-modal {
+      background: linear-gradient(135deg, rgba(15,15,25,0.98), rgba(20,20,30,0.98));
+      border: 3px solid #ff5100;
+      border-radius: 16px;
+      padding: 0;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 16px 48px rgba(255, 81, 0, 0.4);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .host-notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .host-notification-header h3 {
+      margin: 0;
+      color: #ff5100;
+      font-size: 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .host-notification-header .close-btn {
+      background: none;
+      border: none;
+      color: #9aa3b2;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    
+    .host-notification-header .close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e9eef7;
+    }
+    
+    .host-notification-body {
+      padding: 24px;
+    }
+    
+    .host-notification-body p {
+      color: #e9eef7;
+      font-size: 1rem;
+      margin: 0 0 20px 0;
+      line-height: 1.6;
+    }
+    
+    .host-notification-body strong {
+      color: #00d4aa;
+    }
+    
+    .request-details {
+      margin-top: 16px;
+    }
+    
+    .request-chip-input {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .request-chip-input label {
+      color: #9aa3b2;
+      font-size: 0.9rem;
+      min-width: 100px;
+    }
+    
+    .request-chip-input .form-input {
+      flex: 1;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #e9eef7;
+      font-size: 1rem;
+    }
+    
+    .host-notification-actions {
+      display: flex;
+      gap: 12px;
+      padding: 20px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .host-notification-btn {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .host-notification-btn.reject {
+      background: rgba(255, 59, 59, 0.2);
+      color: #ff6b6b;
+      border: 2px solid #ff3b3b;
+    }
+    
+    .host-notification-btn.reject:hover {
+      background: rgba(255, 59, 59, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .host-notification-btn.approve {
+      background: linear-gradient(135deg, #00d4aa, #00b894);
+      color: white;
+      border: 2px solid #00d4aa;
+    }
+    
+    .host-notification-btn.approve:hover {
+      background: linear-gradient(135deg, #00ffcc, #00d4aa);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 212, 170, 0.4);
+    }
+    
+    /* Pending requests list */
+    .seat-request-item {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .seat-request-info {
+      flex: 1;
+    }
+    
+    .seat-request-name {
+      color: #e9eef7;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .seat-request-details {
+      color: #9aa3b2;
+      font-size: 0.85rem;
+    }
+    
+    .seat-request-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .seat-request-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .seat-request-btn.approve {
+      background: #00d4aa;
+      color: #0b0b12;
+    }
+    
+    .seat-request-btn.reject {
+      background: #ff3b3b;
+      color: white;
+    }
+    
+    .seat-request-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .empty-state {
+      color: #9aa3b2;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
     }
     
     .blinds-controls {
@@ -1319,6 +1719,7 @@
       }
     }
     
+    /* BASE BUTTON STYLES - No liquid glass by default */
     .btn {
       padding: 18px 40px;
       background: #0b0b12;
@@ -1334,26 +1735,121 @@
       letter-spacing: 0.5px;
     }
     
-    /* YOUR TURN - Pulse animation */
-    .btn.active {
+    /* LIQUID GLASS EFFECT - ONLY FOR POKER TABLE ACTION BUTTONS */
+    #actionButtons .btn,
+    #foldBtn,
+    #callBtn,
+    #raiseBtn {
+      /* LIQUID GLASS BASE */
+      position: relative;
+      isolation: isolate;
+      background: rgba(15, 15, 25, 0.6); /* Base dark background for glass effect */
+      border-radius: 12px; /* Slightly larger for glass effect */
+      transition: all 0.3s ease;
+      /* Remove conflicting styles - liquid glass handles backdrop-filter */
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.2);
+      /* Ensure content appears above glass effect */
+      z-index: 1;
+    }
+    
+    /* LIQUID GLASS PSEUDO-ELEMENTS - ONLY FOR ACTION BUTTONS */
+    #actionButtons .btn::before,
+    #foldBtn::before,
+    #callBtn::before,
+    #raiseBtn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      box-shadow: inset 0 0 20px -5px rgba(255, 255, 255, 0.7);
+      background-color: rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+    
+    #actionButtons .btn::after,
+    #foldBtn::after,
+    #callBtn::after,
+    #raiseBtn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      border-radius: inherit;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      filter: url(#glass-distortion);
+      pointer-events: none;
+    }
+    
+    /* Ensure button content (text/spans) appear above glass */
+    #actionButtons .btn > *,
+    #foldBtn > *,
+    #callBtn > *,
+    #raiseBtn > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* YOUR TURN - Pulse animation with glass glow (action buttons only) */
+    #actionButtons .btn.active,
+    #foldBtn.active,
+    #callBtn.active,
+    #raiseBtn.active {
       animation: subtlePulse 2s ease-in-out infinite;
     }
     
-    /* NOT YOUR TURN - Blurred */
-    .btn.not-your-turn {
+    #actionButtons .btn.active::before,
+    #foldBtn.active::before,
+    #callBtn.active::before,
+    #raiseBtn.active::before {
+      background-color: rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 25px -3px rgba(255, 255, 255, 0.9);
+    }
+    
+    /* NOT YOUR TURN - Blurred (action buttons only) */
+    #actionButtons .btn.not-your-turn,
+    #foldBtn.not-your-turn,
+    #callBtn.not-your-turn,
+    #raiseBtn.not-your-turn {
       filter: blur(2px);
       opacity: 0.3;
       pointer-events: none;
       cursor: not-allowed;
     }
     
-    .btn:hover:not(:disabled):not(.not-your-turn) {
-      transform: translateY(-1px);
-      animation: none;
+    #actionButtons .btn.not-your-turn::before,
+    #foldBtn.not-your-turn::before,
+    #callBtn.not-your-turn::before,
+    #raiseBtn.not-your-turn::before {
+      background-color: rgba(255, 255, 255, 0.02);
     }
     
-    .btn:active:not(:disabled):not(.not-your-turn) {
+    /* HOVER STATE - Enhanced glass effect (action buttons only) */
+    #actionButtons .btn:hover:not(:disabled):not(.not-your-turn),
+    #foldBtn:hover:not(:disabled):not(.not-your-turn),
+    #callBtn:hover:not(:disabled):not(.not-your-turn),
+    #raiseBtn:hover:not(:disabled):not(.not-your-turn) {
+      transform: translateY(-2px);
+      animation: none;
+      box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    #actionButtons .btn:hover:not(:disabled):not(.not-your-turn)::before,
+    #foldBtn:hover:not(:disabled):not(.not-your-turn)::before,
+    #callBtn:hover:not(:disabled):not(.not-your-turn)::before,
+    #raiseBtn:hover:not(:disabled):not(.not-your-turn)::before {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+    
+    #actionButtons .btn:active:not(:disabled):not(.not-your-turn),
+    #foldBtn:active:not(:disabled):not(.not-your-turn),
+    #callBtn:active:not(:disabled):not(.not-your-turn),
+    #raiseBtn:active:not(:disabled):not(.not-your-turn) {
       transform: translateY(0);
+      box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
     }
     
     /* Force white text on start button */
@@ -1529,40 +2025,70 @@
     
     /* ============================================ */
     
-    /* FOLD - Red outline */
+    /* FOLD - Red outline with liquid glass */
     #foldBtn {
       color: #dc2626;
       border-color: #dc2626;
     }
     
-    #foldBtn:hover:not(:disabled) {
-      background: #dc2626;
-      color: #0b0b12;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    #foldBtn::before {
+      background-color: rgba(220, 38, 38, 0.1);
+      box-shadow: inset 0 0 20px -5px rgba(220, 38, 38, 0.5);
     }
     
-    /* CALL - Teal outline */
+    #foldBtn:hover:not(:disabled) {
+      background: rgba(220, 38, 38, 0.2);
+      color: #ff6b6b;
+      box-shadow: 0px 8px 32px rgba(220, 38, 38, 0.4);
+    }
+    
+    #foldBtn:hover:not(:disabled)::before {
+      background-color: rgba(220, 38, 38, 0.15);
+      box-shadow: inset 0 0 25px -3px rgba(220, 38, 38, 0.7);
+    }
+    
+    /* CALL - Teal outline with liquid glass */
     #callBtn {
       color: #00d4aa;
       border-color: #00d4aa;
     }
     
-    #callBtn:hover:not(:disabled) {
-      background: #00d4aa;
-      color: #0b0b12;
-      box-shadow: 0 4px 12px rgba(0, 212, 170, 0.4);
+    #callBtn::before {
+      background-color: rgba(0, 212, 170, 0.1);
+      box-shadow: inset 0 0 20px -5px rgba(0, 212, 170, 0.5);
     }
     
-    /* RAISE - Orange outline */
+    #callBtn:hover:not(:disabled) {
+      background: rgba(0, 212, 170, 0.2);
+      color: #00ffcc;
+      box-shadow: 0px 8px 32px rgba(0, 212, 170, 0.4);
+    }
+    
+    #callBtn:hover:not(:disabled)::before {
+      background-color: rgba(0, 212, 170, 0.15);
+      box-shadow: inset 0 0 25px -3px rgba(0, 212, 170, 0.7);
+    }
+    
+    /* RAISE - Orange outline with liquid glass */
     #raiseBtn {
       color: #f97316;
       border-color: #f97316;
     }
     
+    #raiseBtn::before {
+      background-color: rgba(249, 115, 22, 0.1);
+      box-shadow: inset 0 0 20px -5px rgba(249, 115, 22, 0.5);
+    }
+    
     #raiseBtn:hover:not(:disabled) {
-      background: #f97316;
-      color: #0b0b12;
-      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+      background: rgba(249, 115, 22, 0.2);
+      color: #ff8c42;
+      box-shadow: 0px 8px 32px rgba(249, 115, 22, 0.4);
+    }
+    
+    #raiseBtn:hover:not(:disabled)::before {
+      background-color: rgba(249, 115, 22, 0.15);
+      box-shadow: inset 0 0 25px -3px rgba(249, 115, 22, 0.7);
     }
     
     
@@ -1648,6 +2174,10 @@
   <!-- Social Features -->
   <link rel="stylesheet" href="/css/social-modals.css">
   <script src="/js/social-modals.js"></script>
+  
+  <!-- Rank Styling -->
+  <link rel="stylesheet" href="/css/rank-styling.css">
+  <script src="/js/username-styling.js"></script>
 </head>
 <body>
   <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
@@ -1662,6 +2192,27 @@
     <div class="button-group">
       <button class="show-btn" onclick="showCards()">SHOW CARDS</button>
       <button class="muck-btn" onclick="muckCards()">MUCK</button>
+    </div>
+  </div>
+  
+  <!-- 🚨 CUSTOM ALL-IN CONFIRMATION MODAL -->
+  <div class="allin-confirm-overlay" id="allinConfirmOverlay">
+    <div class="allin-confirm-modal">
+      <div class="allin-confirm-header">
+        <h2>🚨 Go All-In?</h2>
+      </div>
+      <div class="allin-confirm-body">
+        <p>You are about to bet your entire stack of <strong id="allinConfirmAmount">$0</strong>.</p>
+        <p class="allin-warning">This action cannot be undone.</p>
+        <label class="allin-checkbox-label">
+          <input type="checkbox" id="allinDontAskAgain">
+          <span>Don't ask again this game</span>
+        </label>
+      </div>
+      <div class="allin-confirm-actions">
+        <button class="allin-confirm-btn allin-cancel" onclick="cancelAllIn()">Cancel</button>
+        <button class="allin-confirm-btn allin-confirm" onclick="confirmAllIn()">Go All-In</button>
+      </div>
     </div>
   </div>
   
@@ -1775,6 +2326,15 @@
           </div>
         </div>
         
+        <!-- SEAT REQUESTS -->
+        <div class="host-section">
+          <h4>🪑 Pending Seat Requests</h4>
+          <p class="section-hint">Players requesting to join mid-game</p>
+          <div id="pendingSeatRequests">
+            <div class="empty-state">No pending requests</div>
+          </div>
+        </div>
+        
         <!-- DANGER ZONE -->
         <div class="host-section danger-zone">
           <h4>⚠️ Danger Zone</h4>
@@ -1789,6 +2349,29 @@
               <span class="btn-text">END GAME</span>
             </button>
             </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 🪑 HOST NOTIFICATION POPUP (Seat Requests) -->
+    <div class="host-notification-overlay" id="hostNotificationOverlay" style="display: none;">
+      <div class="host-notification-modal">
+        <div class="host-notification-header">
+          <h3>🪑 Seat Request</h3>
+          <button class="close-btn" onclick="closeHostNotification()">×</button>
+        </div>
+        <div class="host-notification-body">
+          <p><strong id="requestUsername">@player</strong> wants to join <strong>Seat <span id="requestSeatIndex">0</span></strong></p>
+          <div class="request-details">
+            <div class="request-chip-input">
+              <label>Starting Chips:</label>
+              <input type="number" id="requestChipAmount" value="1000" min="1" class="form-input">
+            </div>
+          </div>
+        </div>
+        <div class="host-notification-actions">
+          <button class="host-notification-btn reject" onclick="rejectSeatRequest()">❌ Reject</button>
+          <button class="host-notification-btn approve" onclick="approveSeatRequest()">✅ Approve</button>
         </div>
       </div>
     </div>
@@ -2035,6 +2618,9 @@
     let userId = null;
     let gameId = null;
     let socket = null;
+    let allInDontAskAgain = false; // Track "don't ask again" preference for current game session
+    let pendingAllInAction = null; // Store pending ALL_IN action callback
+    let showdownActions = {}; // Track who showed vs mucked: { userId: 'SHOW' | 'MUCK' }
     let isHost = false; // Track if current user is host
     let isClaimingSeat = false; // Prevent duplicate seat claims
     let currentGameState = null; // Track current game state for UI logic
@@ -2362,6 +2948,14 @@
         loadRoom();
       });
       
+      socket.on('hand_complete', (data) => {
+        debug('🏆 Hand complete event received', data);
+        
+        if (data.gameState) {
+          handleHandComplete(data.gameState);
+        }
+      });
+      
       socket.on('hand_started', (data) => {
         debug('🃏 Hand started event', data);
         
@@ -2369,9 +2963,19 @@
         document.getElementById('communityCards').innerHTML = '';
         document.getElementById('myCards').innerHTML = '';
         document.getElementById('actionButtons').style.display = 'none';
-        document.getElementById('handStrength').style.display = 'none';
+        // Keep hand strength visible - it shows current hand throughout the game
         document.getElementById('myCardsSection').style.display = 'none';
         document.getElementById('startBtn').style.display = 'none';
+        
+        // Reset all-in runout flag for new hand
+        isAllInRunout = false;
+        previousCommunityCards = [];
+        
+        // Reset showdown actions tracking for new hand
+        showdownActions = {};
+        
+        // Reset "don't ask again" preference for new hand (but keep for game session)
+        // allInDontAskAgain stays true if user checked it (only resets on new game/room)
         
         // Store game state ID
         if (data.gameStateId) {
@@ -2464,7 +3068,12 @@
       socket.on('showdown_action', (data) => {
         debug('🃏 Showdown action received:', data);
         
-        const { action, seatIndex, nickname, holeCards } = data;
+        const { action, userId: actionUserId, seatIndex, nickname, holeCards } = data;
+        
+        // Track showdown action
+        if (actionUserId) {
+          showdownActions[actionUserId] = action;
+        }
         
         if (action === 'SHOW' && holeCards) {
           // REPLACE card backs with actual card images
@@ -2487,6 +3096,9 @@
             
             debug(`✅ @${nickname} showed cards: ${holeCards.join(' ')}`);
           }
+          
+          // Update winner banner if this is the winner showing
+          updateWinnerBannerIfNeeded();
         } else if (action === 'MUCK') {
           // Grey out card backs (already folded styling)
           const cardBacksContainer = document.querySelector(`.seat-cards[data-seat-index="${seatIndex}"]`);
@@ -2498,6 +3110,9 @@
             
             debug(`✅ @${nickname} mucked cards`);
           }
+          
+          // Update winner banner if winner mucked
+          updateWinnerBannerIfNeeded();
         }
       });
       
@@ -2541,6 +3156,52 @@
           alert('❌ You have been removed from the game by the host.');
           window.location.href = '/';
         }
+      });
+      
+      // Seat request events
+      socket.on('seat_request_pending', (data) => {
+        debug('🪑 Seat request received:', data);
+        if (isHost) {
+          showSeatRequestNotification(data);
+          loadPendingSeatRequests(); // Refresh list
+        }
+      });
+      
+      socket.on('seat_request_resolved', (data) => {
+        debug('✅ Seat request resolved:', data);
+        if (isHost) {
+          loadPendingSeatRequests(); // Refresh list
+          closeHostNotification(); // Close popup if open
+        }
+      });
+      
+      socket.on('seat_request_approved', (data) => {
+        debug('✅ Seat request approved:', data);
+        showNotification('Your seat request was approved!', 'success');
+        setTimeout(() => loadRoom(), 1000); // Reload to show seat
+      });
+      
+      socket.on('seat_request_rejected', (data) => {
+        debug('❌ Seat request rejected:', data);
+        showNotification('Your seat request was rejected by the host', 'error');
+      });
+      
+      socket.on('seat_request_sent', (data) => {
+        debug('📤 Seat request sent:', data);
+        // Already handled in claimSeat, but good to confirm
+      });
+      
+      socket.on('you_busted', (data) => {
+        debug('💀 You busted:', data);
+        showNotification('You went all-in and lost. You can request a seat again.', 'info');
+      });
+      
+      socket.on('player_busted', (data) => {
+        debug('💀 Player busted:', data);
+        if (isHost) {
+          showNotification(`Player busted and was removed from seat ${data.seatIndex}`, 'info');
+        }
+        loadRoom(); // Refresh seats
       });
     }
     
@@ -2680,11 +3341,31 @@
           chips.textContent = 'Click to claim';
           div.onclick = () => claimSeat(i);
         } else {
-          // Display nickname with @ symbol
+          // Display nickname with rank color and badge (async)
           const displayName = seat.nickname || `Guest_${seat.userId.substring(0, 6)}`;
           player.textContent = `@${displayName}`;
           if (isMe) player.textContent += ' (YOU)';
           chips.textContent = `$${(seat.chips || 1000).toLocaleString()}`;
+          
+          // Apply rank styling and badge (async, non-blocking)
+          if (window.UsernameStyling && seat.userId) {
+            (async () => {
+              try {
+                const rankColor = await window.UsernameStyling.getRankColor(seat.userId);
+                const badge = await window.UsernameStyling.getTopBadge(seat.userId);
+                const usernameText = displayName + (isMe ? ' (YOU)' : '');
+                player.innerHTML = window.UsernameStyling.formatUsernameWithRankAndBadge(
+                  usernameText, 
+                  rankColor, 
+                  badge
+                );
+              } catch (error) {
+                console.error('Error applying rank styling:', error);
+                // Fallback to default display
+                player.textContent = `@${displayName}` + (isMe ? ' (YOU)' : '');
+              }
+            })();
+          }
         }
         
         div.appendChild(label);
@@ -2875,31 +3556,38 @@
       isClaimingSeat = true;
       debug(`🪑 Attempting to claim seat ${seatIndex}...`);
       
-      // Prompt for nickname
-      const nickname = prompt(
-        '🎮 Choose your nickname (3-15 characters):\n\n' +
-        'Letters, numbers, and underscores only.\n' +
-        'Leave blank for auto-generated name.',
-        ''
-      );
+      // Check if game is active (requires approval)
+      const roomIsActive = currentGameState?.status === 'IN_PROGRESS' || 
+                           document.getElementById('startBtn').style.display === 'none';
       
-      // User cancelled
-      if (nickname === null) {
-        isClaimingSeat = false;
-        return;
-      }
-      
-      // Validate nickname if provided
-      if (nickname && (nickname.length < 3 || nickname.length > 15)) {
-        console.error('Nickname must be 3-15 characters');
-        isClaimingSeat = false;
-        return;
-      }
-      
-      if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
-        console.error('Nickname can only contain letters, numbers, and underscores');
-        isClaimingSeat = false;
-        return;
+      // Prompt for nickname (only if not already set and pre-game)
+      let nickname = null;
+      if (!roomIsActive) {
+        nickname = prompt(
+          '🎮 Choose your nickname (3-15 characters):\n\n' +
+          'Letters, numbers, and underscores only.\n' +
+          'Leave blank for auto-generated name.',
+          ''
+        );
+        
+        // User cancelled
+        if (nickname === null) {
+          isClaimingSeat = false;
+          return;
+        }
+        
+        // Validate nickname if provided
+        if (nickname && (nickname.length < 3 || nickname.length > 15)) {
+          console.error('Nickname must be 3-15 characters');
+          isClaimingSeat = false;
+          return;
+        }
+        
+        if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
+          console.error('Nickname can only contain letters, numbers, and underscores');
+          isClaimingSeat = false;
+          return;
+        }
       }
       
       try {
@@ -2910,7 +3598,8 @@
             roomId: roomId,
             userId: userId,
             seatIndex: seatIndex,
-            nickname: nickname || undefined
+            nickname: nickname || undefined,
+            requestedChips: 1000 // Default buy-in
           })
         });
         
@@ -2920,7 +3609,17 @@
         }
         
         const data = await response.json();
-        const displayName = data.seat.nickname || `Guest_${userId.substring(0, 6)}`;
+        
+        // If requires approval, show notification
+        if (data.requiresApproval) {
+          debug('⏳ Seat request sent, waiting for host approval', { requestId: data.requestId });
+          showNotification('Seat request sent to host. Waiting for approval...', 'info');
+          isClaimingSeat = false;
+          return;
+        }
+        
+        // Direct claim successful
+        const displayName = data.seat?.nickname || `Guest_${userId.substring(0, 6)}`;
         debug('✅ Seat claimed successfully', { displayName, seatIndex });
         
         // Reload room state
@@ -2932,6 +3631,7 @@
       } catch (error) {
         debug('❌ Claim seat error', { error: error.message });
         console.error('Failed to claim seat:', error.message);
+        showNotification(error.message || 'Failed to claim seat', 'error');
         isClaimingSeat = false; // Reset flag on error
       }
     }
@@ -2953,7 +3653,7 @@
         document.getElementById('potAmount').textContent = '0';
         document.getElementById('currentBet').textContent = '0';
         document.getElementById('actionButtons').style.display = 'none';
-        document.getElementById('handStrength').style.display = 'none';
+        // Keep hand strength visible - it shows current hand throughout the game
         document.getElementById('myCardsSection').style.display = 'none';
         
         // Use correct endpoint
@@ -3180,7 +3880,7 @@
       }
       
       foldBtn.onclick = () => performAction('FOLD', 0);
-      raiseBtn.onclick = () => openRaiseModal(currentBet, myPlayer.chips);
+      raiseBtn.onclick = () => openRaiseModal(currentBet, myPlayer.chips, myPlayer.bet || 0);
       
       // APPLY VISUAL STATE
       if (isMyTurn) {
@@ -3227,9 +3927,8 @@
     function handleHandComplete(gameState) {
       debug('🏆 Hand complete', gameState);
       
-      // Hide action buttons
+      // Hide action buttons (keep hand strength visible)
       document.getElementById('actionButtons').style.display = 'none';
-      document.getElementById('handStrength').style.display = 'none';
       
       if (gameState.winners && gameState.winners.length > 0) {
         const winner = gameState.winners[0];
@@ -3243,35 +3942,70 @@
         // 2. HIGHLIGHT WINNER'S SEAT
         highlightWinnerSeat(winner.seatIndex);
         
-        // 3. SHOW WINNER BANNER
+        // 3. SHOW WINNER BANNER (delay if all-in runout is still animating)
+        // NOTE: Hand description will only show if winner shows cards (handled in updateWinnerBannerIfNeeded)
         const banner = document.getElementById('winnerBanner');
         const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
         const winnerNickname = winnerPlayer ? `@${winnerPlayer.nickname || 'Player'}` : `Seat ${winner.seatIndex}`;
         
-        banner.innerHTML = `🏆 ${winnerNickname} WINS $${potAmount.toLocaleString()}<br><small style="font-size:1.2rem;">${winner.handDescription}</small>`;
-        banner.classList.add('show');
+        // Initially show without hand description (will update when winner shows)
+        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount.toLocaleString()}</span>`;
+        banner.dataset.winnerUserId = winner.userId || winnerPlayer?.userId;
+        banner.dataset.winnerHandDescription = winner.handDescription || '';
+        banner.dataset.winnerNickname = winnerNickname;
+        banner.dataset.potAmount = potAmount.toLocaleString();
         
-        // 4. SHOW/MUCK CONTROLS FOR NON-WINNERS
-        // Keep controls visible for ENTIRE 5-second countdown
+        // Delay showing banner if all-in runout cards are still being dealt
+        if (isAllInRunout) {
+          // Calculate delay: wait for all cards to be dealt + animation time
+          // Each card takes 800ms delay + 500ms animation = 1300ms per card
+          // Add extra buffer for the last card's animation to complete
+          const cardsToDeal = (gameState.communityCards?.length || 0) - previousCommunityCards.length;
+          const delayPerCard = 800; // Delay between cards
+          const animationTime = 500; // Time for card flip animation
+          const delayMs = Math.max(0, (cardsToDeal * delayPerCard) + animationTime + 300); // Extra 300ms buffer
+          
+          debug('⏱️ Delaying winner banner', { cardsToDeal, delayMs, isAllInRunout });
+          
+          setTimeout(() => {
+            updateWinnerBannerIfNeeded();
+            banner.classList.add('show');
+            debug('✅ Winner banner shown after delay');
+          }, delayMs);
+        } else {
+          updateWinnerBannerIfNeeded();
+          banner.classList.add('show');
+        }
+        
+        // 4. SHOW/MUCK CONTROLS - PRINCIPLE: ALL players who reached showdown get controls
+        // This means: anyone who didn't fold gets show/muck options, regardless of win/loss
+        // Winners can choose to muck if they want privacy, losers can show if they want
         const myPlayer = gameState.players?.find(p => p.userId === userId);
-        const didIWin = myPlayer && myPlayer.seatIndex === winner.seatIndex;
         const didIFold = myPlayer && myPlayer.folded;
         
         debug('🃏 Show/muck check:', {
           hasMyPlayer: !!myPlayer,
           myUserId: userId,
           mySeatIndex: myPlayer?.seatIndex,
-          winnerSeatIndex: winner.seatIndex,
-          didIWin,
-          didIFold
+          didIFold,
+          principle: 'All non-folded players get show/muck controls'
         });
         
-        // Only show controls if: I didn't win, I didn't fold, and I'm in the hand
-        if (myPlayer && !didIWin && !didIFold) {
-          debug('🃏 Showing show/muck controls (you didn\'t win)');
+        // PRINCIPLE: Show controls to ALL players who didn't fold (reached showdown)
+        // This includes winners (they can muck for privacy) and losers (they can show)
+        if (myPlayer && !didIFold) {
+          debug('🃏 Showing show/muck controls (you reached showdown)', {
+            myUserId: myPlayer.userId,
+            mySeatIndex: myPlayer.seatIndex,
+            didIFold
+          });
           document.getElementById('showdownControls').classList.add('show');
         } else {
-          debug('🃏 NOT showing controls', { myPlayer: !!myPlayer, didIWin, didIFold });
+          debug('🃏 NOT showing controls', { 
+            myPlayer: !!myPlayer, 
+            didIFold,
+            reason: didIFold ? 'You folded' : 'Player not found'
+          });
         }
         
         // 5. AFTER 3 SECONDS: Hide banner, transfer chips, START COUNTDOWN
@@ -3332,10 +4066,11 @@
       maxRaise: 0
     };
     
-    function openRaiseModal(currentBet, playerStack) {
+    function openRaiseModal(currentBet, playerStack, currentPlayerBet = 0) {
       const pot = parseInt(document.getElementById('potAmount').textContent.replace(/\$/g, '')) || 0;
       const minRaise = currentBet * 2 || 20;
-      const maxRaise = playerStack;
+      // maxRaise = total stack (chips + current bet) - this is the maximum total bet possible
+      const maxRaise = playerStack + currentPlayerBet; // Total stack for ALL-IN
       
       raiseModalData = {
         currentBet,
@@ -3408,8 +4143,12 @@
           amount = pot * 2;
           break;
         case 'allin':
-          amount = maxRaise;
-          break;
+          // ALL-IN: Show custom confirmation modal
+          showAllInConfirmation(maxRaise, () => {
+            closeRaisePanel();
+            performAction('ALL_IN', 0);
+          });
+          return; // Exit early, don't update slider
         default:
           amount = minRaise;
       }
@@ -3425,7 +4164,7 @@
     
     function submitRaise() {
       const amount = parseInt(document.getElementById('raiseAmount').value);
-      const { minRaise, maxRaise } = raiseModalData;
+      const { minRaise, maxRaise, stack } = raiseModalData;
       
       if (amount < minRaise) {
         alert(`Minimum raise is $${minRaise}`);
@@ -3433,12 +4172,20 @@
       }
       
       if (amount > maxRaise) {
-        alert(`Maximum raise is $${maxRaise} (your stack)`);
+        alert(`Maximum raise is $${maxRaise} (your total stack)`);
         return;
       }
       
-      closeRaisePanel();
-      performAction('RAISE', amount);
+      // If amount equals total stack (ALL-IN), show custom confirmation
+      if (amount === maxRaise) {
+        showAllInConfirmation(maxRaise, () => {
+          closeRaisePanel();
+          performAction('ALL_IN', 0); // ALL_IN doesn't need amount parameter
+        });
+      } else {
+        closeRaisePanel();
+        performAction('RAISE', amount);
+      }
     }
     
     // Helper: Highlight winner's seat
@@ -3461,6 +4208,28 @@
       seatDivs.forEach(seatDiv => {
         seatDiv.classList.remove('winner');
       });
+    }
+    
+    // Helper: Update winner banner based on whether winner showed cards
+    function updateWinnerBannerIfNeeded() {
+      const banner = document.getElementById('winnerBanner');
+      if (!banner || !banner.dataset.winnerUserId) return;
+      
+      const winnerUserId = banner.dataset.winnerUserId;
+      const winnerHandDescription = banner.dataset.winnerHandDescription;
+      const winnerNickname = banner.dataset.winnerNickname || 'Player';
+      const potAmount = banner.dataset.potAmount || '0';
+      const winnerAction = showdownActions[winnerUserId];
+      
+      // Only show hand description if winner showed their cards
+      if (winnerAction === 'SHOW' && winnerHandDescription) {
+        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount}</span><small style="color: #00d4aa; text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);">${winnerHandDescription}</small>`;
+      } else if (winnerAction === 'MUCK') {
+        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount}</span><small style="color: #9aa3b2; font-style: italic;">(Cards mucked)</small>`;
+      } else {
+        // Winner hasn't shown/mucked yet - just show win without hand description
+        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount}</span>`;
+      }
     }
     
     // ============================================
@@ -3490,8 +4259,14 @@
         const result = await response.json();
         debug('✅ Cards shown to table', result);
         
+        // Track that we showed
+        showdownActions[userId] = 'SHOW';
+        
         // Hide controls
         document.getElementById('showdownControls').classList.remove('show');
+        
+        // Update winner banner if we're the winner
+        updateWinnerBannerIfNeeded();
         
         // NO NEED to manually display - WebSocket will handle it for all players
         
@@ -3525,8 +4300,14 @@
         const result = await response.json();
         debug('✅ Cards mucked', result);
         
+        // Track that we mucked
+        showdownActions[userId] = 'MUCK';
+        
         // Hide controls
         document.getElementById('showdownControls').classList.remove('show');
+        
+        // Update winner banner if we're the winner
+        updateWinnerBannerIfNeeded();
         
       } catch (error) {
         console.error('❌ Muck cards network error:', error);
@@ -3535,10 +4316,56 @@
     }
     
     // ============================================
+    // ALL-IN CONFIRMATION MODAL FUNCTIONS
+    // ============================================
+    function showAllInConfirmation(amount, onConfirm) {
+      // If user checked "don't ask again", skip confirmation
+      if (allInDontAskAgain) {
+        onConfirm();
+        return;
+      }
+      
+      // Store the callback
+      pendingAllInAction = onConfirm;
+      
+      // Update modal content
+      document.getElementById('allinConfirmAmount').textContent = `$${amount.toLocaleString()}`;
+      document.getElementById('allinDontAskAgain').checked = false;
+      
+      // Show modal
+      document.getElementById('allinConfirmOverlay').classList.add('show');
+    }
+    
+    function confirmAllIn() {
+      const dontAskAgain = document.getElementById('allinDontAskAgain').checked;
+      if (dontAskAgain) {
+        allInDontAskAgain = true; // Remember for this game session
+      }
+      
+      // Hide modal
+      document.getElementById('allinConfirmOverlay').classList.remove('show');
+      
+      // Execute pending action
+      if (pendingAllInAction) {
+        pendingAllInAction();
+        pendingAllInAction = null;
+      }
+    }
+    
+    function cancelAllIn() {
+      // Hide modal
+      document.getElementById('allinConfirmOverlay').classList.remove('show');
+      
+      // Clear pending action
+      pendingAllInAction = null;
+    }
+    
+    // ============================================
     // STEP 8C: RENDER COMMUNITY CARDS
     // ============================================
     // Track previous community cards to avoid re-animating
     let previousCommunityCards = [];
+    let isAllInRunout = false; // Track if we're in an all-in runout animation
 
     function renderCommunityCards(cards) {
       debug('🃏 Rendering community cards', { cards });
@@ -3548,29 +4375,87 @@
       // Determine which cards are NEW (not in previous render)
       const newCards = cards.filter(card => !previousCommunityCards.includes(card));
       
+      // Detect all-in runout: if all players are all-in AND cards increased by more than 1
+      const allPlayersAllIn = currentGameState?.players?.every(p => 
+        p.folded || p.status === 'ALL_IN'
+      ) || false;
+      const isRunout = newCards.length > 1 && allPlayersAllIn && !isAllInRunout;
+      
       // Only clear and re-render if cards actually changed
       if (newCards.length > 0 || cards.length < previousCommunityCards.length) {
-      communityDiv.innerHTML = '';
-      
-      cards.forEach(card => {
-        const cardImg = document.createElement('img');
-        cardImg.className = 'card-img';
+        // If all-in runout, animate cards one by one
+        if (isRunout) {
+          isAllInRunout = true;
+          communityDiv.innerHTML = '';
           
-          // Only add 'new-card' class if this card wasn't in previous render
-          if (newCards.includes(card)) {
-            cardImg.classList.add('new-card');
-          }
+          // Show existing cards first
+          previousCommunityCards.forEach(card => {
+            const cardImg = document.createElement('img');
+            cardImg.className = 'card-img';
+            cardImg.src = getCardImagePath(card);
+            cardImg.alt = card;
+            cardImg.onerror = function() {
+              this.src = '/cards/back.png';
+            };
+            communityDiv.appendChild(cardImg);
+          });
           
-        cardImg.src = getCardImagePath(card);
-        cardImg.alt = card;
-        cardImg.onerror = function() {
-          this.src = '/cards/back.png';
-        };
-        communityDiv.appendChild(cardImg);
-      });
-        
-        // Update tracking
-        previousCommunityCards = [...cards];
+          // Deal new cards one by one with dramatic delay
+          newCards.forEach((card, index) => {
+            setTimeout(() => {
+              const cardImg = document.createElement('img');
+              cardImg.className = 'card-img new-card';
+              cardImg.style.opacity = '0';
+              cardImg.style.transform = 'scale(0.5) rotateY(180deg)';
+              cardImg.src = getCardImagePath(card);
+              cardImg.alt = card;
+              cardImg.onerror = function() {
+                this.src = '/cards/back.png';
+              };
+              communityDiv.appendChild(cardImg);
+              
+              // Animate card flip-in
+              setTimeout(() => {
+                cardImg.style.transition = 'all 0.5s ease-out';
+                cardImg.style.opacity = '1';
+                cardImg.style.transform = 'scale(1) rotateY(0deg)';
+              }, 50);
+              
+              // If this is the last card, reset flag
+              if (index === newCards.length - 1) {
+                setTimeout(() => {
+                  isAllInRunout = false;
+                }, 600);
+              }
+            }, index * 800); // 800ms delay between each card for dramatic effect
+          });
+          
+          // Update tracking immediately (for hand strength evaluation)
+          previousCommunityCards = [...cards];
+        } else {
+          // Normal card rendering (no animation)
+          communityDiv.innerHTML = '';
+          
+          cards.forEach(card => {
+            const cardImg = document.createElement('img');
+            cardImg.className = 'card-img';
+            
+            // Only add 'new-card' class if this card wasn't in previous render
+            if (newCards.includes(card)) {
+              cardImg.classList.add('new-card');
+            }
+            
+            cardImg.src = getCardImagePath(card);
+            cardImg.alt = card;
+            cardImg.onerror = function() {
+              this.src = '/cards/back.png';
+            };
+            communityDiv.appendChild(cardImg);
+          });
+          
+          // Update tracking
+          previousCommunityCards = [...cards];
+        }
       }
       
       document.getElementById('communitySection').style.display = 'block';
@@ -3599,7 +4484,7 @@
       // Simple hand evaluation (client-side approximation)
       const handDescription = getSimpleHandDescription(allCards);
       
-      // Display
+      // Display hand strength (always show when player has cards)
       const strengthDiv = document.getElementById('handStrength');
       const textDiv = document.getElementById('handStrengthText');
       
@@ -3607,6 +4492,9 @@
         textDiv.textContent = handDescription;
         strengthDiv.style.display = 'block';
         debug('🎴 Hand strength:', handDescription);
+      } else {
+        // Hide if no description (no cards yet)
+        strengthDiv.style.display = 'none';
       }
     }
     
@@ -3789,9 +4677,183 @@
         // Update chip adjustment dropdown
         updateChipAdjustmentDropdown(data.players);
         
+        // Load pending seat requests
+        loadPendingSeatRequests();
+        
       } catch (error) {
         console.error('Error loading host controls:', error);
       }
+    }
+    
+    // ============================================
+    // SEAT REQUEST FUNCTIONS
+    // ============================================
+    let currentSeatRequest = null; // Store current request for popup
+    
+    async function loadPendingSeatRequests() {
+      if (!isHost) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/seat-requests?hostId=${userId}`);
+        if (!response.ok) {
+          console.error('Failed to load seat requests');
+          return;
+        }
+        
+        const data = await response.json();
+        const container = document.getElementById('pendingSeatRequests');
+        
+        if (!data.requests || data.requests.length === 0) {
+          container.innerHTML = '<div class="empty-state">No pending requests</div>';
+          return;
+        }
+        
+        container.innerHTML = data.requests.map(req => `
+          <div class="seat-request-item">
+            <div class="seat-request-info">
+              <div class="seat-request-name">@${req.username}</div>
+              <div class="seat-request-details">
+                Seat ${req.seatIndex} • $${req.requestedChips.toLocaleString()} chips
+              </div>
+            </div>
+            <div class="seat-request-actions">
+              <button class="seat-request-btn reject" onclick="rejectSeatRequestFromList(${req.id})">❌</button>
+              <button class="seat-request-btn approve" onclick="approveSeatRequestFromList(${req.id})">✅</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading seat requests:', error);
+      }
+    }
+    
+    function showSeatRequestNotification(data) {
+      currentSeatRequest = data;
+      const overlay = document.getElementById('hostNotificationOverlay');
+      document.getElementById('requestUsername').textContent = `@${data.username}`;
+      document.getElementById('requestSeatIndex').textContent = data.seatIndex;
+      document.getElementById('requestChipAmount').value = data.requestedChips || 1000;
+      overlay.style.display = 'flex';
+    }
+    
+    function closeHostNotification() {
+      const overlay = document.getElementById('hostNotificationOverlay');
+      overlay.style.display = 'none';
+      currentSeatRequest = null;
+    }
+    
+    async function approveSeatRequest() {
+      if (!currentSeatRequest) return;
+      
+      const approvedChips = parseInt(document.getElementById('requestChipAmount').value) || currentSeatRequest.requestedChips;
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/approve-seat-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hostId: userId,
+            requestId: currentSeatRequest.requestId,
+            approvedChips: approvedChips
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to approve request');
+        }
+        
+        showNotification(`Seat request approved! Player joins with $${approvedChips.toLocaleString()} chips`, 'success');
+        closeHostNotification();
+        loadRoom(); // Refresh seats
+      } catch (error) {
+        console.error('Error approving seat request:', error);
+        showNotification(error.message || 'Failed to approve request', 'error');
+      }
+    }
+    
+    async function rejectSeatRequest() {
+      if (!currentSeatRequest) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/reject-seat-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hostId: userId,
+            requestId: currentSeatRequest.requestId
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to reject request');
+        }
+        
+        showNotification('Seat request rejected', 'info');
+        closeHostNotification();
+      } catch (error) {
+        console.error('Error rejecting seat request:', error);
+        showNotification(error.message || 'Failed to reject request', 'error');
+      }
+    }
+    
+    async function approveSeatRequestFromList(requestId) {
+      const request = await getSeatRequestById(requestId);
+      if (!request) return;
+      
+      currentSeatRequest = { ...request, requestId: request.id };
+      showSeatRequestNotification(currentSeatRequest);
+    }
+    
+    async function rejectSeatRequestFromList(requestId) {
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/reject-seat-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hostId: userId,
+            requestId: requestId
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to reject request');
+        }
+        
+        showNotification('Seat request rejected', 'info');
+        loadPendingSeatRequests(); // Refresh list
+      } catch (error) {
+        console.error('Error rejecting seat request:', error);
+        showNotification(error.message || 'Failed to reject request', 'error');
+      }
+    }
+    
+    async function getSeatRequestById(requestId) {
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/seat-requests?hostId=${userId}`);
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        return data.requests?.find(r => r.id === requestId) || null;
+      } catch (error) {
+        console.error('Error getting seat request:', error);
+        return null;
+      }
+    }
+    
+    // Simple notification function (fallback if showToast doesn't exist)
+    function showNotification(message, type = 'info') {
+      // Try showToast first (if it exists)
+      if (typeof showToast === 'function') {
+        showToast(message, type);
+        return;
+      }
+      
+      // Fallback: simple alert or console
+      console.log(`[${type.toUpperCase()}] ${message}`);
+      // Could also create a toast element here if needed
     }
     
     function renderHostPlayerList(players) {
@@ -4389,6 +5451,17 @@
       setupZoomLock();
     }
   </script>
+  
+  <!-- Liquid Glass SVG Filter - Required for glass distortion effect -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute; overflow:hidden">
+    <defs>
+      <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+        <feDisplacementMap in="SourceGraphic" in2="blurred" scale="39" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
 </body>
 </html>
 
