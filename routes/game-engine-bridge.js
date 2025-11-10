@@ -1025,6 +1025,13 @@ router.post('/action', async (req, res) => {
       
       const io = req.app.locals.io;
       if (io && roomId) {
+        // Calculate total cards to be revealed
+        const totalCardsToReveal = updatedState.communityCards ? updatedState.communityCards.length : 0;
+        const previousCardsCount = currentState.communityCards ? currentState.communityCards.length : 0;
+        const newCardsCount = totalCardsToReveal - previousCardsCount;
+        
+        console.log(`🎬 [ALL-IN RUNOUT] Cards to reveal: ${newCardsCount} (${previousCardsCount} → ${totalCardsToReveal})`);
+        
         // Emit progressive street reveals with delays
         updatedState.allInRunoutStreets.forEach((streetData, index) => {
           setTimeout(() => {
@@ -1037,12 +1044,27 @@ router.post('/action', async (req, res) => {
           }, (index + 1) * 1000); // 1 second between each street
         });
         
-        // Calculate delay: wait for all streets to be revealed + buffer
-        const revealDelay = updatedState.allInRunoutStreets.length * 1000;
-        const bufferDelay = 1000; // Extra second after last card
-        const finalDelay = revealDelay + bufferDelay;
+        // CRITICAL: Calculate delay until 5th card is fully flipped
+        // Frontend animation: Cards animate with 800ms delay per card (globalIndex * 800ms) + 500ms animation
+        // The 5th card (index 4) uses globalIndex = 4, so it starts at 4*800ms = 3200ms
+        // after the LAST street_reveal event (RIVER), and finishes at 3200ms + 500ms = 3700ms
+        const delayPerCard = 800; // Frontend delay between each card (global index * 800ms)
+        const animationTime = 500; // Frontend card flip animation time
+        const bufferTime = 500; // Extra buffer for safety
         
-        console.log(`⏰ [ALL-IN RUNOUT] Will complete hand in ${finalDelay}ms after all cards revealed`);
+        // Calculate: wait for last street_reveal + time for 5th card to finish
+        const lastStreetDelay = updatedState.allInRunoutStreets.length * 1000; // Last street_reveal sent (e.g., 3s for 3 streets)
+        const fifthCardIndex = 4; // 5th card is at index 4 (0-indexed)
+        const fifthCardStartDelay = fifthCardIndex * delayPerCard; // 4 * 800 = 3200ms after last street_reveal
+        const fifthCardFinishDelay = fifthCardStartDelay + animationTime; // 3200 + 500 = 3700ms
+        const finalDelay = lastStreetDelay + fifthCardFinishDelay + bufferTime; // e.g., 3000 + 3700 + 500 = 7200ms
+        
+        console.log(`⏰ [ALL-IN RUNOUT] Will complete hand in ${finalDelay}ms`);
+        console.log(`   Last street (RIVER) sent at: ${lastStreetDelay}ms`);
+        console.log(`   5th card starts at: ${fifthCardStartDelay}ms after last street`);
+        console.log(`   5th card finishes at: ${fifthCardFinishDelay}ms after last street`);
+        console.log(`   Buffer: ${bufferTime}ms`);
+        console.log(`   Total: ${finalDelay}ms (ensures 5th card is fully flipped)`);
         
         // Complete showdown AFTER all cards are revealed
         setTimeout(async () => {

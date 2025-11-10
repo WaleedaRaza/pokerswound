@@ -3035,6 +3035,8 @@
         debug('🃏 Street reveal event', data);
         
         if (data.communityCards && data.communityCards.length > 0) {
+          // Mark as all-in runout so cards animate progressively
+          isAllInRunout = true;
           // Render cards with animation (all-in runout)
           renderCommunityCards(data.communityCards);
         }
@@ -4462,40 +4464,25 @@
     let isAllInRunout = false; // Track if we're in an all-in runout animation
 
     function renderCommunityCards(cards) {
-      debug('🃏 Rendering community cards', { cards });
+      debug('🃏 Rendering community cards', { cards, isAllInRunout, previousCount: previousCommunityCards.length });
       
       const communityDiv = document.getElementById('communityCards');
       
       // Determine which cards are NEW (not in previous render)
       const newCards = cards.filter(card => !previousCommunityCards.includes(card));
       
-      // Detect all-in runout: if all players are all-in AND cards increased by more than 1
-      const allPlayersAllIn = currentGameState?.players?.every(p => 
-        p.folded || p.status === 'ALL_IN'
-      ) || false;
-      const isRunout = newCards.length > 1 && allPlayersAllIn && !isAllInRunout;
-      
       // Only clear and re-render if cards actually changed
       if (newCards.length > 0 || cards.length < previousCommunityCards.length) {
-        // If all-in runout, animate cards one by one
-        if (isRunout) {
-          isAllInRunout = true;
-          communityDiv.innerHTML = '';
-          
-          // Show existing cards first
-          previousCommunityCards.forEach(card => {
-            const cardImg = document.createElement('img');
-            cardImg.className = 'card-img';
-            cardImg.src = getCardImagePath(card);
-            cardImg.alt = card;
-            cardImg.onerror = function() {
-              this.src = '/cards/back.png';
-            };
-            communityDiv.appendChild(cardImg);
-          });
+        // If all-in runout is active, animate ALL cards progressively (not just new ones)
+        if (isAllInRunout) {
+          // Don't clear - keep existing cards, just add new ones progressively
+          // Calculate the starting index for new cards (based on how many cards we already have)
+          const startIndex = previousCommunityCards.length;
           
           // Deal new cards one by one with dramatic delay
-          newCards.forEach((card, index) => {
+          newCards.forEach((card, localIndex) => {
+            const globalIndex = startIndex + localIndex; // Global index (0-4 for 5 cards total)
+            
             setTimeout(() => {
               const cardImg = document.createElement('img');
               cardImg.className = 'card-img new-card';
@@ -4515,13 +4502,14 @@
                 cardImg.style.transform = 'scale(1) rotateY(0deg)';
               }, 50);
               
-              // If this is the last card, reset flag
-              if (index === newCards.length - 1) {
+              // If this is the 5th card (index 4), mark that all cards are revealed
+              if (globalIndex === 4) {
                 setTimeout(() => {
-                  isAllInRunout = false;
+                  debug('✅ 5th card fully flipped - all cards revealed');
+                  isAllInRunout = false; // Reset flag after 5th card
                 }, 600);
               }
-            }, index * 800); // 800ms delay between each card for dramatic effect
+            }, globalIndex * 800); // Use GLOBAL index for consistent timing (0, 800, 1600, 2400, 3200ms)
           });
           
           // Update tracking immediately (for hand strength evaluation)
