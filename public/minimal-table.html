@@ -3997,7 +3997,30 @@
         // 2. HIGHLIGHT WINNER'S SEAT
         highlightWinnerSeat(winner.seatIndex);
         
-        // 3. SHOW WINNER BANNER (delay if all-in runout is still animating)
+        // 3. DETECT ALL-IN RUNOUT: Check if all players were all-in AND cards increased significantly
+        const currentCards = gameState.communityCards || [];
+        const previousCardsCount = previousCommunityCards.length;
+        const newCardsCount = currentCards.length - previousCardsCount;
+        
+        // All-in runout detection: All players all-in AND multiple new cards (3+ cards = flop+turn+river)
+        const allPlayersAllIn = gameState.players?.every(p => 
+          p.folded || p.status === 'ALL_IN'
+        ) || false;
+        const isAllInRunoutScenario = allPlayersAllIn && newCardsCount >= 3;
+        
+        // If this is an all-in runout, trigger the animation NOW (before showing winner)
+        if (isAllInRunoutScenario && !isAllInRunout) {
+          debug('🃏 All-in runout detected in hand_complete - triggering card animation');
+          isAllInRunout = true;
+          
+          // Render cards with animation (this will update previousCommunityCards)
+          renderCommunityCards(currentCards);
+        } else if (currentCards.length > 0) {
+          // Normal case: just render cards normally (no animation)
+          renderCommunityCards(currentCards);
+        }
+        
+        // 4. SHOW WINNER BANNER (delay if all-in runout animation is happening)
         // NOTE: Hand description will only show if winner shows cards (handled in updateWinnerBannerIfNeeded)
         const banner = document.getElementById('winnerBanner');
         const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
@@ -4010,29 +4033,35 @@
         banner.dataset.winnerNickname = winnerNickname;
         banner.dataset.potAmount = potAmount.toLocaleString();
         
-        // Delay showing banner if all-in runout cards are still being dealt
-        if (isAllInRunout) {
-          // Calculate delay: wait for all cards to be dealt + animation time
+        // Calculate delay for all-in runout: wait for all cards to be animated
+        if (isAllInRunoutScenario) {
+          // Calculate delay: wait for all NEW cards to be dealt + animation time
           // Each card takes 800ms delay + 500ms animation = 1300ms per card
           // Add extra buffer for the last card's animation to complete
-          const cardsToDeal = (gameState.communityCards?.length || 0) - previousCommunityCards.length;
           const delayPerCard = 800; // Delay between cards
           const animationTime = 500; // Time for card flip animation
-          const delayMs = Math.max(0, (cardsToDeal * delayPerCard) + animationTime + 300); // Extra 300ms buffer
+          const delayMs = Math.max(0, (newCardsCount * delayPerCard) + animationTime + 500); // Extra 500ms buffer
           
-          debug('⏱️ Delaying winner banner', { cardsToDeal, delayMs, isAllInRunout });
+          debug('⏱️ Delaying winner banner for all-in runout', { 
+            newCardsCount, 
+            delayMs, 
+            isAllInRunoutScenario,
+            currentCards: currentCards.length,
+            previousCards: previousCardsCount
+          });
           
           setTimeout(() => {
             updateWinnerBannerIfNeeded();
             banner.classList.add('show');
-            debug('✅ Winner banner shown after delay');
+            debug('✅ Winner banner shown after all-in runout animation');
           }, delayMs);
         } else {
+          // Normal hand completion - show immediately
           updateWinnerBannerIfNeeded();
           banner.classList.add('show');
         }
         
-        // 4. SHOW/MUCK CONTROLS - PRINCIPLE: ALL players who reached showdown get controls
+        // 5. SHOW/MUCK CONTROLS - PRINCIPLE: ALL players who reached showdown get controls
         // This means: anyone who didn't fold gets show/muck options, regardless of win/loss
         // Winners can choose to muck if they want privacy, losers can show if they want
         const myPlayer = gameState.players?.find(p => p.userId === userId);
@@ -4063,7 +4092,7 @@
           });
         }
         
-        // 5. AFTER 3 SECONDS: Hide banner, transfer chips, START COUNTDOWN
+        // 6. AFTER 3 SECONDS: Hide banner, transfer chips, START COUNTDOWN
         setTimeout(() => {
           // Hide banner only (keep show/muck controls visible)
           banner.classList.remove('show');
