@@ -879,8 +879,7 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
 
 // Helper function to emit hand_complete event (ensures consistent principle)
 // CRITICAL PRINCIPLE: Only emit when ALL cards are revealed AND winner determined
-async function handleHandCompleteEmission(updatedState, roomId, db) {
-  const io = req.app.locals.io;
+async function handleHandCompleteEmission(updatedState, roomId, db, io) {
   if (!io || !roomId) return;
   
   const winners = updatedState.winners || [];
@@ -1168,7 +1167,10 @@ router.post('/action', async (req, res) => {
         [JSON.stringify(updatedState), updatedState.pot, roomId]
       );
       
+      // Capture req and io from outer scope before setTimeout
       const io = req.app.locals.io;
+      const reqForCallback = req;
+      
       if (io && roomId) {
         // Emit progressive street reveals with delays
         updatedState.allInRunoutStreets.forEach((streetData, index) => {
@@ -1209,13 +1211,13 @@ router.post('/action', async (req, res) => {
           // NOW emit hand_complete (all cards revealed, winner determined)
           if (updatedState.status === 'COMPLETED') {
             // Persist chips (same as normal completion)
-            await persistHandCompletion(updatedState, roomId, db, req);
+            await persistHandCompletion(updatedState, roomId, db, reqForCallback);
             
             // Extract hand history (same as normal completion)
             await extractHandHistory(updatedState, roomId, db, gameStateId);
             
-            // Emit hand_complete event
-            await handleHandCompleteEmission(updatedState, roomId, db);
+            // Emit hand_complete event (io and reqForCallback captured from outer scope)
+            await handleHandCompleteEmission(updatedState, roomId, db, io);
           }
         }, finalDelay);
       }
@@ -1249,7 +1251,8 @@ router.post('/action', async (req, res) => {
       
       // ===== EMIT HAND COMPLETE EVENT =====
       // CRITICAL PRINCIPLE: Only emit when all cards are revealed AND winner determined
-      await handleHandCompleteEmission(updatedState, roomId, db);
+      const io = req.app.locals.io;
+      await handleHandCompleteEmission(updatedState, roomId, db, io);
       
       // ===== STEP 3C: EXTRACT HAND DATA TO HISTORY =====
       try {
