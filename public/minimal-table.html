@@ -2243,6 +2243,15 @@
       </div>
       
       <div class="panel-content" id="hostControlsContent">
+        <!-- CURRENT PLAYERS (Always Visible) -->
+        <div class="host-section">
+          <h4>👥 Current Players <span id="hostPlayerCount">0</span></h4>
+          <p class="section-hint">All players who have claimed a seat (pre-game and mid-game)</p>
+          <div id="hostPlayerList">
+            <div class="empty-state">No players seated</div>
+          </div>
+        </div>
+        
         <!-- SEAT REQUESTS (Priority - Most Important) -->
         <div class="host-section priority-section">
           <h4>🪑 Pending Seat Requests</h4>
@@ -2908,7 +2917,8 @@
         
         // Show/hide action buttons based on turn
         const actionButtons = document.getElementById('actionButtons');
-        if (data.isMyTurn && data.gameState.status === 'IN_PROGRESS') {
+        // Only show action buttons if game is active AND user is not a spectator
+        if (data.isMyTurn && data.gameState.status === 'IN_PROGRESS' && !isSpectator) {
           actionButtons.style.display = 'flex';
           updateActionButtons(data.gameState);
         } else {
@@ -2961,6 +2971,9 @@
       socket.on('seat_update', (data) => {
         debug('🪑 Seat update received', data);
         loadRoom();
+        if (isHost) {
+          refreshHostControls(); // Refresh player list when seats change
+        }
       });
       
       socket.on('hand_complete', (data) => {
@@ -3035,8 +3048,6 @@
         debug('🃏 Street reveal event', data);
         
         if (data.communityCards && data.communityCards.length > 0) {
-          // Mark as all-in runout so cards animate progressively
-          isAllInRunout = true;
           // Render cards with animation (all-in runout)
           renderCommunityCards(data.communityCards);
         }
@@ -3198,6 +3209,7 @@
         debug('✅ Seat request resolved:', data);
         if (isHost) {
           loadPendingSeatRequests(); // Refresh list
+          refreshHostControls(); // Refresh player list
           closeHostNotification(); // Close popup if open
         }
       });
@@ -3220,15 +3232,28 @@
       
       socket.on('you_busted', (data) => {
         debug('💀 You busted:', data);
-        showNotification('You went all-in and lost. You can request a seat again.', 'info');
+        isSpectator = true; // Mark as spectator
+        showNotification('You went all-in and lost. You are now a spectator and can request a seat again.', 'info');
+        loadRoom(); // Refresh seats to show spectator status
+        // Hide action buttons for spectators
+        document.getElementById('actionButtons').style.display = 'none';
       });
       
       socket.on('player_busted', (data) => {
         debug('💀 Player busted:', data);
         if (isHost) {
-          showNotification(`Player busted and was removed from seat ${data.seatIndex}`, 'info');
+          showNotification(`Player busted and is now a spectator (seat ${data.seatIndex})`, 'info');
         }
         loadRoom(); // Refresh seats
+      });
+      
+      socket.on('game_ended', (data) => {
+        debug('🏆 Game ended:', data);
+        showNotification(data.message || 'Game ended', 'info');
+        // Reload room to show lobby state
+        setTimeout(() => {
+          loadRoom();
+        }, 2000);
       });
     }
     
@@ -3266,16 +3291,18 @@
         // Render seats
         renderSeats(seatsData.seats, roomData.room);
         
-        // Detect if user is a spectator (not seated, game active)
+        // Detect if user is a spectator (not seated OR marked as spectator, game active)
         const mySeat = seatsData.seats?.find(s => s && s.userId === userId);
         isHost = roomData.room?.hostId === userId; // Update global isHost
         const roomIsActive = !!(roomData.room?.gameId || roomData.room?.game_id); // Game active if gameId exists
-        isSpectator = !mySeat && roomIsActive && !isHost; // Spectator = not seated, game active, not host
+        // Spectator = not seated OR seated but marked as spectator, game active, not host
+        isSpectator = (!mySeat || (mySeat && mySeat.isSpectator)) && roomIsActive && !isHost;
         mySeatIndex = mySeat ? mySeat.seatIndex : null;
         
         debug('👁️ Spectator check:', { 
           isSpectator, 
           mySeat: !!mySeat, 
+          mySeatIsSpectator: mySeat?.isSpectator,
           roomIsActive, 
           isHost,
           mySeatIndex 
@@ -3391,7 +3418,17 @@
           const displayName = seat.nickname || `Guest_${seat.userId.substring(0, 6)}`;
           player.textContent = `@${displayName}`;
           if (isMe) player.textContent += ' (YOU)';
-          chips.textContent = `$${(seat.chips || 1000).toLocaleString()}`;
+          
+          // Show spectator status
+          if (seat.isSpectator) {
+            chips.textContent = '👁️ SPECTATOR';
+            chips.style.color = '#888';
+            chips.style.fontStyle = 'italic';
+          } else {
+            chips.textContent = `$${(seat.chips || 1000).toLocaleString()}`;
+            chips.style.color = '';
+            chips.style.fontStyle = '';
+          }
           
           // Apply rank styling and badge (async, non-blocking)
           if (window.UsernameStyling && seat.userId) {
@@ -3399,7 +3436,7 @@
               try {
                 const rankColor = await window.UsernameStyling.getRankColor(seat.userId);
                 const badge = await window.UsernameStyling.getTopBadge(seat.userId);
-                const usernameText = displayName + (isMe ? ' (YOU)' : '');
+                const usernameText = displayName + (isMe ? ' (YOU)' : '') + (seat.isSpectator ? ' 👁️' : '');
                 player.innerHTML = window.UsernameStyling.formatUsernameWithRankAndBadge(
                   usernameText, 
                   rankColor, 
@@ -3408,7 +3445,7 @@
               } catch (error) {
                 console.error('Error applying rank styling:', error);
                 // Fallback to default display
-                player.textContent = `@${displayName}` + (isMe ? ' (YOU)' : '');
+                player.textContent = `@${displayName}` + (isMe ? ' (YOU)' : '') + (seat.isSpectator ? ' 👁️' : '');
               }
             })();
           }
@@ -3813,19 +3850,24 @@
         cardsDiv.appendChild(cardImg);
       });
       
-      // Show action buttons
-      document.getElementById('actionButtons').style.display = 'flex';
-      
-      // Fetch game state and let updateActionButtons handle everything
-      try {
-        const gameStateResponse = await fetch(`/api/engine/game/${roomId}`);
-        if (gameStateResponse.ok) {
-          const gameData = await gameStateResponse.json();
-          updateActionButtons(gameData);
-          evaluateHandStrength(cards, gameData.communityCards || []);
+      // Show action buttons only if not a spectator
+      if (!isSpectator) {
+        document.getElementById('actionButtons').style.display = 'flex';
+        
+        // Fetch game state and let updateActionButtons handle everything
+        try {
+          const gameStateResponse = await fetch(`/api/engine/game/${roomId}`);
+          if (gameStateResponse.ok) {
+            const gameData = await gameStateResponse.json();
+            updateActionButtons(gameData);
+            evaluateHandStrength(cards, gameData.communityCards || []);
+          }
+        } catch (error) {
+          debug('⚠️ Could not fetch game state', error);
         }
-      } catch (error) {
-        debug('⚠️ Could not fetch game state', error);
+      } else {
+        // Spectators cannot see action buttons
+        document.getElementById('actionButtons').style.display = 'none';
       }
       
       debug('✅ Cards rendered');
@@ -3865,6 +3907,13 @@
     let actionInProgress = false;
     
     async function performAction(action, amount) {
+      // Prevent spectators from performing actions
+      if (isSpectator) {
+        debug('⚠️ Spectators cannot perform actions');
+        showNotification('You are a spectator and cannot play. Request a seat to join the game.', 'warning');
+        return;
+      }
+      
       if (actionInProgress) {
         debug('⚠️ Action in progress, blocking double-click');
         return;
@@ -4464,25 +4513,40 @@
     let isAllInRunout = false; // Track if we're in an all-in runout animation
 
     function renderCommunityCards(cards) {
-      debug('🃏 Rendering community cards', { cards, isAllInRunout, previousCount: previousCommunityCards.length });
+      debug('🃏 Rendering community cards', { cards });
       
       const communityDiv = document.getElementById('communityCards');
       
       // Determine which cards are NEW (not in previous render)
       const newCards = cards.filter(card => !previousCommunityCards.includes(card));
       
+      // Detect all-in runout: if all players are all-in AND cards increased by more than 1
+      const allPlayersAllIn = currentGameState?.players?.every(p => 
+        p.folded || p.status === 'ALL_IN'
+      ) || false;
+      const isRunout = newCards.length > 1 && allPlayersAllIn && !isAllInRunout;
+      
       // Only clear and re-render if cards actually changed
       if (newCards.length > 0 || cards.length < previousCommunityCards.length) {
-        // If all-in runout is active, animate ALL cards progressively (not just new ones)
-        if (isAllInRunout) {
-          // Don't clear - keep existing cards, just add new ones progressively
-          // Calculate the starting index for new cards (based on how many cards we already have)
-          const startIndex = previousCommunityCards.length;
+        // If all-in runout, animate cards one by one
+        if (isRunout) {
+          isAllInRunout = true;
+          communityDiv.innerHTML = '';
+          
+          // Show existing cards first
+          previousCommunityCards.forEach(card => {
+            const cardImg = document.createElement('img');
+            cardImg.className = 'card-img';
+            cardImg.src = getCardImagePath(card);
+            cardImg.alt = card;
+            cardImg.onerror = function() {
+              this.src = '/cards/back.png';
+            };
+            communityDiv.appendChild(cardImg);
+          });
           
           // Deal new cards one by one with dramatic delay
-          newCards.forEach((card, localIndex) => {
-            const globalIndex = startIndex + localIndex; // Global index (0-4 for 5 cards total)
-            
+          newCards.forEach((card, index) => {
             setTimeout(() => {
               const cardImg = document.createElement('img');
               cardImg.className = 'card-img new-card';
@@ -4502,14 +4566,13 @@
                 cardImg.style.transform = 'scale(1) rotateY(0deg)';
               }, 50);
               
-              // If this is the 5th card (index 4), mark that all cards are revealed
-              if (globalIndex === 4) {
+              // If this is the last card, reset flag
+              if (index === newCards.length - 1) {
                 setTimeout(() => {
-                  debug('✅ 5th card fully flipped - all cards revealed');
-                  isAllInRunout = false; // Reset flag after 5th card
+                  isAllInRunout = false;
                 }, 600);
               }
-            }, globalIndex * 800); // Use GLOBAL index for consistent timing (0, 800, 1600, 2400, 3200ms)
+            }, index * 800); // 800ms delay between each card for dramatic effect
           });
           
           // Update tracking immediately (for hand strength evaluation)
@@ -4767,6 +4830,13 @@
       }
     }
     
+    // Refresh host controls when room state changes (seats updated, etc.)
+    function refreshHostControls() {
+      if (isHost) {
+        loadHostControls();
+      }
+    }
+    
     // ============================================
     // SEAT REQUEST FUNCTIONS
     // ============================================
@@ -4942,32 +5012,48 @@
       const container = document.getElementById('hostPlayerList');
       const countEl = document.getElementById('hostPlayerCount');
       
-      countEl.textContent = players.length;
+      if (!container || !countEl) {
+        debug('⚠️ Host player list elements not found');
+        return;
+      }
+      
+      // Filter out spectators from count (they're shown but not counted as active players)
+      const activePlayers = players.filter(p => !p.isSpectator);
+      countEl.textContent = activePlayers.length;
       
       if (players.length === 0) {
         container.innerHTML = '<div class="empty-state">No players seated</div>';
         return;
       }
       
-      container.innerHTML = players.map(player => `
-        <div class="player-item">
+      container.innerHTML = players.map(player => {
+        const isSpectator = player.isSpectator || false;
+        const statusBadge = isSpectator ? '<span class="spectator-badge">👁️ SPECTATOR</span>' : '';
+        
+        return `
+        <div class="player-item ${isSpectator ? 'spectator-item' : ''}">
           <div class="player-item-info">
             <div class="player-item-name">
               @${player.nickname}
               ${player.userId === userId ? ' (YOU)' : ''}
+              ${statusBadge}
             </div>
             <div class="player-item-details">
               <span>Seat ${player.seatIndex}</span>
-              <span class="player-item-chips">$${player.chips}</span>
+              ${isSpectator ? 
+                '<span class="player-item-chips spectator-chips">👁️ SPECTATOR</span>' :
+                `<span class="player-item-chips">$${player.chips.toLocaleString()}</span>`
+              }
             </div>
           </div>
-          ${player.userId !== userId ? `
+          ${player.userId !== userId && !isSpectator ? `
             <button class="host-btn kick" onclick="kickPlayer('${player.userId}')">
               🚫 KICK
             </button>
           ` : ''}
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
     
     async function kickPlayer(targetUserId) {

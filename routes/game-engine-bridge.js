@@ -330,7 +330,7 @@ router.get('/seats/:roomId', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
-    // Get all seats with nicknames
+    // Get all seats with nicknames (including spectators)
     const result = await db.query(
       `SELECT 
          seat_index,
@@ -338,7 +338,8 @@ router.get('/seats/:roomId', async (req, res) => {
          chips_in_play,
          status,
          nickname,
-         joined_at
+         joined_at,
+         is_spectator
        FROM room_seats
        WHERE room_id = $1 AND left_at IS NULL
        ORDER BY seat_index`,
@@ -355,7 +356,8 @@ router.get('/seats/:roomId', async (req, res) => {
         nickname: row.nickname || `Guest_${row.user_id.substring(0, 6)}`,
         chips: row.chips_in_play,
         status: row.status,
-        joinedAt: row.joined_at
+        joinedAt: row.joined_at,
+        isSpectator: row.is_spectator || false
       };
     });
     
@@ -732,6 +734,149 @@ router.get('/room/:roomId', async (req, res) => {
 
 const { MinimalBettingAdapter } = require('../src/adapters/minimal-engine-bridge');
 
+// Helper function to persist hand completion (chips, busted players → spectators, game end check)
+async function persistHandCompletion(updatedState, roomId, db, req) {
+  console.log('💰 [MINIMAL] Hand complete - persisting chips to DB');
+  console.log('   Players in updatedState:', updatedState.players.map(p => ({ 
+    userId: p.userId.substr(0, 8), 
+    chips: p.chips 
+  })));
+  
+  // ✅ TRANSACTION: Wrap all hand completion writes for atomicity
+  const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    console.log('   🔒 Transaction started');
+    
+    // Update room_seats with final chip counts and convert busted players to spectators
+    const bustedPlayers = [];
+    const activePlayers = [];
+    
+    for (const player of updatedState.players) {
+      console.log(`   🔄 Attempting UPDATE for ${player.userId.substr(0, 8)}: chips=${player.chips}, roomId=${roomId.substr(0, 8)}`);
+      
+      // Check if player is busted (chips === 0)
+      if (player.chips === 0) {
+        bustedPlayers.push({
+          userId: player.userId,
+          seatIndex: player.seatIndex
+        });
+      } else {
+        activePlayers.push({
+          userId: player.userId,
+          seatIndex: player.seatIndex,
+          chips: player.chips
+        });
+      }
+      
+      // Update chips (even if 0, so we can track it)
+      const updateResult = await client.query(
+        `UPDATE room_seats 
+         SET chips_in_play = $1 
+         WHERE room_id = $2 AND user_id = $3
+         RETURNING user_id, chips_in_play`,
+        [player.chips, roomId, player.userId]
+      );
+      
+      if (updateResult.rows.length === 0) {
+        console.error(`   ❌ UPDATE failed - no rows matched! userId=${player.userId.substr(0, 8)}, roomId=${roomId.substr(0, 8)}`);
+        throw new Error(`Failed to update chips for player ${player.userId.substr(0, 8)}`);
+      } else {
+        console.log(`   ✅ Updated chips for ${updateResult.rows[0].user_id.substr(0, 8)}: $${updateResult.rows[0].chips_in_play}`);
+      }
+    }
+    
+    // Convert busted players to spectators (don't remove them, just mark as spectator)
+    if (bustedPlayers.length > 0) {
+      console.log(`   💀 Converting ${bustedPlayers.length} busted player(s) to spectators`);
+      for (const busted of bustedPlayers) {
+        await client.query(
+          `UPDATE room_seats 
+           SET is_spectator = TRUE, chips_in_play = 0
+           WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
+          [roomId, busted.userId]
+        );
+        console.log(`   ✅ Converted busted player to spectator: ${busted.userId.substr(0, 8)} from seat ${busted.seatIndex}`);
+      }
+    }
+    
+    // CRITICAL: Check if only one player remains - if so, end game and return to lobby
+    if (activePlayers.length <= 1) {
+      console.log(`🏆 [GAME END] Only ${activePlayers.length} player(s) remaining - ending game and returning to lobby`);
+      
+      // Mark game_states as completed
+      await client.query(
+        `UPDATE game_states 
+         SET status = 'completed' 
+         WHERE room_id = $1 AND status = 'active'`,
+        [roomId]
+      );
+      
+      // Clear game_id from rooms table (return to lobby state)
+      await client.query(
+        `UPDATE rooms 
+         SET game_id = NULL 
+         WHERE id = $1`,
+        [roomId]
+      );
+      
+      console.log(`   ✅ Game ended - room ${roomId.substr(0, 8)} returned to lobby state`);
+      
+      // Broadcast game end event
+      const io = req.app.locals.io;
+      if (io) {
+        io.to(`room:${roomId}`).emit('game_ended', {
+          reason: activePlayers.length === 1 ? 'only_one_player_remaining' : 'all_players_busted',
+          winner: activePlayers.length === 1 ? activePlayers[0] : null,
+          message: activePlayers.length === 1 
+            ? `Game ended - only one player remaining` 
+            : `Game ended - all players busted`
+        });
+      }
+    } else {
+      // Multiple players remain - mark game_states as completed but keep game active
+      await client.query(
+        `UPDATE game_states 
+         SET status = 'completed' 
+         WHERE room_id = $1 AND status = 'active'`,
+        [roomId]
+      );
+    }
+    
+    // Commit transaction - chip updates, spectator conversions, and game state are atomic
+    await client.query('COMMIT');
+    console.log('   ✅ Transaction committed - chip updates, spectator conversions, and game state atomic');
+    
+    // Broadcast busted player events (after commit)
+    if (bustedPlayers.length > 0) {
+      const io = req.app.locals.io;
+      if (io) {
+        for (const busted of bustedPlayers) {
+          io.to(`room:${roomId}`).emit('player_busted', {
+            userId: busted.userId,
+            seatIndex: busted.seatIndex,
+            message: 'Player busted and is now a spectator'
+          });
+          
+          // Notify the busted player
+          io.to(`user:${busted.userId}`).emit('you_busted', {
+            message: 'You went all-in and lost. You are now a spectator and can request a seat again.',
+            canRequestSeat: true,
+            isSpectator: true
+          });
+        }
+      }
+    }
+  } catch (error) {
+    // Rollback on any error
+    await client.query('ROLLBACK');
+    console.error('   ❌ Transaction rolled back due to error:', error.message);
+    throw error; // Re-throw to be handled by outer try/catch
+  } finally {
+    client.release(); // Always release the client back to the pool
+  }
+}
+
 // Helper function to emit hand_complete event (ensures consistent principle)
 // CRITICAL PRINCIPLE: Only emit when ALL cards are revealed AND winner determined
 async function handleHandCompleteEmission(updatedState, roomId, db) {
@@ -1025,13 +1170,6 @@ router.post('/action', async (req, res) => {
       
       const io = req.app.locals.io;
       if (io && roomId) {
-        // Calculate total cards to be revealed
-        const totalCardsToReveal = updatedState.communityCards ? updatedState.communityCards.length : 0;
-        const previousCardsCount = currentState.communityCards ? currentState.communityCards.length : 0;
-        const newCardsCount = totalCardsToReveal - previousCardsCount;
-        
-        console.log(`🎬 [ALL-IN RUNOUT] Cards to reveal: ${newCardsCount} (${previousCardsCount} → ${totalCardsToReveal})`);
-        
         // Emit progressive street reveals with delays
         updatedState.allInRunoutStreets.forEach((streetData, index) => {
           setTimeout(() => {
@@ -1044,27 +1182,12 @@ router.post('/action', async (req, res) => {
           }, (index + 1) * 1000); // 1 second between each street
         });
         
-        // CRITICAL: Calculate delay until 5th card is fully flipped
-        // Frontend animation: Cards animate with 800ms delay per card (globalIndex * 800ms) + 500ms animation
-        // The 5th card (index 4) uses globalIndex = 4, so it starts at 4*800ms = 3200ms
-        // after the LAST street_reveal event (RIVER), and finishes at 3200ms + 500ms = 3700ms
-        const delayPerCard = 800; // Frontend delay between each card (global index * 800ms)
-        const animationTime = 500; // Frontend card flip animation time
-        const bufferTime = 500; // Extra buffer for safety
+        // Calculate delay: wait for all streets to be revealed + buffer
+        const revealDelay = updatedState.allInRunoutStreets.length * 1000;
+        const bufferDelay = 1000; // Extra second after last card
+        const finalDelay = revealDelay + bufferDelay;
         
-        // Calculate: wait for last street_reveal + time for 5th card to finish
-        const lastStreetDelay = updatedState.allInRunoutStreets.length * 1000; // Last street_reveal sent (e.g., 3s for 3 streets)
-        const fifthCardIndex = 4; // 5th card is at index 4 (0-indexed)
-        const fifthCardStartDelay = fifthCardIndex * delayPerCard; // 4 * 800 = 3200ms after last street_reveal
-        const fifthCardFinishDelay = fifthCardStartDelay + animationTime; // 3200 + 500 = 3700ms
-        const finalDelay = lastStreetDelay + fifthCardFinishDelay + bufferTime; // e.g., 3000 + 3700 + 500 = 7200ms
-        
-        console.log(`⏰ [ALL-IN RUNOUT] Will complete hand in ${finalDelay}ms`);
-        console.log(`   Last street (RIVER) sent at: ${lastStreetDelay}ms`);
-        console.log(`   5th card starts at: ${fifthCardStartDelay}ms after last street`);
-        console.log(`   5th card finishes at: ${fifthCardFinishDelay}ms after last street`);
-        console.log(`   Buffer: ${bufferTime}ms`);
-        console.log(`   Total: ${finalDelay}ms (ensures 5th card is fully flipped)`);
+        console.log(`⏰ [ALL-IN RUNOUT] Will complete hand in ${finalDelay}ms after all cards revealed`);
         
         // Complete showdown AFTER all cards are revealed
         setTimeout(async () => {
@@ -1086,7 +1209,7 @@ router.post('/action', async (req, res) => {
           // NOW emit hand_complete (all cards revealed, winner determined)
           if (updatedState.status === 'COMPLETED') {
             // Persist chips (same as normal completion)
-            await persistHandCompletion(updatedState, roomId, db);
+            await persistHandCompletion(updatedState, roomId, db, req);
             
             // Extract hand history (same as normal completion)
             await extractHandHistory(updatedState, roomId, db, gameStateId);
@@ -1122,7 +1245,7 @@ router.post('/action', async (req, res) => {
     // ===== STEP 3B: PERSIST CHIPS TO DB IF HAND COMPLETE =====
     if (updatedState.status === 'COMPLETED') {
       // Persist chips and extract hand history
-      await persistHandCompletion(updatedState, roomId, db);
+      await persistHandCompletion(updatedState, roomId, db, req);
       
       // ===== EMIT HAND COMPLETE EVENT =====
       // CRITICAL PRINCIPLE: Only emit when all cards are revealed AND winner determined
@@ -1658,7 +1781,7 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
       return res.status(403).json({ error: 'Not authorized - host only' });
     }
     
-    // Get all seated players
+    // Get all seated players (including spectators, but excluding those who left)
     const seatsResult = await db.query(
       `SELECT 
          seat_index,
@@ -1666,7 +1789,8 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
          chips_in_play,
          status,
          nickname,
-         joined_at
+         joined_at,
+         is_spectator
        FROM room_seats
        WHERE room_id = $1 AND left_at IS NULL
        ORDER BY seat_index`,
@@ -1679,7 +1803,8 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
       chips: parseInt(row.chips_in_play || 1000),
       status: row.status,
       nickname: row.nickname || `Guest_${row.user_id.substring(0, 6)}`,
-      joinedAt: row.joined_at
+      joinedAt: row.joined_at,
+      isSpectator: row.is_spectator || false
     }));
     
     console.log(`✅ [HOST] Controls data retrieved: ${players.length} players`);
