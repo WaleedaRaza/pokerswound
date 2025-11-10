@@ -1,8 +1,3 @@
--- ============================================
--- MIGRATION 22: Fix hand_history Position Columns
--- Ensure dealer_position, sb_position, bb_position, starting_stacks exist
--- ============================================
-
 -- Add position columns if they don't exist
 ALTER TABLE hand_history
   ADD COLUMN IF NOT EXISTS dealer_position INTEGER,
@@ -47,4 +42,3 @@ BEGIN
 END $$;
 
 SELECT '✅ Migration 22 complete - Position columns verified in hand_history!' as result;
-

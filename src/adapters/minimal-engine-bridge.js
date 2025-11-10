@@ -181,7 +181,8 @@ class MinimalBettingAdapter {
         
         player.bet = totalBetAfterCall; // Cumulative bet
         player.betThisStreet = currentBetThisStreet + callAmountThisStreet; // Street bet
-        player.chips -= callAmount;
+        // CRITICAL: Clamp chips to 0 minimum (prevent negative balances)
+        player.chips = Math.max(0, player.chips - callAmount);
         gameState.pot += callAmount;
         
         // Mark as all-in if chips exhausted
@@ -227,7 +228,8 @@ class MinimalBettingAdapter {
           
           player.bet = amount; // Cumulative bet
           player.betThisStreet = currentBetThisStreetRaise + raiseAmountThisStreetRaise; // Street bet
-          player.chips -= raiseAmount;
+          // CRITICAL: Clamp chips to 0 minimum (prevent negative balances)
+          player.chips = Math.max(0, player.chips - raiseAmount);
           gameState.pot += raiseAmount;
           gameState.currentBet = amount;
           

@@ -1664,6 +1664,431 @@
       color: #ff8888;
     }
     
+    /* ============================================ */
+    /* COMPACT HOST CONTROLS STYLES */
+    /* ============================================ */
+    
+    /* Compact Players Section */
+    .players-section {
+      margin-bottom: 24px;
+    }
+    
+    .blinds-controls-compact {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .blind-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .blind-input-group {
+      flex: 1;
+      min-width: 120px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .blind-input-group label {
+      font-size: 0.8rem;
+      color: #9aa3b2;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    
+    .form-input.compact {
+      flex: 1;
+      min-width: 60px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      max-width: 80px;
+    }
+    
+    .host-control-btn.compact {
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      margin: 0;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    
+    .section-subheader {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0 12px 0;
+      font-size: 0.9rem;
+      color: #9aa3b2;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Compact Player Items */
+    .player-item-compact {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .player-item-compact:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(0, 212, 170, 0.3);
+    }
+    
+    .player-item-info-compact {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .player-item-name-compact {
+      color: #e9eef7;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    
+    .you-badge {
+      color: #00d4aa;
+      font-size: 0.8rem;
+    }
+    
+    .player-item-details-compact {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+    
+    .seat-badge {
+      color: #9aa3b2;
+      font-family: "Courier New", monospace;
+    }
+    
+    .chips-badge {
+      color: #00d4aa;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+    }
+    
+    .kick-btn-compact {
+      background: transparent;
+      border: 1px solid rgba(255, 81, 81, 0.3);
+      color: #ff5151;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .kick-btn-compact:hover {
+      background: rgba(255, 81, 81, 0.15);
+      border-color: #ff5151;
+      transform: scale(1.1);
+    }
+    
+    /* Compact Seat Requests */
+    .seat-request-item-compact {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255, 165, 0, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 165, 0, 0.3);
+      margin-bottom: 8px;
+    }
+    
+    .seat-request-info-compact {
+      flex: 1;
+    }
+    
+    .seat-request-name-compact {
+      color: #e9eef7;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    
+    .seat-request-details-compact {
+      color: #9aa3b2;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    
+    .seat-request-actions-compact {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .approve-btn-compact, .reject-btn-compact {
+      background: transparent;
+      border: 1px solid;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .approve-btn-compact {
+      border-color: rgba(0, 212, 170, 0.3);
+      color: #00d4aa;
+    }
+    
+    .approve-btn-compact:hover {
+      background: rgba(0, 212, 170, 0.15);
+      border-color: #00d4aa;
+    }
+    
+    .reject-btn-compact {
+      border-color: rgba(255, 81, 81, 0.3);
+      color: #ff5151;
+    }
+    
+    .reject-btn-compact:hover {
+      background: rgba(255, 81, 81, 0.15);
+      border-color: #ff5151;
+    }
+    
+    /* Compact Controls Section */
+    .controls-section {
+      margin-bottom: 24px;
+    }
+    
+    .controls-grid-compact {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 8px;
+    }
+    
+    .control-btn-small {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid;
+      background: rgba(255,255,255,0.03);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-height: 60px;
+    }
+    
+    .control-btn-small.action {
+      color: #00d4aa;
+      border-color: #00d4aa;
+    }
+    
+    .control-btn-small.action:hover {
+      background: rgba(0, 212, 170, 0.2);
+      border-color: #00ffcc;
+      transform: translateY(-2px);
+    }
+    
+    .control-btn-small.danger {
+      color: #ff5151;
+      border-color: #ff5151;
+    }
+    
+    .control-btn-small.danger:hover {
+      background: rgba(255, 81, 81, 0.2);
+      border-color: #ff6666;
+      transform: translateY(-2px);
+    }
+    
+    .control-btn-small.timer-control,
+    .control-btn-small.toggle-control {
+      color: #e9eef7;
+      border-color: rgba(255,255,255,0.2);
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px 6px;
+      min-height: auto;
+    }
+    
+    .control-btn-small.timer-control {
+      grid-column: span 2;
+    }
+    
+    .control-btn-small.timer-control:hover,
+    .control-btn-small.toggle-control:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.3);
+    }
+    
+    .btn-icon-small {
+      font-size: 1rem;
+    }
+    
+    .btn-text-small {
+      font-size: 0.65rem;
+      line-height: 1;
+    }
+    
+    .timer-buttons-inline {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    
+    .timer-btn-tiny {
+      padding: 3px 6px;
+      background: rgba(255,255,255,0.05);
+      color: #e9eef7;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.65rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      font-family: "Courier New", monospace;
+      white-space: nowrap;
+    }
+    
+    .timer-btn-tiny:hover {
+      background: rgba(0, 212, 170, 0.15);
+      border-color: #00d4aa;
+      color: #00d4aa;
+    }
+    
+    .timer-btn-tiny.active {
+      background: #00d4aa;
+      color: #0b0b12;
+      border-color: #00d4aa;
+    }
+    
+    .toggle-switch-tiny {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    
+    .toggle-switch-tiny input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider-tiny {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255,255,255,0.2);
+      transition: 0.3s;
+      border-radius: 20px;
+    }
+    
+    .toggle-slider-tiny:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    
+    .toggle-switch-tiny input:checked + .toggle-slider-tiny {
+      background-color: #00d4aa;
+    }
+    
+    .toggle-switch-tiny input:checked + .toggle-slider-tiny:before {
+      transform: translateX(16px);
+    }
+    
+    /* Compact Settings Grid */
+    .settings-compact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+    }
+    
+    .setting-item-compact {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .setting-label-compact {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      text-align: center;
+    }
+    
+    .setting-label-compact span {
+      color: #e9eef7;
+      font-size: 0.8rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .setting-label-compact small {
+      color: #9aa3b2;
+      font-size: 0.7rem;
+    }
+    
+    /* Compact Settings Select */
+    .settings-select-compact {
+      width: 100%;
+      padding: 6px 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #e9eef7;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .settings-select-compact:hover {
+      border-color: #00d4aa;
+      background: rgba(255,255,255,0.08);
+    }
+    
+    .settings-select-compact:focus {
+      outline: none;
+      border-color: #00d4aa;
+      box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+    }
+    
     /* Hotkey List */
     .hotkey-list div {
       padding: 6px 0;
@@ -2243,145 +2668,122 @@
       </div>
       
       <div class="panel-content" id="hostControlsContent">
-        <!-- CURRENT PLAYERS (Always Visible) -->
-        <div class="host-section">
-          <h4>👥 Current Players <span id="hostPlayerCount">0</span></h4>
-          <p class="section-hint">All players who have claimed a seat (pre-game and mid-game)</p>
+        
+        <!-- ============================================ -->
+        <!-- SECTION 1: PLAYERS & BLINDS (Unified) -->
+        <!-- ============================================ -->
+        <div class="host-section players-section">
+          <h4>👥 Players & Blinds</h4>
+          
+          <!-- Blind Controls (Top of Players Section) -->
+          <div class="blinds-controls-compact">
+            <div class="blind-input-row">
+              <div class="blind-input-group">
+                <label>Small Blind:</label>
+                <input type="number" id="hostSmallBlindInput" value="10" min="1" class="form-input compact">
+              </div>
+              <div class="blind-input-group">
+                <label>Big Blind:</label>
+                <input type="number" id="hostBigBlindInput" value="20" min="2" class="form-input compact">
+              </div>
+              <button class="host-control-btn update compact" onclick="updateBlinds()">UPDATE</button>
+          </div>
+        </div>
+        
+          <!-- Pending Seat Requests (Shown First if Any) -->
+          <div id="pendingSeatRequestsSection" style="display: none;">
+            <div class="section-subheader">
+              <span>🪑 Pending Requests</span>
+            </div>
+            <div id="pendingSeatRequests">
+              <div class="empty-state">No pending requests</div>
+            </div>
+          </div>
+          
+          <!-- Current Players List -->
+          <div class="section-subheader">
+            <span>Seated Players <span id="hostPlayerCount">0</span></span>
+            </div>
           <div id="hostPlayerList">
             <div class="empty-state">No players seated</div>
-          </div>
-        </div>
-        
-        <!-- SEAT REQUESTS (Priority - Most Important) -->
-        <div class="host-section priority-section">
-          <h4>🪑 Pending Seat Requests</h4>
-          <p class="section-hint">Players requesting to join mid-game</p>
-          <div id="pendingSeatRequests">
-            <div class="empty-state">No pending requests</div>
-          </div>
-        </div>
-        
-        <!-- ACTIVE GAME CONTROLS -->
-        <div class="host-section">
-          <h4>⚡ Active Game Controls</h4>
-          <p class="section-hint">Manage the current game</p>
-          <div class="host-actions-grid">
-            <button class="host-control-btn action" onclick="togglePauseGame()" id="pauseGameBtn">
-              <span class="btn-icon">⏸️</span>
-              <span class="btn-text">PAUSE GAME</span>
-            </button>
-            <button class="host-control-btn action" onclick="forceNextHand()">
-              <span class="btn-icon">⏭️</span>
-              <span class="btn-text">NEXT HAND</span>
-            </button>
-            <button class="host-control-btn action" onclick="openKickPlayerModal()">
-              <span class="btn-icon">👢</span>
-              <span class="btn-text">KICK PLAYER</span>
-            </button>
-          </div>
-        </div>
-        
-        <!-- ROOM MANAGEMENT -->
-        <div class="host-section">
-          <h4>🔒 Room Management</h4>
-          <p class="section-hint">Control who can join</p>
-          <div class="host-actions-grid">
-            <button class="host-control-btn action" onclick="toggleRoomLock()">
-              <span class="btn-icon">🔒</span>
-              <span class="btn-text" id="lockBtnText">LOCK ROOM</span>
-            </button>
-          </div>
-        </div>
-        
-        <!-- BLIND CONTROLS -->
-        <div class="host-section">
-          <h4>💰 Blind Controls</h4>
-          <p class="section-hint">Adjust blinds between hands</p>
-          <div class="blinds-controls">
-            <div class="blind-input-group">
-              <label>Small Blind:</label>
-              <input type="number" id="hostSmallBlindInput" value="10" min="1" class="form-input">
             </div>
-            <div class="blind-input-group">
-              <label>Big Blind:</label>
-              <input type="number" id="hostBigBlindInput" value="20" min="2" class="form-input">
-            </div>
-            <button class="host-control-btn update" onclick="updateBlinds()">UPDATE BLINDS</button>
-          </div>
         </div>
         
-        <!-- GAME SETTINGS -->
-        <div class="host-section">
-          <h4>⚙️ Game Settings</h4>
+        <!-- ============================================ -->
+        <!-- SECTION 2: GAME CONTROLS (Consolidated) -->
+        <!-- ============================================ -->
+        <div class="host-section controls-section">
+          <h4>⚙️ Game Controls</h4>
           
-          <!-- Action Timer -->
-          <div class="setting-group">
-            <div class="setting-label">
-              <span>⏱️ Action Timer</span>
-              <small>Set time limit per decision (0 = unlimited)</small>
-            </div>
-            <div class="timer-buttons">
-              <button class="timer-btn" onclick="setActionTimer(0)">OFF</button>
-              <button class="timer-btn" onclick="setActionTimer(15)">15s</button>
-              <button class="timer-btn" onclick="setActionTimer(30)">30s</button>
-              <button class="timer-btn" onclick="setActionTimer(45)">45s</button>
-              <button class="timer-btn" onclick="setActionTimer(60)">60s</button>
-            </div>
-            <div class="timer-status">
-              Current: <span id="actionTimerDisplay">OFF</span>
+          <!-- All Controls in Compact Grid -->
+          <div class="controls-grid-compact">
+            <!-- Game Actions -->
+            <button class="control-btn-small action" onclick="togglePauseGame()" id="pauseGameBtn" title="Pause Game">
+              <span class="btn-icon-small">⏸️</span>
+              <span class="btn-text-small">PAUSE</span>
+            </button>
+            <button class="control-btn-small action" onclick="forceNextHand()" title="Next Hand">
+              <span class="btn-icon-small">⏭️</span>
+              <span class="btn-text-small">NEXT</span>
+            </button>
+            <button class="control-btn-small action" onclick="toggleRoomLock()" id="lockBtn" title="Lock Room">
+              <span class="btn-icon-small">🔒</span>
+              <span class="btn-text-small" id="lockBtnText">LOCK</span>
+            </button>
+            
+            <!-- Action Timer -->
+            <div class="control-btn-small timer-control">
+              <span class="btn-icon-small">⏱️</span>
+              <div class="timer-buttons-inline">
+                <button class="timer-btn-tiny" onclick="setActionTimer(0)">OFF</button>
+                <button class="timer-btn-tiny" onclick="setActionTimer(15)">15s</button>
+                <button class="timer-btn-tiny" onclick="setActionTimer(30)">30s</button>
+                <button class="timer-btn-tiny" onclick="setActionTimer(60)">60s</button>
             </div>
           </div>
           
           <!-- Auto-Start Toggle -->
-          <div class="setting-row">
-            <div class="setting-label">
-              <span>🔄 Auto-Start Hands</span>
-              <small>Automatically begin next hand when ready</small>
-            </div>
-            <label class="toggle-switch">
+            <div class="control-btn-small toggle-control">
+              <span class="btn-icon-small">🔄</span>
+              <span class="btn-text-small">AUTO</span>
+              <label class="toggle-switch-tiny">
               <input type="checkbox" id="autoStartToggle" onchange="toggleAutoStart()" checked>
-              <span class="toggle-slider"></span>
+                <span class="toggle-slider-tiny"></span>
             </label>
           </div>
           
           <!-- Spectator Mode Toggle -->
-          <div class="setting-row">
-            <div class="setting-label">
-              <span>👁️ Spectator Mode</span>
-              <small>Allow kicked players to watch game</small>
-            </div>
-            <label class="toggle-switch">
+            <div class="control-btn-small toggle-control">
+              <span class="btn-icon-small">👁️</span>
+              <span class="btn-text-small">SPECTATE</span>
+              <label class="toggle-switch-tiny">
               <input type="checkbox" id="spectatorToggle" onchange="toggleSpectatorMode()" checked>
-              <span class="toggle-slider"></span>
+                <span class="toggle-slider-tiny"></span>
             </label>
+        </div>
+        
+            <!-- Danger Actions (Red) -->
+            <button class="control-btn-small danger" onclick="resetAllStacks()" title="Reset All Stacks">
+              <span class="btn-icon-small">🔄</span>
+              <span class="btn-text-small">RESET</span>
+            </button>
+            <button class="control-btn-small danger" onclick="endGame()" title="End Game">
+              <span class="btn-icon-small">🛑</span>
+              <span class="btn-text-small">END</span>
+            </button>
+            </div>
+            </div>
+        
           </div>
         </div>
         
-        <!-- DANGER ZONE -->
-        <div class="host-section danger-zone">
-          <h4>⚠️ Danger Zone</h4>
-          <p class="section-hint">Destructive actions - use with caution</p>
-          <div class="host-actions-grid">
-            <button class="host-control-btn danger" onclick="resetAllStacks()">
-              <span class="btn-icon">🔄</span>
-              <span class="btn-text">RESET STACKS</span>
-            </button>
-            <button class="host-control-btn danger" onclick="endGame()">
-              <span class="btn-icon">🛑</span>
-              <span class="btn-text">END GAME</span>
-            </button>
-            </div>
-        </div>
-      </div>
-    </div>
-    
     <!-- 🪑 HOST NOTIFICATION POPUP (Seat Requests) -->
     <div class="host-notification-overlay" id="hostNotificationOverlay" style="display: none;">
       <div class="host-notification-modal">
         <div class="host-notification-header">
           <h3>🪑 Seat Request</h3>
           <button class="close-btn" onclick="closeHostNotification()">×</button>
-        </div>
+            </div>
         <div class="host-notification-body">
           <p><strong id="requestUsername">@player</strong> wants to join <strong>Seat <span id="requestSeatIndex">0</span></strong></p>
           <div class="request-details">
@@ -2444,71 +2846,117 @@
           </div>
         </div>
         
-        <!-- 4-COLOR DECK -->
+        <!-- STYLING SETTINGS (Consolidated) -->
         <div class="host-section">
-          <h4>🃏 4-Color Deck</h4>
-          <p class="section-hint">Easier suit distinction (accessibility)</p>
-          <label class="toggle-switch">
+          <h4>🎨 Styling Settings</h4>
+          
+          <div class="settings-compact-grid">
+            <!-- 4-Color Deck -->
+            <div class="setting-item-compact">
+              <div class="setting-label-compact">
+                <span>🃏 4-Color</span>
+              </div>
+              <label class="toggle-switch-compact">
             <input type="checkbox" id="fourColorDeck" onchange="toggleFourColorDeck(this.checked)">
-            <span class="toggle-slider"></span>
-            <span class="toggle-label">Enable 4-Color Deck</span>
+                <span class="toggle-slider-compact"></span>
           </label>
-          <p class="setting-note">Coming soon - will use distinct colors for each suit</p>
         </div>
         
-        <!-- CARD BACK DESIGN -->
-        <div class="host-section">
-          <h4>🎴 Card Back Design</h4>
-          <p class="section-hint">Choose your card back style</p>
-          <select id="cardBackSelect" onchange="changeCardBack(this.value)" class="settings-select">
+            <!-- Card Back Design -->
+            <div class="setting-item-compact">
+              <div class="setting-label-compact">
+                <span>🎴 Card Back</span>
+              </div>
+              <select id="cardBackSelect" onchange="changeCardBack(this.value)" class="settings-select-compact">
             <option value="default">Classic</option>
-            <option value="modern">Modern (Coming Soon)</option>
-            <option value="minimal">Minimal (Coming Soon)</option>
-            <option value="geometric">Geometric (Coming Soon)</option>
+                <option value="modern">Modern</option>
+                <option value="minimal">Minimal</option>
+                <option value="geometric">Geometric</option>
           </select>
         </div>
         
-        <!-- ANIMATION SPEED -->
-        <div class="host-section">
-          <h4>⚡ Animation Speed</h4>
-          <p class="section-hint">Card dealing and chip animations</p>
-          <select id="animSpeedSelect" onchange="changeAnimSpeed(this.value)" class="settings-select">
-            <option value="fast">Fast (200ms)</option>
-            <option value="normal" selected>Normal (400ms)</option>
-            <option value="slow">Slow (600ms)</option>
+            <!-- Animation Speed -->
+            <div class="setting-item-compact">
+              <div class="setting-label-compact">
+                <span>⚡ Speed</span>
+              </div>
+              <select id="animSpeedSelect" onchange="changeAnimSpeed(this.value)" class="settings-select-compact">
+                <option value="fast">Fast</option>
+                <option value="normal" selected>Normal</option>
+                <option value="slow">Slow</option>
           </select>
         </div>
         
-        <!-- AUTO-MUCK -->
-        <div class="host-section">
-          <h4>🙈 Auto-Muck</h4>
-          <p class="section-hint">Automatically hide losing hands at showdown</p>
-          <label class="toggle-switch">
+            <!-- Auto-Muck -->
+            <div class="setting-item-compact">
+              <div class="setting-label-compact">
+                <span>🙈 Auto-Muck</span>
+              </div>
+              <label class="toggle-switch-compact">
             <input type="checkbox" id="autoMuck" onchange="toggleAutoMuck(this.checked)">
-            <span class="toggle-slider"></span>
-            <span class="toggle-label">Enable Auto-Muck</span>
+                <span class="toggle-slider-compact"></span>
           </label>
         </div>
         
-        <!-- CHIP DISPLAY FORMAT -->
-        <div class="host-section">
-          <h4>💰 Chip Display</h4>
-          <p class="section-hint">How chips are shown</p>
-          <select id="chipFormatSelect" onchange="changeChipFormat(this.value)" class="settings-select">
-            <option value="full" selected>Full ($1,500)</option>
-            <option value="compact">Compact ($1.5K)</option>
+            <!-- Chip Display Format -->
+            <div class="setting-item-compact">
+              <div class="setting-label-compact">
+                <span>💰 Chips</span>
+              </div>
+              <select id="chipFormatSelect" onchange="changeChipFormat(this.value)" class="settings-select-compact">
+                <option value="full" selected>Full</option>
+                <option value="compact">Compact</option>
+                <option value="bigblinds">BB</option>
           </select>
         </div>
         
-        <!-- ACTION CONFIRMATION -->
-        <div class="host-section">
-          <h4>⚠️ Action Confirmation</h4>
-          <p class="section-hint">Confirm before big actions</p>
-          <label class="toggle-switch">
+            <!-- Action Confirmation -->
+            <div class="setting-item-compact">
+              <div class="setting-label-compact">
+                <span>⚠️ Confirm</span>
+              </div>
+              <label class="toggle-switch-compact">
             <input type="checkbox" id="actionConfirm" onchange="toggleActionConfirm(this.checked)">
-            <span class="toggle-slider"></span>
-            <span class="toggle-label">Confirm Big Bets/Folds</span>
+                <span class="toggle-slider-compact"></span>
           </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ============================================ -->
+        <!-- SANDBOX MODE (Testing Only) -->
+        <!-- ============================================ -->
+        <div class="host-section sandbox-section" id="sandboxSection" style="display: none; border: 2px solid #ff9500; background: rgba(255, 149, 0, 0.05);">
+          <h4>🧪 SANDBOX MODE <span style="color: #ff9500; font-size: 0.8rem;">(Testing Only)</span></h4>
+          <p class="section-hint" style="color: #ff9500;">Set cards & board before starting hand to test corner cases</p>
+          
+          <label class="toggle-switch">
+            <input type="checkbox" id="sandboxModeToggle" onchange="toggleSandboxMode(this.checked)">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Enable Sandbox Mode</span>
+          </label>
+          
+          <div id="sandboxControls" style="display: none; margin-top: 16px;">
+            <!-- Player Cards & Stacks -->
+            <div id="sandboxPlayerList">
+              <p style="color: #9aa3b2; font-size: 0.85rem;">No players seated. Seat players first.</p>
+            </div>
+            
+            <!-- Board Cards -->
+            <div style="margin-top: 16px;">
+              <h5 style="font-size: 0.9rem; color: #e9eef7; margin-bottom: 8px;">🃏 Board Cards (Optional)</h5>
+              <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <input type="text" id="sandboxFlop1" placeholder="Ah" maxlength="2" class="sandbox-card-input" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                <input type="text" id="sandboxFlop2" placeholder="Kd" maxlength="2" class="sandbox-card-input" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                <input type="text" id="sandboxFlop3" placeholder="Qs" maxlength="2" class="sandbox-card-input" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                <input type="text" id="sandboxTurn" placeholder="7c" maxlength="2" class="sandbox-card-input" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                <input type="text" id="sandboxRiver" placeholder="3s" maxlength="2" class="sandbox-card-input" style="width: 50px; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+              </div>
+              <small style="color: #9aa3b2; display: block; margin-top: 8px; font-size: 0.75rem;">
+                Format: Ah, Kd, Qs (rank + suit). Leave blank for random dealing.
+              </small>
+            </div>
+          </div>
         </div>
         
         <!-- HOTKEYS -->
@@ -2821,8 +3269,8 @@
         const display = document.getElementById('actionTimerDisplay');
         if (display) {
           display.textContent = actionTimerSeconds === 0 ? 'OFF' : `${actionTimerSeconds}s`;
-          // Mark active button
-          document.querySelectorAll('.timer-btn').forEach(btn => {
+          // Mark active button (old, compact, and tiny buttons)
+          document.querySelectorAll('.timer-btn, .timer-btn-compact, .timer-btn-tiny').forEach(btn => {
             const btnValue = btn.textContent.trim();
             if ((actionTimerSeconds === 0 && btnValue === 'OFF') ||
                 (btnValue === `${actionTimerSeconds}s`)) {
@@ -3250,10 +3698,31 @@
       socket.on('game_ended', (data) => {
         debug('🏆 Game ended:', data);
         showNotification(data.message || 'Game ended', 'info');
-        // Reload room to show lobby state
+        
+        // Clear any active game state
+        currentGameState = null;
+        myHoleCards = null;
+        gameId = null; // CRITICAL: Clear gameId so START button shows
+        
+        // Clear action buttons
+        document.getElementById('actionButtons').style.display = 'none';
+        
+        // Clear community cards display
+        const communityCardsDiv = document.getElementById('communityCards');
+        if (communityCardsDiv) {
+          communityCardsDiv.innerHTML = '';
+        }
+        
+        // Clear pot display
+        const potDiv = document.getElementById('pot');
+        if (potDiv) {
+          potDiv.textContent = '0';
+        }
+        
+        // Reload room to show lobby state (start game status)
         setTimeout(() => {
           loadRoom();
-        }, 2000);
+        }, 1500);
       });
     }
     
@@ -3270,6 +3739,8 @@
           throw new Error(`Failed to get room: ${roomResponse.status}`);
         }
         const roomData = await roomResponse.json();
+        // Store room data globally for chip formatting (big blinds conversion)
+        window.currentRoomData = roomData;
         debug('✅ Room data received', roomData);
         
         // Get seats
@@ -3283,26 +3754,28 @@
         // Update room code
         document.getElementById('roomCode').textContent = roomData.room?.code || 'N/A';
         
-        // Store game ID if exists
+        // Store game ID if exists (clear if null)
         if (roomData.room?.gameId) {
           gameId = roomData.room.gameId;
+        } else {
+          gameId = null; // CRITICAL: Clear gameId when no active game
         }
         
         // Render seats
         renderSeats(seatsData.seats, roomData.room);
         
-        // Detect if user is a spectator (not seated OR marked as spectator, game active)
+        // Detect if user is a spectator (not seated, game active, not host)
+        // CRITICAL: Spectators are users NOT in seats at all - they're outside watching
         const mySeat = seatsData.seats?.find(s => s && s.userId === userId);
         isHost = roomData.room?.hostId === userId; // Update global isHost
         const roomIsActive = !!(roomData.room?.gameId || roomData.room?.game_id); // Game active if gameId exists
-        // Spectator = not seated OR seated but marked as spectator, game active, not host
-        isSpectator = (!mySeat || (mySeat && mySeat.isSpectator)) && roomIsActive && !isHost;
+        // Spectator = not seated, game active, not host
+        isSpectator = !mySeat && roomIsActive && !isHost;
         mySeatIndex = mySeat ? mySeat.seatIndex : null;
         
         debug('👁️ Spectator check:', { 
           isSpectator, 
           mySeat: !!mySeat, 
-          mySeatIsSpectator: mySeat?.isSpectator,
           roomIsActive, 
           isHost,
           mySeatIndex 
@@ -3313,6 +3786,11 @@
         // 2. 2+ players seated
         // 3. User is host (or show "waiting" if not host)
         const seatedCount = seatsData.occupiedCount || 0;
+        
+        // Update sandbox section visibility (only show when no active game)
+        // Store seats data globally for sandbox mode
+        window.currentSeatsData = seatsData;
+        updateSandboxVisibility(roomIsActive, seatsData.seats || seatsData);
         
         // CRITICAL: If room is ACTIVE, NEVER show START button (game is in progress)
         if (roomIsActive) {
@@ -3352,17 +3830,20 @@
       const seatsDiv = document.getElementById('seats');
       seatsDiv.innerHTML = '';
       
-      // Check if game is active (hide empty seats during game)
+      // Check if game is active
       const isGameActive = currentGameState && (currentGameState.status === 'IN_PROGRESS' || currentGameState.status === 'COMPLETED');
       
       // Create 10 seats (0-9)
+      // CRITICAL: 
+      // - Host/Players: Only show OCCUPIED seats during active game (hide empty seats)
+      // - Spectators: Show ALL seats (occupied + empty) so they can see and claim empty ones
       for (let i = 0; i < 10; i++) {
         const seat = seats ? seats[i] : null;
         const isEmpty = !seat || !seat.userId;
         
-        // Skip empty seats if game is active
-        if (isEmpty && isGameActive) {
-          debug(`⏩ Skipping empty seat ${i} (game active)`);
+        // Skip empty seats if game is active AND user is NOT a spectator
+        if (isEmpty && isGameActive && !isSpectator) {
+          debug(`⏩ Skipping empty seat ${i} (game active, not spectator)`);
           continue;
         }
         
@@ -3410,25 +3891,21 @@
           if (roomIsActive && !isHost) {
             chips.textContent = 'Request seat';
           } else {
-            chips.textContent = 'Click to claim';
+          chips.textContent = 'Click to claim';
           }
           div.onclick = () => claimSeat(i);
         } else {
           // Display nickname with rank color and badge (async)
+          // NOTE: If seat exists here, player is actually seated (not a spectator)
           const displayName = seat.nickname || `Guest_${seat.userId.substring(0, 6)}`;
           player.textContent = `@${displayName}`;
           if (isMe) player.textContent += ' (YOU)';
           
-          // Show spectator status
-          if (seat.isSpectator) {
-            chips.textContent = '👁️ SPECTATOR';
-            chips.style.color = '#888';
-            chips.style.fontStyle = 'italic';
-          } else {
-            chips.textContent = `$${(seat.chips || 1000).toLocaleString()}`;
-            chips.style.color = '';
-            chips.style.fontStyle = '';
-          }
+          // Show chip count (all seated players have chips) - use format function
+          const chipAmount = seat.chips || 1000;
+          chips.textContent = formatChipAmount(chipAmount);
+          chips.style.color = '';
+          chips.style.fontStyle = '';
           
           // Apply rank styling and badge (async, non-blocking)
           if (window.UsernameStyling && seat.userId) {
@@ -3436,7 +3913,7 @@
               try {
                 const rankColor = await window.UsernameStyling.getRankColor(seat.userId);
                 const badge = await window.UsernameStyling.getTopBadge(seat.userId);
-                const usernameText = displayName + (isMe ? ' (YOU)' : '') + (seat.isSpectator ? ' 👁️' : '');
+                const usernameText = displayName + (isMe ? ' (YOU)' : '');
                 player.innerHTML = window.UsernameStyling.formatUsernameWithRankAndBadge(
                   usernameText, 
                   rankColor, 
@@ -3445,7 +3922,7 @@
               } catch (error) {
                 console.error('Error applying rank styling:', error);
                 // Fallback to default display
-                player.textContent = `@${displayName}` + (isMe ? ' (YOU)' : '') + (seat.isSpectator ? ' 👁️' : '');
+                player.textContent = `@${displayName}` + (isMe ? ' (YOU)' : '');
               }
             })();
           }
@@ -3475,6 +3952,26 @@
     // STEP 4B: UPDATE SEAT CHIPS IN REAL-TIME
     // ============================================
     function updateSeatChips(players) {
+      if (!players) return;
+      
+      debug('💰 Updating seat chips', { playerCount: players.length });
+      
+      players.forEach(player => {
+        // Find the seat element
+        const seatsDiv = document.getElementById('seats');
+        const seatDivs = seatsDiv.querySelectorAll('.seat');
+        
+        seatDivs.forEach(seatDiv => {
+          const chipEl = seatDiv.querySelector('.seat-chips');
+          if (chipEl && player.chips !== undefined) {
+            chipEl.textContent = formatChipAmount(player.chips);
+          }
+        });
+      });
+    }
+    
+    // Legacy function - kept for compatibility
+    function updateSeatChipsOld(players) {
       if (!players) return;
       
       debug('💰 Updating seat chips', { playerCount: players.length });
@@ -3590,10 +4087,9 @@
         if (shouldShowCards) {
           const isMe = player.userId === userId;
           
-          // SPECTATOR LOGIC: Spectators NEVER see hole cards (only card backs)
-          // UNLESS cards are shown at showdown (handled by showdown_action event)
+          // SPECTATOR LOGIC: Spectators see CARD BACKS (not hole cards) for all players
           if (isSpectator) {
-            // Spectators always see card backs (never hole cards)
+            // Spectators see card backs for all players (they're watching the game)
             debug(`👁️ Spectator view: Showing card backs for seat ${i} (folded: ${player.folded})`);
             for (let j = 0; j < 2; j++) {
               const cardBack = document.createElement('img');
@@ -3668,29 +4164,29 @@
       let nickname = null;
       if (!roomIsActive) {
         nickname = prompt(
-          '🎮 Choose your nickname (3-15 characters):\n\n' +
-          'Letters, numbers, and underscores only.\n' +
-          'Leave blank for auto-generated name.',
-          ''
-        );
-        
-        // User cancelled
-        if (nickname === null) {
-          isClaimingSeat = false;
-          return;
-        }
-        
-        // Validate nickname if provided
-        if (nickname && (nickname.length < 3 || nickname.length > 15)) {
-          console.error('Nickname must be 3-15 characters');
-          isClaimingSeat = false;
-          return;
-        }
-        
-        if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
-          console.error('Nickname can only contain letters, numbers, and underscores');
-          isClaimingSeat = false;
-          return;
+        '🎮 Choose your nickname (3-15 characters):\n\n' +
+        'Letters, numbers, and underscores only.\n' +
+        'Leave blank for auto-generated name.',
+        ''
+      );
+      
+      // User cancelled
+      if (nickname === null) {
+        isClaimingSeat = false;
+        return;
+      }
+      
+      // Validate nickname if provided
+      if (nickname && (nickname.length < 3 || nickname.length > 15)) {
+        console.error('Nickname must be 3-15 characters');
+        isClaimingSeat = false;
+        return;
+      }
+      
+      if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
+        console.error('Nickname can only contain letters, numbers, and underscores');
+        isClaimingSeat = false;
+        return;
         }
       }
       
@@ -3760,16 +4256,40 @@
         // Keep hand strength visible - it shows current hand throughout the game
         document.getElementById('myCardsSection').style.display = 'none';
         
+        // Collect sandbox config if enabled (only for first hand, not next hand)
+        let sandboxConfig = null;
+        if (!isNextHand) {
+          const sandboxEnabled = document.getElementById('sandboxModeToggle')?.checked;
+          console.log('🧪 [SANDBOX] Check:', { sandboxEnabled, isNextHand });
+          if (sandboxEnabled) {
+            sandboxConfig = collectSandboxConfig();
+            console.log('🧪 [SANDBOX] Collected config:', sandboxConfig);
+            if (!sandboxConfig || sandboxConfig.players.length === 0) {
+              showNotification('Sandbox mode enabled but no player cards set. Disable sandbox or set cards.', 'warning');
+              console.error('🧪 [SANDBOX] No players found in config!', sandboxConfig);
+              return;
+            }
+            console.log('🧪 [SANDBOX] Sending config with', sandboxConfig.players.length, 'players');
+          }
+        }
+        
         // Use correct endpoint
         const endpoint = isNextHand ? '/api/engine/next-hand' : '/api/engine/deal-cards';
+        
+        const requestBody = {
+          roomId: roomId,
+          userId: userId
+        };
+        
+        if (sandboxConfig) {
+          requestBody.sandboxConfig = sandboxConfig;
+          console.log('🧪 [SANDBOX] Sending request with config:', JSON.stringify(requestBody, null, 2));
+        }
         
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            roomId: roomId,
-            userId: userId
-          })
+          body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
@@ -3852,18 +4372,18 @@
       
       // Show action buttons only if not a spectator
       if (!isSpectator) {
-        document.getElementById('actionButtons').style.display = 'flex';
-        
-        // Fetch game state and let updateActionButtons handle everything
-        try {
-          const gameStateResponse = await fetch(`/api/engine/game/${roomId}`);
-          if (gameStateResponse.ok) {
-            const gameData = await gameStateResponse.json();
-            updateActionButtons(gameData);
-            evaluateHandStrength(cards, gameData.communityCards || []);
-          }
-        } catch (error) {
-          debug('⚠️ Could not fetch game state', error);
+      document.getElementById('actionButtons').style.display = 'flex';
+      
+      // Fetch game state and let updateActionButtons handle everything
+      try {
+        const gameStateResponse = await fetch(`/api/engine/game/${roomId}`);
+        if (gameStateResponse.ok) {
+          const gameData = await gameStateResponse.json();
+          updateActionButtons(gameData);
+          evaluateHandStrength(cards, gameData.communityCards || []);
+        }
+      } catch (error) {
+        debug('⚠️ Could not fetch game state', error);
         }
       } else {
         // Spectators cannot see action buttons
@@ -4113,7 +4633,7 @@
           
           setTimeout(() => {
             updateWinnerBannerIfNeeded();
-            banner.classList.add('show');
+        banner.classList.add('show');
             debug('✅ Winner banner shown after all-in runout animation');
           }, delayMs);
         } else {
@@ -4328,8 +4848,8 @@
           performAction('ALL_IN', 0); // ALL_IN doesn't need amount parameter
         });
       } else {
-        closeRaisePanel();
-        performAction('RAISE', amount);
+      closeRaisePanel();
+      performAction('RAISE', amount);
       }
     }
     
@@ -4579,27 +5099,27 @@
           previousCommunityCards = [...cards];
         } else {
           // Normal card rendering (no animation)
-          communityDiv.innerHTML = '';
+      communityDiv.innerHTML = '';
+      
+      cards.forEach(card => {
+        const cardImg = document.createElement('img');
+        cardImg.className = 'card-img';
           
-          cards.forEach(card => {
-            const cardImg = document.createElement('img');
-            cardImg.className = 'card-img';
-            
-            // Only add 'new-card' class if this card wasn't in previous render
-            if (newCards.includes(card)) {
-              cardImg.classList.add('new-card');
-            }
-            
-            cardImg.src = getCardImagePath(card);
-            cardImg.alt = card;
-            cardImg.onerror = function() {
-              this.src = '/cards/back.png';
-            };
-            communityDiv.appendChild(cardImg);
-          });
+          // Only add 'new-card' class if this card wasn't in previous render
+          if (newCards.includes(card)) {
+            cardImg.classList.add('new-card');
+          }
           
-          // Update tracking
-          previousCommunityCards = [...cards];
+        cardImg.src = getCardImagePath(card);
+        cardImg.alt = card;
+        cardImg.onerror = function() {
+          this.src = '/cards/back.png';
+        };
+        communityDiv.appendChild(cardImg);
+      });
+        
+        // Update tracking
+        previousCommunityCards = [...cards];
         }
       }
       
@@ -4854,28 +5374,89 @@
         
         const data = await response.json();
         const container = document.getElementById('pendingSeatRequests');
+        const requestsSection = document.getElementById('pendingSeatRequestsSection');
         
         if (!data.requests || data.requests.length === 0) {
           container.innerHTML = '<div class="empty-state">No pending requests</div>';
+          if (requestsSection) requestsSection.style.display = 'none';
           return;
         }
         
+        // Show requests section
+        if (requestsSection) requestsSection.style.display = 'block';
+        
+        // Render requests inline with approve/reject buttons (compact layout)
         container.innerHTML = data.requests.map(req => `
-          <div class="seat-request-item">
-            <div class="seat-request-info">
-              <div class="seat-request-name">@${req.username}</div>
-              <div class="seat-request-details">
-                Seat ${req.seatIndex} • $${req.requestedChips.toLocaleString()} chips
+          <div class="seat-request-item-compact">
+            <div class="seat-request-info-compact">
+              <div class="seat-request-name-compact">@${req.username}</div>
+              <div class="seat-request-details-compact">
+                Seat ${req.seatIndex} • $${req.requestedChips.toLocaleString()}
               </div>
             </div>
-            <div class="seat-request-actions">
-              <button class="seat-request-btn reject" onclick="rejectSeatRequestFromList(${req.id})">❌</button>
-              <button class="seat-request-btn approve" onclick="approveSeatRequestFromList(${req.id})">✅</button>
+            <div class="seat-request-actions-compact">
+              <button class="approve-btn-compact" onclick="approveSeatRequestInline('${req.id}')" title="Approve">
+                ✅
+              </button>
+              <button class="reject-btn-compact" onclick="rejectSeatRequestInline('${req.id}')" title="Reject">
+                ❌
+              </button>
             </div>
           </div>
         `).join('');
       } catch (error) {
         console.error('Error loading seat requests:', error);
+      }
+    }
+    
+    // Inline approve/reject functions for compact seat requests
+    async function approveSeatRequestInline(requestId) {
+      if (!isHost) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/seat-requests/${requestId}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hostId: userId })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          showNotification(error.error || 'Failed to approve request', 'error');
+          return;
+        }
+        
+        showNotification('Seat request approved', 'success');
+        loadPendingSeatRequests(); // Refresh list
+        refreshHostControls(); // Refresh player list
+        loadRoom(); // Refresh room state
+      } catch (error) {
+        console.error('Error approving seat request:', error);
+        showNotification('Failed to approve request', 'error');
+      }
+    }
+    
+    async function rejectSeatRequestInline(requestId) {
+      if (!isHost) return;
+      
+      try {
+        const response = await fetch(`/api/rooms/${roomId}/seat-requests/${requestId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hostId: userId })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          showNotification(error.error || 'Failed to reject request', 'error');
+          return;
+        }
+        
+        showNotification('Seat request rejected', 'info');
+        loadPendingSeatRequests(); // Refresh list
+      } catch (error) {
+        console.error('Error rejecting seat request:', error);
+        showNotification('Failed to reject request', 'error');
       }
     }
     
@@ -5017,38 +5598,33 @@
         return;
       }
       
-      // Filter out spectators from count (they're shown but not counted as active players)
-      const activePlayers = players.filter(p => !p.isSpectator);
-      countEl.textContent = activePlayers.length;
+      // All players in this list are actually seated (spectators are NOT in room_seats)
+      countEl.textContent = players.length;
       
       if (players.length === 0) {
         container.innerHTML = '<div class="empty-state">No players seated</div>';
         return;
       }
       
+      // Render players with inline kick button (compact layout)
       container.innerHTML = players.map(player => {
-        const isSpectator = player.isSpectator || false;
-        const statusBadge = isSpectator ? '<span class="spectator-badge">👁️ SPECTATOR</span>' : '';
-        
+        // NOTE: If player is in this list, they're actually seated (not a spectator)
+        // Spectators are NOT in room_seats, so they won't appear here
         return `
-        <div class="player-item ${isSpectator ? 'spectator-item' : ''}">
-          <div class="player-item-info">
-            <div class="player-item-name">
+        <div class="player-item-compact">
+          <div class="player-item-info-compact">
+            <div class="player-item-name-compact">
               @${player.nickname}
-              ${player.userId === userId ? ' (YOU)' : ''}
-              ${statusBadge}
+              ${player.userId === userId ? ' <span class="you-badge">(YOU)</span>' : ''}
             </div>
-            <div class="player-item-details">
-              <span>Seat ${player.seatIndex}</span>
-              ${isSpectator ? 
-                '<span class="player-item-chips spectator-chips">👁️ SPECTATOR</span>' :
-                `<span class="player-item-chips">$${player.chips.toLocaleString()}</span>`
-              }
+            <div class="player-item-details-compact">
+              <span class="seat-badge">Seat ${player.seatIndex}</span>
+              <span class="chips-badge">${formatChipAmount(player.chips)}</span>
             </div>
           </div>
-          ${player.userId !== userId && !isSpectator ? `
-            <button class="host-btn kick" onclick="kickPlayer('${player.userId}')">
-              🚫 KICK
+          ${player.userId !== userId ? `
+            <button class="kick-btn-compact" onclick="kickPlayer('${player.userId}')" title="Kick player">
+              🚫
             </button>
           ` : ''}
         </div>
@@ -5318,15 +5894,21 @@
     function setActionTimer(seconds) {
       actionTimerSeconds = seconds;
       
-      // Update display
+      // Update display (both old and new compact display)
       const display = document.getElementById('actionTimerDisplay');
+      if (display) {
       display.textContent = seconds === 0 ? 'OFF' : `${seconds}s`;
+      }
       
-      // Update button states
-      document.querySelectorAll('.timer-btn').forEach(btn => {
+      // Update button states (old, compact, and tiny buttons)
+      document.querySelectorAll('.timer-btn, .timer-btn-compact, .timer-btn-tiny').forEach(btn => {
         btn.classList.remove('active');
+        const btnValue = btn.textContent.trim();
+        if ((seconds === 0 && btnValue === 'OFF') || 
+            (btnValue === `${seconds}s`)) {
+          btn.classList.add('active');
+        }
       });
-      event.target.classList.add('active');
       
       // Save to localStorage
       localStorage.setItem('pokergeek_action_timer', seconds);
@@ -5466,16 +6048,318 @@
       localStorage.setItem('pokergeek_chip_format', format);
       debug('💰 Chip format:', format);
       // Refresh chip displays on seats
-      const gameState = currentGameState;
-      if (gameState && gameState.players) {
-        updateSeatChips(gameState.players);
+      refreshChipDisplays();
+    }
+    
+    // Format chip amount based on selected format
+    function formatChipAmount(amount, format = null) {
+      if (!format) {
+        format = localStorage.getItem('pokergeek_chip_format') || 'full';
       }
+      
+      switch (format) {
+        case 'compact':
+          if (amount >= 1000000) {
+            return `$${(amount / 1000000).toFixed(1)}M`;
+          } else if (amount >= 1000) {
+            return `$${(amount / 1000).toFixed(1)}K`;
+          }
+          return `$${amount.toLocaleString()}`;
+        
+        case 'bigblinds':
+          // Get big blind from room data or current game state
+          let bigBlind = 20; // Default fallback
+          
+          // Try to get from room data first (most reliable)
+          const roomData = window.currentRoomData;
+          if (roomData && roomData.room && roomData.room.bigBlind) {
+            bigBlind = roomData.room.bigBlind;
+          } else if (currentGameState) {
+            // Try to get from game state
+            // Check if we can infer from current bet (if at preflop, currentBet is BB)
+            if (currentGameState.street === 'PREFLOP' && currentGameState.currentBet) {
+              bigBlind = currentGameState.currentBet;
+            } else if (currentGameState.bbPosition !== undefined) {
+              // Try to get BB amount from players array
+              const bbPlayer = currentGameState.players.find(p => p.seatIndex === currentGameState.bbPosition);
+              if (bbPlayer && bbPlayer.bet) {
+                bigBlind = bbPlayer.bet;
+              }
+            }
+          }
+          
+          if (bigBlind > 0) {
+            const bbCount = Math.round(amount / bigBlind);
+            return `${bbCount} BB`;
+          }
+          return `$${amount.toLocaleString()}`;
+        
+        case 'full':
+        default:
+          return `$${amount.toLocaleString()}`;
+      }
+    }
+    
+    // Refresh all chip displays on the table
+    function refreshChipDisplays() {
+      // Refresh seat chips
+      const seats = document.querySelectorAll('.seat-chips');
+      seats.forEach(chipEl => {
+        const seatDiv = chipEl.closest('.seat');
+        if (!seatDiv) return;
+        
+        const seatIndex = parseInt(seatDiv.dataset.seatIndex);
+        if (isNaN(seatIndex)) return;
+        
+        // Get chip amount from text content or data attribute
+        const currentText = chipEl.textContent;
+        const amountMatch = currentText.match(/\$?([\d,]+)/);
+        if (amountMatch) {
+          const amount = parseInt(amountMatch[1].replace(/,/g, ''));
+          if (!isNaN(amount)) {
+            chipEl.textContent = formatChipAmount(amount);
+          }
+        }
+      });
+      
+      // Refresh pot display
+      const potEl = document.getElementById('pot');
+      if (potEl) {
+        const potText = potEl.textContent;
+        const potMatch = potText.match(/\$?([\d,]+)/);
+        if (potMatch) {
+          const potAmount = parseInt(potMatch[1].replace(/,/g, ''));
+          if (!isNaN(potAmount)) {
+            const format = localStorage.getItem('pokergeek_chip_format') || 'full';
+            // Pot always shows full format (not BB)
+            if (format === 'bigblinds') {
+              potEl.textContent = formatChipAmount(potAmount, 'full');
+            } else {
+              potEl.textContent = formatChipAmount(potAmount);
+            }
+          }
+        }
+      }
+      
+      // Refresh player list chips in host controls
+      const playerChips = document.querySelectorAll('.chips-badge');
+      playerChips.forEach(chipEl => {
+        const chipText = chipEl.textContent;
+        const amountMatch = chipText.match(/\$?([\d,]+)/);
+        if (amountMatch) {
+          const amount = parseInt(amountMatch[1].replace(/,/g, ''));
+          if (!isNaN(amount)) {
+            chipEl.textContent = formatChipAmount(amount);
+          }
+        }
+      });
     }
     
     // Action Confirmation Toggle
     function toggleActionConfirm(enabled) {
       localStorage.setItem('pokergeek_action_confirm', enabled);
       debug('⚠️ Action confirmation:', enabled);
+    }
+    
+    // ============================================
+    // SANDBOX MODE FUNCTIONS
+    // ============================================
+    
+    // Toggle sandbox mode visibility
+    function toggleSandboxMode(enabled) {
+      const controls = document.getElementById('sandboxControls');
+      if (enabled) {
+        controls.style.display = 'block';
+        // Get seats from stored data
+        const seats = window.currentSeatsData?.seats || window.currentSeatsData || [];
+        console.log('🧪 [SANDBOX] Toggled ON, rendering with seats:', seats);
+        renderSandboxPlayerList(seats);
+      } else {
+        controls.style.display = 'none';
+      }
+    }
+    
+    // Update sandbox section visibility based on game state
+    function updateSandboxVisibility(hasActiveGame, seats) {
+      const sandboxSection = document.getElementById('sandboxSection');
+      if (!sandboxSection) return;
+      
+      // Only show sandbox when no active game and user is host
+      if (!hasActiveGame && isHost) {
+        sandboxSection.style.display = 'block';
+        // Refresh player list if sandbox is enabled
+        if (document.getElementById('sandboxModeToggle')?.checked) {
+          renderSandboxPlayerList(seats);
+        }
+      } else {
+        sandboxSection.style.display = 'none';
+      }
+    }
+    
+    // Render player list for sandbox editing
+    function renderSandboxPlayerList(seats) {
+      const container = document.getElementById('sandboxPlayerList');
+      if (!container) {
+        console.error('🧪 [SANDBOX] Container not found!');
+        return;
+      }
+      
+      // Get seats from parameter or fetch from stored data
+      if (!seats) {
+        // Try to get from current seats data (stored in loadRoom)
+        const seatsData = window.currentSeatsData;
+        console.log('🧪 [SANDBOX] No seats param, fetching from window.currentSeatsData:', seatsData);
+        if (seatsData && seatsData.seats) {
+          seats = seatsData.seats; // Use seats array from API response
+        } else if (Array.isArray(seatsData)) {
+          seats = seatsData;
+        } else {
+          seats = [];
+        }
+      }
+      
+      // Filter out nulls (seats array is sparse - has nulls for empty seats)
+      const occupiedSeats = Array.isArray(seats) ? seats.filter(s => s && s.userId) : [];
+      
+      console.log('🧪 [SANDBOX] Rendering player list:', { 
+        seatsArray: seats, 
+        occupiedSeats,
+        count: occupiedSeats.length 
+      });
+      
+      if (occupiedSeats.length === 0) {
+        container.innerHTML = '<p style="color: #9aa3b2; font-size: 0.85rem;">No players seated. Seat players first.</p>';
+        return;
+      }
+      
+      let html = '<h5 style="font-size: 0.9rem; color: #e9eef7; margin-bottom: 12px;">👥 Set Player Cards & Stacks</h5>';
+      
+      occupiedSeats.forEach(seat => {
+        if (!seat || !seat.userId) return; // Skip empty seats (shouldn't happen after filter, but safety check)
+        
+        const nickname = seat.nickname || `Player ${seat.seatIndex}`;
+        const currentChips = seat.chips || seat.chipsInPlay || seat.chips_in_play || 1000;
+        
+        html += `
+          <div class="sandbox-player-item" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+            <h6 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #00d4aa;">Seat ${seat.seatIndex}: ${nickname}</h6>
+            <div class="sandbox-player-controls" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+              <div>
+                <small style="color: #9aa3b2; font-size: 0.75rem;">Card 1:</small>
+                <input type="text" 
+                       id="sandboxCard1_${seat.seatIndex}" 
+                       placeholder="Ah" 
+                       maxlength="2" 
+                       class="sandbox-card-input" 
+                       style="width: 100%; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+              </div>
+              <div>
+                <small style="color: #9aa3b2; font-size: 0.75rem;">Card 2:</small>
+                <input type="text" 
+                       id="sandboxCard2_${seat.seatIndex}" 
+                       placeholder="Kd" 
+                       maxlength="2" 
+                       class="sandbox-card-input" 
+                       style="width: 100%; padding: 6px; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-family: 'Courier New', monospace; font-size: 0.9rem;">
+              </div>
+              <div>
+                <small style="color: #9aa3b2; font-size: 0.75rem;">Stack:</small>
+                <input type="number" 
+                       id="sandboxStack_${seat.seatIndex}" 
+                       value="${currentChips}" 
+                       min="0" 
+                       class="form-input compact" 
+                       style="width: 100%; padding: 6px;">
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+    
+    // Collect sandbox config from form inputs
+    function collectSandboxConfig() {
+      const players = [];
+      const boardCards = [];
+      
+      // Get all seated players from seats data (filter out nulls - seats array is sparse)
+      const seatsArray = window.currentSeatsData?.seats || window.currentSeatsData || [];
+      const seats = Array.isArray(seatsArray) ? seatsArray.filter(s => s && s.userId) : [];
+      console.log('🧪 [SANDBOX] Collecting config, seats:', seats, 'from:', seatsArray);
+      
+      if (!seats || seats.length === 0) {
+        console.error('🧪 [SANDBOX] No seats data found!', { 
+          currentSeatsData: window.currentSeatsData,
+          seatsArray,
+          seats 
+        });
+        return { players: [], boardCards: null };
+      }
+      
+      seats.forEach((seat, idx) => {
+        if (!seat || !seat.userId) {
+          console.log(`🧪 [SANDBOX] Skipping invalid seat at index ${idx}:`, seat);
+          return;
+        }
+        
+        const card1Id = `sandboxCard1_${seat.seatIndex}`;
+        const card2Id = `sandboxCard2_${seat.seatIndex}`;
+        const stackId = `sandboxStack_${seat.seatIndex}`;
+        
+        const card1El = document.getElementById(card1Id);
+        const card2El = document.getElementById(card2Id);
+        const stackEl = document.getElementById(stackId);
+        
+        console.log(`🧪 [SANDBOX] Seat ${seat.seatIndex}:`, {
+          card1El: !!card1El,
+          card2El: !!card2El,
+          stackEl: !!stackEl,
+          card1Value: card1El?.value,
+          card2Value: card2El?.value
+        });
+        
+        if (!card1El || !card2El || !stackEl) {
+          console.warn(`🧪 [SANDBOX] Missing inputs for seat ${seat.seatIndex}`);
+          return;
+        }
+        
+        const card1 = card1El.value.trim().toUpperCase();
+        const card2 = card2El.value.trim().toUpperCase();
+        const stack = parseInt(stackEl.value) || seat.chips || seat.chipsInPlay || seat.chips_in_play || 1000;
+        
+        // Only include if both cards are set
+        if (card1 && card2 && card1.length === 2 && card2.length === 2) {
+          players.push({
+            seatIndex: seat.seatIndex,
+            userId: seat.userId,
+            holeCards: [card1, card2],
+            chips: stack
+          });
+          console.log(`🧪 [SANDBOX] Added player ${seat.seatIndex}:`, { card1, card2, stack });
+        } else {
+          console.log(`🧪 [SANDBOX] Skipping seat ${seat.seatIndex} - cards not set:`, { card1, card2 });
+        }
+      });
+      
+      // Collect board cards (optional)
+      const flop1 = document.getElementById('sandboxFlop1')?.value.trim().toUpperCase();
+      const flop2 = document.getElementById('sandboxFlop2')?.value.trim().toUpperCase();
+      const flop3 = document.getElementById('sandboxFlop3')?.value.trim().toUpperCase();
+      const turn = document.getElementById('sandboxTurn')?.value.trim().toUpperCase();
+      const river = document.getElementById('sandboxRiver')?.value.trim().toUpperCase();
+      
+      if (flop1 && flop2 && flop3) {
+        boardCards.push(flop1, flop2, flop3);
+        if (turn && turn.length === 2) boardCards.push(turn);
+        if (river && river.length === 2) boardCards.push(river);
+      }
+      
+      return {
+        players,
+        boardCards: boardCards.length > 0 ? boardCards : null
+      };
     }
     
     // Hotkeys Toggle

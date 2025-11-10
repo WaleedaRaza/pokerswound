@@ -175,7 +175,14 @@ router.post('/claim-seat', async (req, res) => {
     const gameId = roomResult.rows[0].game_id;
     const isGameActive = gameId !== null && gameId !== undefined;
     
-    // Check if seat is available
+    // Check if user already has a row in room_seats for this room (even if left_at IS NOT NULL)
+    const existingUserSeat = await db.query(
+      `SELECT seat_index, left_at FROM room_seats 
+       WHERE room_id = $1 AND user_id = $2`,
+      [roomId, userId]
+    );
+    
+    // Check if the requested seat is available
     const checkResult = await db.query(
       `SELECT user_id FROM room_seats 
        WHERE room_id = $1 AND seat_index = $2 AND left_at IS NULL`,
@@ -259,21 +266,41 @@ router.post('/claim-seat', async (req, res) => {
     // Generate default nickname if not provided
     const finalNickname = nickname || `Guest_${userId.substring(0, 6)}`;
     
-    // Claim the seat with nickname
-    const insertResult = await db.query(
-      `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, nickname, joined_at, is_spectator)
-       VALUES ($1, $2, $3, $4, $5, NOW(), FALSE)
-       ON CONFLICT (room_id, seat_index) 
-       DO UPDATE SET 
-         user_id = $2,
-         chips_in_play = $4,
-         nickname = $5,
-         joined_at = NOW(),
-         left_at = NULL,
-         is_spectator = FALSE
-       RETURNING *`,
-      [roomId, userId, seatIndex, requestedChips, finalNickname]
-    );
+    // Handle existing user row (from previous bust/leave) vs new claim
+    let insertResult;
+    if (existingUserSeat.rows.length > 0) {
+      // User already has a row - UPDATE it (handles unique_user_room constraint)
+      console.log(`🔄 User already has row in room_seats, updating to new seat ${seatIndex}`);
+      insertResult = await db.query(
+        `UPDATE room_seats 
+         SET 
+           seat_index = $3,
+           chips_in_play = $4,
+           nickname = $5,
+           joined_at = NOW(),
+           left_at = NULL,
+           is_spectator = FALSE
+         WHERE room_id = $1 AND user_id = $2
+         RETURNING *`,
+        [roomId, userId, seatIndex, requestedChips, finalNickname]
+      );
+    } else {
+      // New user - INSERT (handle seat_index conflict)
+      insertResult = await db.query(
+        `INSERT INTO room_seats (room_id, user_id, seat_index, chips_in_play, nickname, joined_at, is_spectator)
+         VALUES ($1, $2, $3, $4, $5, NOW(), FALSE)
+         ON CONFLICT (room_id, seat_index) 
+         DO UPDATE SET 
+           user_id = $2,
+           chips_in_play = $4,
+           nickname = $5,
+           joined_at = NOW(),
+           left_at = NULL,
+           is_spectator = FALSE
+         RETURNING *`,
+        [roomId, userId, seatIndex, requestedChips, finalNickname]
+      );
+    }
     
     const seat = insertResult.rows[0];
     
@@ -330,7 +357,7 @@ router.get('/seats/:roomId', async (req, res) => {
       return res.status(500).json({ error: 'Database not available' });
     }
     
-    // Get all seats with nicknames (including spectators)
+    // Get all seats with nicknames (spectators are NOT in room_seats)
     const result = await db.query(
       `SELECT 
          seat_index,
@@ -338,8 +365,7 @@ router.get('/seats/:roomId', async (req, res) => {
          chips_in_play,
          status,
          nickname,
-         joined_at,
-         is_spectator
+         joined_at
        FROM room_seats
        WHERE room_id = $1 AND left_at IS NULL
        ORDER BY seat_index`,
@@ -356,8 +382,8 @@ router.get('/seats/:roomId', async (req, res) => {
         nickname: row.nickname || `Guest_${row.user_id.substring(0, 6)}`,
         chips: row.chips_in_play,
         status: row.status,
-        joinedAt: row.joined_at,
-        isSpectator: row.is_spectator || false
+        joinedAt: row.joined_at
+        // NOTE: isSpectator removed - spectators are NOT in room_seats at all
       };
     });
     
@@ -386,9 +412,9 @@ router.get('/seats/:roomId', async (req, res) => {
 
 router.post('/deal-cards', async (req, res) => {
   try {
-    const { roomId, userId } = req.body;
+    const { roomId, userId, sandboxConfig } = req.body;
     
-    console.log('🃏 [MINIMAL] Starting real hand:', { roomId, userId });
+    console.log('🃏 [MINIMAL] Starting hand:', { roomId, userId, sandboxMode: !!sandboxConfig });
     
     if (!roomId || !userId) {
       return res.status(400).json({ 
@@ -462,17 +488,152 @@ router.post('/deal-cards', async (req, res) => {
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
     
-    console.log('🃏 Deck shuffled, total cards:', deck.length);
+    // ===== SANDBOX MODE: Replace deck with pre-set cards =====
+    // CRITICAL: Sandbox should use EXACT same game logic, only difference is deck initialization
+    if (sandboxConfig && sandboxConfig.players && sandboxConfig.players.length > 0) {
+      console.log('🧪 [SANDBOX] Building deck from pre-set cards');
+      
+      // Validate and collect all sandbox cards
+      const allSandboxCards = [];
+      const validRanks = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+      const validSuits = ['H','D','C','S'];
+      
+      // Collect hole cards from all players
+      const sandboxHoleCards = [];
+      for (const sandboxPlayer of sandboxConfig.players) {
+        if (!sandboxPlayer.holeCards || sandboxPlayer.holeCards.length !== 2) {
+          return res.status(400).json({ 
+            error: `Player at seat ${sandboxPlayer.seatIndex} must have 2 cards` 
+          });
+        }
+        
+        const playerCards = sandboxPlayer.holeCards.map(card => {
+          const cardUpper = card.toUpperCase();
+          if (cardUpper.length !== 2) {
+            throw new Error(`Invalid card format: ${card}`);
+          }
+          const rank = cardUpper[0];
+          const suit = cardUpper[1];
+          if (!validRanks.includes(rank) || !validSuits.includes(suit)) {
+            throw new Error(`Invalid card: ${card} (rank: ${rank}, suit: ${suit})`);
+          }
+          // Convert to lowercase to match deck format
+          const cardLower = `${rank}${suit.toLowerCase()}`;
+          if (allSandboxCards.includes(cardLower)) {
+            throw new Error(`Duplicate card: ${cardLower}`);
+          }
+          allSandboxCards.push(cardLower);
+          return cardLower;
+        });
+        
+        sandboxHoleCards.push({
+          seatIndex: sandboxPlayer.seatIndex,
+          cards: playerCards,
+          chips: sandboxPlayer.chips
+        });
+      }
+      
+      // Collect board cards if provided
+      let sandboxBoardCards = [];
+      if (sandboxConfig.boardCards && sandboxConfig.boardCards.length > 0) {
+        sandboxBoardCards = sandboxConfig.boardCards.map(card => {
+          const cardUpper = card.toUpperCase();
+          if (cardUpper.length !== 2) {
+            throw new Error(`Invalid board card format: ${card}`);
+          }
+          const rank = cardUpper[0];
+          const suit = cardUpper[1];
+          if (!validRanks.includes(rank) || !validSuits.includes(suit)) {
+            throw new Error(`Invalid board card: ${card}`);
+          }
+          const cardLower = `${rank}${suit.toLowerCase()}`;
+          if (allSandboxCards.includes(cardLower)) {
+            throw new Error(`Duplicate card: ${cardLower}`);
+          }
+          allSandboxCards.push(cardLower);
+          return cardLower;
+        });
+      }
+      
+      // Build sandbox deck in DEALING ORDER:
+      // 1. Hole cards (2 per player, in seat order) - sandbox cards first, then random for non-sandbox players
+      // 2. Board cards (if provided)
+      // 3. Remaining cards
+      
+      // First, get remaining cards (excluding sandbox cards)
+      const remainingCards = deck.filter(card => !allSandboxCards.includes(card));
+      
+      // Shuffle remaining cards for non-sandbox players
+      for (let i = remainingCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [remainingCards[i], remainingCards[j]] = [remainingCards[j], remainingCards[i]];
+      }
+      
+      const sandboxDeck = [];
+      let remainingIndex = 0;
+      
+      // Add hole cards in seat order (so deck.pop() deals them correctly)
+      seatedPlayers.forEach(player => {
+        const sandboxPlayer = sandboxConfig.players.find(sp => sp.seatIndex === player.seat_index);
+        if (sandboxPlayer && sandboxPlayer.holeCards) {
+          // Add this player's sandbox cards
+          sandboxPlayer.holeCards.forEach(card => {
+            const cardUpper = card.toUpperCase();
+            const rank = cardUpper[0];
+            const suit = cardUpper[1];
+            const cardLower = `${rank}${suit.toLowerCase()}`;
+            sandboxDeck.push(cardLower);
+          });
+        } else {
+          // Player not in sandbox config - use random cards from remaining deck
+          sandboxDeck.push(remainingCards[remainingIndex++]);
+          sandboxDeck.push(remainingCards[remainingIndex++]);
+        }
+      });
+      
+      // Add board cards if provided
+      if (sandboxBoardCards.length > 0) {
+        sandboxBoardCards.forEach(card => {
+          sandboxDeck.push(card);
+        });
+      }
+      
+      // Add rest of remaining cards
+      while (remainingIndex < remainingCards.length) {
+        sandboxDeck.push(remainingCards[remainingIndex++]);
+      }
+      
+      // Replace deck with sandbox deck (reverse so pop() works correctly)
+      deck = sandboxDeck.reverse();
+      console.log(`🧪 [SANDBOX] Deck built: ${allSandboxCards.length} pre-set cards at top, ${remainingCards.length} remaining`);
+    } else {
+      // NORMAL MODE: Shuffle deck randomly
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      console.log('🃏 Deck shuffled, total cards:', deck.length);
+    }
     
-    // ===== STEP 2: DEAL HOLE CARDS =====
-    const players = seatedPlayers.map((player, index) => {
+    // ===== STEP 2: DEAL HOLE CARDS (SAME LOGIC FOR BOTH MODES) =====
+    // CRITICAL: Use EXACT same dealing logic - sandbox deck just has cards in specific order
+    const players = seatedPlayers.map((player) => {
       const card1 = deck.pop();
       const card2 = deck.pop();
+      
+      // Apply sandbox stack override if provided
+      let chips = parseInt(player.chips_in_play);
+      if (sandboxConfig && sandboxConfig.players) {
+        const sandboxPlayer = sandboxConfig.players.find(sp => sp.seatIndex === player.seat_index);
+        if (sandboxPlayer && sandboxPlayer.chips !== undefined) {
+          chips = sandboxPlayer.chips;
+        }
+      }
       
       return {
         userId: player.user_id,
         seatIndex: player.seat_index,
-        chips: parseInt(player.chips_in_play),
+        chips: chips,
         holeCards: [card1, card2],
         bet: 0,
         folded: false,
@@ -522,12 +683,13 @@ router.post('/deal-cards', async (req, res) => {
     }
     
     // Post blinds
+    // CRITICAL: Clamp chips to 0 minimum (prevent negative balances)
     players[sbPosition].bet = small_blind;
-    players[sbPosition].chips -= small_blind;
+    players[sbPosition].chips = Math.max(0, players[sbPosition].chips - small_blind);
     players[sbPosition].betThisStreet = small_blind; // Track street bet
     
     players[bbPosition].bet = big_blind;
-    players[bbPosition].chips -= big_blind;
+    players[bbPosition].chips = Math.max(0, players[bbPosition].chips - big_blind);
     players[bbPosition].betThisStreet = big_blind; // Track street bet
     
     const pot = small_blind + big_blind;
@@ -542,15 +704,38 @@ router.post('/deal-cards', async (req, res) => {
     console.log(`👉 First to act: Seat ${currentActorSeat}`);
     
     // ===== STEP 5: CREATE GAME STATE JSONB =====
+    // Handle sandbox board cards (deal them from deck if provided)
+    let initialStreet = 'PREFLOP';
+    let initialCommunityCards = [];
+    
+    if (sandboxConfig && sandboxConfig.boardCards && sandboxConfig.boardCards.length >= 3) {
+      // Deal board cards from deck (they're already at the top from sandbox deck building)
+      // This uses the SAME dealing logic as normal mode
+      initialCommunityCards = [];
+      for (let i = 0; i < sandboxConfig.boardCards.length && i < 5; i++) {
+        initialCommunityCards.push(deck.pop());
+      }
+      
+      // Set street based on number of board cards
+      if (initialCommunityCards.length >= 5) {
+        initialStreet = 'RIVER';
+      } else if (initialCommunityCards.length >= 4) {
+        initialStreet = 'TURN';
+      } else {
+        initialStreet = 'FLOP';
+      }
+      console.log(`🧪 [SANDBOX] Board dealt: ${initialCommunityCards.join(' ')} (${initialStreet})`);
+    }
+    
     const gameState = {
       roomId,
       handNumber: 1,
-      street: 'PREFLOP',
+      street: initialStreet,
       pot,
       currentBet: big_blind,
       minRaise: big_blind, // Initialize min raise to big blind (minimum raise amount)
-      communityCards: [],
-      deck: deck, // Remaining cards for flop/turn/river
+      communityCards: initialCommunityCards,
+      deck: remainingDeck, // Remaining cards for flop/turn/river (or empty if sandbox board set)
       dealerPosition: players[dealerPosition].seatIndex,
       sbPosition: players[sbPosition].seatIndex,
       bbPosition: players[bbPosition].seatIndex,
@@ -755,8 +940,12 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
     for (const player of updatedState.players) {
       console.log(`   🔄 Attempting UPDATE for ${player.userId.substr(0, 8)}: chips=${player.chips}, roomId=${roomId.substr(0, 8)}`);
       
-      // Check if player is busted (chips === 0)
-      if (player.chips === 0) {
+      // Update chips (clamp to 0 minimum to prevent negative balances)
+      // CRITICAL: Ensure chips never go negative (shouldn't happen, but defensive)
+      const finalChips = Math.max(0, player.chips || 0);
+      
+      // Check if player is busted (chips <= 0)
+      if (finalChips === 0) {
         bustedPlayers.push({
           userId: player.userId,
           seatIndex: player.seatIndex
@@ -765,17 +954,16 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
         activePlayers.push({
           userId: player.userId,
           seatIndex: player.seatIndex,
-          chips: player.chips
+          chips: finalChips
         });
       }
       
-      // Update chips (even if 0, so we can track it)
       const updateResult = await client.query(
         `UPDATE room_seats 
          SET chips_in_play = $1 
          WHERE room_id = $2 AND user_id = $3
          RETURNING user_id, chips_in_play`,
-        [player.chips, roomId, player.userId]
+        [finalChips, roomId, player.userId]
       );
       
       if (updateResult.rows.length === 0) {
@@ -786,17 +974,17 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       }
     }
     
-    // Convert busted players to spectators (don't remove them, just mark as spectator)
+    // Remove busted players from seats entirely (they become true spectators - not in seats)
     if (bustedPlayers.length > 0) {
-      console.log(`   💀 Converting ${bustedPlayers.length} busted player(s) to spectators`);
+      console.log(`   💀 Removing ${bustedPlayers.length} busted player(s) from seats`);
       for (const busted of bustedPlayers) {
         await client.query(
           `UPDATE room_seats 
-           SET is_spectator = TRUE, chips_in_play = 0
+           SET left_at = NOW()
            WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
           [roomId, busted.userId]
         );
-        console.log(`   ✅ Converted busted player to spectator: ${busted.userId.substr(0, 8)} from seat ${busted.seatIndex}`);
+        console.log(`   ✅ Removed busted player from seat: ${busted.userId.substr(0, 8)} from seat ${busted.seatIndex}`);
       }
     }
     
@@ -804,13 +992,13 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
     if (activePlayers.length <= 1) {
       console.log(`🏆 [GAME END] Only ${activePlayers.length} player(s) remaining - ending game and returning to lobby`);
       
-      // Mark game_states as completed
+      // DELETE active game_states (not just mark as completed) - allows fresh game start
       await client.query(
-        `UPDATE game_states 
-         SET status = 'completed' 
+        `DELETE FROM game_states 
          WHERE room_id = $1 AND status = 'active'`,
         [roomId]
       );
+      console.log(`   🧹 Deleted active game_states for room ${roomId.substr(0, 8)}`);
       
       // Clear game_id from rooms table (return to lobby state)
       await client.query(
@@ -825,12 +1013,28 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       // Broadcast game end event
       const io = req.app.locals.io;
       if (io) {
+        // Get winner info for better message
+        let winnerMessage;
+        if (activePlayers.length === 1) {
+          const winner = activePlayers[0];
+          // Get nickname from room_seats for better display
+          const winnerSeat = await client.query(
+            `SELECT nickname FROM room_seats 
+             WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
+            [roomId, winner.userId]
+          );
+          const winnerName = winnerSeat.rows[0]?.nickname || `Player ${winner.seatIndex}`;
+          winnerMessage = `Game ended - ${winnerName} is the last player standing. You can start a new game.`;
+        } else {
+          winnerMessage = `Game ended - all players busted`;
+        }
+        
         io.to(`room:${roomId}`).emit('game_ended', {
           reason: activePlayers.length === 1 ? 'only_one_player_remaining' : 'all_players_busted',
           winner: activePlayers.length === 1 ? activePlayers[0] : null,
-          message: activePlayers.length === 1 
-            ? `Game ended - only one player remaining` 
-            : `Game ended - all players busted`
+          message: winnerMessage,
+          canStartNewGame: true,
+          remainingPlayers: activePlayers.length
         });
       }
     } else {
@@ -860,7 +1064,7 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
           
           // Notify the busted player
           io.to(`user:${busted.userId}`).emit('you_busted', {
-            message: 'You went all-in and lost. You are now a spectator and can request a seat again.',
+            message: 'You went all-in and lost. You have been removed from your seat. You can request a seat again.',
             canRequestSeat: true,
             isSpectator: true
           });
@@ -1624,10 +1828,11 @@ router.post('/next-hand', async (req, res) => {
     const sbPlayer = players.find(p => p.seatIndex === sbSeatIndex);
     const bbPlayer = players.find(p => p.seatIndex === bbSeatIndex);
     
-    sbPlayer.chips -= small_blind;
+    // CRITICAL: Clamp chips to 0 minimum (prevent negative balances)
+    sbPlayer.chips = Math.max(0, sbPlayer.chips - small_blind);
     sbPlayer.bet = small_blind;
     
-    bbPlayer.chips -= big_blind;
+    bbPlayer.chips = Math.max(0, bbPlayer.chips - big_blind);
     bbPlayer.bet = big_blind;
     
     const pot = small_blind + big_blind;
@@ -1784,7 +1989,7 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
       return res.status(403).json({ error: 'Not authorized - host only' });
     }
     
-    // Get all seated players (including spectators, but excluding those who left)
+    // Get all seated players (spectators are NOT in room_seats - they're outside watching)
     const seatsResult = await db.query(
       `SELECT 
          seat_index,
@@ -1792,8 +1997,7 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
          chips_in_play,
          status,
          nickname,
-         joined_at,
-         is_spectator
+         joined_at
        FROM room_seats
        WHERE room_id = $1 AND left_at IS NULL
        ORDER BY seat_index`,
@@ -1806,8 +2010,8 @@ router.get('/host-controls/:roomId/:userId', async (req, res) => {
       chips: parseInt(row.chips_in_play || 1000),
       status: row.status,
       nickname: row.nickname || `Guest_${row.user_id.substring(0, 6)}`,
-      joinedAt: row.joined_at,
-      isSpectator: row.is_spectator || false
+      joinedAt: row.joined_at
+      // NOTE: isSpectator removed - spectators are NOT in room_seats at all
     }));
     
     console.log(`✅ [HOST] Controls data retrieved: ${players.length} players`);
