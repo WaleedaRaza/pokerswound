@@ -3030,6 +3030,16 @@
         setTimeout(loadRoom, 500);
       });
       
+      // Listen for progressive street reveals (all-in runout)
+      socket.on('street_reveal', (data) => {
+        debug('🃏 Street reveal event', data);
+        
+        if (data.communityCards && data.communityCards.length > 0) {
+          // Render cards with animation (all-in runout)
+          renderCommunityCards(data.communityCards);
+        }
+      });
+      
       // Listen for action processed events
       socket.on('action_processed', (data) => {
         debug('🎮 Action processed', data);
@@ -3048,8 +3058,8 @@
             actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
           }
           
-          // Show community cards if any
-          if (gs.communityCards && gs.communityCards.length > 0) {
+          // Show community cards if any (but skip if this is an all-in runout - handled by street_reveal)
+          if (gs.communityCards && gs.communityCards.length > 0 && !gs.needsProgressiveReveal) {
             renderCommunityCards(gs.communityCards);
           }
           

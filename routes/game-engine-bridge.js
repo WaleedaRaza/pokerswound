@@ -732,6 +732,221 @@ router.get('/room/:roomId', async (req, res) => {
 
 const { MinimalBettingAdapter } = require('../src/adapters/minimal-engine-bridge');
 
+// Helper function to emit hand_complete event (ensures consistent principle)
+// CRITICAL PRINCIPLE: Only emit when ALL cards are revealed AND winner determined
+async function handleHandCompleteEmission(updatedState, roomId, db) {
+  const io = req.app.locals.io;
+  if (!io || !roomId) return;
+  
+  const winners = updatedState.winners || [];
+  const publicState = {
+    ...updatedState,
+    players: updatedState.players.map(p => ({
+      userId: p.userId,
+      seatIndex: p.seatIndex,
+      chips: p.chips,
+      bet: p.bet,
+      folded: p.folded,
+      status: p.status,
+      nickname: p.nickname || `Player_${p.seatIndex}`
+    }))
+  };
+  
+  io.to(`room:${roomId}`).emit('hand_complete', {
+    type: 'hand_complete',
+    roomId,
+    gameState: publicState,
+    winners: winners.map(w => ({
+      userId: w.userId,
+      seatIndex: w.seatIndex,
+      amount: w.amount,
+      handDescription: w.handDescription
+    })),
+    finalPot: updatedState.finalPotSize || updatedState.pot || 0
+  });
+  
+  console.log(`📡 [MINIMAL] Emitted hand_complete event to room:${roomId} (all cards revealed, winner determined)`);
+}
+
+// Helper function to extract hand history (ensures consistent principle)
+async function extractHandHistory(updatedState, roomId, db, gameStateId) {
+  console.log('📊 [MINIMAL] Extracting hand data to hand_history + player_statistics');
+  
+  try {
+    // ✅ TRANSACTION: Wrap all hand history writes for atomicity
+    const historyClient = await db.connect();
+    try {
+      await historyClient.query('BEGIN');
+      console.log('   🔒 Transaction started for hand history');
+    
+      // Helper function to get hand rank from description
+      const getHandRank = (handDescription) => {
+        if (!handDescription) return 10;
+        const desc = handDescription.toLowerCase();
+        if (desc.includes('royal flush')) return 1;
+        if (desc.includes('straight flush')) return 2;
+        if (desc.includes('four of a kind') || desc.includes('quads')) return 3;
+        if (desc.includes('full house')) return 4;
+        if (desc.includes('flush')) return 5;
+        if (desc.includes('straight')) return 6;
+        if (desc.includes('three of a kind') || desc.includes('trips')) return 7;
+        if (desc.includes('two pair')) return 8;
+        if (desc.includes('pair')) return 9;
+        return 10; // High card
+      };
+      
+      // ✅ USE SNAPSHOT BEFORE SHOWDOWN (captured before any mutations)
+      const snapshot = updatedState.snapshotBeforeShowdown || {
+        pot: updatedState.finalPotSize || updatedState.pot || 0,
+        players: updatedState.players,
+        communityCards: updatedState.communityCards || [],
+        dealerPosition: updatedState.dealerPosition,
+        sbPosition: updatedState.sbPosition,
+        bbPosition: updatedState.bbPosition,
+        actionHistory: updatedState.actionHistory || []
+      };
+      
+      // Extract winner data
+      const winner = (updatedState.winners && updatedState.winners[0]) ? updatedState.winners[0] : null;
+      const winnerId = winner ? winner.userId : null;
+      const winningHand = winner ? winner.handDescription : null;
+      const handRank = getHandRank(winningHand);
+      
+      // Extract all player IDs from snapshot
+      const playerIds = snapshot.players.map(p => p.userId);
+      
+      // ✅ USE POT SIZE FROM SNAPSHOT (before zeroing)
+      const potSize = snapshot.pot || 0;
+      
+      // Extract position data from snapshot
+      const dealerPosition = snapshot.dealerPosition !== undefined ? snapshot.dealerPosition : null;
+      const sbPosition = snapshot.sbPosition !== undefined ? snapshot.sbPosition : null;
+      const bbPosition = snapshot.bbPosition !== undefined ? snapshot.bbPosition : null;
+      
+      // Calculate starting stacks from snapshot
+      const startingStacks = {};
+      const playersWithStacks = snapshot.players.map(p => {
+        const startingStack = p.chips + (p.bet || 0);
+        startingStacks[p.seatIndex] = startingStack;
+        return {
+          userId: p.userId,
+          seatIndex: p.seatIndex,
+          cards: p.holeCards || [],
+          revealed: winner && p.userId === winnerId,
+          stack: startingStack
+        };
+      });
+      
+      // ✅ ENCODE HAND (PHE v2.0 format)
+      const HandEncoder = require('../public/js/hand-encoder.js');
+      const encodedHand = HandEncoder.encode({
+        players: playersWithStacks,
+        board: snapshot.communityCards || [],
+        winner: winner ? winner.seatIndex : null,
+        rank: handRank,
+        pot: potSize,
+        dealerPosition: dealerPosition,
+        actions: snapshot.actionHistory.map(a => ({
+          seatIndex: a.seatIndex || 0,
+          action: a.action,
+          amount: a.amount || 0,
+          street: a.street || 'PREFLOP'
+        }))
+      });
+      
+      console.log(`   📦 Encoded hand: ${encodedHand.substring(0, 60)}... (${encodedHand.length} chars)`);
+      
+      // Calculate size savings
+      const jsonSize = JSON.stringify(snapshot.actionHistory || []).length;
+      const encodedSize = encodedHand.length;
+      const savings = Math.round((1 - encodedSize / jsonSize) * 100);
+      console.log(`   💾 Storage: ${encodedSize} bytes (${savings}% smaller than JSON)`);
+      
+      // 1. INSERT HAND_HISTORY
+      const handHistoryInsert = await historyClient.query(
+        `INSERT INTO hand_history (
+          game_id, room_id, hand_number, pot_size, 
+          player_ids, winner_id, winning_hand, hand_rank,
+          board_cards, actions_log, encoded_hand,
+          dealer_position, sb_position, bb_position, starting_stacks,
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+        RETURNING id`,
+        [
+          gameStateId,
+          roomId,
+          updatedState.handNumber || 1,
+          potSize,
+          playerIds,
+          winnerId,
+          winningHand,
+          handRank,
+          updatedState.communityCards ? updatedState.communityCards.join(' ') : null,
+          JSON.stringify(updatedState.actionHistory || []),
+          encodedHand,
+          dealerPosition,
+          sbPosition,
+          bbPosition,
+          JSON.stringify(startingStacks)
+        ]
+      );
+      
+      console.log(`   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}`);
+      
+      // 2. UPDATE PLAYER_STATISTICS
+      const winnerIds = new Set((updatedState.winners || []).map(w => w.userId));
+      
+      for (const player of updatedState.players) {
+        const isWinner = winnerIds.has(player.userId);
+        
+        await historyClient.query(
+          `INSERT INTO player_statistics (user_id, total_hands_played, total_hands_won, last_hand_played_at, created_at)
+           VALUES ($1, 1, $2, NOW(), NOW())
+           ON CONFLICT (user_id) DO UPDATE SET
+             total_hands_played = player_statistics.total_hands_played + 1,
+             total_hands_won = player_statistics.total_hands_won + $2,
+             last_hand_played_at = NOW(),
+             updated_at = NOW()`,
+          [player.userId, isWinner ? 1 : 0]
+        );
+        
+        await historyClient.query(
+          `UPDATE user_profiles
+           SET total_hands_played = COALESCE(total_hands_played, 0) + 1,
+               total_wins = COALESCE(total_wins, 0) + $2,
+               updated_at = NOW()
+           WHERE id = $1`,
+          [player.userId, isWinner ? 1 : 0]
+        );
+      }
+      
+      // 3. UPDATE BIGGEST_POT FOR WINNERS
+      if (winner && potSize > 0) {
+        await historyClient.query(`
+          UPDATE user_profiles
+          SET 
+            biggest_pot = GREATEST(COALESCE(biggest_pot, 0), $1),
+            updated_at = NOW()
+          WHERE id = $2
+        `, [potSize, winnerId]);
+      }
+      
+      // Commit transaction
+      await historyClient.query('COMMIT');
+      console.log('   ✅ Transaction committed - hand history writes atomic');
+    } catch (error) {
+      await historyClient.query('ROLLBACK');
+      console.error('   ❌ Transaction rolled back due to error:', error.message);
+      throw error;
+    } finally {
+      historyClient.release();
+    }
+  } catch (extractionError) {
+    console.error('❌ [MINIMAL] Data extraction failed (non-critical):', extractionError.message);
+    throw extractionError; // Re-throw so caller can handle
+  }
+}
+
 router.post('/action', async (req, res) => {
   try {
     const { roomId, userId, action, amount } = req.body;
@@ -793,6 +1008,82 @@ router.post('/action', async (req, res) => {
     
     const updatedState = result.gameState;
     
+    // ===== STEP 2B: HANDLE ALL-IN RUNOUT PROGRESSIVE REVEALS =====
+    // CRITICAL PRINCIPLE: hand_complete only broadcast when ALL cards are revealed AND winner determined
+    if (updatedState.needsProgressiveReveal && updatedState.allInRunoutStreets && updatedState.allInRunoutStreets.length > 0) {
+      console.log(`🎬 [ALL-IN RUNOUT] Progressive reveal needed: ${updatedState.allInRunoutStreets.length} streets`);
+      
+      // Save state with progressive reveal flag (but NOT completed yet)
+      await db.query(
+        `UPDATE game_states 
+         SET current_state = $1, 
+             total_pot = $2, 
+             updated_at = NOW()
+         WHERE room_id = $3 AND status = 'active'`,
+        [JSON.stringify(updatedState), updatedState.pot, roomId]
+      );
+      
+      const io = req.app.locals.io;
+      if (io && roomId) {
+        // Emit progressive street reveals with delays
+        updatedState.allInRunoutStreets.forEach((streetData, index) => {
+          setTimeout(() => {
+            console.log(`  🃏 Revealing ${streetData.street}: ${streetData.cards.join(', ')}`);
+            io.to(`room:${roomId}`).emit('street_reveal', {
+              street: streetData.street,
+              communityCards: streetData.cards,
+              roomId
+            });
+          }, (index + 1) * 1000); // 1 second between each street
+        });
+        
+        // Calculate delay: wait for all streets to be revealed + buffer
+        const revealDelay = updatedState.allInRunoutStreets.length * 1000;
+        const bufferDelay = 1000; // Extra second after last card
+        const finalDelay = revealDelay + bufferDelay;
+        
+        console.log(`⏰ [ALL-IN RUNOUT] Will complete hand in ${finalDelay}ms after all cards revealed`);
+        
+        // Complete showdown AFTER all cards are revealed
+        setTimeout(async () => {
+          console.log('🏆 [ALL-IN RUNOUT] All cards revealed - completing showdown');
+          
+          // Call handleShowdown to determine winners
+          MinimalBettingAdapter.handleShowdown(updatedState);
+          
+          // Save completed state
+          await db.query(
+            `UPDATE game_states 
+             SET current_state = $1, 
+                 total_pot = $2, 
+                 updated_at = NOW()
+             WHERE room_id = $3 AND status = 'active'`,
+            [JSON.stringify(updatedState), updatedState.pot, roomId]
+          );
+          
+          // NOW emit hand_complete (all cards revealed, winner determined)
+          if (updatedState.status === 'COMPLETED') {
+            // Persist chips (same as normal completion)
+            await persistHandCompletion(updatedState, roomId, db);
+            
+            // Extract hand history (same as normal completion)
+            await extractHandHistory(updatedState, roomId, db, gameStateId);
+            
+            // Emit hand_complete event
+            await handleHandCompleteEmission(updatedState, roomId, db);
+          }
+        }, finalDelay);
+      }
+      
+      // Return early - don't process hand completion yet
+      return res.json({ 
+        success: true, 
+        gameState: updatedState,
+        needsProgressiveReveal: true,
+        message: 'All-in runout: Cards will be revealed progressively'
+      });
+    }
+    
     // ===== STEP 3: SAVE TO DATABASE =====
     await db.query(
       `UPDATE game_states 
@@ -808,356 +1099,18 @@ router.post('/action', async (req, res) => {
     
     // ===== STEP 3B: PERSIST CHIPS TO DB IF HAND COMPLETE =====
     if (updatedState.status === 'COMPLETED') {
-      console.log('💰 [MINIMAL] Hand complete - persisting chips to DB');
-      console.log('   Players in updatedState:', updatedState.players.map(p => ({ 
-        userId: p.userId.substr(0, 8), 
-        chips: p.chips 
-      })));
-      
-      // ✅ TRANSACTION: Wrap all hand completion writes for atomicity
-      const client = await db.connect();
-      try {
-        await client.query('BEGIN');
-        console.log('   🔒 Transaction started');
-        
-        // Update room_seats with final chip counts and auto-kick busted players
-        const bustedPlayers = [];
-        for (const player of updatedState.players) {
-          console.log(`   🔄 Attempting UPDATE for ${player.userId.substr(0, 8)}: chips=${player.chips}, roomId=${roomId.substr(0, 8)}`);
-          
-          // Check if player is busted (chips === 0)
-          if (player.chips === 0) {
-            bustedPlayers.push({
-              userId: player.userId,
-              seatIndex: player.seatIndex
-            });
-          }
-          
-          const updateResult = await client.query(
-            `UPDATE room_seats 
-             SET chips_in_play = $1 
-             WHERE room_id = $2 AND user_id = $3
-             RETURNING user_id, chips_in_play`,
-            [player.chips, roomId, player.userId]
-          );
-          
-          if (updateResult.rows.length === 0) {
-            console.error(`   ❌ UPDATE failed - no rows matched! userId=${player.userId.substr(0, 8)}, roomId=${roomId.substr(0, 8)}`);
-            throw new Error(`Failed to update chips for player ${player.userId.substr(0, 8)}`);
-          } else {
-            console.log(`   ✅ Updated chips for ${updateResult.rows[0].user_id.substr(0, 8)}: $${updateResult.rows[0].chips_in_play}`);
-          }
-        }
-        
-        // Auto-kick busted players (chips === 0)
-        if (bustedPlayers.length > 0) {
-          console.log(`   💀 Auto-kicking ${bustedPlayers.length} busted player(s)`);
-          for (const busted of bustedPlayers) {
-            await client.query(
-              `UPDATE room_seats 
-               SET left_at = NOW() 
-               WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
-              [roomId, busted.userId]
-            );
-            console.log(`   ✅ Auto-kicked busted player: ${busted.userId.substr(0, 8)} from seat ${busted.seatIndex}`);
-          }
-        }
-        
-        // Mark game_states as completed
-        await client.query(
-          `UPDATE game_states 
-           SET status = 'completed' 
-           WHERE room_id = $1 AND status = 'active'`,
-          [roomId]
-        );
-        
-        // Commit transaction - chip updates and auto-kicks are now atomic
-        await client.query('COMMIT');
-        console.log('   ✅ Transaction committed - chip updates and auto-kicks atomic');
-        
-        // Broadcast busted player events (after commit)
-        if (bustedPlayers.length > 0) {
-          const io = req.app.locals.io;
-          if (io) {
-            for (const busted of bustedPlayers) {
-              io.to(`room:${roomId}`).emit('player_busted', {
-                userId: busted.userId,
-                seatIndex: busted.seatIndex,
-                message: 'Player busted and removed from table'
-              });
-              
-              // Notify the busted player
-              io.to(`user:${busted.userId}`).emit('you_busted', {
-                message: 'You went all-in and lost. You can request a seat again.',
-                canRequestSeat: true
-              });
-            }
-          }
-        }
-      } catch (error) {
-        // Rollback on any error
-        await client.query('ROLLBACK');
-        console.error('   ❌ Transaction rolled back due to error:', error.message);
-        throw error; // Re-throw to be handled by outer try/catch
-      } finally {
-        client.release(); // Always release the client back to the pool
-      }
+      // Persist chips and extract hand history
+      await persistHandCompletion(updatedState, roomId, db);
       
       // ===== EMIT HAND COMPLETE EVENT =====
-      const io = req.app.locals.io;
-      if (io && roomId) {
-        const winners = updatedState.winners || [];
-        const publicState = {
-          ...updatedState,
-          players: updatedState.players.map(p => ({
-            userId: p.userId,
-            seatIndex: p.seatIndex,
-            chips: p.chips,
-            bet: p.bet,
-            folded: p.folded,
-            status: p.status,
-            nickname: p.nickname || `Player_${p.seatIndex}`
-          }))
-        };
-        
-        io.to(`room:${roomId}`).emit('hand_complete', {
-          type: 'hand_complete',
-          roomId,
-          gameState: publicState,
-          winners: winners.map(w => ({
-            userId: w.userId,
-            seatIndex: w.seatIndex,
-            amount: w.amount,
-            handDescription: w.handDescription
-          })),
-          finalPot: updatedState.finalPotSize || updatedState.pot || 0
-        });
-        
-        console.log(`📡 [MINIMAL] Emitted hand_complete event to room:${roomId}`);
-      }
+      // CRITICAL PRINCIPLE: Only emit when all cards are revealed AND winner determined
+      await handleHandCompleteEmission(updatedState, roomId, db);
       
       // ===== STEP 3C: EXTRACT HAND DATA TO HISTORY =====
-      console.log('📊 [MINIMAL] Extracting hand data to hand_history + player_statistics');
-      
       try {
-        // ✅ TRANSACTION: Wrap all hand history writes for atomicity
-        const historyClient = await db.connect();
-        try {
-          await historyClient.query('BEGIN');
-          console.log('   🔒 Transaction started for hand history');
-        
-        // Helper function to get hand rank from description
-        const getHandRank = (handDescription) => {
-          if (!handDescription) return 10;
-          const desc = handDescription.toLowerCase();
-          if (desc.includes('royal flush')) return 1;
-          if (desc.includes('straight flush')) return 2;
-          if (desc.includes('four of a kind') || desc.includes('quads')) return 3;
-          if (desc.includes('full house')) return 4;
-          if (desc.includes('flush')) return 5;
-          if (desc.includes('straight')) return 6;
-          if (desc.includes('three of a kind') || desc.includes('trips')) return 7;
-          if (desc.includes('two pair')) return 8;
-          if (desc.includes('pair')) return 9;
-          return 10; // High card
-        };
-        
-        // ✅ USE SNAPSHOT BEFORE SHOWDOWN (captured before any mutations)
-        // This ensures accurate pot size, chip counts, and bets for hand history
-        const snapshot = updatedState.snapshotBeforeShowdown || {
-          pot: updatedState.finalPotSize || updatedState.pot || 0,
-          players: updatedState.players,
-          communityCards: updatedState.communityCards || [],
-          dealerPosition: updatedState.dealerPosition,
-          sbPosition: updatedState.sbPosition,
-          bbPosition: updatedState.bbPosition,
-          actionHistory: updatedState.actionHistory || []
-        };
-        
-        // Extract winner data
-        const winner = (updatedState.winners && updatedState.winners[0]) ? updatedState.winners[0] : null;
-        const winnerId = winner ? winner.userId : null;
-        const winningHand = winner ? winner.handDescription : null;
-        const handRank = getHandRank(winningHand);
-        
-        // Extract all player IDs from snapshot
-        const playerIds = snapshot.players.map(p => p.userId);
-        
-        // ✅ USE POT SIZE FROM SNAPSHOT (before zeroing)
-        const potSize = snapshot.pot || 0;
-        
-        // Extract position data from snapshot
-        const dealerPosition = snapshot.dealerPosition !== undefined ? snapshot.dealerPosition : null;
-        const sbPosition = snapshot.sbPosition !== undefined ? snapshot.sbPosition : null;
-        const bbPosition = snapshot.bbPosition !== undefined ? snapshot.bbPosition : null;
-        
-        // Calculate starting stacks from snapshot (chips + bets = starting stack)
-        const startingStacks = {};
-        const playersWithStacks = snapshot.players.map(p => {
-          // Starting stack = current chips + total bet (from snapshot, before distribution)
-          const startingStack = p.chips + (p.bet || 0);
-          startingStacks[p.seatIndex] = startingStack;
-          return {
-            userId: p.userId,
-            seatIndex: p.seatIndex,
-            cards: p.holeCards || [],
-            revealed: winner && p.userId === winnerId, // Only winner's cards revealed
-            stack: startingStack
-          };
-        });
-        
-        // ✅ ENCODE HAND (PHE v2.0 format with positions & stacks)
-        const HandEncoder = require('../public/js/hand-encoder.js');
-        const encodedHand = HandEncoder.encode({
-          players: playersWithStacks,
-          board: snapshot.communityCards || [],
-          winner: winner ? winner.seatIndex : null,
-          rank: handRank,
-          pot: potSize,
-          dealerPosition: dealerPosition,
-          actions: snapshot.actionHistory.map(a => ({
-            seatIndex: a.seatIndex || 0,
-            action: a.action,
-            amount: a.amount || 0,
-            street: a.street || 'PREFLOP' // Include street if available
-          }))
-        });
-        
-        console.log(`   📦 Encoded hand: ${encodedHand.substring(0, 60)}... (${encodedHand.length} chars)`);
-        
-        // Calculate size savings
-        const jsonSize = JSON.stringify(snapshot.actionHistory || []).length;
-        const encodedSize = encodedHand.length;
-        const savings = Math.round((1 - encodedSize / jsonSize) * 100);
-        console.log(`   💾 Storage: ${encodedSize} bytes (${savings}% smaller than JSON)`);
-        
-        // 1. INSERT HAND_HISTORY (with ALL required fields + ENCODED + POSITIONS)
-        const handHistoryInsert = await historyClient.query(
-          `INSERT INTO hand_history (
-            game_id, room_id, hand_number, pot_size, 
-            player_ids, winner_id, winning_hand, hand_rank,
-            board_cards, actions_log, encoded_hand,
-            dealer_position, sb_position, bb_position, starting_stacks,
-            created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
-          RETURNING id`,
-          [
-            gameStateId,  // game_id from game_states
-            roomId,
-            updatedState.handNumber || 1,
-            potSize,     // ✅ FIXED: Use finalPotSize captured before zeroing
-            playerIds,  // ✅ NEW: Array of UUIDs
-            winnerId,   // ✅ NEW: Winner UUID for trigger
-            winningHand, // ✅ NEW: "Flush (J-high)"
-            handRank,    // ✅ NEW: 5 (for Flush)
-            updatedState.communityCards ? updatedState.communityCards.join(' ') : null,  // ✅ FIXED: Convert to TEXT
-            JSON.stringify(updatedState.actionHistory || []),  // Kept for backwards compatibility
-            encodedHand,  // ✅ NEW: PHE format (80% smaller)
-            dealerPosition, // ✅ NEW: Dealer position for VPIP/PFR analysis
-            sbPosition,     // ✅ NEW: Small blind position
-            bbPosition,     // ✅ NEW: Big blind position
-            JSON.stringify(startingStacks) // ✅ NEW: Starting stacks per seat
-          ]
-        );
-        
-        console.log(`   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}`);
-        console.log(`      Winner: ${winnerId ? winnerId.substr(0, 8) : 'none'} | Hand: ${winningHand || 'none'} | Rank: ${handRank} | Pot: $${potSize}`);
-        
-        // 2. UPDATE PLAYER_STATISTICS
-        const winnerIds = new Set((updatedState.winners || []).map(w => w.userId));
-        
-        for (const player of updatedState.players) {
-          const isWinner = winnerIds.has(player.userId);
-          
-          await historyClient.query(
-            `INSERT INTO player_statistics (user_id, total_hands_played, total_hands_won, last_hand_played_at, created_at)
-             VALUES ($1, 1, $2, NOW(), NOW())
-             ON CONFLICT (user_id) DO UPDATE SET
-               total_hands_played = player_statistics.total_hands_played + 1,
-               total_hands_won = player_statistics.total_hands_won + $2,
-               last_hand_played_at = NOW(),
-               updated_at = NOW()`,
-            [player.userId, isWinner ? 1 : 0]
-          );
-          
-          // Update user_profiles.total_hands_played (triggers rank update)
-          await historyClient.query(
-            `UPDATE user_profiles
-             SET total_hands_played = COALESCE(total_hands_played, 0) + 1,
-                 total_wins = COALESCE(total_wins, 0) + $2,
-                 updated_at = NOW()
-             WHERE id = $1`,
-            [player.userId, isWinner ? 1 : 0]
-          );
-          
-          console.log(`   ✅ player_statistics + user_profiles updated: ${player.userId.substr(0, 8)} (won: ${isWinner})`);
-        }
-        
-        // 3. UPDATE BIGGEST_POT FOR WINNERS (backup to trigger)
-        if (winner && potSize > 0) {
-          await historyClient.query(`
-            UPDATE user_profiles
-            SET 
-              biggest_pot = GREATEST(COALESCE(biggest_pot, 0), $1),
-              updated_at = NOW()
-            WHERE id = $2
-          `, [potSize, winnerId]);
-          
-          console.log(`   💰 Updated biggest_pot for ${winnerId.substr(0, 8)}: $${potSize}`);
-        }
-        
-        // Commit transaction - all hand history writes are now atomic
-        await historyClient.query('COMMIT');
-        console.log('   ✅ Transaction committed - hand history writes atomic');
-        console.log('📊 [MINIMAL] Data extraction complete - triggers will sync to user_profiles');
-      } catch (error) {
-        // Rollback on any error
-        await historyClient.query('ROLLBACK');
-        console.error('   ❌ Transaction rolled back due to error:', error.message);
-        throw error; // Re-throw to be handled by outer try/catch
-      } finally {
-        historyClient.release(); // Always release the client back to the pool
-      }
-      
-      // ===== EMIT DATA EXTRACTION EVENT FOR ANALYTICS =====
-      // Reuse io from hand_complete event section (line 795)
-      if (io && roomId) {
-        io.to(`room:${roomId}`).emit('data_extracted', {
-          type: 'hand_extraction',
-          timestamp: Date.now(),
-          data: {
-            roomId,
-            handNumber: updatedState.handNumber,
-            pot: potSize,
-            winner: winnerId ? {
-              userId: winnerId,
-              hand: winningHand,
-              rank: handRank
-            } : null,
-            players: playerIds,
-            board: updatedState.communityCards,
-            extractionTime: Date.now() - (updatedState.handStartTime || Date.now()),
-            encodedHand: encodedHand,  // ✅ Send encoded format to Analytics
-            encodedSize: encodedHand.length,
-            savings: savings  // Storage savings percentage
-          }
-        });
-        
-        console.log('📡 [ANALYTICS] Emitted data_extracted event with PHE encoding');
-      }
+        await extractHandHistory(updatedState, roomId, db, gameStateId);
       } catch (extractionError) {
         console.error('❌ [MINIMAL] Data extraction failed (non-critical):', extractionError.message);
-        
-        // Emit failure event
-        const ioExtraction = req.app.locals.io;
-        if (ioExtraction && roomId) {
-          ioExtraction.to(`room:${roomId}`).emit('data_extraction_failed', {
-            type: 'extraction_error',
-            timestamp: Date.now(),
-            error: extractionError.message
-          });
-        }
-        
         // Don't fail the request - chips already updated
       }
       

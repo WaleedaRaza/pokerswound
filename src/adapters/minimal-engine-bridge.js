@@ -430,6 +430,10 @@ class MinimalBettingAdapter {
     
     const streetOrder = ['PREFLOP', 'FLOP', 'TURN', 'RIVER', 'SHOWDOWN'];
     const currentIndex = streetOrder.indexOf(gameState.street);
+    const previousCards = gameState.communityCards ? [...gameState.communityCards] : [];
+    
+    // Track streets that need progressive reveals
+    gameState.allInRunoutStreets = [];
     
     // Deal out all remaining streets based on current street
     if (currentIndex < 1) {
@@ -439,22 +443,35 @@ class MinimalBettingAdapter {
       
       // Burn card, then flop (3 cards)
       gameState.deck.pop(); // burn
-      gameState.communityCards = [
+      const flopCards = [
         gameState.deck.pop(),
         gameState.deck.pop(),
         gameState.deck.pop()
       ];
+      gameState.communityCards = [...flopCards];
       gameState.street = 'FLOP';
+      gameState.allInRunoutStreets.push({
+        street: 'FLOP',
+        cards: [...gameState.communityCards]
+      });
       
       // Burn card, then turn
       gameState.deck.pop(); // burn
       gameState.communityCards.push(gameState.deck.pop());
       gameState.street = 'TURN';
+      gameState.allInRunoutStreets.push({
+        street: 'TURN',
+        cards: [...gameState.communityCards]
+      });
       
       // Burn card, then river
       gameState.deck.pop(); // burn
       gameState.communityCards.push(gameState.deck.pop());
       gameState.street = 'RIVER';
+      gameState.allInRunoutStreets.push({
+        street: 'RIVER',
+        cards: [...gameState.communityCards]
+      });
     } else if (currentIndex === 1) {
       // Flop - deal turn, river
       console.log('  Dealing: TURN, RIVER');
@@ -464,11 +481,19 @@ class MinimalBettingAdapter {
       gameState.deck.pop(); // burn
       gameState.communityCards.push(gameState.deck.pop());
       gameState.street = 'TURN';
+      gameState.allInRunoutStreets.push({
+        street: 'TURN',
+        cards: [...gameState.communityCards]
+      });
       
       // Burn card, then river
       gameState.deck.pop(); // burn
       gameState.communityCards.push(gameState.deck.pop());
       gameState.street = 'RIVER';
+      gameState.allInRunoutStreets.push({
+        street: 'RIVER',
+        cards: [...gameState.communityCards]
+      });
     } else if (currentIndex === 2) {
       // Turn - deal river
       console.log('  Dealing: RIVER');
@@ -478,21 +503,30 @@ class MinimalBettingAdapter {
       gameState.deck.pop(); // burn
       gameState.communityCards.push(gameState.deck.pop());
       gameState.street = 'RIVER';
+      gameState.allInRunoutStreets.push({
+        street: 'RIVER',
+        cards: [...gameState.communityCards]
+      });
     }
     
     // IMPORTANT: Don't reset bets - they're needed for side pot calculation
     // All players are all-in, so currentBet can be set to 0 for display
     gameState.currentBet = 0;
     
-    // Go directly to showdown (side pots will be calculated there)
+    // CRITICAL: Mark that progressive reveals are needed BEFORE showdown
+    // DO NOT call handleShowdown here - backend will handle progressive reveals first
+    gameState.needsProgressiveReveal = true;
+    
     console.log('  Final board:', gameState.communityCards.join(', '));
+    console.log('  Streets to reveal:', gameState.allInRunoutStreets.map(s => s.street));
     console.log('  Player bets (for side pots):', gameState.players.filter(p => !p.folded).map(p => ({
       seat: p.seatIndex,
       bet: p.bet,
       userId: p.userId.substr(0, 8)
     })));
     
-    this.handleShowdown(gameState);
+    // DO NOT call this.handleShowdown(gameState) here
+    // Backend will handle progressive reveals, then complete showdown
   }
 
   /**
