@@ -1,0 +1,29 @@
+VM911:301 // LOCKED POSITIONS FOR 2 PLAYERS
+VM911:302 if (count === 2) {
+VM911:303   const positions = [];
+VM911:304   sortedSeats.forEach((seatIndex) => {
+VM911:305     const pos = [
+VM911:307       { index: 0, x: 806, y: 206, width: 267, height: 267 },
+VM911:307       { index: 1, x: 804, y: 945, width: 267, height: 267 },
+VM911:309     ].find(p => p.index === seatIndex);
+VM911:310     if (pos) positions.push(pos);
+VM911:311   });
+VM911:312   return positions;
+VM911:313 }
+
+
+// LOCKED POSITIONS FOR 3 PLAYERS
+VM911:302 if (count === 3) {
+VM911:303   const positions = [];
+VM911:304   sortedSeats.forEach((seatIndex) => {
+VM911:305     const pos = [
+VM911:307       { index: 0, x: 802, y: 928, width: 280, height: 280 },
+VM911:307       { index: 1, x: 1251, y: 330, width: 280, height: 280 },
+VM911:307       { index: 2, x: 366, y: 336, width: 280, height: 280 },
+VM911:309     ].find(p => p.index === seatIndex);
+VM911:310     if (pos) positions.push(pos);
+VM911:311   });
+VM911:312   return positions;
+VM911:313 }
+
+

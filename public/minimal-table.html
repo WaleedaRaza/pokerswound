@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PokerGeek - Minimal Table</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     /* Design Tokens */
     :root {
@@ -153,39 +156,592 @@
       animation: cardFlip 0.5s ease-out forwards;
     }
 
+    /* Pot Display - Default White, Fully Transparent */
     .pot-display-center {
-      padding: 28px 56px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, rgba(0,0,0,.98) 0%, rgba(20,20,30,.98) 100%);
-      border: 3px solid rgba(255,215,0,.6);
+      padding: 32px 48px 24px 48px; /* More top padding, less bottom */
+      border-radius: 20px;
+      background: transparent; /* Fully transparent */
+      border: 2px solid rgba(255, 255, 255, 0.4); /* White border by default */
       text-align: center;
       box-shadow: 
-        inset 0 0 40px -10px rgba(255, 215, 0, 0.3),
-        0 0 0 1px rgba(255,215,0,.3),
-        0 0 60px rgba(255,215,0,.4),
-        var(--shadow-xl);
+        0 0 0 2px rgba(255, 255, 255, 0.2), /* White outer glow */
+        0 0 20px rgba(255, 255, 255, 0.15); /* White ambient glow */
       pointer-events: auto;
-      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: visible; /* Allow chips to overflow */
+      min-width: 200px;
     }
-
-    .pot-label {
-      font-size: 14px;
-      color: var(--muted);
-      letter-spacing: .2em;
-      font-weight: 800;
+    
+    /* Bet Pulse - Random Green or Gold Glow */
+    .pot-display-center.bet-pulse-green {
+      animation: betPulseGreen 0.8s ease-out;
+    }
+    
+    .pot-display-center.bet-pulse-gold {
+      animation: betPulseGold 0.8s ease-out;
+    }
+    
+    @keyframes betPulseGreen {
+      0% {
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 
+          0 0 0 2px rgba(255, 255, 255, 0.2),
+          0 0 20px rgba(255, 255, 255, 0.15);
+      }
+      50% {
+        border-color: rgba(100, 255, 150, 0.8);
+        box-shadow: 
+          0 0 0 3px rgba(100, 255, 150, 0.4),
+          0 0 40px rgba(100, 255, 150, 0.3),
+          0 0 60px rgba(100, 255, 150, 0.2);
+      }
+      100% {
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 
+          0 0 0 2px rgba(255, 255, 255, 0.2),
+          0 0 20px rgba(255, 255, 255, 0.15);
+      }
+    }
+    
+    @keyframes betPulseGold {
+      0% {
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 
+          0 0 0 2px rgba(255, 255, 255, 0.2),
+          0 0 20px rgba(255, 255, 255, 0.15);
+      }
+      50% {
+        border-color: rgba(255, 215, 0, 0.8);
+        box-shadow: 
+          0 0 0 3px rgba(255, 215, 0, 0.4),
+          0 0 40px rgba(255, 215, 0, 0.3),
+          0 0 60px rgba(255, 215, 0, 0.2);
+      }
+      100% {
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 
+          0 0 0 2px rgba(255, 255, 255, 0.2),
+          0 0 20px rgba(255, 255, 255, 0.15);
+      }
+    }
+    
+    /* Turn Shake - Light Shake */
+    .pot-display-center.shake-turn {
+      animation: shakeTurn 0.5s ease-in-out;
+    }
+    
+    @keyframes shakeTurn {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      10% { transform: translateX(-2px) translateY(-1px) rotate(-0.5deg); }
+      20% { transform: translateX(2px) translateY(1px) rotate(0.5deg); }
+      30% { transform: translateX(-1px) translateY(-1px) rotate(-0.3deg); }
+      40% { transform: translateX(1px) translateY(1px) rotate(0.3deg); }
+      50% { transform: translateX(-1px) translateY(0) rotate(-0.2deg); }
+      60% { transform: translateX(1px) translateY(0) rotate(0.2deg); }
+      70% { transform: translateX(0) translateY(-1px) rotate(-0.1deg); }
+      80% { transform: translateX(0) translateY(1px) rotate(0.1deg); }
+      90% { transform: translateX(0) translateY(0) rotate(0deg); }
+    }
+    
+    /* River Shake - Intense Shake */
+    .pot-display-center.shake-river {
+      animation: shakeRiver 0.8s ease-in-out;
+    }
+    
+    @keyframes shakeRiver {
+      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+      5% { transform: translateX(-4px) translateY(-2px) rotate(-1deg); }
+      10% { transform: translateX(4px) translateY(2px) rotate(1deg); }
+      15% { transform: translateX(-3px) translateY(-2px) rotate(-0.8deg); }
+      20% { transform: translateX(3px) translateY(2px) rotate(0.8deg); }
+      25% { transform: translateX(-2px) translateY(-1px) rotate(-0.5deg); }
+      30% { transform: translateX(2px) translateY(1px) rotate(0.5deg); }
+      35% { transform: translateX(-2px) translateY(-1px) rotate(-0.4deg); }
+      40% { transform: translateX(2px) translateY(1px) rotate(0.4deg); }
+      45% { transform: translateX(-1px) translateY(0) rotate(-0.3deg); }
+      50% { transform: translateX(1px) translateY(0) rotate(0.3deg); }
+      55% { transform: translateX(-1px) translateY(-1px) rotate(-0.2deg); }
+      60% { transform: translateX(1px) translateY(1px) rotate(0.2deg); }
+      65% { transform: translateX(0) translateY(-1px) rotate(-0.1deg); }
+      70% { transform: translateX(0) translateY(1px) rotate(0.1deg); }
+      75% { transform: translateX(-1px) translateY(0) rotate(-0.1deg); }
+      80% { transform: translateX(1px) translateY(0) rotate(0.1deg); }
+      85% { transform: translateX(0) translateY(-1px) rotate(0deg); }
+      90% { transform: translateX(0) translateY(1px) rotate(0deg); }
+      95% { transform: translateX(0) translateY(0) rotate(0deg); }
+    }
+    
+    /* Turn Glow - Persistent Green Glow */
+    .pot-display-center.glow-turn {
+      border-color: rgba(100, 255, 150, 0.6);
+      box-shadow: 
+        0 0 0 2px rgba(100, 255, 150, 0.3),
+        0 0 30px rgba(100, 255, 150, 0.25),
+        0 0 50px rgba(100, 255, 150, 0.15);
+    }
+    
+    /* River Glow - Persistent Gold Glow */
+    .pot-display-center.glow-river {
+      border-color: rgba(255, 215, 0, 0.7);
+      box-shadow: 
+        0 0 0 3px rgba(255, 215, 0, 0.4),
+        0 0 40px rgba(255, 215, 0, 0.3),
+        0 0 70px rgba(255, 215, 0, 0.2);
+    }
+    
+    /* River Text Shake - Shaky animation on pot amount text */
+    .pot-amount.shake-river-text {
+      animation: shakeRiverText 0.8s ease-in-out;
+    }
+    
+    @keyframes shakeRiverText {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      5% { transform: translateX(-3px) translateY(-2px); }
+      10% { transform: translateX(3px) translateY(2px); }
+      15% { transform: translateX(-2px) translateY(-1px); }
+      20% { transform: translateX(2px) translateY(1px); }
+      25% { transform: translateX(-2px) translateY(-1px); }
+      30% { transform: translateX(2px) translateY(1px); }
+      35% { transform: translateX(-1px) translateY(0); }
+      40% { transform: translateX(1px) translateY(0); }
+      45% { transform: translateX(-1px) translateY(-1px); }
+      50% { transform: translateX(1px) translateY(1px); }
+      55% { transform: translateX(0) translateY(-1px); }
+      60% { transform: translateX(0) translateY(1px); }
+      65% { transform: translateX(-1px) translateY(0); }
+      70% { transform: translateX(1px) translateY(0); }
+      75% { transform: translateX(0) translateY(0); }
+    }
+    
+    /* Pot Decrementing to Zero */
+    .pot-display-center.pot-decrementing {
+      animation: potDecrement 1.2s ease-out forwards;
+    }
+    
+    @keyframes potDecrement {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(0.95);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(0.9);
+        opacity: 0.6;
+      }
+    }
+    
+    .pot-display-center:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 
+        0 0 0 2px rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(255, 255, 255, 0.25);
+    }
+    
+    /* Side Pot Modal */
+    .side-pot-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    .side-pot-modal-overlay.show {
+      display: flex;
+    }
+    
+    .side-pot-modal {
+      background: linear-gradient(135deg, rgba(15,15,25,0.98), rgba(20,20,30,0.98));
+      border: 3px solid rgba(255,215,0,.6);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 16px 48px rgba(255, 215, 0, 0.4);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    .side-pot-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-bottom: 2px solid rgba(255,215,0,.3);
+      padding-bottom: 16px;
+    }
+    
+    .side-pot-modal-header h2 {
+      margin: 0;
+      color: #ffd700;
+      font-size: 1.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .side-pot-modal-close {
+      background: none;
+      border: 2px solid rgba(255,215,0,.5);
+      color: #ffd700;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .side-pot-modal-close:hover {
+      background: rgba(255,215,0,.1);
+      border-color: #ffd700;
+      transform: rotate(90deg);
+    }
+    
+    .side-pot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .side-pot-item-detailed {
+      background: rgba(255,215,0,.05);
+      border: 2px solid rgba(255,215,0,.2);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+    
+    .side-pot-item-detailed:hover {
+      background: rgba(255,215,0,.1);
+      border-color: rgba(255,215,0,.4);
+      transform: translateX(4px);
+    }
+    
+    .side-pot-item-detailed.main-pot {
+      background: rgba(255,215,0,.1);
+      border-color: rgba(255,215,0,.5);
+      border-width: 3px;
+    }
+    
+    .side-pot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .side-pot-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffd700;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .side-pot-amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffd700;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .side-pot-eligible {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,215,0,.2);
+    }
+    
+    .side-pot-eligible-label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,.6);
       margin-bottom: 8px;
       text-transform: uppercase;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      letter-spacing: 0.05em;
+    }
+    
+    .side-pot-eligible-seats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .eligible-seat-badge {
+      background: rgba(255,215,0,.15);
+      border: 1px solid rgba(255,215,0,.3);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.85rem;
+      color: #ffd700;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+    }
+    
+    .side-pot-total {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 3px solid rgba(255,215,0,.4);
+      text-align: center;
+    }
+    
+    .side-pot-total-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,.7);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .side-pot-total-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffd700;
+      font-family: 'Courier New', monospace;
+    }
+    
+    /* Hand Rank Display (Above Action Buttons) */
+    .hand-rank-display {
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0,212,170,.15) 0%, rgba(0,180,150,.15) 100%);
+      border: 2px solid rgba(0,212,170,.4);
+      text-align: center;
+      box-shadow: 
+        0 0 20px rgba(0, 212, 170, 0.2),
+        inset 0 0 20px rgba(0, 212, 170, 0.1);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      margin: 20px auto 10px auto;
+      max-width: 400px;
+    }
+    
+    .hand-rank-label {
+      font-size: 11px;
+      color: rgba(0,212,170,.7);
+      letter-spacing: .15em;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    
+    .hand-rank-text {
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: #00d4aa;
+      text-shadow: 
+        0 0 10px rgba(0, 212, 170, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.6);
+      letter-spacing: 0.05em;
+    }
+    
+    /* Runout Message Display (During All-In Runout) */
+    .runout-message {
+      padding: 16px 32px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 180, 100, 0.2) 100%);
+      border: 2px solid rgba(255, 215, 0, 0.5);
+      text-align: center;
+      box-shadow: 
+        0 0 30px rgba(255, 215, 0, 0.3),
+        inset 0 0 20px rgba(255, 215, 0, 0.1);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      margin: 20px auto;
+      max-width: 500px;
+      display: none;
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    
+    .runout-message.show {
+      display: block;
+    }
+    
+    @keyframes pulseGlow {
+      0%, 100% { 
+        box-shadow: 
+          0 0 30px rgba(255, 215, 0, 0.3),
+          inset 0 0 20px rgba(255, 215, 0, 0.1);
+      }
+      50% { 
+        box-shadow: 
+          0 0 40px rgba(255, 215, 0, 0.5),
+          inset 0 0 25px rgba(255, 215, 0, 0.15);
+      }
+    }
+    
+    .runout-message-text {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffd700;
+      text-shadow: 
+        0 0 15px rgba(255, 215, 0, 0.6),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.05em;
     }
 
+    /* Pot Label - Refined Typography */
+    .pot-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.15em;
+      font-weight: 500;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    }
+
+    /* Pot Amount Container - Flex layout for "mainPot total totalPot" */
+    .pot-amount-container {
+      display: flex;
+      flex-direction: column; /* Stack vertically: main pot on top, total below */
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      z-index: 3; /* Above chips */
+    }
+    
+    /* Total pot row (label + amount) - shown inline when side pots exist */
+    .pot-total-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    
+    /* Pot Amount - Base Styling (White by Default) */
     .pot-amount {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      position: relative;
+      z-index: 3; /* Above chips */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 
+        0 0 15px rgba(255, 255, 255, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.8),
+        0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Total Label - Smaller, muted (Poker Now style) */
+    .pot-total-label {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: lowercase;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Total Pot Amount - Smaller than main pot (Poker Now style) */
+    .pot-total-amount {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.02em;
+    }
+    
+    /* Removed chip conservation indicator CSS - using Poker Now style "total" display instead */
+    
+    /* Dollar sign styling */
+    .pot-amount::before {
+      content: '$';
+      font-size: 0.7em;
+      opacity: 0.8;
+      font-weight: 500;
+      margin-right: -4px;
+      transition: opacity 0.6s ease;
+    }
+    
+    /* Removed tier-based styling - using event-driven animations instead */
+    
+    /* Increment animation when pot changes */
+    .pot-amount.updating {
+      animation: potUpdate 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes potUpdate {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    
+    /* Increment counter animation */
+    .pot-amount.incrementing {
+      animation: potIncrement 0.8s ease-out;
+    }
+    
+    @keyframes potIncrement {
+      0% { 
+        transform: scale(1);
+        color: rgba(150, 200, 255, 0.9);
+      }
+      50% { 
+        transform: scale(1.15);
+        color: rgba(255, 215, 0, 1);
+      }
+      100% { 
+        transform: scale(1);
+      }
+    }
+    
+    .side-pots-container {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .side-pot-item {
+      font-size: 0.65rem;
+      color: var(--muted);
       font-family: var(--font-mono);
-      font-size: 52px;
-      color: #ffd700;
+      padding: 2px 0;
+    }
+    
+    .total-pot-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .total-pot-amount {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--teal);
+      margin-top: 4px;
       font-weight: 900;
       text-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.8),
-        0 4px 12px rgba(0, 0, 0, 0.8);
+        0 0 10px rgba(0, 212, 170, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.6);
       letter-spacing: 0.05em;
     }
 
@@ -264,65 +820,178 @@
     .seat {
       position: absolute;
       transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, rgba(20,20,40,0.95) 0%, rgba(30,30,50,0.95) 100%);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 16px;
-      padding: 16px 14px;
-      width: 220px;
-      aspect-ratio: 1 / 1;
-      backdrop-filter: blur(20px) saturate(120%);
-      box-shadow: 
-        inset 0 0 20px -5px rgba(255, 255, 255, 0.1),
-        0 10px 30px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
-      justify-content: space-evenly;
       align-items: center;
-      gap: 4px;
+      gap: 0; /* Remove gap, positioning handled by absolute positioning */
     }
     
-    /* YOUR seat - same aspect ratio, just bigger */
-    .seat.me {
-      width: 260px;
-      aspect-ratio: 1 / 1;
-      padding: 18px 16px;
-      border: 3px solid var(--teal);
-      background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 180, 140, 0.15) 100%);
-      box-shadow: 
-        inset 0 0 30px -6px rgba(0, 212, 170, 0.3), 
-        0 0 0 3px rgba(0,212,170,.5),
-        0 0 50px rgba(0,212,170,.6),
-        0 12px 40px rgba(0, 0, 0, 0.8);
-      gap: 8px;
+    /* Seat tile - Minimalist Design with Avatar Space */
+    .seat-tile {
+      position: relative; /* Needed for absolute positioning of bet indicator */
+      background: transparent;
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      padding: 16px;
+      width: 210px;
+      height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    .seat.empty {
-      border: 2px dashed rgba(0, 212, 170, 0.5);
-      background: linear-gradient(135deg, rgba(0, 212, 170, 0.03) 0%, rgba(0, 180, 140, 0.03) 100%);
+    /* Avatar/Profile Picture Container - Scales proportionally with tile */
+    .seat-tile {
+      --tile-scale: 1; /* Default scale (for 210px tiles) */
+      --tile-width: 210px; /* Default width */
+    }
+    
+    /* Player info wrapper (avatar + username) - positioned above/below tile */
+    .seat-player-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: calc(8px * var(--tile-scale, 1));
+      width: 100%;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    
+    /* Top seats: player info below tile */
+    .seat.seat-top .seat-player-info {
+      top: calc(100% + 12px * var(--tile-scale, 1)); /* Below tile + larger gap */
+    }
+    
+    /* Bottom seats: player info above tile */
+    .seat.seat-bottom .seat-player-info {
+      bottom: calc(100% + 12px * var(--tile-scale, 1)); /* Above tile + larger gap */
+    }
+    
+    .seat-avatar {
+      /* Base size: 60px (increased for better visibility), scales with tile */
+      width: calc(60px * var(--tile-scale, 1));
+      height: calc(60px * var(--tile-scale, 1));
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 180, 140, 0.2));
+      border: 2px solid rgba(0, 212, 170, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(24px * var(--tile-scale, 1));
+      font-weight: 600;
+      color: rgba(0, 212, 170, 0.8);
+      text-transform: uppercase;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .seat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    
+    /* Kick button on seat (host only) */
+    .kick-seat-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 59, 59, 0.2);
+      border: 1px solid rgba(255, 59, 59, 0.4);
+      color: #ff3b3b;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.2s ease;
+      z-index: 10;
     }
     
-    .seat.empty:hover {
-      background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 180, 140, 0.15) 100%);
-      border: 2px solid var(--teal);
-      box-shadow: 
-        inset 0 0 30px -6px rgba(0, 212, 170, 0.25),
-        0 0 0 2px rgba(0,212,170,.4),
-        0 0 40px rgba(0, 212, 170, 0.5),
-        0 12px 35px rgba(0, 0, 0, 0.7);
-      transform: translate(-50%, -50%) scale(1.02);
+    .seat-tile:hover .kick-seat-btn {
+      opacity: 1;
     }
     
-    .seat.taken {
-      border: 2px solid rgba(255,215,0,0.6);
-      background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, rgba(255,195,0,0.08) 100%);
-      box-shadow: 
-        inset 0 0 20px -5px rgba(255, 215, 0, 0.15),
-        0 10px 30px rgba(0, 0, 0, 0.6);
+    .kick-seat-btn:hover {
+      background: rgba(255, 59, 59, 0.4);
+      border-color: rgba(255, 59, 59, 0.6);
+      transform: scale(1.1);
     }
     
-    .seat.winner {
+    .kick-seat-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* Seat requested state (pending request) */
+    .seat.seat-requested {
+      border: 2px dashed rgba(255, 149, 0, 0.5);
+      opacity: 0.7;
+    }
+    
+    .seat.seat-requested .seat-tile {
+      background: rgba(255, 149, 0, 0.1);
+    }
+    
+    .seat-avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+    
+    /* YOUR seat tile - Refined Emphasis */
+    .seat.me .seat-tile {
+      width: 210px;
+      height: 210px;
+      border: 3px solid rgba(0, 212, 170, 0.7);
+      background: transparent;
+    }
+    
+    .seat.me .seat-avatar {
+      border-color: rgba(0, 212, 170, 0.5);
+      box-shadow: 0 0 12px rgba(0, 212, 170, 0.4);
+    }
+    
+    .seat.empty .seat-tile {
+      border: 3px dashed rgba(0, 212, 170, 0.7);
+      background: transparent;
+      cursor: pointer;
+      transition: border 0.3s ease;
+    }
+    
+    .seat.empty:hover .seat-tile {
+      border: 3px solid rgba(0, 212, 170, 1);
+      background: rgba(0, 212, 170, 0.1);
+    }
+    
+    .seat.taken .seat-tile {
+      border-color: rgba(255, 215, 0, 0.2);
+      background: rgba(255, 215, 0, 0.04);
+    }
+    
+    .seat.taken .seat-avatar {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 195, 0, 0.15));
+      border-color: rgba(255, 215, 0, 0.3);
+      color: rgba(255, 215, 0, 0.8);
+    }
+    
+    .seat.winner .seat-tile {
       border-color: gold;
       background: rgba(255,215,0,0.2);
       box-shadow: 0 0 20px rgba(255,215,0,0.5);
@@ -348,60 +1017,212 @@
       }
     }
     
-    .seat.current-turn {
+    .seat.current-turn .seat-tile {
       border: 3px solid #ffd700;
       animation: seatTurnGlow 1.5s ease-in-out infinite;
     }
     
-    .seat-label {
-      font-size: clamp(0.7rem, 1.8vw, 0.9rem);
-      color: #9aa3b2;
-      margin-bottom: 0.5em;
-      letter-spacing: 0.3px;
-      width: 100%;
-      text-align: center;
+    /* Position badges inside tile - Scales proportionally */
+    .position-badges {
+      position: absolute;
+      top: calc(8px * var(--tile-scale, 1));
+      left: calc(8px * var(--tile-scale, 1));
+      display: flex;
+      gap: calc(4px * var(--tile-scale, 1));
+      flex-wrap: wrap;
+      z-index: 10;
     }
     
+    /* Player name - Scales proportionally, now inside player-info wrapper */
     .seat-player {
-      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: calc(18px * var(--tile-scale, 1));
       font-weight: 800;
-      margin-bottom: 0.4em;
-      color: var(--teal);
-      text-shadow: 0 2px 10px rgba(0, 212, 170, 0.6);
-      letter-spacing: 0.5px;
-      width: 100%;
+      color: rgba(255, 255, 255, 0.95);
+      letter-spacing: calc(0.5px * var(--tile-scale, 1));
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      flex-shrink: 0;
+      max-width: calc(200px * var(--tile-scale, 1));
+      text-transform: uppercase;
+      margin: 0; /* Remove margin, gap handled by wrapper */
     }
     
-    .seat-chips {
-      color: #ffd700;
-      font-weight: 600;
-      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
-      text-shadow: 0 2px 6px rgba(255, 215, 0, 0.5);
-      letter-spacing: 0.5px;
-      width: 100%;
-      text-align: center;
-      flex-shrink: 0;
+    /* Player name when not in wrapper (empty seats) */
+    .seat.empty .seat-player {
+      position: relative;
+      margin-top: calc(8px * var(--tile-scale, 1));
     }
     
-    /* 🃏 SEAT CARD BACKINGS */
-    .seat-cards {
+    /* Empty seat text styling - Scales proportionally */
+    .seat.empty .seat-player {
+      font-size: calc(14px * var(--tile-scale, 1));
+      font-weight: 800;
+      color: rgba(0, 212, 170, 0.9);
+      letter-spacing: calc(1px * var(--tile-scale, 1));
+      margin-top: calc(12px * var(--tile-scale, 1));
+    }
+    
+    /* Chips inside tile - prominent at bottom */
+    /* Chip Animation Classes */
+    .seat-chips.chips-updating {
+      transition: color 0.3s ease;
+    }
+    
+    .seat-chips.chips-incrementing {
+      color: rgba(100, 255, 150, 1);
+      text-shadow: 0 0 10px rgba(100, 255, 150, 0.5);
+    }
+    
+    .seat-chips.chips-decrementing {
+      color: rgba(255, 150, 100, 1);
+      text-shadow: 0 0 10px rgba(255, 150, 100, 0.5);
+    }
+    
+    /* Bet Amount Indicator (Chip + Number style) */
+    .seat-bet-indicator {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
+      align-items: center;
       gap: 8px;
-      margin-top: 8px;
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in, transform 0.3s ease-out;
+    }
+    
+    .seat-bet-indicator .bet-chip {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+    
+    .seat-bet-indicator .bet-amount {
+      color: #ffd700;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+    }
+    
+    /* Top seats: bet indicator below username (player-info is at top: calc(100% + 8px), so bet indicator goes further down) */
+    .seat.seat-top .seat-bet-indicator {
+      top: calc(100% + 70px); /* Below tile + player-info height + larger gap */
+    }
+    
+    /* Bottom seats: bet indicator above username (player-info is at bottom: calc(100% + 8px), so bet indicator goes further up) */
+    .seat.seat-bottom .seat-bet-indicator {
+      bottom: calc(100% + 70px); /* Above tile + player-info height + larger gap */
+    }
+    
+    .seat-bet-indicator.show {
+      opacity: 1;
+      animation: betIndicatorPulse 0.5s ease-out;
+    }
+    
+    .seat.seat-top .seat-bet-indicator.show {
+      transform: translateX(-50%) translateY(5px);
+    }
+    
+    .seat.seat-bottom .seat-bet-indicator.show {
+      transform: translateX(-50%) translateY(-5px);
+    }
+    
+    .seat-bet-indicator.fade-out {
+      opacity: 0;
+    }
+    
+    .seat.seat-top .seat-bet-indicator.fade-out {
+      transform: translateX(-50%) translateY(10px);
+    }
+    
+    .seat.seat-bottom .seat-bet-indicator.fade-out {
+      transform: translateX(-50%) translateY(-10px);
+    }
+    
+    @keyframes betIndicatorPulse {
+      0% {
+        transform: translateX(-50%) scale(0.8);
+        opacity: 0;
+      }
+      50% {
+        transform: translateX(-50%) scale(1.1);
+      }
+      100% {
+        transform: translateX(-50%) translateY(-5px) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .seat-tile .seat-chips {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #00ff88; /* Green dollar sign color */
+      font-weight: 700;
+      font-size: calc(22px * var(--tile-scale, 1)); /* Increased from 18px for better visibility */
+      letter-spacing: calc(0.5px * var(--tile-scale, 1));
+      text-align: center;
+      margin-top: auto;
+      margin-bottom: calc(8px * var(--tile-scale, 1));
+    }
+    
+    /* Empty seat "claim" text - large and centered, scales proportionally */
+    .seat.empty .seat-chips {
+      font-size: calc(32px * var(--tile-scale, 1));
+      font-weight: 800;
+      color: rgba(0, 212, 170, 1);
+      letter-spacing: calc(2px * var(--tile-scale, 1));
+      text-transform: uppercase;
+      margin: auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    
+    /* Cards inside tile - prominent at top */
+    .seat-tile .seat-cards {
+      display: flex;
+      gap: calc(8px * var(--tile-scale, 1));
       justify-content: center;
-      min-height: 70px;
-      flex-shrink: 1;
+      align-items: center;
+      flex: 1;
+      min-height: 0;
+      padding-top: calc(8px * var(--tile-scale, 1));
+    }
+    
+    /* Card sizing inside tile - larger base size for better visibility */
+    .seat-tile .seat-card-back, 
+    .seat-tile .seat-card-front {
+      /* Base size: 85x119px (increased from 70x98px), scales proportionally with tile */
+      width: calc(81px * var(--tile-scale, 1));
+      height: calc(113px * var(--tile-scale, 1));
+      border-radius: calc(8px * var(--tile-scale, 1));
+      box-shadow: 0 calc(4px * var(--tile-scale, 1)) calc(12px * var(--tile-scale, 1)) rgba(0,0,0,0.6);
+      transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+      object-fit: cover;
+    }
+    
+    /* Your seat cards slightly larger */
+    .seat.me .seat-tile .seat-card-back,
+    .seat.me .seat-tile .seat-card-front {
+      width: calc(90px * var(--tile-scale, 1));
+      height: calc(126px * var(--tile-scale, 1));
+    }
+    
+    .seat-tile .seat-card-back:hover, 
+    .seat-tile .seat-card-front:hover {
+      transform: translateY(-4px);
     }
     
     .seat-card-back, .seat-card-front {
-      width: 60px;
-      height: 84px;
-      border-radius: 6px;
+      width: 70px;
+      height: 98px;
+      border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
       transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
       object-fit: cover;
@@ -2165,113 +2986,119 @@
       letter-spacing: 0.5px;
     }
     
-    /* LIQUID GLASS EFFECT - ONLY FOR POKER TABLE ACTION BUTTONS */
+    /* Action Buttons - Clean, Refined Design (Jobs/Japanese) */
     #actionButtons .btn,
     #foldBtn,
     #callBtn,
     #raiseBtn {
-      /* LIQUID GLASS BASE */
       position: relative;
-      isolation: isolate;
-      background: rgba(15, 15, 25, 0.6); /* Base dark background for glass effect */
-      border-radius: 12px; /* Slightly larger for glass effect */
-      transition: all 0.3s ease;
-      /* Remove conflicting styles - liquid glass handles backdrop-filter */
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.2);
-      /* Ensure content appears above glass effect */
-      z-index: 1;
+      background: rgba(15, 15, 25, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      text-transform: uppercase;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     }
     
-    /* LIQUID GLASS PSEUDO-ELEMENTS - ONLY FOR ACTION BUTTONS */
+    /* FOLD Button - Red/Orange Accent */
+    #foldBtn {
+      color: rgba(255, 100, 100, 0.9);
+      border-color: rgba(255, 100, 100, 0.2);
+    }
+    
+    #foldBtn:hover:not(:disabled):not(.not-your-turn) {
+      background: rgba(255, 100, 100, 0.1);
+      border-color: rgba(255, 100, 100, 0.4);
+      color: rgba(255, 120, 120, 1);
+    }
+    
+    /* CALL/CHECK Button - Blue/Teal Accent */
+    #callBtn {
+      color: rgba(100, 200, 255, 0.9);
+      border-color: rgba(100, 200, 255, 0.2);
+    }
+    
+    #callBtn:hover:not(:disabled):not(.not-your-turn) {
+      background: rgba(100, 200, 255, 0.1);
+      border-color: rgba(100, 200, 255, 0.4);
+      color: rgba(120, 220, 255, 1);
+    }
+    
+    /* RAISE/BET Button - Gold/Yellow Accent */
+    #raiseBtn {
+      color: rgba(255, 215, 0, 0.9);
+      border-color: rgba(255, 215, 0, 0.2);
+    }
+    
+    #raiseBtn:hover:not(:disabled):not(.not-your-turn) {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.4);
+      color: rgba(255, 235, 50, 1);
+    }
+    
+    /* Remove glass effect pseudo-elements */
     #actionButtons .btn::before,
     #foldBtn::before,
     #callBtn::before,
-    #raiseBtn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      box-shadow: inset 0 0 20px -5px rgba(255, 255, 255, 0.7);
-      background-color: rgba(255, 255, 255, 0.05);
-      pointer-events: none;
-    }
-    
+    #raiseBtn::before,
     #actionButtons .btn::after,
     #foldBtn::after,
     #callBtn::after,
     #raiseBtn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -2;
-      border-radius: inherit;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      filter: url(#glass-distortion);
-      pointer-events: none;
+      display: none;
     }
     
-    /* Ensure button content (text/spans) appear above glass */
+    /* Button content styling */
     #actionButtons .btn > *,
     #foldBtn > *,
     #callBtn > *,
     #raiseBtn > * {
       position: relative;
-      z-index: 1;
     }
     
-    /* YOUR TURN - Pulse animation with glass glow (action buttons only) */
+    /* YOUR TURN - Subtle Emphasis */
     #actionButtons .btn.active,
     #foldBtn.active,
     #callBtn.active,
     #raiseBtn.active {
+      border-color: rgba(0, 212, 170, 0.4);
+      background: rgba(0, 212, 170, 0.1);
+      box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(0, 212, 170, 0.2);
       animation: subtlePulse 2s ease-in-out infinite;
     }
     
-    #actionButtons .btn.active::before,
-    #foldBtn.active::before,
-    #callBtn.active::before,
-    #raiseBtn.active::before {
-      background-color: rgba(255, 255, 255, 0.08);
-      box-shadow: inset 0 0 25px -3px rgba(255, 255, 255, 0.9);
-    }
-    
-    /* NOT YOUR TURN - Blurred (action buttons only) */
+    /* NOT YOUR TURN - Muted */
     #actionButtons .btn.not-your-turn,
     #foldBtn.not-your-turn,
     #callBtn.not-your-turn,
     #raiseBtn.not-your-turn {
-      filter: blur(2px);
-      opacity: 0.3;
+      opacity: 0.25;
       pointer-events: none;
       cursor: not-allowed;
     }
     
-    #actionButtons .btn.not-your-turn::before,
-    #foldBtn.not-your-turn::before,
-    #callBtn.not-your-turn::before,
-    #raiseBtn.not-your-turn::before {
-      background-color: rgba(255, 255, 255, 0.02);
-    }
-    
-    /* HOVER STATE - Enhanced glass effect (action buttons only) */
+    /* HOVER STATE - Refined Lift */
     #actionButtons .btn:hover:not(:disabled):not(.not-your-turn),
     #foldBtn:hover:not(:disabled):not(.not-your-turn),
     #callBtn:hover:not(:disabled):not(.not-your-turn),
     #raiseBtn:hover:not(:disabled):not(.not-your-turn) {
       transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
       animation: none;
-      box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    
-    #actionButtons .btn:hover:not(:disabled):not(.not-your-turn)::before,
-    #foldBtn:hover:not(:disabled):not(.not-your-turn)::before,
-    #callBtn:hover:not(:disabled):not(.not-your-turn)::before,
-    #raiseBtn:hover:not(:disabled):not(.not-your-turn)::before {
-      background-color: rgba(255, 255, 255, 0.08);
     }
     
     #actionButtons .btn:active:not(:disabled):not(.not-your-turn),
@@ -2279,7 +3106,9 @@
     #callBtn:active:not(:disabled):not(.not-your-turn),
     #raiseBtn:active:not(:disabled):not(.not-your-turn) {
       transform: translateY(0);
-      box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     
     /* Force white text on start button */
@@ -2608,6 +3437,176 @@
   <!-- Rank Styling -->
   <link rel="stylesheet" href="/css/rank-styling.css">
   <script src="/js/username-styling.js"></script>
+  
+  <!-- Hand Evaluator (inline for browser compatibility) -->
+  <script>
+    // Hand Evaluator - Browser-compatible version
+    window.handEvaluator = (function() {
+      function evaluatePokerHand(holeCards, communityCards) {
+        // Combine all cards (use available community cards)
+        const allCards = [...holeCards, ...communityCards];
+        
+        // Parse cards: "Ah" -> { rank: 14, suit: 'h' }
+        const cards = allCards.map(cardStr => {
+          const rank = cardStr.charAt(0);
+          const suit = cardStr.charAt(1);
+          const rankValue = {
+            '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+            'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14
+          }[rank];
+          return { rank: rankValue, suit, original: cardStr };
+        });
+        
+        // Count ranks and suits
+        const rankCounts = {};
+        const suitCounts = {};
+        
+        cards.forEach(card => {
+          rankCounts[card.rank] = (rankCounts[card.rank] || 0) + 1;
+          suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+        });
+        
+        // Get rank groups
+        const quads = [];
+        const trips = [];
+        const pairs = [];
+        
+        Object.entries(rankCounts).forEach(([rank, count]) => {
+          if (count === 4) quads.push(parseInt(rank));
+          if (count === 3) trips.push(parseInt(rank));
+          if (count === 2) pairs.push(parseInt(rank));
+        });
+        
+        quads.sort((a, b) => b - a);
+        trips.sort((a, b) => b - a);
+        pairs.sort((a, b) => b - a);
+        
+        // Check for flush
+        const flushSuit = Object.entries(suitCounts).find(([suit, count]) => count >= 5)?.[0];
+        
+        // Check for straight
+        const uniqueRanks = [...new Set(cards.map(c => c.rank))].sort((a, b) => b - a);
+        let straightHigh = 0;
+        
+        for (let i = 0; i <= uniqueRanks.length - 5; i++) {
+          if (uniqueRanks[i] - uniqueRanks[i + 4] === 4) {
+            straightHigh = uniqueRanks[i];
+            break;
+          }
+        }
+        
+        // Check for A-2-3-4-5 straight (wheel)
+        if (uniqueRanks.includes(14) && uniqueRanks.includes(2) && uniqueRanks.includes(3) && 
+            uniqueRanks.includes(4) && uniqueRanks.includes(5)) {
+          straightHigh = 5;
+        }
+        
+        // Determine hand ranking
+        let handRank = 0;
+        let handName = '';
+        const rankNames = {
+          2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9',
+          10: 'T', 11: 'J', 12: 'Q', 13: 'K', 14: 'A'
+        };
+        
+        // Royal Flush
+        if (flushSuit && straightHigh === 14) {
+          const flushCards = cards.filter(c => c.suit === flushSuit);
+          const flushRanks = flushCards.map(c => c.rank);
+          if ([10, 11, 12, 13, 14].every(r => flushRanks.includes(r))) {
+            handRank = 9;
+            handName = 'Royal Flush';
+          }
+        }
+        
+        // Straight Flush
+        if (handRank === 0 && flushSuit && straightHigh > 0) {
+          const flushCards = cards.filter(c => c.suit === flushSuit);
+          const flushRanks = flushCards.map(c => c.rank).sort((a, b) => b - a);
+          let sfHigh = 0;
+          for (let i = 0; i <= flushRanks.length - 5; i++) {
+            if (flushRanks[i] - flushRanks[i + 4] === 4) {
+              sfHigh = flushRanks[i];
+              break;
+            }
+          }
+          if (sfHigh > 0) {
+            handRank = 8;
+            handName = `Straight Flush (${rankNames[sfHigh]}-high)`;
+          }
+        }
+        
+        // Four of a Kind
+        if (handRank === 0 && quads.length > 0) {
+          handRank = 7;
+          handName = `Four of a Kind (${rankNames[quads[0]]}s)`;
+        }
+        
+        // Full House
+        if (handRank === 0 && trips.length > 0 && (pairs.length > 0 || trips.length > 1)) {
+          const bestTrips = trips[0];
+          const bestPair = trips.length > 1 ? trips[1] : pairs[0];
+          handRank = 6;
+          handName = `Full House (${rankNames[bestTrips]}s over ${rankNames[bestPair]}s)`;
+        }
+        
+        // Flush
+        let flushCards = [];
+        if (handRank === 0 && flushSuit) {
+          handRank = 5;
+          flushCards = cards.filter(c => c.suit === flushSuit)
+            .sort((a, b) => b.rank - a.rank).slice(0, 5);
+          handName = `Flush (${rankNames[flushCards[0].rank]}-high)`;
+        }
+        
+        // Straight
+        if (handRank === 0 && straightHigh > 0) {
+          handRank = 4;
+          handName = `Straight (${rankNames[straightHigh]}-high)`;
+        }
+        
+        // Three of a Kind
+        if (handRank === 0 && trips.length > 0) {
+          handRank = 3;
+          handName = `Three of a Kind (${rankNames[trips[0]]}s)`;
+        }
+        
+        // Two Pair
+        if (handRank === 0 && pairs.length >= 2) {
+          handRank = 2;
+          handName = `Two Pair (${rankNames[pairs[0]]}s and ${rankNames[pairs[1]]}s)`;
+        }
+        
+        // One Pair
+        if (handRank === 0 && pairs.length === 1) {
+          handRank = 1;
+          handName = `Pair (${rankNames[pairs[0]]}s)`;
+        }
+        
+        // High Card
+        if (handRank === 0) {
+          const highCards = cards.sort((a, b) => b.rank - a.rank).slice(0, 5);
+          const highCard = highCards[0].rank;
+          handRank = 0;
+          handName = `High Card (${rankNames[highCard]})`;
+        }
+        
+        return {
+          rank: handRank,
+          name: handName,
+          quads,
+          trips,
+          pairs,
+          straightHigh,
+          flushSuit,
+          flushCards: flushCards.map(c => c.rank),
+          kickers: []
+        };
+      }
+      
+      return { evaluatePokerHand };
+    })();
+  </script>
 </head>
 <body>
   <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
@@ -2693,7 +3692,7 @@
           <!-- Pending Seat Requests (Shown First if Any) -->
           <div id="pendingSeatRequestsSection" style="display: none;">
             <div class="section-subheader">
-              <span>🪑 Pending Requests</span>
+              <span>🪑 Pending Requests <span id="pendingRequestsBadge" class="badge-count" style="display: none;">0</span></span>
             </div>
             <div id="pendingSeatRequests">
               <div class="empty-state">No pending requests</div>
@@ -2772,31 +3771,8 @@
               <span class="btn-text-small">END</span>
             </button>
             </div>
-            </div>
-        
-          </div>
         </div>
         
-    <!-- 🪑 HOST NOTIFICATION POPUP (Seat Requests) -->
-    <div class="host-notification-overlay" id="hostNotificationOverlay" style="display: none;">
-      <div class="host-notification-modal">
-        <div class="host-notification-header">
-          <h3>🪑 Seat Request</h3>
-          <button class="close-btn" onclick="closeHostNotification()">×</button>
-            </div>
-        <div class="host-notification-body">
-          <p><strong id="requestUsername">@player</strong> wants to join <strong>Seat <span id="requestSeatIndex">0</span></strong></p>
-          <div class="request-details">
-            <div class="request-chip-input">
-              <label>Starting Chips:</label>
-              <input type="number" id="requestChipAmount" value="1000" min="1" class="form-input">
-            </div>
-          </div>
-        </div>
-        <div class="host-notification-actions">
-          <button class="host-notification-btn reject" onclick="rejectSeatRequest()">❌ Reject</button>
-          <button class="host-notification-btn approve" onclick="approveSeatRequest()">✅ Approve</button>
-        </div>
       </div>
     </div>
     
@@ -3008,12 +3984,26 @@
         <!-- Oval Felt Background -->
         <div class="table-felt"></div>
         
-        <!-- Board Center (Community Cards + Pot) -->
+        <!-- Board Center (Community Cards + Pot + Hand Rank) -->
         <div class="board-center">
           <div class="community-cards-center" id="communityCards"></div>
+          
           <div class="pot-display-center">
-            <div class="pot-label">POT</div>
-            <div class="pot-amount" id="potAmount">$0</div>
+            <!-- Main Pot Display (Poker Now format: "mainPot total totalPot") -->
+            <div class="pot-amount-container">
+              <div class="pot-amount" id="mainPotAmount">0</div>
+              <!-- Total pot display (only shown when side pots exist) -->
+              <div class="pot-total-row" id="potTotalRow" style="display: none;">
+                <span class="pot-total-label" id="potTotalLabel">total</span>
+                <span class="pot-total-amount" id="totalPotAmount">0</span>
+            </div>
+            </div>
+            
+            <!-- Side Pots Container (hidden for now - users find multiple amounts confusing) -->
+            <div id="sidePotsContainer" class="side-pots-container" style="display: none; margin-top: 10px;">
+              <div class="side-pot-label" style="font-size: 0.7rem; color: var(--muted); margin-bottom: 5px;">SIDE POTS</div>
+              <div id="sidePotsList" style="display: flex; flex-direction: column; gap: 5px;"></div>
+            </div>
           </div>
         </div>
         
@@ -3022,6 +4012,17 @@
           <div class="seats-grid" id="seats"></div>
         </div>
       </div>
+    </div>
+    
+    <!-- HAND RANK DISPLAY (Above Action Buttons) -->
+    <div id="handRankDisplay" class="hand-rank-display" style="display: none;">
+      <div class="hand-rank-label">YOUR HAND</div>
+      <div class="hand-rank-text" id="handRankText">Evaluating...</div>
+    </div>
+    
+    <!-- RUNOUT MESSAGE (During All-In Runout) -->
+    <div id="runoutMessage" class="runout-message">
+      <div class="runout-message-text">Dealing cards...</div>
     </div>
     
     <!-- ACTION BUTTONS (Below Table) -->
@@ -3316,7 +4317,7 @@
         
         if (!response.ok) {
           debug('⚠️ Hydration failed, loading lobby state');
-          loadRoom();
+          await loadRoom(); // Ensure room code loads even if hydration fails
           return;
         }
         
@@ -3324,7 +4325,7 @@
         
         if (!data.hasActiveGame) {
           debug('⏸️  No active game - loading lobby');
-          loadRoom();
+          await loadRoom(); // Ensure room code loads
           return;
         }
         
@@ -3338,6 +4339,9 @@
         gameId = data.gameId;
         currentGameState = data.gameState; // Store for UI logic
         
+        // Recalculate seat positions (dynamic positioning based on player count)
+        setTimeout(() => applySeatPositions(), 100);
+        
         // Show community section
         document.getElementById('communitySection').style.display = 'block';
         
@@ -3346,14 +4350,17 @@
           renderCommunityCards(data.gameState.communityCards);
         }
         
-        // Update pot and bet
-        document.getElementById('potAmount').textContent = data.gameState.pot || 0;
+        // Update pot and bet (with side pots support)
+        updatePotDisplay(data.gameState);
         document.getElementById('currentBet').textContent = data.gameState.currentBet || 0;
+        
+        // Update bet indicators from hydrated state
+        updateBetIndicators(data.gameState);
         
         // Show current actor
         const actorText = document.getElementById('currentActor');
         if (data.gameState.currentActorSeat !== undefined) {
-          actorText.textContent = `(Seat ${data.gameState.currentActorSeat}'s turn)`;
+          actorText.textContent = `(Seat ${data.gameState.currentActorSeat + 1}'s turn)`;
           actorText.style.display = 'inline';
         }
         
@@ -3362,6 +4369,9 @@
           myHoleCards = data.myHoleCards; // Store globally
           renderMyCards(data.myHoleCards);
         }
+        
+        // ARCHITECTURAL FIX: Update hand rank display after hydration
+        updateHandRankDisplay(data.gameState, myHoleCards);
         
         // Show/hide action buttons based on turn
         const actionButtons = document.getElementById('actionButtons');
@@ -3390,7 +4400,7 @@
       } catch (error) {
         debug('❌ Hydration error', { error: error.message });
         console.error('Hydration error:', error);
-        loadRoom(); // Fallback to normal flow
+        await loadRoom(); // Fallback to normal flow - ensure room code loads
       }
     }
     
@@ -3450,6 +4460,17 @@
         // Reset showdown actions tracking for new hand
         showdownActions = {};
         
+        // Reset street tracking for shake animations
+        previousStreet = null;
+        
+        // ARCHITECTURAL FIX: Reset chip tracking for new hand
+        previousPlayerChips.clear();
+        previousPlayerBets.clear();
+        currentPotValue = 0;
+        
+        // Clear bet indicators for new hand
+        clearBetIndicators();
+        
         // Reset "don't ask again" preference for new hand (but keep for game session)
         // allInDontAskAgain stays true if user checked it (only resets on new game/room)
         
@@ -3463,15 +4484,18 @@
           const gs = data.gameState;
           currentGameState = gs; // Store for UI logic
           
+          // Recalculate seat positions (dynamic positioning based on player count)
+          setTimeout(() => applySeatPositions(), 100);
+          
           // Show community section
           document.getElementById('communitySection').style.display = 'block';
-          document.getElementById('potAmount').textContent = gs.pot || 0;
+          updatePotDisplay(gs);
           document.getElementById('currentBet').textContent = gs.currentBet || 0;
           
           // Show current actor
           const actorText = document.getElementById('currentActor');
           if (gs.currentActorSeat !== undefined) {
-            actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
+            actorText.textContent = `(Seat ${gs.currentActorSeat + 1}'s turn)`;
             actorText.style.display = 'inline';
           }
           
@@ -3495,6 +4519,28 @@
       socket.on('street_reveal', (data) => {
         debug('🃏 Street reveal event', data);
         
+        // ARCHITECTURAL FIX: Hide action buttons during runout (players can't act)
+        const actionButtons = document.getElementById('actionButtons');
+        if (actionButtons) {
+          actionButtons.style.display = 'none';
+        }
+        
+        // Hide hand rank display during runout
+        const handRankDisplay = document.getElementById('handRankDisplay');
+        if (handRankDisplay) {
+          handRankDisplay.style.display = 'none';
+        }
+        
+        // Show runout message
+        const runoutMessage = document.getElementById('runoutMessage');
+        if (runoutMessage) {
+          const runoutText = runoutMessage.querySelector('.runout-message-text');
+          if (runoutText) {
+            runoutText.textContent = `Dealing ${data.street}...`;
+          }
+          runoutMessage.classList.add('show');
+        }
+        
         if (data.communityCards && data.communityCards.length > 0) {
           // Render cards with animation (all-in runout)
           renderCommunityCards(data.communityCards);
@@ -3510,13 +4556,65 @@
           const gs = data.gameState;
           currentGameState = gs; // Store for UI logic
           
-          document.getElementById('potAmount').textContent = gs.pot || 0;
+          // Recalculate seat positions (dynamic positioning based on player count)
+          setTimeout(() => applySeatPositions(), 100);
+          
+          // ARCHITECTURAL FIX: Update pot display FIRST (shows money movement)
+          // Check if pot increased (betting action occurred)
+          const oldPot = currentPotValue;
+          const newPot = gs.mainPot !== undefined ? gs.mainPot : (gs.pot || 0);
+          if (newPot > oldPot) {
+            // Trigger bet pulse animation (ALWAYS GREEN on increment)
+            triggerBetPulse();
+          }
+          
+          updatePotDisplay(gs);
           document.getElementById('currentBet').textContent = gs.currentBet || 0;
+          
+          // ARCHITECTURAL FIX: Update chips SECOND (shows money leaving stacks)
+          // This creates the visual effect of money moving from stack to pot
+          updateSeatChips(gs.players);
+          
+          // Update bet indicators from game state (shows betThisStreet for all players)
+          // This ensures indicators persist and update throughout the betting round
+          updateBetIndicators(gs);
+          
+          // Show bet amount indicator when action occurs (with pulse animation)
+          if (data.action && data.amount !== undefined && data.amount > 0) {
+            // Find which player made this action
+            const actionPlayer = gs.players?.find(p => p.userId === data.userId);
+            if (actionPlayer && (data.action === 'BET' || data.action === 'RAISE' || data.action === 'CALL' || data.action === 'ALL_IN')) {
+              // Use betThisStreet as the display amount (what they've bet this street)
+              const betAmount = actionPlayer.betThisStreet || 0;
+              
+              if (betAmount > 0) {
+                // Pulse animation for new/updated bet
+                showBetAmount(actionPlayer.seatIndex, data.action, betAmount);
+              }
+            } else if (actionPlayer && data.action === 'FOLD') {
+              // Hide indicator when player folds
+              const seat = document.querySelector(`.seat[data-seat-index="${actionPlayer.seatIndex}"]`);
+              if (seat) {
+                const betIndicator = seat.querySelector('.seat-bet-indicator');
+                if (betIndicator) {
+                  betIndicator.style.display = 'none';
+                  betIndicator.classList.remove('show');
+                }
+              }
+            }
+          }
+          
+          // Update previous bet tracking for all players (for next action)
+          if (gs.players) {
+            gs.players.forEach(p => {
+              previousPlayerBets.set(p.seatIndex, p.betThisStreet || 0);
+            });
+          }
           
           // Update current actor
           const actorText = document.getElementById('currentActor');
           if (gs.currentActorSeat !== undefined) {
-            actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
+            actorText.textContent = `(Seat ${gs.currentActorSeat + 1}'s turn)`;
           }
           
           // Show community cards if any (but skip if this is an all-in runout - handled by street_reveal)
@@ -3524,14 +4622,26 @@
             renderCommunityCards(gs.communityCards);
           }
           
-          // CRITICAL: Show/update action buttons based on game state
+          // ARCHITECTURAL FIX: Update hand rank display whenever game state changes
+          updateHandRankDisplay(gs, myHoleCards);
+          
+          // ARCHITECTURAL FIX: Hide buttons during all-in runout (needsProgressiveReveal)
           const actionButtons = document.getElementById('actionButtons');
+          const runoutMessage = document.getElementById('runoutMessage');
+          
+          if (gs.needsProgressiveReveal) {
+            // All-in runout in progress - hide buttons, show message
+            if (actionButtons) actionButtons.style.display = 'none';
+            if (runoutMessage) runoutMessage.classList.add('show');
+          } else {
+            // Normal play - hide runout message, show buttons if needed
+            if (runoutMessage) runoutMessage.classList.remove('show');
           
           if (gs.status === 'IN_PROGRESS') {
-            actionButtons.style.display = 'flex';
-            updateActionButtons(gs);
+            updateActionButtons(gs); // This will show/hide buttons based on canAct
           } else {
-            actionButtons.style.display = 'none';
+            if (actionButtons) actionButtons.style.display = 'none';
+            }
           }
           
           // Check if hand is over
@@ -3545,8 +4655,11 @@
           // Update position badges (dealer, SB, BB)
           updatePositionBadges(gs);
           
-          // Update chips in real-time (CRITICAL: show chip stacks decreasing as players bet)
-          updateSeatChips(gs.players);
+          // Store updated gameState for renderSeats to use
+          currentGameState = gs;
+          
+          // Recalculate seat positions (dynamic positioning based on player count)
+          setTimeout(() => applySeatPositions(), 100);
         }
       });
       
@@ -3646,51 +4759,115 @@
       
       // Seat request events
       socket.on('seat_request_pending', (data) => {
-        debug('🪑 Seat request received:', data);
-        if (isHost) {
-          showSeatRequestNotification(data);
-          loadPendingSeatRequests(); // Refresh list
+        debug('🪑 Seat request pending (broadcast):', data);
+        
+        // ARCHITECTURAL FIX: Track ALL pending requests (not just mine)
+        // This prevents duplicate requests - players see when a seat is requested
+        allPendingRequests.set(data.seatIndex, {
+          requestId: data.requestId,
+          userId: data.userId,
+          username: data.username || data.nickname,
+          requestedChips: data.requestedChips
+        });
+        
+        // If this is MY request, also track it in myPendingRequests
+        if (data.userId === userId) {
+          myPendingRequests.set(data.seatIndex, data.requestId);
+          showNotification(`Seat request sent for seat ${data.seatIndex + 1}. Waiting for host approval...`, 'info');
+        } else {
+          // Someone else requested this seat - show visual feedback
+          debug(`⚠️ Seat ${data.seatIndex + 1} requested by ${data.username || data.userId?.substr(0, 8)}`);
+          // Update seat display to show it's requested
+          updateSeatRequestStatus(data.seatIndex, true, data.username || data.userId?.substr(0, 8));
         }
+        
+        if (isHost) {
+          // Show notification instead of popup
+          showNotification(`🪑 @${data.username} requested Seat ${data.seatIndex + 1} ($${data.requestedChips.toLocaleString()})`, 'info');
+          loadPendingSeatRequests(); // Refresh list in host controls
+        }
+        
+        // Refresh seats to show updated state
+        loadRoom();
       });
       
       socket.on('seat_request_resolved', (data) => {
         debug('✅ Seat request resolved:', data);
+        // ARCHITECTURAL FIX: Clear from both maps
+        if (data.seatIndex !== undefined) {
+          myPendingRequests.delete(data.seatIndex);
+          allPendingRequests.delete(data.seatIndex);
+          // Update seat display to remove requested status
+          updateSeatRequestStatus(data.seatIndex, false);
+        }
         if (isHost) {
           loadPendingSeatRequests(); // Refresh list
           refreshHostControls(); // Refresh player list
-          closeHostNotification(); // Close popup if open
         }
+        loadRoom(); // Refresh seats to update pending status
       });
       
       socket.on('seat_request_approved', (data) => {
         debug('✅ Seat request approved:', data);
+        // ARCHITECTURAL FIX: Clear from both maps
+        if (data.seatIndex !== undefined) {
+          myPendingRequests.delete(data.seatIndex);
+          allPendingRequests.delete(data.seatIndex);
+          updateSeatRequestStatus(data.seatIndex, false);
+        }
         showNotification('Your seat request was approved!', 'success');
         setTimeout(() => loadRoom(), 1000); // Reload to show seat
       });
       
       socket.on('seat_request_rejected', (data) => {
         debug('❌ Seat request rejected:', data);
+        // ARCHITECTURAL FIX: Clear from both maps
+        if (data.seatIndex !== undefined) {
+          myPendingRequests.delete(data.seatIndex);
+          allPendingRequests.delete(data.seatIndex);
+          updateSeatRequestStatus(data.seatIndex, false);
+        }
         showNotification('Your seat request was rejected by the host', 'error');
+        loadRoom(); // Refresh to remove pending status
       });
       
       socket.on('seat_request_sent', (data) => {
         debug('📤 Seat request sent:', data);
-        // Already handled in claimSeat, but good to confirm
+        // ARCHITECTURAL FIX: Track my pending request (already tracked in seat_request_pending, but keep for backwards compatibility)
+        if (data.seatIndex !== undefined && data.requestId) {
+          myPendingRequests.set(data.seatIndex, data.requestId);
+          allPendingRequests.set(data.seatIndex, {
+            requestId: data.requestId,
+            userId: userId,
+            username: 'You',
+            requestedChips: data.requestedChips || 1000
+          });
+        }
       });
       
       socket.on('you_busted', (data) => {
         debug('💀 You busted:', data);
         isSpectator = true; // Mark as spectator
-        showNotification('You went all-in and lost. You are now a spectator and can request a seat again.', 'info');
-        loadRoom(); // Refresh seats to show spectator status
+        mySeatIndex = null; // Clear seat index
+        
+        // Show appropriate message based on host status
+        const message = data.message || (data.isHost 
+          ? 'You busted! Click any empty seat to rejoin automatically (host privilege).'
+          : 'You busted! Click any empty seat to request rejoining the game.');
+        
+        showNotification(message, data.isHost ? 'warning' : 'info');
+        loadRoom(); // Refresh seats to show spectator status and enable seat claiming
         // Hide action buttons for spectators
-        document.getElementById('actionButtons').style.display = 'none';
+        const actionButtons = document.getElementById('actionButtons');
+        if (actionButtons) {
+          actionButtons.style.display = 'none';
+        }
       });
       
       socket.on('player_busted', (data) => {
         debug('💀 Player busted:', data);
         if (isHost) {
-          showNotification(`Player busted and is now a spectator (seat ${data.seatIndex})`, 'info');
+          showNotification(`Player busted and is now a spectator (seat ${data.seatIndex + 1})`, 'info');
         }
         loadRoom(); // Refresh seats
       });
@@ -3707,6 +4884,12 @@
         // Clear action buttons
         document.getElementById('actionButtons').style.display = 'none';
         
+        // Hide runout message
+        const runoutMessage = document.getElementById('runoutMessage');
+        if (runoutMessage) {
+          runoutMessage.classList.remove('show');
+        }
+        
         // Clear community cards display
         const communityCardsDiv = document.getElementById('communityCards');
         if (communityCardsDiv) {
@@ -3719,10 +4902,42 @@
           potDiv.textContent = '0';
         }
         
-        // Reload room to show lobby state (start game status)
+        // ARCHITECTURAL FIX: Don't auto-start a new hand after game ends
+        // Just reload room to show lobby state - let host manually start next game
         setTimeout(() => {
           loadRoom();
         }, 1500);
+      });
+      
+      // ARCHITECTURAL FIX: Handle hand complete lobby event (hand complete, room back in lobby)
+      socket.on('hand_complete_lobby', (data) => {
+        debug('🏁 Hand complete - back in lobby:', data);
+        showNotification(data.message || 'Hand complete. Host can start the next hand.', 'info');
+        
+        // ARCHITECTURAL FIX: Clear game state and gameId to ensure pre-start state
+        currentGameState = null;
+        gameId = null; // CRITICAL: Clear gameId so START button shows
+        
+        // Hide action buttons
+        document.getElementById('actionButtons').style.display = 'none';
+        
+        // Hide runout message
+        const runoutMessage = document.getElementById('runoutMessage');
+        if (runoutMessage) {
+          runoutMessage.classList.remove('show');
+        }
+        
+        // ARCHITECTURAL FIX: Ensure START button is visible (room is in pre-start state)
+        const startBtn = document.getElementById('startBtn');
+        if (startBtn && isHost) {
+          startBtn.style.display = 'inline-block';
+        }
+        
+        // Reload room to show lobby state (START button will appear for host)
+        // CRITICAL: Don't auto-start - just reload to show pre-start state
+        setTimeout(() => {
+          loadRoom();
+        }, 1000);
       });
     }
     
@@ -3751,8 +4966,14 @@
         const seatsData = await seatsResponse.json();
         debug('✅ Seats data received', seatsData);
         
-        // Update room code
-        document.getElementById('roomCode').textContent = roomData.room?.code || 'N/A';
+        // Update room code (with fallback)
+        const roomCodeEl = document.getElementById('roomCode');
+        if (roomCodeEl) {
+          roomCodeEl.textContent = roomData.room?.code || roomData.room?.invite_code || '---';
+          debug('✅ Room code updated:', roomData.room?.code || roomData.room?.invite_code);
+        } else {
+          debug('⚠️ Room code element not found');
+        }
         
         // Store game ID if exists (clear if null)
         if (roomData.room?.gameId) {
@@ -3761,8 +4982,15 @@
           gameId = null; // CRITICAL: Clear gameId when no active game
         }
         
-        // Render seats
+        // CRITICAL: During active game, renderSeats will use currentGameState chips (real-time)
+        // Only render seats (chips will be updated from gameState if active)
         renderSeats(seatsData.seats, roomData.room);
+        
+        // If game is active, immediately update chips from currentGameState (if available)
+        // This ensures chips are correct even if loadRoom() was called
+        if (currentGameState && currentGameState.status === 'IN_PROGRESS' && currentGameState.players) {
+          updateSeatChips(currentGameState.players);
+        }
         
         // Detect if user is a spectator (not seated, game active, not host)
         // CRITICAL: Spectators are users NOT in seats at all - they're outside watching
@@ -3833,7 +5061,7 @@
       // Check if game is active
       const isGameActive = currentGameState && (currentGameState.status === 'IN_PROGRESS' || currentGameState.status === 'COMPLETED');
       
-      // Create 10 seats (0-9)
+      // Create 10 seats (displayed as 1-10, internally 0-9)
       // CRITICAL: 
       // - Host/Players: Only show OCCUPIED seats during active game (hide empty seats)
       // - Spectators: Show ALL seats (occupied + empty) so they can see and claim empty ones
@@ -3852,6 +5080,9 @@
         
         div.className = 'seat';
         div.dataset.seatIndex = i; // Add data attribute for positioning
+        if (!isEmpty && seat.userId) {
+          div.dataset.userId = seat.userId; // Add userId for heads-up positioning
+        }
         if (isEmpty) {
           div.className += ' empty';
         } else if (isMe) {
@@ -3860,50 +5091,161 @@
           div.className += ' taken';
         }
         
-        const label = document.createElement('div');
-        label.className = 'seat-label';
-        label.textContent = `Seat ${i}`;
-        // Hide seat label during games to save space for player name
-        if (isGameActive && !isEmpty) {
-          label.style.display = 'none';
-        }
+        // Create seat tile wrapper (contains cards and chips)
+        const seatTile = document.createElement('div');
+        seatTile.className = 'seat-tile';
         
-        const player = document.createElement('div');
-        player.className = 'seat-player';
-        
-        const chips = document.createElement('div');
-        chips.className = 'seat-chips';
-        
-        // Card backings container
-        const cardBacksContainer = document.createElement('div');
-        cardBacksContainer.className = 'seat-cards';
-        cardBacksContainer.dataset.seatIndex = i;
-        
-        // Position badges container (dealer, SB, BB)
+        // Position badges container (dealer, SB, BB) - inside tile
         const positionBadges = document.createElement('div');
         positionBadges.className = 'position-badges';
         positionBadges.dataset.seatIndex = i;
+        seatTile.appendChild(positionBadges);
         
-        if (isEmpty) {
-          // Empty seat - allow claiming (even for spectators during active game)
-          player.textContent = '🪑 EMPTY';
-          const roomIsActive = !!(room?.gameId || room?.game_id); // Game active if gameId exists
-          if (roomIsActive && !isHost) {
-            chips.textContent = 'Request seat';
+        // Avatar/Profile Picture - will be positioned with username outside tile
+        let avatar = null;
+        if (!isEmpty) {
+          avatar = document.createElement('div');
+          avatar.className = 'seat-avatar';
+          const displayName = seat.nickname || `Guest_${seat.userId.substring(0, 6)}`;
+          
+          // Try to get profile picture from user data
+          const avatarUrl = seat.avatar_url || seat.profilePicture;
+          
+          if (avatarUrl) {
+            const img = document.createElement('img');
+            img.src = avatarUrl;
+            img.alt = displayName;
+            img.onerror = () => {
+              // Fallback to initial if image fails to load
+              avatar.textContent = displayName.charAt(0).toUpperCase();
+            };
+            avatar.appendChild(img);
           } else {
-          chips.textContent = 'Click to claim';
+          // Use first letter of nickname as fallback
+          avatar.textContent = displayName.charAt(0).toUpperCase();
           }
+        }
+        
+        // Card backings container - inside tile
+        const cardBacksContainer = document.createElement('div');
+        cardBacksContainer.className = 'seat-cards';
+        cardBacksContainer.dataset.seatIndex = i;
+        seatTile.appendChild(cardBacksContainer);
+        
+        // Bet amount indicator (Chip + Number style) - will be positioned relative to player-info
+        const betIndicator = document.createElement('div');
+        betIndicator.className = 'seat-bet-indicator';
+        betIndicator.dataset.seatIndex = i;
+        betIndicator.style.display = 'none';
+        
+        // Create chip image element with random chip SVG
+        const chipImg = document.createElement('img');
+        chipImg.className = 'bet-chip';
+        
+        // Array of all available chip SVGs (12 total)
+        const chipSvgs = [
+          'blue_chip_orange_accents.svg',
+          'blue_chip_teal_accents.svg',
+          'blue_chip_white_accents.svg',
+          'orange_chip_blue_accents.svg',
+          'orange_chip_teal_accents.svg',
+          'orange_chip_white_accents.svg',
+          'teal_chip_blue_accents.svg',
+          'teal_chip_orange_accents.svg',
+          'teal_chip_white_accents.svg',
+          'white_chip_blue_accents.svg',
+          'white_chip_orange_accents.svg',
+          'white_chip_teal_accents.svg'
+        ];
+        
+        // Randomly select a chip SVG
+        const randomChip = chipSvgs[Math.floor(Math.random() * chipSvgs.length)];
+        chipImg.src = `/public/${randomChip}`; // Server serves from /public/ path
+        chipImg.alt = 'Chip';
+        
+        // Create amount text element
+        const amountText = document.createElement('span');
+        amountText.className = 'bet-amount';
+        
+        betIndicator.appendChild(chipImg);
+        betIndicator.appendChild(amountText);
+        // Don't append to tile yet - will append to seat container after positioning
+        
+        // Chips display - inside tile at bottom (or outside for heads-up)
+        const chips = document.createElement('div');
+        chips.className = 'seat-chips';
+        
+        // Player name - below tile
+        const player = document.createElement('div');
+        player.className = 'seat-player';
+        
+        // Check if heads-up (2 players) for special chip positioning
+        // We'll check this after all seats are rendered, so for now just mark it
+        if (isEmpty) {
+          // ARCHITECTURAL FIX: Check if ANYONE has a pending request for this seat
+          const hasPendingRequest = myPendingRequests.has(i) || allPendingRequests.has(i);
+          const pendingRequest = allPendingRequests.get(i);
+          const isMyRequest = myPendingRequests.has(i);
+          
+          if (hasPendingRequest) {
+            // ARCHITECTURAL FIX: Show who requested this seat
+            if (isMyRequest) {
+              // My request - show waiting state
+            player.textContent = 'PENDING';
+              chips.textContent = 'Waiting for approval...';
+            } else {
+              // Someone else's request - show who requested it
+              const requesterName = pendingRequest?.username || 'Someone';
+              player.textContent = 'REQUESTED';
+              chips.textContent = `By ${requesterName}`;
+            }
+            chips.style.color = '#ff9500';
+            chips.style.fontStyle = 'italic';
+            div.onclick = null; // Disable clicking while pending
+            div.style.opacity = '0.7';
+            div.classList.add('seat-requested'); // Add CSS class for styling
+          } else {
+            // Empty seat - allow requesting
+          player.textContent = 'EMPTY';
+            chips.textContent = 'CLAIM';
           div.onclick = () => claimSeat(i);
+            div.classList.remove('seat-requested'); // Remove requested class
+          }
+          
+          // ARCHITECTURAL FIX: Add kick button for host on occupied seats (not empty, not self)
+          if (!isEmpty && isHost && seat.userId !== userId) {
+            // Add kick button (host can kick other players)
+            const kickBtn = document.createElement('button');
+            kickBtn.className = 'kick-seat-btn';
+            kickBtn.innerHTML = '✕';
+            kickBtn.title = 'Kick player from seat';
+            kickBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm(`Kick ${seat.nickname || 'player'} from seat ${i}?`)) {
+                kickPlayerFromSeat(seat.userId, i);
+              }
+            };
+            seatTile.appendChild(kickBtn);
+          }
         } else {
           // Display nickname with rank color and badge (async)
           // NOTE: If seat exists here, player is actually seated (not a spectator)
           const displayName = seat.nickname || `Guest_${seat.userId.substring(0, 6)}`;
+          const usernameText = displayName + (isMe ? ' (YOU)' : '');
           player.textContent = `@${displayName}`;
           if (isMe) player.textContent += ' (YOU)';
           
-          // Show chip count (all seated players have chips) - use format function
-          const chipAmount = seat.chips || 1000;
-          chips.textContent = formatChipAmount(chipAmount);
+          // CRITICAL: During active game, use chips from gameState (real-time), otherwise use DB chips
+          let chipAmount = seat.chips || 1000;
+          if (isGameActive && currentGameState && currentGameState.players) {
+            const gameStatePlayer = currentGameState.players.find(p => p.seatIndex === i);
+            if (gameStatePlayer && gameStatePlayer.chips !== undefined) {
+              chipAmount = gameStatePlayer.chips;
+            }
+          }
+          // Format with green dollar sign
+          const formatted = formatChipAmount(chipAmount);
+          chips.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
           chips.style.color = '';
           chips.style.fontStyle = '';
           
@@ -3913,7 +5255,6 @@
               try {
                 const rankColor = await window.UsernameStyling.getRankColor(seat.userId);
                 const badge = await window.UsernameStyling.getTopBadge(seat.userId);
-                const usernameText = displayName + (isMe ? ' (YOU)' : '');
                 player.innerHTML = window.UsernameStyling.formatUsernameWithRankAndBadge(
                   usernameText, 
                   rankColor, 
@@ -3928,17 +5269,46 @@
           }
         }
         
-        div.appendChild(label);
+        // For heads-up: chips go outside tile (adjacent), otherwise inside
+        // We'll check after positioning, so add to tile for now
+        seatTile.appendChild(chips);
+        
+        // Create wrapper for avatar + username (positioned above/below tile)
+        let playerInfoWrapper = null;
+        if (!isEmpty && avatar) {
+          playerInfoWrapper = document.createElement('div');
+          playerInfoWrapper.className = 'seat-player-info';
+          // Avatar and username side by side
+          playerInfoWrapper.appendChild(avatar);
+          playerInfoWrapper.appendChild(player);
+        }
+        
+        // Assemble based on seat position (will be determined after positioning)
+        div.appendChild(seatTile);
+        if (playerInfoWrapper) {
+          div.appendChild(playerInfoWrapper);
+          // Append bet indicator to seat container (will be positioned relative to player-info)
+          if (!isEmpty) {
+            div.appendChild(betIndicator);
+          }
+        } else {
+          // Empty seat - just show player name below
         div.appendChild(player);
-        div.appendChild(chips);
-        div.appendChild(cardBacksContainer); // Add card backs container
-        div.appendChild(positionBadges); // Add position badges
+        }
+        
+        // Mark seat for heads-up chip repositioning (will be done after positioning)
+        if (!isEmpty) {
+          div.dataset.hasChips = 'true';
+        }
         
         seatsDiv.appendChild(div);
       }
       
       // Apply circular positions
       applySeatPositions();
+      
+      // Update seat position classes (top/bottom) for avatar/username positioning
+      updateSeatPositionClasses();
       
       // Update card backings if game is active (pass myHoleCards to show on my seat)
       if (currentGameState) {
@@ -3951,22 +5321,641 @@
     // ============================================
     // STEP 4B: UPDATE SEAT CHIPS IN REAL-TIME
     // ============================================
+    /**
+     * UPDATE POT DISPLAY
+     * CRITICAL: Shows main pot + side pots + total for chip conservation validation
+     */
+    // Track current pot for increment animation
+    let currentPotValue = 0;
+    
+    // Track previous street for shake animations
+    let previousStreet = null;
+    
+    // Trigger bet pulse animation (ALWAYS GREEN on increment)
+    function triggerBetPulse() {
+      const potDisplayEl = document.querySelector('.pot-display-center');
+      if (!potDisplayEl) return;
+      
+      // Remove any existing pulse classes
+      potDisplayEl.classList.remove('bet-pulse-green', 'bet-pulse-gold');
+      
+      // ARCHITECTURAL FIX: Always green pulse on increment (user requested)
+      potDisplayEl.classList.add('bet-pulse-green');
+      
+      // Remove class after animation completes
+      setTimeout(() => {
+        potDisplayEl.classList.remove('bet-pulse-green');
+      }, 800);
+    }
+    
+    // Trigger street-based styling (green glow at turn, gold glow + shake at river)
+    function triggerStreetShake(street) {
+      const potDisplayEl = document.querySelector('.pot-display-center');
+      const mainPotEl = document.getElementById('mainPotAmount');
+      if (!potDisplayEl) return;
+      
+      // Remove shake animations (they're temporary)
+      potDisplayEl.classList.remove('shake-turn', 'shake-river');
+      if (mainPotEl) {
+        mainPotEl.classList.remove('shake-river-text');
+      }
+      
+      // Remove glows from previous streets
+      potDisplayEl.classList.remove('glow-turn', 'glow-river');
+      
+      if (street === 'TURN') {
+        // TURN: Green glow (persistent) + light shake animation
+        potDisplayEl.classList.add('glow-turn', 'shake-turn');
+        setTimeout(() => {
+          potDisplayEl.classList.remove('shake-turn'); // Remove shake, keep glow
+        }, 500);
+      } else if (street === 'RIVER') {
+        // RIVER: Gold glow (persistent) + intense shake on container + shake on text
+        potDisplayEl.classList.add('glow-river', 'shake-river');
+        if (mainPotEl) {
+          mainPotEl.classList.add('shake-river-text');
+        }
+        setTimeout(() => {
+          potDisplayEl.classList.remove('shake-river'); // Remove shake, keep glow
+          if (mainPotEl) {
+            mainPotEl.classList.remove('shake-river-text');
+          }
+        }, 800);
+      }
+    }
+    
+    // Track previous chip values for animations
+    let previousPlayerChips = new Map(); // seatIndex -> chips
+    let previousPlayerBets = new Map(); // seatIndex -> betThisStreet (for calculating bet delta)
+    
+    function updatePotDisplay(gameState) {
+      const mainPot = gameState.mainPot !== undefined ? gameState.mainPot : (gameState.pot || 0);
+      const sidePots = gameState.sidePots || [];
+      const totalPot = gameState.totalPot !== undefined ? gameState.totalPot : mainPot;
+      
+      // ARCHITECTURAL FIX: Show "mainPot total totalPot" format when side pots exist (like Poker Now)
+      const mainPotEl = document.getElementById('mainPotAmount');
+      const totalPotEl = document.getElementById('totalPotAmount');
+      const totalLabelEl = document.getElementById('potTotalLabel');
+      const totalPotRow = document.getElementById('potTotalRow');
+      const potDisplayEl = document.querySelector('.pot-display-center');
+      
+      // Show/hide total pot display based on side pots (Poker Now style)
+      if (sidePots.length > 0 && totalPot > mainPot) {
+        // Show "total $X" format (Poker Now style: lowercase "total" + amount)
+        if (totalPotRow) totalPotRow.style.display = 'flex';
+        if (totalLabelEl) {
+          totalLabelEl.textContent = 'total'; // Lowercase, matches Poker Now
+        }
+        if (totalPotEl) {
+          const formattedTotal = formatChipAmount(totalPot).replace('$', '').trim();
+          totalPotEl.textContent = formattedTotal;
+        }
+      } else {
+        // Hide total (no side pots, just show main pot)
+        if (totalPotRow) totalPotRow.style.display = 'none';
+      }
+      
+      if (mainPotEl) {
+        const oldPot = currentPotValue;
+        const newPot = mainPot;
+        
+        // INCREMENT ANIMATION: Count up from old to new value
+        if (newPot !== oldPot && oldPot > 0) {
+          mainPotEl.classList.add('incrementing');
+          
+          // Animate the number incrementing
+          const incrementDuration = 800; // ms
+          const startTime = Date.now();
+          const difference = newPot - oldPot;
+          
+          const animateIncrement = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / incrementDuration, 1);
+            
+            // Easing function for smooth animation
+            const eased = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+            
+            const currentValue = Math.round(oldPot + (difference * eased));
+            const formattedAmount = formatChipAmount(currentValue).replace('$', '').trim();
+            mainPotEl.textContent = formattedAmount;
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateIncrement);
+            } else {
+              // Final value
+              const finalFormatted = formatChipAmount(newPot).replace('$', '').trim();
+              mainPotEl.textContent = finalFormatted;
+              mainPotEl.classList.remove('incrementing');
+              currentPotValue = newPot;
+            }
+          };
+          
+          requestAnimationFrame(animateIncrement);
+        } else {
+          // No animation needed (first load or no change)
+          const formattedAmount = formatChipAmount(mainPot).replace('$', '').trim();
+          mainPotEl.textContent = formattedAmount;
+          currentPotValue = newPot;
+        }
+      }
+      
+      // Removed chip conservation indicator - using Poker Now style "total" display instead
+      
+      // Trigger shake animations and persistent glows on street changes
+      if (gameState.street && gameState.street !== previousStreet) {
+        triggerStreetShake(gameState.street);
+        previousStreet = gameState.street;
+        
+        // ARCHITECTURAL FIX: Clear bet indicators when street advances (betting round ends)
+        // betThisStreet resets to 0 on new street, so indicators should disappear
+        clearBetIndicators();
+      }
+      
+      // ARCHITECTURAL FIX: Ensure persistent glows remain during street
+      // (glow-turn and glow-river persist until street changes - triggerStreetShake handles this)
+      
+      // ARCHITECTURAL FIX: Remove chip SVGs (user requested removal - they look gross)
+      // Chip stack container is hidden/removed
+      const chipStackContainer = document.getElementById('chipStackContainer');
+      if (chipStackContainer) {
+        chipStackContainer.innerHTML = ''; // Clear any existing chips
+        chipStackContainer.style.display = 'none'; // Hide container
+      }
+      
+      // Update side pots container
+      const sidePotsContainer = document.getElementById('sidePotsContainer');
+      const sidePotsList = document.getElementById('sidePotsList');
+      
+      if (sidePots.length > 0) {
+        // Show side pots indicator
+        const sidePotsToShow = sidePots;
+        sidePotsList.innerHTML = sidePotsToShow.map((pot, index) => {
+          return `<div class="side-pot-item" style="font-size: 0.65rem; color: var(--muted);">
+            Side Pot ${index + 1}: ${formatChipAmount(pot.amount)}
+          </div>`;
+        }).join('');
+        sidePotsContainer.style.display = 'block';
+      } else {
+        sidePotsContainer.style.display = 'none';
+      }
+      
+      // Note: totalPotEl already declared above, no need to redeclare
+      
+      // Backwards compatibility: Update old potAmount element if it exists
+      const oldPotEl = document.getElementById('potAmount');
+      if (oldPotEl) {
+        oldPotEl.textContent = formatChipAmount(mainPot);
+      }
+      
+      // Make pot display clickable to show side pot modal
+      const potDisplayCenter = document.querySelector('.pot-display-center');
+      if (potDisplayCenter) {
+        potDisplayCenter.onclick = () => openSidePotModal(gameState);
+        potDisplayCenter.style.cursor = 'pointer';
+      }
+    }
+    
+    /**
+     * OPEN SIDE POT MODAL
+     * Shows detailed breakdown of main pot and all side pots
+     */
+    function openSidePotModal(gameState) {
+      const mainPot = gameState.mainPot !== undefined ? gameState.mainPot : (gameState.pot || 0);
+      const sidePots = gameState.sidePots || [];
+      const totalPot = gameState.totalPot !== undefined ? gameState.totalPot : mainPot;
+      
+      // Get or create modal
+      let modalOverlay = document.getElementById('sidePotModalOverlay');
+      if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'sidePotModalOverlay';
+        modalOverlay.className = 'side-pot-modal-overlay';
+        modalOverlay.innerHTML = `
+          <div class="side-pot-modal">
+            <div class="side-pot-modal-header">
+              <h2>💰 Pot Breakdown</h2>
+              <button class="side-pot-modal-close" onclick="closeSidePotModal()">×</button>
+            </div>
+            <div id="sidePotModalContent"></div>
+          </div>
+        `;
+        document.body.appendChild(modalOverlay);
+        
+        // Close on overlay click
+        modalOverlay.addEventListener('click', (e) => {
+          if (e.target === modalOverlay) {
+            closeSidePotModal();
+          }
+        });
+      }
+      
+      const content = document.getElementById('sidePotModalContent');
+      const pots = [];
+      
+      // Add main pot
+      if (mainPot > 0) {
+        pots.push({
+          label: 'MAIN POT',
+          amount: mainPot,
+          isMainPot: true,
+          eligibleSeats: gameState.players?.filter(p => !p.folded).map(p => p.seatIndex) || []
+        });
+      }
+      
+      // Add side pots
+      sidePots.forEach((pot, index) => {
+        pots.push({
+          label: `SIDE POT ${index + 1}`,
+          amount: pot.amount || 0,
+          isMainPot: false,
+          eligibleSeats: pot.eligibleSeats || pot.eligiblePlayerIds?.map(id => {
+            const player = gameState.players?.find(p => p.userId === id);
+            return player?.seatIndex;
+          }).filter(s => s !== undefined) || []
+        });
+      });
+      
+      // Render pots
+      content.innerHTML = `
+        <div class="side-pot-list">
+          ${pots.map(pot => `
+            <div class="side-pot-item-detailed ${pot.isMainPot ? 'main-pot' : ''}">
+              <div class="side-pot-header">
+                <div class="side-pot-label">${pot.label}</div>
+                <div class="side-pot-amount">${formatChipAmount(pot.amount)}</div>
+              </div>
+              ${pot.eligibleSeats.length > 0 ? `
+                <div class="side-pot-eligible">
+                  <div class="side-pot-eligible-label">Eligible Players</div>
+                  <div class="side-pot-eligible-seats">
+                    ${pot.eligibleSeats.map(seat => `
+                      <span class="eligible-seat-badge">Seat ${seat + 1}</span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+        <div class="side-pot-total">
+          <div class="side-pot-total-label">Total Pot</div>
+          <div class="side-pot-total-amount">${formatChipAmount(totalPot)}</div>
+        </div>
+      `;
+      
+      modalOverlay.classList.add('show');
+    }
+    
+    /**
+     * CLOSE SIDE POT MODAL
+     */
+    function closeSidePotModal() {
+      const modalOverlay = document.getElementById('sidePotModalOverlay');
+      if (modalOverlay) {
+        modalOverlay.classList.remove('show');
+      }
+    }
+    
+    // Make closeSidePotModal globally accessible
+    window.closeSidePotModal = closeSidePotModal;
+    
+    /**
+     * UPDATE HAND RANK DISPLAY
+     * Shows current best hand rank (e.g., "Pair of Tens", "Two Pair 10s and 8s", "Straight")
+     * Updates dynamically as community cards are revealed
+     */
+    function updateHandRankDisplay(gameState, holeCards) {
+      const handRankDisplay = document.getElementById('handRankDisplay');
+      
+      // ARCHITECTURAL PRINCIPLE: Hide hand rank display when:
+      // 1. No hole cards
+      // 2. Player is a spectator
+      // 3. Hand is completed (status === 'COMPLETED')
+      // 4. Preflop (no community cards yet)
+      
+      if (!handRankDisplay) return;
+      
+      // Hide if no hole cards or spectator
+      if (!holeCards || holeCards.length !== 2 || isSpectator) {
+        handRankDisplay.style.display = 'none';
+        return;
+      }
+      
+      // Hide if hand is completed
+      if (gameState && gameState.status === 'COMPLETED') {
+        handRankDisplay.style.display = 'none';
+        return;
+      }
+      
+      const communityCards = gameState?.communityCards || [];
+      
+      // Hide if preflop (no community cards yet)
+      if (communityCards.length === 0) {
+        handRankDisplay.style.display = 'none';
+        return;
+      }
+      
+      // Evaluate hand using the same evaluator as backend
+      try {
+        // Import hand evaluator (it's available in the page)
+        const { evaluatePokerHand } = window.handEvaluator || {};
+        
+        if (!evaluatePokerHand) {
+          // Load evaluator dynamically if not available
+          console.warn('Hand evaluator not available, loading...');
+          handRankDisplay.style.display = 'none';
+          return;
+        }
+        
+        const handResult = evaluatePokerHand(holeCards, communityCards);
+        const formattedDescription = formatHandDescription(handResult);
+        
+        // Update display
+        const handRankText = document.getElementById('handRankText');
+        
+        if (handRankText) {
+          handRankText.textContent = formattedDescription;
+          handRankDisplay.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error evaluating hand:', error);
+        handRankDisplay.style.display = 'none';
+      }
+    }
+    
+    /**
+     * FORMAT HAND DESCRIPTION
+     * Converts evaluator output to formal poker terminology
+     * Examples:
+     * - "Pair (Ts)" -> "One Pair (10)"
+     * - "Two Pair (10s and 8s)" -> "Two Pair (10, 8)"
+     * - "Three of a Kind (7s)" -> "Three of a Kind (7)"
+     * - "Straight (J-high)" -> "Straight"
+     */
+    function formatHandDescription(handResult) {
+      if (!handResult || !handResult.name) {
+        return 'Evaluating...';
+      }
+      
+      const name = handResult.name;
+      
+      // Format based on hand type
+      if (name.includes('Pair (')) {
+        // "Pair (Ts)" -> "One Pair (10)"
+        const rankMatch = name.match(/Pair \(([^)]+)\)/);
+        if (rankMatch) {
+          const rank = rankMatch[1].replace('s', '');
+          // Convert T -> 10, keep others as-is
+          const rankDisplay = rank === 'T' ? '10' : rank;
+          return `One Pair (${rankDisplay})`;
+        }
+      } else if (name.includes('Two Pair (')) {
+        // "Two Pair (10s and 8s)" -> "Two Pair (10, 8)"
+        const match = name.match(/Two Pair \(([^)]+)\)/);
+        if (match) {
+          // Extract ranks: "10s and 8s" -> "10, 8"
+          const pairsText = match[1];
+          const ranks = pairsText.split(' and ').map(r => {
+            const rank = r.replace('s', '');
+            return rank === 'T' ? '10' : rank;
+          });
+          return `Two Pair (${ranks.join(', ')})`;
+        }
+      } else if (name.includes('Three of a Kind (')) {
+        // "Three of a Kind (7s)" -> "Three of a Kind (7)"
+        const match = name.match(/Three of a Kind \(([^)]+)\)/);
+        if (match) {
+          const rank = match[1].replace('s', '');
+          const rankDisplay = rank === 'T' ? '10' : rank;
+          return `Three of a Kind (${rankDisplay})`;
+        }
+      } else if (name.includes('Straight (')) {
+        // "Straight (J-high)" -> "Straight"
+        return 'Straight';
+      } else if (name.includes('Flush (')) {
+        // "Flush (K-high)" -> "Flush"
+        return 'Flush';
+      } else if (name.includes('Full House (')) {
+        // "Full House (8s over 7s)" -> "Full House (8, 7)"
+        const match = name.match(/Full House \(([^)]+)\)/);
+        if (match) {
+          // Extract ranks: "8s over 7s" -> "8, 7"
+          const fullHouseText = match[1];
+          const ranks = fullHouseText.split(' over ').map(r => {
+            const rank = r.replace('s', '');
+            return rank === 'T' ? '10' : rank;
+          });
+          return `Full House (${ranks.join(', ')})`;
+        }
+      } else if (name.includes('Four of a Kind (')) {
+        // "Four of a Kind (8s)" -> "Four of a Kind (8)"
+        const match = name.match(/Four of a Kind \(([^)]+)\)/);
+        if (match) {
+          const rank = match[1].replace('s', '');
+          const rankDisplay = rank === 'T' ? '10' : rank;
+          return `Four of a Kind (${rankDisplay})`;
+        }
+      } else if (name.includes('Straight Flush (')) {
+        // "Straight Flush (J-high)" -> "Straight Flush"
+        return 'Straight Flush';
+      } else if (name.includes('Royal Flush')) {
+        return 'Royal Flush';
+      } else if (name.includes('High Card (')) {
+        // "High Card (K)" -> "High Card (K)"
+        const match = name.match(/High Card \(([^)]+)\)/);
+        if (match) {
+          const rank = match[1];
+          const rankDisplay = rank === 'T' ? '10' : rank;
+          return `High Card (${rankDisplay})`;
+        }
+      }
+      
+      // Fallback: return as-is
+      return name;
+    }
+    
     function updateSeatChips(players) {
       if (!players) return;
       
       debug('💰 Updating seat chips', { playerCount: players.length });
       
       players.forEach(player => {
-        // Find the seat element
+        // Find the seat element by seatIndex (CRITICAL: match by seatIndex, not iterate all)
         const seatsDiv = document.getElementById('seats');
-        const seatDivs = seatsDiv.querySelectorAll('.seat');
+        const seatDiv = seatsDiv.querySelector(`.seat[data-seat-index="${player.seatIndex}"]`);
         
-        seatDivs.forEach(seatDiv => {
+        if (seatDiv) {
           const chipEl = seatDiv.querySelector('.seat-chips');
           if (chipEl && player.chips !== undefined) {
-            chipEl.textContent = formatChipAmount(player.chips);
+            const oldChips = previousPlayerChips.get(player.seatIndex) || player.chips;
+            const newChips = player.chips;
+            
+            // ARCHITECTURAL FIX: Animate chip changes smoothly
+            if (oldChips !== newChips && oldChips !== undefined) {
+              // Add animation class
+              chipEl.classList.add('chips-updating');
+              
+              // Animate increment/decrement
+              const incrementDuration = 800; // ms
+              const startTime = Date.now();
+              const difference = newChips - oldChips;
+              
+              const animateChips = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / incrementDuration, 1);
+                
+                // Easing function for smooth animation
+                const eased = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+                
+                const currentValue = Math.round(oldChips + (difference * eased));
+                // Format with green dollar sign
+                const formatted = formatChipAmount(currentValue);
+                chipEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
+                
+                // Add visual feedback based on direction
+                if (difference > 0) {
+                  chipEl.classList.add('chips-incrementing');
+                  chipEl.classList.remove('chips-decrementing');
+                } else {
+                  chipEl.classList.add('chips-decrementing');
+                  chipEl.classList.remove('chips-incrementing');
+                }
+                
+                if (progress < 1) {
+                  requestAnimationFrame(animateChips);
+                } else {
+                  // Final value
+                  // Format with green dollar sign
+                  const formatted = formatChipAmount(newChips);
+                  chipEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
+                  chipEl.classList.remove('chips-updating', 'chips-incrementing', 'chips-decrementing');
+                  previousPlayerChips.set(player.seatIndex, newChips);
+                }
+              };
+              
+              requestAnimationFrame(animateChips);
+            } else {
+              // No animation needed (first load or no change)
+              // Format with green dollar sign
+              const formatted = formatChipAmount(newChips);
+              chipEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
+              previousPlayerChips.set(player.seatIndex, newChips);
+            }
+            
+            debug(`💰 Updated seat ${player.seatIndex} chips to ${player.chips}`);
           }
-        });
+        } else {
+          debug(`⚠️ Could not find seat element for seatIndex ${player.seatIndex}`);
+        }
+      });
+    }
+    
+    /**
+     * SHOW BET AMOUNT INDICATOR (Poker Now style)
+     * Displays the amount a player bet this street - persists until round ends
+     * Updates when player acts again (raises/calls)
+     */
+    function showBetAmount(seatIndex, action, amount) {
+      const seat = document.querySelector(`.seat[data-seat-index="${seatIndex}"]`);
+      if (!seat) {
+        debug(`⚠️ Could not find seat ${seatIndex} for bet indicator`);
+        return;
+      }
+      
+      const betIndicator = seat.querySelector('.seat-bet-indicator');
+      if (!betIndicator) {
+        debug(`⚠️ Bet indicator not found for seat ${seatIndex}`);
+        return;
+      }
+      
+      // Format amount based on action type
+      let displayText = '';
+      if (action === 'BET' || action === 'RAISE') {
+        displayText = `${formatChipAmount(amount).replace('$', '').trim()}`;
+      } else if (action === 'CALL') {
+        displayText = `${formatChipAmount(amount).replace('$', '').trim()}`;
+      } else if (action === 'ALL_IN') {
+        displayText = `ALL IN ${formatChipAmount(amount).replace('$', '').trim()}`;
+      } else {
+        return; // Don't show for CHECK/FOLD
+      }
+      
+      // Update bet amount text (chip image already in DOM)
+      const amountText = betIndicator.querySelector('.bet-amount');
+      if (amountText) {
+        amountText.textContent = displayText;
+      }
+      betIndicator.style.display = 'flex'; // Use flex for chip + amount layout
+      
+      // Show with animation (pulse in)
+      setTimeout(() => {
+        betIndicator.classList.add('show');
+      }, 10);
+      
+      // NOTE: Indicator stays visible until betting round ends (cleared in clearBetIndicators)
+    }
+    
+    /**
+     * CLEAR BET INDICATORS
+     * Removes all bet indicators (called when betting round ends)
+     */
+    function clearBetIndicators() {
+      document.querySelectorAll('.seat-bet-indicator').forEach(indicator => {
+        indicator.classList.remove('show');
+        indicator.classList.add('fade-out');
+        
+        setTimeout(() => {
+          indicator.style.display = 'none';
+          indicator.classList.remove('fade-out');
+        }, 300);
+      });
+    }
+    
+    /**
+     * UPDATE BET INDICATORS FROM GAME STATE
+     * Shows current betThisStreet for each player (persists during betting round)
+     * Clears indicators when betThisStreet is 0 (new street or no bet)
+     */
+    function updateBetIndicators(gameState) {
+      if (!gameState || !gameState.players) return;
+      
+      gameState.players.forEach(player => {
+        const seat = document.querySelector(`.seat[data-seat-index="${player.seatIndex}"]`);
+        if (!seat) return;
+        
+        const betIndicator = seat.querySelector('.seat-bet-indicator');
+        if (!betIndicator) return;
+        
+        if (player.folded) {
+          // Hide indicator if player folded
+          betIndicator.style.display = 'none';
+          betIndicator.classList.remove('show');
+          return;
+        }
+        
+        // Show betThisStreet if player has bet this street
+        const betThisStreet = player.betThisStreet || 0;
+        if (betThisStreet > 0) {
+          let displayText = '';
+          if (player.status === 'ALL_IN') {
+            displayText = `ALL IN ${formatChipAmount(betThisStreet).replace('$', '').trim()}`;
+          } else {
+            displayText = `${formatChipAmount(betThisStreet).replace('$', '').trim()}`;
+          }
+          
+          // Update bet amount text (chip image already in DOM)
+          const amountText = betIndicator.querySelector('.bet-amount');
+          if (amountText) {
+            amountText.textContent = displayText;
+          }
+          betIndicator.style.display = 'flex'; // Use flex for chip + amount layout
+          betIndicator.classList.add('show');
+        } else {
+          // Hide indicator if betThisStreet is 0 (no bet this street)
+          betIndicator.style.display = 'none';
+          betIndicator.classList.remove('show');
+        }
       });
     }
     
@@ -3983,7 +5972,7 @@
         
         seatDivs.forEach(seatDiv => {
           const label = seatDiv.querySelector('.seat-label');
-          if (label && label.textContent === `Seat ${player.seatIndex}`) {
+          if (label && label.textContent === `Seat ${player.seatIndex + 1}`) {
             // Update chips display
             const chipsDiv = seatDiv.querySelector('.seat-chips');
             if (chipsDiv && !chipsDiv.textContent.includes('Click to claim')) {
@@ -4143,6 +6132,13 @@
     // ============================================
     // STEP 5: CLAIM SEAT
     // ============================================
+    // Track user's own pending seat requests
+    let myPendingRequests = new Map(); // seatIndex -> requestId
+    
+    // ARCHITECTURAL FIX: Track ALL pending seat requests (from any player)
+    // This prevents duplicate requests - players see when a seat is requested
+    let allPendingRequests = new Map(); // seatIndex -> { requestId, userId, username, requestedChips }
+    
     async function claimSeat(seatIndex) {
       // Prevent duplicate calls
       if (isClaimingSeat) {
@@ -4150,20 +6146,23 @@
         return;
       }
       
+      // ARCHITECTURAL FIX: Check if ANYONE has a pending request for this seat
+      if (allPendingRequests.has(seatIndex)) {
+        const pendingRequest = allPendingRequests.get(seatIndex);
+        if (pendingRequest.userId === userId) {
+        showNotification('You already have a pending request for this seat', 'info');
+        } else {
+          showNotification(`Seat ${seatIndex + 1} is already requested by ${pendingRequest.username}. Please wait for host approval.`, 'warning');
+        }
+        return;
+      }
+      
       isClaimingSeat = true;
-      debug(`🪑 Attempting to claim seat ${seatIndex}...`);
+      debug(`🪑 Requesting seat ${seatIndex}...`);
       
-      // Check if game is active (requires approval)
-      // Game is active if: currentGameState exists OR startBtn is hidden OR gameId exists
-      const startBtn = document.getElementById('startBtn');
-      const roomIsActive = currentGameState?.status === 'IN_PROGRESS' || 
-                           (startBtn && startBtn.style.display === 'none') ||
-                           !!gameId;
-      
-      // Prompt for nickname (only if not already set and pre-game)
-      let nickname = null;
-      if (!roomIsActive) {
-        nickname = prompt(
+      // UNIFIED FLOW: ALWAYS prompt for nickname and chips, ALWAYS create request
+      // Prompt for nickname
+      const nickname = prompt(
         '🎮 Choose your nickname (3-15 characters):\n\n' +
         'Letters, numbers, and underscores only.\n' +
         'Leave blank for auto-generated name.',
@@ -4178,15 +6177,37 @@
       
       // Validate nickname if provided
       if (nickname && (nickname.length < 3 || nickname.length > 15)) {
-        console.error('Nickname must be 3-15 characters');
+        alert('Nickname must be 3-15 characters');
         isClaimingSeat = false;
         return;
       }
       
       if (nickname && !/^[a-zA-Z0-9_]+$/.test(nickname)) {
-        console.error('Nickname can only contain letters, numbers, and underscores');
+        alert('Nickname can only contain letters, numbers, and underscores');
         isClaimingSeat = false;
         return;
+      }
+      
+      // Prompt for desired stack
+      const chipsInput = prompt(
+        '💰 Enter your desired starting stack:\n\n' +
+        'Minimum: 1 chip\n' +
+        'Leave blank for default (1000 chips)',
+        '1000'
+      );
+      
+      // User cancelled
+      if (chipsInput === null) {
+        isClaimingSeat = false;
+        return;
+      }
+      
+      // Parse chips (use default if empty or invalid)
+      let requestedChips = 1000; // Default
+      if (chipsInput && chipsInput.trim() !== '') {
+        const parsed = parseInt(chipsInput.trim());
+        if (!isNaN(parsed) && parsed > 0) {
+          requestedChips = parsed;
         }
       }
       
@@ -4199,40 +6220,38 @@
             userId: userId,
             seatIndex: seatIndex,
             nickname: nickname || undefined,
-            requestedChips: 1000 // Default buy-in
+            requestedChips: requestedChips
           })
         });
         
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || 'Failed to claim seat');
+          throw new Error(error.error || 'Failed to request seat');
         }
         
         const data = await response.json();
         
-        // If requires approval, show notification
-        if (data.requiresApproval) {
-          debug('⏳ Seat request sent, waiting for host approval', { requestId: data.requestId });
+        // Handle response
+        if (data.autoApproved) {
+          // Host auto-approved - seat claimed immediately
+          debug('✅ Seat auto-approved (host)', { seatIndex });
+          showNotification('Seat claimed successfully!', 'success');
+          setTimeout(() => loadRoom(), 500); // Refresh to show seat
+        } else if (data.requiresApproval && data.requestId) {
+          // Non-host: Store request ID and show pending
+          myPendingRequests.set(seatIndex, data.requestId);
+          debug('⏳ Seat request sent, waiting for host approval', { requestId: data.requestId, seatIndex });
           showNotification('Seat request sent to host. Waiting for approval...', 'info');
-          isClaimingSeat = false;
-          return;
+          loadRoom(); // Refresh to show pending status
         }
         
-        // Direct claim successful
-        const displayName = data.seat?.nickname || `Guest_${userId.substring(0, 6)}`;
-        debug('✅ Seat claimed successfully', { displayName, seatIndex });
-        
-        // Reload room state
-        setTimeout(() => {
-          loadRoom();
-          isClaimingSeat = false; // Reset flag after reload
-        }, 500);
+        isClaimingSeat = false;
         
       } catch (error) {
-        debug('❌ Claim seat error', { error: error.message });
-        console.error('Failed to claim seat:', error.message);
-        showNotification(error.message || 'Failed to claim seat', 'error');
-        isClaimingSeat = false; // Reset flag on error
+        debug('❌ Request seat error', { error: error.message });
+        console.error('Failed to request seat:', error.message);
+        showNotification(error.message || 'Failed to request seat', 'error');
+        isClaimingSeat = false;
       }
     }
     
@@ -4250,7 +6269,8 @@
         myHoleCards = null; // Clear stored hole cards
         document.getElementById('communityCards').innerHTML = '';
         document.getElementById('myCards').innerHTML = '';
-        document.getElementById('potAmount').textContent = '0';
+        // Reset pot display
+        updatePotDisplay({ pot: 0, mainPot: 0, sidePots: [], totalPot: 0 });
         document.getElementById('currentBet').textContent = '0';
         document.getElementById('actionButtons').style.display = 'none';
         // Keep hand strength visible - it shows current hand throughout the game
@@ -4310,12 +6330,12 @@
           const gs = data.gameState;
           
           document.getElementById('communitySection').style.display = 'block';
-          document.getElementById('potAmount').textContent = gs.pot || 0;
+          updatePotDisplay(gs);
           document.getElementById('currentBet').textContent = gs.currentBet || 0;
           
           const actorText = document.getElementById('currentActor');
           if (gs.currentActorSeat !== undefined) {
-            actorText.textContent = `(Seat ${gs.currentActorSeat}'s turn)`;
+            actorText.textContent = `(Seat ${gs.currentActorSeat + 1}'s turn)`;
             actorText.style.display = 'inline';
           }
           
@@ -4331,6 +6351,11 @@
         if (data.cards && data.cards.length === 2) {
           myHoleCards = data.cards; // Store globally
           renderMyCards(data.cards);
+          
+          // ARCHITECTURAL FIX: Update hand rank display after receiving hole cards
+          if (data.gameState) {
+            updateHandRankDisplay(data.gameState, myHoleCards);
+          }
         }
         
         // Reset button text
@@ -4490,18 +6515,108 @@
       const myPlayer = gameState.players?.find(p => p.userId === userId);
       if (!myPlayer) return;
       
-      const currentBet = gameState.currentBet || 0;
-      const myBet = myPlayer.bet || 0;
-      const callAmount = currentBet - myBet;
-      const isMyTurn = gameState.currentActorSeat === myPlayer.seatIndex;
+      // ARCHITECTURAL FIX: During SHOWDOWN, hide action buttons and show SHOW/MUCK buttons
+      if (gameState.street === 'SHOWDOWN' && gameState.status === 'COMPLETED') {
+        // Hide action buttons
+        const actionButtons = document.getElementById('actionButtons');
+        if (actionButtons) {
+          actionButtons.style.display = 'none';
+        }
+        
+        // Show showdown controls if player didn't fold
+        if (!myPlayer.folded) {
+          const showdownControls = document.getElementById('showdownControls');
+          if (showdownControls) {
+            // Check if player already showed/mucked
+            const hasShown = showdownActions[userId] === 'SHOW' || showdownActions[userId] === 'MUCK';
+            if (!hasShown) {
+              showdownControls.classList.add('show');
+            } else {
+              showdownControls.classList.remove('show');
+            }
+          }
+        }
+        return; // Don't update action buttons during showdown
+      }
       
-      debug('🔄 Updating buttons', { currentBet, myBet, callAmount, isMyTurn });
+      // Hide showdown controls during normal play
+      const showdownControls = document.getElementById('showdownControls');
+      if (showdownControls) {
+        showdownControls.classList.remove('show');
+      }
+      
+      // Show action buttons during normal play
+      const actionButtons = document.getElementById('actionButtons');
+      if (actionButtons) {
+        actionButtons.style.display = 'flex';
+      }
+      
+      const currentBet = gameState.currentBet || 0;
+      // FIX: Use betThisStreet (street-scoped) instead of bet (cumulative) for call amount calculation
+      // bet persists across streets for side pot calculation, but betThisStreet resets to 0 on new street
+      const myBet = myPlayer.betThisStreet || 0;
+      
+      // CRITICAL FIX: Call amount can NEVER be negative
+      // If myBet >= currentBet, player has already matched (CHECK)
+      // Clamp to 0 minimum, and cap at player's available chips
+      const rawCallAmount = currentBet - myBet;
+      
+      // WARNING: If myBet > currentBet, something is wrong with bet tracking
+      if (myBet > currentBet && currentBet > 0) {
+        console.warn(`⚠️ [BET TRACKING] Player bet (${myBet}) exceeds currentBet (${currentBet})!`, {
+          userId: myPlayer.userId?.substr(0, 8),
+          seatIndex: myPlayer.seatIndex,
+          currentBet,
+          myBet,
+          myChips: myPlayer.chips,
+          street: gameState.street
+        });
+      }
+      
+      const callAmountNeeded = Math.max(0, rawCallAmount);
+      const callAmount = Math.min(callAmountNeeded, myPlayer.chips || 0);
+      
+      // ARCHITECTURAL TRUTH: currentActorSeat can be null (no one can act)
+      // If currentActorSeat is null, hide buttons (runout/advance should happen automatically)
+      const isMyTurn = gameState.currentActorSeat !== null && gameState.currentActorSeat === myPlayer.seatIndex;
+      
+      // ARCHITECTURAL TRUTH: Check if player can actually act
+      // FUNDAMENTAL RULE: A player with 0 chips cannot act (they've already gone all-in)
+      // Also check if currentActorSeat is null (no one can act)
+      const canAct = gameState.currentActorSeat !== null && // Someone must be able to act
+                     !myPlayer.folded && 
+                     myPlayer.chips > 0 && // Must have chips to act
+                     !(myPlayer.status === 'ALL_IN' && myPlayer.chips === 0); // Cannot be full all-in
+      
+      debug('🔄 Updating buttons', { 
+        currentBet, 
+        myBet, 
+        myBetCumulative: myPlayer.bet || 0,  // Log both for debugging
+        rawCallAmount,
+        callAmountNeeded, 
+        callAmount, 
+        myChips: myPlayer.chips,
+        myStatus: myPlayer.status,
+        isMyTurn,
+        canAct,
+        street: gameState.street
+      });
       
       const foldBtn = document.getElementById('foldBtn');
       const callBtn = document.getElementById('callBtn');
       const raiseBtn = document.getElementById('raiseBtn');
       const callBtnText = document.getElementById('callBtnText');
       const callAmountSpan = document.getElementById('callAmount');
+      
+      // ARCHITECTURAL FIX: If player has 0 chips, completely hide buttons (not just disable)
+      // This prevents confusion - 0-chip players cannot act, period
+      if (myPlayer.chips === 0 || (myPlayer.status === 'ALL_IN' && myPlayer.chips === 0)) {
+        if (actionButtons) {
+          actionButtons.style.display = 'none';
+        }
+        debug('🚫 Player has 0 chips - hiding action buttons completely');
+        return; // Exit early - no buttons to show
+      }
       
       // SET ONCLICK HANDLERS ONCE
       if (callAmount === 0) {
@@ -4516,11 +6631,24 @@
       }
       
       foldBtn.onclick = () => performAction('FOLD', 0);
-      raiseBtn.onclick = () => openRaiseModal(currentBet, myPlayer.chips, myPlayer.bet || 0);
+      
+      // ARCHITECTURAL FIX: Show "BET" when no bet exists, "RAISE" when bet exists
+      if (currentBet === 0) {
+        raiseBtn.textContent = 'BET';
+      } else {
+        raiseBtn.textContent = 'RAISE';
+      }
+      
+      // FIX: Use betThisStreet for raise modal calculation (consistent with call amount fix)
+      raiseBtn.onclick = () => openRaiseModal(currentBet, myPlayer.chips, myPlayer.betThisStreet || 0);
       
       // APPLY VISUAL STATE
-      if (isMyTurn) {
+      // ARCHITECTURAL FIX: Only show buttons if it's my turn AND I can actually act
+      if (isMyTurn && canAct) {
         // YOUR TURN - active pulse
+        if (actionButtons) {
+          actionButtons.style.display = 'flex';
+        }
         foldBtn.classList.add('active');
         callBtn.classList.add('active');
         raiseBtn.classList.add('active');
@@ -4532,7 +6660,10 @@
         raiseBtn.disabled = false;
         debug('✅ Your turn - buttons active with pulse');
       } else {
-        // NOT YOUR TURN - blur
+        // NOT YOUR TURN - hide buttons completely
+        if (actionButtons) {
+          actionButtons.style.display = 'none';
+        }
         foldBtn.classList.remove('active');
         callBtn.classList.remove('active');
         raiseBtn.classList.remove('active');
@@ -4542,7 +6673,7 @@
         foldBtn.disabled = true;
         callBtn.disabled = true;
         raiseBtn.disabled = true;
-        debug('⏸️ Not your turn - buttons blurred');
+        debug('⏸️ Not your turn - buttons hidden');
       }
       
       // HIGHLIGHT CURRENT PLAYER SEAT
@@ -4563,17 +6694,26 @@
     function handleHandComplete(gameState) {
       debug('🏆 Hand complete', gameState);
       
-      // Hide action buttons (keep hand strength visible)
+      // Hide action buttons
       document.getElementById('actionButtons').style.display = 'none';
+      
+      // ARCHITECTURAL FIX: Hide runout message when hand completes
+      const runoutMessage = document.getElementById('runoutMessage');
+      if (runoutMessage) {
+        runoutMessage.classList.remove('show');
+      }
+      
+      // ARCHITECTURAL FIX: Hide hand rank display when hand completes
+      updateHandRankDisplay(gameState, myHoleCards);
       
       if (gameState.winners && gameState.winners.length > 0) {
         const winner = gameState.winners[0];
         const potAmount = winner.amount;
         
-        debug(`🏆 Winner: Seat ${winner.seatIndex} wins $${potAmount}`);
+        debug(`🏆 Winner: Seat ${winner.seatIndex + 1} wins $${potAmount}`);
         
         // 1. KEEP POT VISIBLE (don't zero it yet)
-        document.getElementById('potAmount').textContent = potAmount;
+        // Pot display will be updated by updatePotDisplay when gameState is processed
         
         // 2. HIGHLIGHT WINNER'S SEAT
         highlightWinnerSeat(winner.seatIndex);
@@ -4605,7 +6745,7 @@
         // NOTE: Hand description will only show if winner shows cards (handled in updateWinnerBannerIfNeeded)
         const banner = document.getElementById('winnerBanner');
         const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
-        const winnerNickname = winnerPlayer ? `@${winnerPlayer.nickname || 'Player'}` : `Seat ${winner.seatIndex}`;
+        const winnerNickname = winnerPlayer ? `@${winnerPlayer.nickname || 'Player'}` : `Seat ${winner.seatIndex + 1}`;
         
         // Initially show without hand description (will update when winner shows)
         banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount.toLocaleString()}</span>`;
@@ -4681,40 +6821,144 @@
           // Clear winner highlight
           clearWinnerHighlight();
           
-          // Update all seat chips (show final amounts)
-          updateSeatChips(gameState.players);
+          // ARCHITECTURAL FIX: Animate pot decrementing to zero (main pot only for display)
+          // Then animate winner stack incrementing (shows money moving from pot to stack)
+          const potDisplayEl = document.querySelector('.pot-display-center');
+          const mainPotEl = document.getElementById('mainPotAmount');
+          const totalPotEl = document.getElementById('totalPotAmount');
+          const finalMainPot = gameState.mainPot !== undefined ? gameState.mainPot : (gameState.pot || 0);
+          const finalTotalPot = gameState.totalPot !== undefined ? gameState.totalPot : finalMainPot;
           
-          // Zero the pot (chips now in winner's stack)
-          document.getElementById('potAmount').textContent = '0';
-          
-          // START COUNTDOWN FOR NEXT HAND
-          const startBtn = document.getElementById('startBtn');
-          startBtn.style.display = 'inline-block';
-          startBtn.disabled = true;
-          
-          let countdown = 5;
-          startBtn.textContent = `⏰ NEXT HAND (${countdown}s)`;
-          
-          const countdownInterval = setInterval(() => {
-            countdown--;
-            if (countdown > 0) {
-              startBtn.textContent = `⏰ NEXT HAND (${countdown}s)`;
-            } else {
-              clearInterval(countdownInterval);
+          // ARCHITECTURAL FIX: Use mainPot for display animation (what users see)
+          // But track totalPot for chip conservation
+          if (potDisplayEl && mainPotEl && finalMainPot > 0) {
+            // Add decrementing class
+            potDisplayEl.classList.add('pot-decrementing');
+            
+            // Animate main pot amount counting down to zero
+            const decrementDuration = 1200; // ms
+            const startTime = Date.now();
+            const startPot = finalMainPot;
+            
+            const animateDecrement = () => {
+              const elapsed = Date.now() - startTime;
+              const progress = Math.min(elapsed / decrementDuration, 1);
               
-              // Hide show/muck controls when countdown finishes
-              document.getElementById('showdownControls').classList.remove('show');
+              // Easing function for smooth animation
+              const eased = 1 - Math.pow(1 - progress, 3); // Ease out cubic
               
-              if (isHost) {
-                startBtn.textContent = '▶️ STARTING...';
-                debug('🎬 Auto-starting next hand (HOST)...');
-                startHand();
-              } else {
-                startBtn.textContent = '⏳ STARTING...';
-                debug('⏳ Waiting for host to start next hand (GUEST)');
+              const currentValue = Math.max(0, Math.round(startPot * (1 - eased)));
+              const formattedAmount = formatChipAmount(currentValue).replace('$', '').trim();
+              mainPotEl.textContent = formattedAmount;
+              
+              // Also animate total pot if visible
+              if (totalPotEl && totalPotEl.style.display !== 'none') {
+                const totalStartPot = finalTotalPot;
+                const totalCurrentValue = Math.max(0, Math.round(totalStartPot * (1 - eased)));
+                const totalFormatted = formatChipAmount(totalCurrentValue).replace('$', '').trim();
+                totalPotEl.textContent = totalFormatted;
               }
-            }
-          }, 1000);
+              
+              if (progress < 1) {
+                requestAnimationFrame(animateDecrement);
+              } else {
+                // Final value (zero)
+                mainPotEl.textContent = '0';
+                if (totalPotEl && totalPotEl.style.display !== 'none') {
+                  totalPotEl.textContent = '0';
+                }
+                potDisplayEl.classList.remove('pot-decrementing');
+                currentPotValue = 0;
+              }
+            };
+            
+            requestAnimationFrame(animateDecrement);
+          }
+          
+          // ARCHITECTURAL FIX: Animate ALL winners' stacks incrementing
+          // This shows money moving from pot to winner stacks
+          if (gameState.winners && gameState.winners.length > 0) {
+            // Get starting chip values (before distribution)
+            const startingChips = new Map();
+            gameState.players.forEach(p => {
+              const winner = gameState.winners.find(w => w.seatIndex === p.seatIndex);
+              if (winner) {
+                // Starting chips = final chips - winnings
+                startingChips.set(p.seatIndex, (p.chips || 0) - winner.amount);
+              }
+            });
+            
+            // Animate each winner's stack incrementing
+            gameState.winners.forEach((winner, index) => {
+              const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
+              if (winnerPlayer) {
+                const finalChips = winnerPlayer.chips || 0;
+                const startChips = startingChips.get(winner.seatIndex) || (finalChips - winner.amount);
+                
+                // Find winner's seat element and animate chip count
+                const winnerSeat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
+                if (winnerSeat) {
+                  const chipsEl = winnerSeat.querySelector('.seat-chips');
+                  if (chipsEl && finalChips > startChips) {
+                    // Stagger animations slightly for multiple winners
+                    setTimeout(() => {
+                      const incrementDuration = 1200; // ms
+                      const startTime = Date.now();
+                      const difference = finalChips - startChips;
+                      
+                      const animateStackIncrement = () => {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / incrementDuration, 1);
+                        
+                        // Easing function for smooth animation
+                        const eased = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+                        
+                        const currentValue = Math.round(startChips + (difference * eased));
+                        // Format with green dollar sign
+                        const formatted = formatChipAmount(currentValue);
+                        chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
+                        
+                        if (progress < 1) {
+                          requestAnimationFrame(animateStackIncrement);
+                        } else {
+                          // Final value
+                          // Format with green dollar sign
+                          const finalFormatted = formatChipAmount(finalChips);
+                          chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${finalFormatted.replace('$', '').trim()}`;
+                          previousPlayerChips.set(winner.seatIndex, finalChips);
+                        }
+                      };
+                      
+                      requestAnimationFrame(animateStackIncrement);
+                    }, 200 + (index * 100)); // Stagger by 100ms per winner
+                  }
+                }
+              }
+            });
+          }
+          
+          // Update all seat chips (show final amounts) after animations
+          setTimeout(() => {
+            updateSeatChips(gameState.players);
+            
+            // Zero the pot (chips now in winner's stack)
+            updatePotDisplay({ pot: 0, mainPot: 0, sidePots: [], totalPot: 0 });
+          }, 1200);
+          
+          // ARCHITECTURAL FIX: Don't auto-start - room is in pre-start state (lobby)
+          // Show START button for host to manually start next hand
+          const startBtn = document.getElementById('startBtn');
+          if (startBtn && isHost) {
+          startBtn.style.display = 'inline-block';
+            startBtn.disabled = false;
+            startBtn.textContent = '🎮 START HAND';
+            debug('🏁 Hand complete - START button visible. Host can manually start next hand.');
+          }
+              
+          // Hide show/muck controls after delay
+          setTimeout(() => {
+              document.getElementById('showdownControls').classList.remove('show');
+          }, 2000);
           
         }, 3000); // 3 second delay to show winner
       }
@@ -4732,8 +6976,15 @@
     };
     
     function openRaiseModal(currentBet, playerStack, currentPlayerBet = 0) {
-      const pot = parseInt(document.getElementById('potAmount').textContent.replace(/\$/g, '')) || 0;
-      const minRaise = currentBet * 2 || 20;
+      // Get pot from current game state (use totalPot if available, otherwise mainPot or pot)
+      const pot = currentGameState 
+        ? (currentGameState.totalPot || currentGameState.mainPot || currentGameState.pot || 0)
+        : (parseInt(document.getElementById('mainPotAmount')?.textContent.replace(/[^0-9]/g, '') || '0') || 0);
+      
+      // ARCHITECTURAL FIX: When no bet exists, min bet is big blind. When bet exists, min raise is 2x currentBet
+      const bigBlind = currentGameState?.bigBlind || 10;
+      const minRaise = currentBet === 0 ? bigBlind : (currentBet * 2 || bigBlind);
+      
       // maxRaise = total stack (chips + current bet) - this is the maximum total bet possible
       const maxRaise = playerStack + currentPlayerBet; // Total stack for ALL-IN
       
@@ -4749,6 +7000,12 @@
       document.getElementById('raiseModalPot').textContent = '$' + pot;
       document.getElementById('raiseModalStack').textContent = '$' + playerStack;
       document.getElementById('raiseModalMin').textContent = '$' + minRaise;
+      
+      // ARCHITECTURAL FIX: Update submit button text to show BET/RAISE
+      const submitBtn = document.getElementById('raiseSubmitBtn');
+      if (submitBtn) {
+        submitBtn.textContent = currentBet === 0 ? 'BET' : 'RAISE';
+      }
       
       // Setup slider
       const slider = document.getElementById('raiseSlider');
@@ -4829,15 +7086,15 @@
     
     function submitRaise() {
       const amount = parseInt(document.getElementById('raiseAmount').value);
-      const { minRaise, maxRaise, stack } = raiseModalData;
+      const { minRaise, maxRaise, stack, currentBet } = raiseModalData;
       
       if (amount < minRaise) {
-        alert(`Minimum raise is $${minRaise}`);
+        alert(`Minimum ${currentBet === 0 ? 'bet' : 'raise'} is $${minRaise}`);
         return;
       }
       
       if (amount > maxRaise) {
-        alert(`Maximum raise is $${maxRaise} (your total stack)`);
+        alert(`Maximum ${currentBet === 0 ? 'bet' : 'raise'} is $${maxRaise} (your total stack)`);
         return;
       }
       
@@ -4849,7 +7106,9 @@
         });
       } else {
       closeRaisePanel();
-      performAction('RAISE', amount);
+        // ARCHITECTURAL FIX: Send BET when no bet exists, RAISE when bet exists
+        const action = currentBet === 0 ? 'BET' : 'RAISE';
+        performAction(action, amount);
       }
     }
     
@@ -4860,7 +7119,7 @@
       
       seatDivs.forEach(seatDiv => {
         const label = seatDiv.querySelector('.seat-label');
-        if (label && label.textContent === `Seat ${seatIndex}`) {
+        if (label && label.textContent === `Seat ${seatIndex + 1}`) {
           seatDiv.classList.add('winner');
         }
       });
@@ -5036,6 +7295,13 @@
       debug('🃏 Rendering community cards', { cards });
       
       const communityDiv = document.getElementById('communityCards');
+      
+      // ARCHITECTURAL FIX: Update hand rank display when community cards change
+      if (currentGameState && myHoleCards && myHoleCards.length === 2) {
+        // Create a temporary game state with updated community cards for evaluation
+        const tempGameState = { ...currentGameState, communityCards: cards };
+        updateHandRankDisplay(tempGameState, myHoleCards);
+      }
       
       // Determine which cards are NEW (not in previous render)
       const newCards = cards.filter(card => !previousCommunityCards.includes(card));
@@ -5265,7 +7531,7 @@
         cardsDiv.appendChild(cardDiv);
       });
       
-      document.getElementById('potAmount').textContent = pot || 0;
+      // Pot display updated via updatePotDisplay when gameState is set
       document.getElementById('currentBet').textContent = currentBet || 0;
       
       debug('✅ Community cards rendered');
@@ -5286,7 +7552,7 @@
       
       // Check if it's our turn
       // (This is simplified - need to map userId to seat)
-      actorText.textContent = `(Waiting for Seat ${currentActorSeat})`;
+      actorText.textContent = `(Waiting for Seat ${currentActorSeat + 1})`;
       
       // TODO: Properly detect if current actor is us
       // indicator.style.display = 'inline';
@@ -5360,7 +7626,6 @@
     // ============================================
     // SEAT REQUEST FUNCTIONS
     // ============================================
-    let currentSeatRequest = null; // Store current request for popup
     
     async function loadPendingSeatRequests() {
       if (!isHost) return;
@@ -5379,11 +7644,21 @@
         if (!data.requests || data.requests.length === 0) {
           container.innerHTML = '<div class="empty-state">No pending requests</div>';
           if (requestsSection) requestsSection.style.display = 'none';
+          // Hide badge
+          const badge = document.getElementById('pendingRequestsBadge');
+          if (badge) badge.style.display = 'none';
           return;
         }
         
         // Show requests section
         if (requestsSection) requestsSection.style.display = 'block';
+        
+        // Update badge count
+        const badge = document.getElementById('pendingRequestsBadge');
+        if (badge) {
+          badge.textContent = data.requests.length;
+          badge.style.display = data.requests.length > 0 ? 'inline-block' : 'none';
+        }
         
         // Render requests inline with approve/reject buttons (compact layout)
         container.innerHTML = data.requests.map(req => `
@@ -5391,7 +7666,7 @@
             <div class="seat-request-info-compact">
               <div class="seat-request-name-compact">@${req.username}</div>
               <div class="seat-request-details-compact">
-                Seat ${req.seatIndex} • $${req.requestedChips.toLocaleString()}
+                Seat ${req.seatIndex + 1} • $${req.requestedChips.toLocaleString()}
               </div>
             </div>
             <div class="seat-request-actions-compact">
@@ -5414,10 +7689,13 @@
       if (!isHost) return;
       
       try {
-        const response = await fetch(`/api/rooms/${roomId}/seat-requests/${requestId}/approve`, {
+        const response = await fetch(`/api/rooms/${roomId}/approve-seat-request`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hostId: userId })
+          body: JSON.stringify({ 
+            hostId: userId,
+            requestId: requestId
+          })
         });
         
         if (!response.ok) {
@@ -5427,7 +7705,7 @@
         }
         
         showNotification('Seat request approved', 'success');
-        loadPendingSeatRequests(); // Refresh list
+        loadPendingSeatRequests(); // Refresh list (will update badge)
         refreshHostControls(); // Refresh player list
         loadRoom(); // Refresh room state
       } catch (error) {
@@ -5440,10 +7718,13 @@
       if (!isHost) return;
       
       try {
-        const response = await fetch(`/api/rooms/${roomId}/seat-requests/${requestId}/reject`, {
+        const response = await fetch(`/api/rooms/${roomId}/reject-seat-request`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hostId: userId })
+          body: JSON.stringify({ 
+            hostId: userId,
+            requestId: requestId
+          })
         });
         
         if (!response.ok) {
@@ -5453,115 +7734,14 @@
         }
         
         showNotification('Seat request rejected', 'info');
-        loadPendingSeatRequests(); // Refresh list
+        loadPendingSeatRequests(); // Refresh list (will update badge)
       } catch (error) {
         console.error('Error rejecting seat request:', error);
         showNotification('Failed to reject request', 'error');
       }
     }
     
-    function showSeatRequestNotification(data) {
-      currentSeatRequest = data;
-      const overlay = document.getElementById('hostNotificationOverlay');
-      document.getElementById('requestUsername').textContent = `@${data.username}`;
-      document.getElementById('requestSeatIndex').textContent = data.seatIndex;
-      document.getElementById('requestChipAmount').value = data.requestedChips || 1000;
-      overlay.style.display = 'flex';
-    }
-    
-    function closeHostNotification() {
-      const overlay = document.getElementById('hostNotificationOverlay');
-      overlay.style.display = 'none';
-      currentSeatRequest = null;
-    }
-    
-    async function approveSeatRequest() {
-      if (!currentSeatRequest) return;
-      
-      const approvedChips = parseInt(document.getElementById('requestChipAmount').value) || currentSeatRequest.requestedChips;
-      
-      try {
-        const response = await fetch(`/api/rooms/${roomId}/approve-seat-request`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            hostId: userId,
-            requestId: currentSeatRequest.requestId,
-            approvedChips: approvedChips
-          })
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to approve request');
-        }
-        
-        showNotification(`Seat request approved! Player joins with $${approvedChips.toLocaleString()} chips`, 'success');
-        closeHostNotification();
-        loadRoom(); // Refresh seats
-      } catch (error) {
-        console.error('Error approving seat request:', error);
-        showNotification(error.message || 'Failed to approve request', 'error');
-      }
-    }
-    
-    async function rejectSeatRequest() {
-      if (!currentSeatRequest) return;
-      
-      try {
-        const response = await fetch(`/api/rooms/${roomId}/reject-seat-request`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            hostId: userId,
-            requestId: currentSeatRequest.requestId
-          })
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to reject request');
-        }
-        
-        showNotification('Seat request rejected', 'info');
-        closeHostNotification();
-      } catch (error) {
-        console.error('Error rejecting seat request:', error);
-        showNotification(error.message || 'Failed to reject request', 'error');
-      }
-    }
-    
-    async function approveSeatRequestFromList(requestId) {
-      const request = await getSeatRequestById(requestId);
-      if (!request) return;
-      
-      currentSeatRequest = { ...request, requestId: request.id };
-      showSeatRequestNotification(currentSeatRequest);
-    }
-    
-    async function rejectSeatRequestFromList(requestId) {
-      try {
-        const response = await fetch(`/api/rooms/${roomId}/reject-seat-request`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            hostId: userId,
-            requestId: requestId
-          })
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to reject request');
-        }
-        
-        showNotification('Seat request rejected', 'info');
-        loadPendingSeatRequests(); // Refresh list
-      } catch (error) {
-        console.error('Error rejecting seat request:', error);
-        showNotification(error.message || 'Failed to reject request', 'error');
-      }
-    }
+    // Popup functions removed - approval/rejection now done inline from host controls list
     
     async function getSeatRequestById(requestId) {
       try {
@@ -5577,6 +7757,7 @@
     }
     
     // Simple notification function (fallback if showToast doesn't exist)
+    // Top-right notification system
     function showNotification(message, type = 'info') {
       // Try showToast first (if it exists)
       if (typeof showToast === 'function') {
@@ -5584,9 +7765,92 @@
         return;
       }
       
-      // Fallback: simple alert or console
-      console.log(`[${type.toUpperCase()}] ${message}`);
-      // Could also create a toast element here if needed
+      // Create notification popup in top-right
+      const notification = document.createElement('div');
+      notification.className = `notification-popup notification-${type}`;
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(27, 27, 35, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid ${type === 'error' ? 'rgba(255, 59, 59, 0.3)' : type === 'success' ? 'rgba(0, 212, 170, 0.3)' : 'rgba(255, 165, 0, 0.3)'};
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: #e9eef7;
+        font-size: 0.9rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        z-index: 10000;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      `;
+      
+      const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      notification.innerHTML = `
+        <span style="font-size: 1.2rem;">${icon}</span>
+        <span style="flex: 1;">${message}</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #9aa3b2; cursor: pointer; font-size: 1.2rem; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">×</button>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.style.animation = 'slideOutRight 0.3s ease-in';
+          setTimeout(() => notification.remove(), 300);
+        }
+      }, 5000);
+      
+      // Add click to dismiss
+      notification.querySelector('button').addEventListener('click', () => {
+        notification.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+      });
+    }
+    
+    // Add CSS animations
+    if (!document.getElementById('notificationStyles')) {
+      const style = document.createElement('style');
+      style.id = 'notificationStyles';
+      style.textContent = `
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideOutRight {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+        .badge-count {
+          display: inline-block;
+          background: #ff5100;
+          color: white;
+          border-radius: 12px;
+          padding: 2px 8px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          margin-left: 6px;
+          min-width: 20px;
+          text-align: center;
+        }
+      `;
+      document.head.appendChild(style);
     }
     
     function renderHostPlayerList(players) {
@@ -5606,7 +7870,7 @@
         return;
       }
       
-      // Render players with inline kick button (compact layout)
+      // Render players with stack input and kick button (compact layout)
       container.innerHTML = players.map(player => {
         // NOTE: If player is in this list, they're actually seated (not a spectator)
         // Spectators are NOT in room_seats, so they won't appear here
@@ -5618,8 +7882,27 @@
               ${player.userId === userId ? ' <span class="you-badge">(YOU)</span>' : ''}
             </div>
             <div class="player-item-details-compact">
-              <span class="seat-badge">Seat ${player.seatIndex}</span>
-              <span class="chips-badge">${formatChipAmount(player.chips)}</span>
+              <span class="seat-badge">Seat ${player.seatIndex + 1}</span>
+              <div class="stack-input-group" style="display: flex; gap: 6px; align-items: center;">
+                <input 
+                  type="number" 
+                  id="stackInput_${player.seatIndex}" 
+                  value="${player.chips}" 
+                  min="0" 
+                  step="1"
+                  class="stack-input-compact"
+                  style="width: 80px; padding: 4px 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #e9eef7; font-size: 0.85rem;"
+                  onchange="updatePlayerStack(${player.seatIndex}, this.value)"
+                >
+                <button 
+                  class="update-stack-btn-compact" 
+                  onclick="updatePlayerStack(${player.seatIndex}, document.getElementById('stackInput_${player.seatIndex}').value)"
+                  title="Update stack"
+                  style="padding: 4px 8px; background: rgba(0,212,170,0.1); border: 1px solid #00d4aa; border-radius: 4px; color: #00d4aa; font-size: 0.75rem; cursor: pointer;"
+                >
+                  ✓
+                </button>
+              </div>
             </div>
           </div>
           ${player.userId !== userId ? `
@@ -5630,6 +7913,44 @@
         </div>
       `;
       }).join('');
+    }
+    
+    async function updatePlayerStack(seatIndex, newChips) {
+      const chips = parseInt(newChips);
+      
+      if (isNaN(chips) || chips < 0) {
+        alert('Invalid chip amount. Must be a positive number.');
+        return;
+      }
+      
+      debug(`💰 Updating seat ${seatIndex} stack to ${chips}`);
+      
+      try {
+        const response = await fetch('/api/engine/host-controls/update-stack', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId,
+            hostId: userId,
+            seatIndex,
+            newChips: chips
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          alert(`Failed to update stack: ${error.error}`);
+          return;
+        }
+        
+        debug('✅ Stack updated');
+        loadHostControls(); // Refresh panel
+        loadRoom(); // Refresh seats
+        
+      } catch (error) {
+        console.error('Error updating stack:', error);
+        alert('Failed to update stack');
+      }
     }
     
     async function kickPlayer(targetUserId) {
@@ -5663,6 +7984,48 @@
       } catch (error) {
         console.error('Error kicking player:', error);
         alert('Failed to kick player');
+      }
+    }
+    
+    // ARCHITECTURAL FIX: Kick player from seat (called from seat UI)
+    async function kickPlayerFromSeat(targetUserId, seatIndex) {
+      debug('🚫 Kicking player from seat:', { targetUserId, seatIndex });
+      await kickPlayer(targetUserId);
+    }
+    
+    // ARCHITECTURAL FIX: Update seat request status visually
+    function updateSeatRequestStatus(seatIndex, isRequested, requesterName = null) {
+      const seatElement = document.querySelector(`.seat[data-seat-index="${seatIndex}"]`);
+      if (!seatElement) return;
+      
+      if (isRequested) {
+        seatElement.classList.add('seat-requested');
+        const chipsElement = seatElement.querySelector('.seat-chips');
+        const playerElement = seatElement.querySelector('.seat-player');
+        if (chipsElement && requesterName) {
+          chipsElement.textContent = `Requested by ${requesterName}`;
+          chipsElement.style.color = '#ff9500';
+          chipsElement.style.fontStyle = 'italic';
+        }
+        if (playerElement) {
+          playerElement.textContent = 'REQUESTED';
+        }
+        seatElement.onclick = null; // Disable clicking
+        seatElement.style.opacity = '0.7';
+      } else {
+        seatElement.classList.remove('seat-requested');
+        const chipsElement = seatElement.querySelector('.seat-chips');
+        const playerElement = seatElement.querySelector('.seat-player');
+        if (chipsElement) {
+          chipsElement.style.color = '';
+          chipsElement.style.fontStyle = '';
+        }
+        if (playerElement && !seatElement.classList.contains('taken')) {
+          playerElement.textContent = 'EMPTY';
+          chipsElement.textContent = 'CLAIM';
+          seatElement.onclick = () => claimSeat(seatIndex);
+        }
+        seatElement.style.opacity = '';
       }
     }
     
@@ -5730,7 +8093,7 @@
       chipAdjustSeat.innerHTML = '<option value="">Select a player...</option>' + 
         players.map(player => `
           <option value="${player.seatIndex}">
-            Seat ${player.seatIndex}: @${player.nickname} ($${player.chips.toLocaleString()})
+            Seat ${player.seatIndex + 1}: @${player.nickname} ($${player.chips.toLocaleString()})
           </option>
         `).join('');
     }
@@ -6117,7 +8480,9 @@
         if (amountMatch) {
           const amount = parseInt(amountMatch[1].replace(/,/g, ''));
           if (!isNaN(amount)) {
-            chipEl.textContent = formatChipAmount(amount);
+            // Format with green dollar sign
+            const formatted = formatChipAmount(amount);
+            chipEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
           }
         }
       });
@@ -6149,8 +8514,10 @@
         if (amountMatch) {
           const amount = parseInt(amountMatch[1].replace(/,/g, ''));
           if (!isNaN(amount)) {
-            chipEl.textContent = formatChipAmount(amount);
-          }
+            // Format with green dollar sign
+            const formatted = formatChipAmount(amount);
+            chipEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
+      }
         }
       });
     }
@@ -6237,12 +8604,12 @@
       occupiedSeats.forEach(seat => {
         if (!seat || !seat.userId) return; // Skip empty seats (shouldn't happen after filter, but safety check)
         
-        const nickname = seat.nickname || `Player ${seat.seatIndex}`;
+        const nickname = seat.nickname || `Player ${seat.seatIndex + 1}`;
         const currentChips = seat.chips || seat.chipsInPlay || seat.chips_in_play || 1000;
         
         html += `
           <div class="sandbox-player-item" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 12px; margin-bottom: 8px;">
-            <h6 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #00d4aa;">Seat ${seat.seatIndex}: ${nickname}</h6>
+            <h6 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #00d4aa;">Seat ${seat.seatIndex + 1}: ${nickname}</h6>
             <div class="sandbox-player-controls" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
               <div>
                 <small style="color: #9aa3b2; font-size: 0.75rem;">Card 1:</small>
@@ -6312,7 +8679,7 @@
         const card2El = document.getElementById(card2Id);
         const stackEl = document.getElementById(stackId);
         
-        console.log(`🧪 [SANDBOX] Seat ${seat.seatIndex}:`, {
+        console.log(`🧪 [SANDBOX] Seat ${seat.seatIndex + 1}:`, {
           card1El: !!card1El,
           card2El: !!card2El,
           stackEl: !!stackEl,
@@ -6418,35 +8785,398 @@
     // CIRCULAR SEAT POSITIONING (Proper Ellipse)
     // ============================================
     function calculateSeatPositions() {
-      // 🔒 LOCKED POSITIONS - Final layout optimized for 1600×1200 table
-      // Uniform 200×200px seats, perfectly balanced ellipse
+      // 🔒 HARDCODED POSITIONS - Locked from UI sandbox tool (final lock)
+      // All seats: 210×210px uniform size (slightly smaller, no blur)
+      // Used for: 10 players OR lobby mode (all 10 seats visible)
       return [
-        { index: 0, x: 805, y: 160, width: 200, height: 200 },   // Bottom center (YOU)
-        { index: 1, x: 1115, y: 230, width: 200, height: 200 },  // Bottom right
-        { index: 2, x: 1355, y: 410, width: 200, height: 200 },  // Right mid-upper
-        { index: 3, x: 1355, y: 730, width: 200, height: 200 },  // Right mid-lower
-        { index: 4, x: 1115, y: 970, width: 200, height: 200 },  // Bottom right lower
-        { index: 5, x: 805, y: 1040, width: 200, height: 200 },  // Bottom center-lower
-        { index: 6, x: 495, y: 970, width: 200, height: 200 },   // Bottom left lower
-        { index: 7, x: 255, y: 730, width: 200, height: 200 },   // Left mid-lower
-        { index: 8, x: 255, y: 410, width: 200, height: 200 },   // Left mid-upper
-        { index: 9, x: 495, y: 230, width: 200, height: 200 }    // Bottom left
+        { index: 0, x: 667, y: 150, width: 210, height: 210 },
+        { index: 1, x: 946, y: 171, width: 210, height: 210 },
+        { index: 2, x: 1179, y: 358, width: 210, height: 210 },
+        { index: 3, x: 1179, y: 625, width: 210, height: 210 },
+        { index: 4, x: 946, y: 829, width: 210, height: 210 },
+        { index: 5, x: 667, y: 842, width: 210, height: 210 },
+        { index: 6, x: 388, y: 829, width: 210, height: 210 },
+        { index: 7, x: 163, y: 625, width: 210, height: 210 },
+        { index: 8, x: 163, y: 358, width: 210, height: 210 },
+        { index: 9, x: 388, y: 171, width: 210, height: 210 }
       ];
     }
     
-    const SEAT_POSITIONS = calculateSeatPositions();
+    // ============================================
+    // DYNAMIC SEAT POSITIONING (Based on Occupied Seats)
+    // ============================================
+    function calculateDynamicSeatPositions(occupiedSeatIndices, gameState = null) {
+      // Sort occupied seats to maintain order
+      const sortedSeats = [...occupiedSeatIndices].sort((a, b) => a - b);
+      const count = sortedSeats.length;
+      
+      // 🔒 LOCKED POSITIONS FOR 2 PLAYERS (with perspective fix)
+      if (count === 2) {
+        // Find current user's seat
+        let userSeatIndex = null;
+        sortedSeats.forEach(seatIdx => {
+          const seatEl = document.querySelector(`.seat[data-seat-index="${seatIdx}"]`);
+          if (seatEl && seatEl.classList.contains('me')) {
+            userSeatIndex = seatIdx;
+          }
+        });
+        
+        const topPosition = { x: 806, y: 206, width: 267, height: 267 };
+        const bottomPosition = { x: 806, y: 945, width: 267, height: 267 };
+        
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const isUserSeat = userSeatIndex === seatIndex;
+          positions.push({
+            index: seatIndex,
+            x: isUserSeat ? bottomPosition.x : topPosition.x,
+            y: isUserSeat ? bottomPosition.y : topPosition.y,
+            width: isUserSeat ? bottomPosition.width : topPosition.width,
+            height: isUserSeat ? bottomPosition.height : topPosition.height
+          });
+        });
+        
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 3 PLAYERS
+      if (count === 3) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 802, y: 928, width: 280, height: 280 },
+            { index: 1, x: 1251, y: 336, width: 280, height: 280 },
+            { index: 2, x: 366, y: 336, width: 280, height: 280 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 4 PLAYERS
+      if (count === 4) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 799, y: 924, width: 280, height: 280 },
+            { index: 1, x: 1321, y: 572, width: 280, height: 280 },
+            { index: 2, x: 796, y: 256, width: 280, height: 280 },
+            { index: 3, x: 284, y: 593, width: 280, height: 280 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 5 PLAYERS
+      if (count === 5) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 800, y: 965, width: 290, height: 290 },
+            { index: 1, x: 1097, y: 206, width: 270, height: 270 },
+            { index: 2, x: 1375, y: 707, width: 290, height: 290 },
+            { index: 3, x: 249, y: 721, width: 290, height: 290 },
+            { index: 4, x: 532, y: 214, width: 290, height: 290 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 6 PLAYERS
+      if (count === 6) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 798, y: 940, width: 265, height: 265 },
+            { index: 1, x: 1296, y: 355, width: 265, height: 265 },
+            { index: 2, x: 1312, y: 889, width: 265, height: 265 },
+            { index: 3, x: 799, y: 243, width: 265, height: 265 },
+            { index: 4, x: 334, y: 912, width: 265, height: 265 },
+            { index: 5, x: 323, y: 345, width: 265, height: 265 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 7 PLAYERS
+      if (count === 7) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 799, y: 960, width: 242, height: 242 },
+            { index: 1, x: 1049, y: 219, width: 242, height: 242 },
+            { index: 2, x: 1400, y: 513, width: 242, height: 242 },
+            { index: 3, x: 1195, y: 923, width: 242, height: 242 },
+            { index: 4, x: 394, y: 919, width: 242, height: 242 },
+            { index: 5, x: 226, y: 513, width: 242, height: 242 },
+            { index: 6, x: 573, y: 223, width: 242, height: 242 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 8 PLAYERS
+      if (count === 8) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 796, y: 972, width: 221, height: 221 },
+            { index: 1, x: 1166, y: 281, width: 221, height: 221 },
+            { index: 2, x: 1443, y: 601, width: 221, height: 221 },
+            { index: 3, x: 1169, y: 956, width: 221, height: 221 },
+            { index: 4, x: 811, y: 215, width: 221, height: 221 },
+            { index: 5, x: 458, y: 934, width: 221, height: 221 },
+            { index: 6, x: 170, y: 616, width: 221, height: 221 },
+            { index: 7, x: 426, y: 268, width: 221, height: 221 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 9 PLAYERS
+      if (count === 9) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 795, y: 974, width: 220, height: 220 },
+            { index: 1, x: 1304, y: 339, width: 220, height: 220 },
+            { index: 2, x: 1414, y: 638, width: 220, height: 220 },
+            { index: 3, x: 1126, y: 953, width: 220, height: 220 },
+            { index: 4, x: 975, y: 252, width: 220, height: 220 },
+            { index: 5, x: 653, y: 246, width: 220, height: 220 },
+            { index: 6, x: 444, y: 952, width: 220, height: 220 },
+            { index: 7, x: 185, y: 624, width: 220, height: 220 },
+            { index: 8, x: 350, y: 311, width: 220, height: 220 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // 🔒 LOCKED POSITIONS FOR 10 PLAYERS
+      if (count === 10) {
+        const positions = [];
+        sortedSeats.forEach((seatIndex) => {
+          const pos = [
+            { index: 0, x: 800, y: 180, width: 232, height: 232 },
+            { index: 1, x: 1135, y: 205, width: 232, height: 232 },
+            { index: 2, x: 1415, y: 430, width: 232, height: 232 },
+            { index: 3, x: 1415, y: 750, width: 232, height: 232 },
+            { index: 4, x: 1135, y: 995, width: 232, height: 232 },
+            { index: 5, x: 800, y: 1010, width: 232, height: 232 },
+            { index: 6, x: 466, y: 995, width: 232, height: 232 },
+            { index: 7, x: 196, y: 750, width: 232, height: 232 },
+            { index: 8, x: 196, y: 430, width: 232, height: 232 },
+            { index: 9, x: 466, y: 205, width: 232, height: 232 },
+          ].find(p => p.index === seatIndex);
+          if (pos) positions.push(pos);
+        });
+        return positions;
+      }
+      
+      // Fallback: return empty array (shouldn't reach here with 2-10 players)
+      console.warn(`⚠️ No locked positions for ${count} players`);
+      return [];
+    }
 
     function applySeatPositions() {
-      SEAT_POSITIONS.forEach(pos => {
+      // Get the table's current scale factor (accounts for zoom lock)
+      const table = document.getElementById('pokerTable');
+      let scale = 1;
+      if (table) {
+        const computedStyle = getComputedStyle(table);
+        const transform = computedStyle.transform;
+        if (transform && transform !== 'none') {
+          // Extract scale from matrix or scale() transform
+          const matrixMatch = transform.match(/matrix\(([^)]+)\)/);
+          if (matrixMatch) {
+            const values = matrixMatch[1].split(',').map(v => parseFloat(v.trim()));
+            // CSS transform matrix: [scaleX, skewY, skewX, scaleY, translateX, translateY]
+            scale = values[0] || 1; // Use scaleX (should be same as scaleY for uniform scale)
+          } else {
+            const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+            if (scaleMatch) {
+              scale = parseFloat(scaleMatch[1]);
+            }
+          }
+        }
+      }
+      
+      // Determine if we should use dynamic positioning
+      const isGameActive = currentGameState && 
+        (currentGameState.status === 'IN_PROGRESS' || currentGameState.status === 'COMPLETED');
+      
+      // Get occupied seat indices
+      // CRITICAL: When hand is active, use players from gameState (who are actually in the hand)
+      // Otherwise, use DOM seats (for lobby/preview)
+      let occupiedSeats = [];
+      if (isGameActive && currentGameState.players && currentGameState.players.length > 0) {
+        // Hand is active - use players from gameState (actual players in the hand)
+        occupiedSeats = currentGameState.players
+          .map(p => p.seatIndex)
+          .filter(idx => idx !== undefined && idx !== null);
+        debug('🎯 Using gameState players for positioning', { 
+          playerCount: occupiedSeats.length, 
+          seats: occupiedSeats.sort((a,b) => a-b) 
+        });
+      } else {
+        // Lobby/preview - use DOM seats
+        document.querySelectorAll('.seat:not(.empty)').forEach(seat => {
+          const index = parseInt(seat.dataset.seatIndex);
+          if (!isNaN(index)) {
+            occupiedSeats.push(index);
+          }
+        });
+      }
+      
+      // Use dynamic positioning ONLY after a hand starts:
+      // - Hand must be active (IN_PROGRESS or COMPLETED)
+      // - AND we have 2-9 players in the hand
+      // - AND user is NOT a spectator (spectators always see all 10 seats)
+      // In lobby (before hand starts), always use hardcoded positions
+      const useDynamic = isGameActive && occupiedSeats.length >= 2 && occupiedSeats.length < 10 && !isSpectator;
+      
+      // Get positions (dynamic or hardcoded)
+      const dynamicPositions = useDynamic 
+        ? calculateDynamicSeatPositions(occupiedSeats, currentGameState)
+        : null;
+      
+      const hardcodedPositions = calculateSeatPositions();
+      
+      // Apply positions to occupied seats (dynamic if game active, hardcoded otherwise)
+      const positionsToApply = useDynamic ? dynamicPositions : hardcodedPositions;
+      
+      positionsToApply.forEach(pos => {
         const seat = document.querySelector(`.seat[data-seat-index="${pos.index}"]`);
-        if (seat) {
-          seat.style.left = `${pos.x}px`;
-          seat.style.top = `${pos.y}px`;
-          if (pos.width) seat.style.width = `${pos.width}px`;
-          if (pos.height) seat.style.height = `${pos.height}px`;
+        if (seat && !seat.classList.contains('empty')) {
+          // CRITICAL: Dynamic positions from calculateDynamicSeatPositions() are in TABLE COORDINATES (unscaled)
+          // Hardcoded positions from calculateSeatPositions() are in VIEWPORT COORDINATES (scaled)
+          // We need to handle them differently:
+          const isDynamic = useDynamic;
+          
+          let tableX, tableY, tableWidth, tableHeight;
+          
+          if (isDynamic) {
+            // Dynamic positions are already in table coordinates (unscaled) - use directly
+            tableX = pos.x;
+            tableY = pos.y;
+            tableWidth = pos.width;
+            tableHeight = pos.height;
+          } else {
+            // Hardcoded positions are in viewport coordinates (scaled) - convert to table coords
+            tableX = pos.x / scale;
+            tableY = pos.y / scale;
+            tableWidth = pos.width / scale;
+            tableHeight = pos.height / scale;
+          }
+          
+          // Set center position (left/top are center positions because of translate(-50%, -50%))
+          seat.style.left = `${tableX}px`;
+          seat.style.top = `${tableY}px`;
+          
+          // Clear any transform scale, keep only translate for centering
+          seat.style.transform = 'translate(-50%, -50%)';
+          
+          // Set size on seat container
+          if (tableWidth) seat.style.width = `${tableWidth}px`;
+          if (tableHeight) seat.style.height = `${tableHeight}px`;
+          
+          // Also apply size to the actual tile element (this is what renders)
+          const seatTile = seat.querySelector('.seat-tile');
+          if (seatTile && tableWidth && tableHeight) {
+            seatTile.style.width = `${tableWidth}px`;
+            seatTile.style.height = `${tableHeight}px`;
+            
+            // Set CSS custom properties for proportional scaling
+            // Base size is 210px (default), scale factor is tileWidth / 210
+            const scaleFactor = tableWidth / 210;
+            seatTile.style.setProperty('--tile-scale', scaleFactor);
+            seatTile.style.setProperty('--tile-width', `${tableWidth}px`);
+          }
         }
       });
-      debug('📍 Applied custom seat positions with sizes');
+      
+      // For empty seats when using hardcoded layout (lobby OR spectators OR 10 players)
+      // Position all empty seats using hardcoded positions
+      if (!useDynamic) {
+        hardcodedPositions.forEach(pos => {
+          if (!occupiedSeats.includes(pos.index)) {
+            const seat = document.querySelector(`.seat[data-seat-index="${pos.index}"]`);
+            if (seat && seat.classList.contains('empty')) {
+              const tableX = pos.x / scale;
+              const tableY = pos.y / scale;
+              
+              seat.style.left = `${tableX}px`;
+              seat.style.top = `${tableY}px`;
+              seat.style.transform = 'translate(-50%, -50%)';
+              seat.style.width = `${pos.width / scale}px`;
+              seat.style.height = `${pos.height / scale}px`;
+              
+              const seatTile = seat.querySelector('.seat-tile');
+              if (seatTile && pos.width && pos.height) {
+                seatTile.style.width = `${pos.width / scale}px`;
+                seatTile.style.height = `${pos.height / scale}px`;
+                
+                // Set CSS custom properties for proportional scaling (empty seats too)
+                const scaleFactor = (pos.width / scale) / 210;
+                seatTile.style.setProperty('--tile-scale', scaleFactor);
+                seatTile.style.setProperty('--tile-width', `${pos.width / scale}px`);
+              }
+            }
+        }
+      });
+      }
+      
+      debug('📍 Applied seat positions', { 
+        dynamic: useDynamic, 
+        occupiedCount: occupiedSeats.length,
+        gameActive: isGameActive,
+        isSpectator: isSpectator
+      });
+      
+      // Update seat position classes for avatar/username positioning
+      updateSeatPositionClasses();
+      
+      // Ensure chips are always inside tiles (consistency)
+      document.querySelectorAll('.seat-chips').forEach(chips => {
+        chips.classList.remove('heads-up-chips', 'heads-up-left', 'heads-up-right');
+        const seatTile = chips.closest('.seat-tile');
+        if (seatTile && !seatTile.contains(chips)) {
+          seatTile.appendChild(chips);
+        }
+      });
+    }
+    
+    // ============================================
+    // UPDATE SEAT POSITION CLASSES (Top/Bottom)
+    // ============================================
+    function updateSeatPositionClasses() {
+      // Table center Y is 600px (from zoom lock: 1600×1200px, center at 800,600)
+      const tableCenterY = 600;
+      
+      document.querySelectorAll('.seat').forEach(seat => {
+        // Remove existing position classes
+        seat.classList.remove('seat-top', 'seat-bottom');
+        
+        // Get seat's Y position (from style.top, accounting for translate(-50%, -50%))
+        const topValue = seat.style.top;
+        if (topValue) {
+          const seatY = parseFloat(topValue);
+          if (!isNaN(seatY)) {
+            // Top seats: Y < center, Bottom seats: Y >= center
+            if (seatY < tableCenterY) {
+              seat.classList.add('seat-top');
+            } else {
+              seat.classList.add('seat-bottom');
+            }
+          }
+        }
+      });
     }
     
     // ============================================
@@ -6481,6 +9211,11 @@
         table.style.transform = `scale(${scale})`;
         
         debug('🔍 Zoom lock updated', { scale, offsetX, offsetY });
+        
+        // Reapply seat positions after scale changes (to account for coordinate conversion)
+        if (typeof applySeatPositions === 'function') {
+          setTimeout(() => applySeatPositions(), 0);
+        }
       };
 
       updateScale();
@@ -6516,4 +9251,5 @@
   </svg>
 </body>
 </html>
+
 

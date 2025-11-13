@@ -39,7 +39,7 @@ class NavbarController {
     
     console.log('👤 NavbarController: Showing user:', user.username);
     
-    // Fetch actual username from backend if not a guest
+    // Fetch actual username and avatar_url from backend if not a guest
     let displayUsername = user.username;
     if (!user.isGuest) {
       try {
@@ -47,9 +47,17 @@ class NavbarController {
         if (response.ok) {
           const profile = await response.json();
           displayUsername = profile.username;
+          // ✅ Also update avatar_url if available (ensures consistency)
+          if (profile.avatar_url !== undefined) {
+            user.avatar_url = profile.avatar_url;
+            // Save updated avatar_url to cache
+            if (window.authManager) {
+              window.authManager.saveToCache();
+            }
+          }
         }
       } catch (error) {
-        console.warn('⚠️ Could not fetch profile username, using cached:', error);
+        console.warn('⚠️ Could not fetch profile, using cached:', error);
       }
     }
     
@@ -84,14 +92,31 @@ class NavbarController {
     
     // Update user info with @username format
     if (userName) userName.textContent = formattedUsername;
-    if (userAvatar) userAvatar.textContent = user.avatar || (user.isGuest ? '👻' : '👤');
+    
+    // ✅ Display avatar image if available, otherwise use emoji fallback
+    if (userAvatar) {
+      if (user.avatar_url) {
+        // Use image if avatar_url exists
+        userAvatar.innerHTML = `<img src="${user.avatar_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.textContent='${user.avatar || (user.isGuest ? '👻' : '👤')}'" />`;
+      } else {
+        // Fallback to emoji
+        userAvatar.textContent = user.avatar || (user.isGuest ? '👻' : '👤');
+      }
+    }
     
     // Update dropdown if exists
     const dropdownAvatar = document.getElementById('dropdownAvatar');
     const dropdownUsername = document.getElementById('dropdownUsername');
     const dropdownEmail = document.getElementById('dropdownEmail');
     
-    if (dropdownAvatar) dropdownAvatar.textContent = user.avatar || (user.isGuest ? '👻' : '👤');
+    // ✅ Display avatar image in dropdown if available
+    if (dropdownAvatar) {
+      if (user.avatar_url) {
+        dropdownAvatar.innerHTML = `<img src="${user.avatar_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.textContent='${user.avatar || (user.isGuest ? '👻' : '👤')}'" />`;
+      } else {
+        dropdownAvatar.textContent = user.avatar || (user.isGuest ? '👻' : '👤');
+      }
+    }
     if (dropdownUsername) dropdownUsername.textContent = formattedUsername;
     if (dropdownEmail) dropdownEmail.textContent = user.email || (user.isGuest ? 'Guest User' : 'No email');
     

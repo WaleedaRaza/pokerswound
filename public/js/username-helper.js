@@ -44,13 +44,28 @@ async function refreshUsernameInUI(userId) {
     return;
   }
   
-  const username = await getUsernameFromDB(userId);
-  if (!username) {
-    console.warn('⚠️ refreshUsernameInUI: Could not fetch username from DB');
+  // ✅ Fetch full profile (username + avatar_url)
+  let profile = null;
+  try {
+    const response = await fetch(`/api/auth/profile/${userId}`);
+    if (response.ok) {
+      profile = await response.json();
+    } else {
+      console.warn('⚠️ refreshUsernameInUI: Could not fetch profile from DB');
+      return;
+    }
+  } catch (error) {
+    console.error('❌ refreshUsernameInUI: Error fetching profile:', error);
     return;
   }
   
-  console.log(`🔄 refreshUsernameInUI: Refreshing username "${username}" in all UI components`);
+  const username = profile.username;
+  if (!username) {
+    console.warn('⚠️ refreshUsernameInUI: No username in profile');
+    return;
+  }
+  
+  console.log(`🔄 refreshUsernameInUI: Refreshing username "${username}" and avatar in all UI components`);
   
   // Update navbar username
   const userNameEl = document.getElementById('userName');
@@ -58,6 +73,18 @@ async function refreshUsernameInUI(userId) {
     const formatted = username.startsWith('@') ? username : `@${username}`;
     userNameEl.textContent = formatted;
     console.log('✅ Updated navbar username');
+  }
+  
+  // ✅ Update navbar avatar
+  const userAvatarEl = document.getElementById('userAvatar');
+  if (userAvatarEl && window.authManager?.user) {
+    const user = window.authManager.user;
+    if (profile.avatar_url) {
+      userAvatarEl.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.textContent='${user.avatar || '👤'}'" />`;
+    } else {
+      userAvatarEl.textContent = user.avatar || '👤';
+    }
+    console.log('✅ Updated navbar avatar');
   }
   
   // Update dropdown username
@@ -68,22 +95,36 @@ async function refreshUsernameInUI(userId) {
     console.log('✅ Updated dropdown username');
   }
   
-  // Update auth manager cache (for session, not display)
+  // ✅ Update dropdown avatar
+  const dropdownAvatarEl = document.getElementById('dropdownAvatar');
+  if (dropdownAvatarEl && window.authManager?.user) {
+    const user = window.authManager.user;
+    if (profile.avatar_url) {
+      dropdownAvatarEl.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.textContent='${user.avatar || '👤'}'" />`;
+    } else {
+      dropdownAvatarEl.textContent = user.avatar || '👤';
+    }
+    console.log('✅ Updated dropdown avatar');
+  }
+  
+  // Update auth manager cache (username + avatar_url)
   if (window.authManager && window.authManager.user) {
     window.authManager.user.username = username;
+    window.authManager.user.avatar_url = profile.avatar_url || null;
     window.authManager.saveToCache();
-    console.log('✅ Updated auth manager cache');
+    console.log('✅ Updated auth manager cache (username + avatar_url)');
   }
   
   // Update window.currentUser if it exists
   if (window.currentUser) {
     window.currentUser.username = username;
+    window.currentUser.avatar_url = profile.avatar_url || null;
     console.log('✅ Updated window.currentUser');
   }
   
   // Trigger custom event for other components to listen
   window.dispatchEvent(new CustomEvent('usernameUpdated', { 
-    detail: { userId, username } 
+    detail: { userId, username, avatar_url: profile.avatar_url } 
   }));
   console.log('✅ Dispatched usernameUpdated event');
 }

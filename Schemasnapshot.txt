@@ -89,6 +89,20 @@ CREATE TABLE public.audit_log (
   CONSTRAINT audit_log_pkey PRIMARY KEY (id),
   CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
+CREATE TABLE public.badge_definitions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name character varying NOT NULL UNIQUE,
+  description text,
+  icon character varying DEFAULT '🏆'::character varying,
+  category character varying DEFAULT 'milestone'::character varying,
+  criteria jsonb NOT NULL,
+  rarity character varying DEFAULT 'common'::character varying,
+  xp_reward integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  launch_exclusive boolean DEFAULT false,
+  expires_at timestamp with time zone,
+  CONSTRAINT badge_definitions_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.ban_appeals (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   ban_id uuid NOT NULL,
@@ -353,6 +367,10 @@ CREATE TABLE public.hand_history (
   board_cards text,
   actions_log jsonb,
   encoded_hand text,
+  dealer_position integer,
+  sb_position integer,
+  bb_position integer,
+  starting_stacks jsonb,
   CONSTRAINT hand_history_pkey PRIMARY KEY (id),
   CONSTRAINT hand_history_winner_id_fkey FOREIGN KEY (winner_id) REFERENCES public.user_profiles(id),
   CONSTRAINT hand_history_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
@@ -675,6 +693,7 @@ CREATE TABLE public.room_seats (
   last_action_at timestamp with time zone DEFAULT now(),
   left_at timestamp with time zone,
   nickname character varying CHECK (nickname IS NULL OR length(nickname::text) >= 3 AND length(nickname::text) <= 15 AND nickname::text ~ '^[a-zA-Z0-9_]+$'::text),
+  is_spectator boolean DEFAULT false,
   CONSTRAINT room_seats_pkey PRIMARY KEY (id),
   CONSTRAINT room_seats_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
 );
@@ -719,6 +738,19 @@ CREATE TABLE public.rooms (
   pending_big_blind integer,
   CONSTRAINT rooms_pkey PRIMARY KEY (id),
   CONSTRAINT rooms_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.seat_requests (
+  id integer NOT NULL DEFAULT nextval('seat_requests_id_seq'::regclass),
+  room_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  seat_index integer NOT NULL CHECK (seat_index >= 0 AND seat_index < 10),
+  requested_chips integer DEFAULT 1000 CHECK (requested_chips >= 0),
+  status character varying DEFAULT 'PENDING'::character varying CHECK (status::text = ANY (ARRAY['PENDING'::character varying, 'APPROVED'::character varying, 'REJECTED'::character varying, 'CANCELLED'::character varying]::text[])),
+  requested_at timestamp with time zone DEFAULT now(),
+  resolved_at timestamp with time zone,
+  resolved_by uuid,
+  CONSTRAINT seat_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT seat_requests_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
 );
 CREATE TABLE public.system_announcements (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -769,6 +801,16 @@ CREATE TABLE public.table_stakes (
   CONSTRAINT table_stakes_pkey PRIMARY KEY (id),
   CONSTRAINT table_stakes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT table_stakes_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id)
+);
+CREATE TABLE public.user_badges (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  badge_id uuid NOT NULL,
+  earned_at timestamp with time zone DEFAULT now(),
+  progress jsonb,
+  CONSTRAINT user_badges_pkey PRIMARY KEY (id),
+  CONSTRAINT user_badges_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT user_badges_badge_id_fkey FOREIGN KEY (badge_id) REFERENCES public.badge_definitions(id)
 );
 CREATE TABLE public.user_bans (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -851,6 +893,17 @@ CREATE TABLE public.user_profiles (
   biggest_pot bigint DEFAULT 0,
   CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
   CONSTRAINT user_profiles_currently_in_room_id_fkey FOREIGN KEY (currently_in_room_id) REFERENCES public.rooms(id)
+);
+CREATE TABLE public.user_ranks (
+  user_id uuid NOT NULL,
+  level integer DEFAULT 1,
+  experience_points bigint DEFAULT 0,
+  rank_title character varying DEFAULT 'Novice'::character varying,
+  updated_at timestamp with time zone DEFAULT now(),
+  rank_tier character varying,
+  hands_played bigint DEFAULT 0,
+  CONSTRAINT user_ranks_pkey PRIMARY KEY (user_id),
+  CONSTRAINT user_ranks_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.user_reports (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

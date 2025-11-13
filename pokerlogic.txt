@@ -1,0 +1,822 @@
+THE COMPLETE TEXAS HOLD’EM GAME LOGIC SPEC
+All rules, exceptions, ambiguities, and corner cases that a real cardroom engine must handle
+0. GAME STRUCTURE OVERVIEW
+
+Texas Hold’em proceeds through the following hard-defined phases:
+
+Pre-Game Setup
+
+Seats assigned
+
+Blinds posted
+
+Dealer button position
+
+Initial stack sizes
+
+Street Cycle
+
+Pre-flop → Flop → Turn → River → Showdown
+
+Between Hands
+
+Move dealer button
+
+Refill blinds
+
+Handle sit-out, reconnect, empty seats, buy-ins
+
+Your engine must maintain correctness across all phase transitions.
+
+1. SEATING & PLAYER STATES
+Valid Player States
+
+Active (can act)
+
+Folded
+
+All-in
+
+Sitting Out
+
+Disconnected
+
+Busted (0 chips)
+
+Between Streets Wait
+
+Corner Cases
+
+Player joins mid-hand → must wait until next hand.
+
+Player posts dead blind when returning (SB missing → post SB+BB).
+
+Heads-up: button posts SB (special case).
+
+Player disconnects during action:
+
+If they have chips → forced fold after timer.
+
+If facing no bet → forced check.
+
+If all-in → hand continues normally.
+
+2. BLINDS & BUTTON RULES
+Standard 3+ Players
+
+Button → SB → BB order
+
+Pre-flop action starts left of BB.
+
+HEADS UP SPECIAL CASE
+
+Button posts SB.
+
+BB is to the left of SB.
+
+Pre-flop action starts at BB.
+
+Post-flop action starts at SB/Button.
+
+This is one of the most mishandled rules by amateur engines.
+
+Blind Posting Edge Cases
+
+Player with not enough chips to post a blind → all-in blind.
+
+Missed blinds:
+
+Return → must post BB or wait for BB.
+
+Dead button:
+
+If BB busts → next hand may temporarily skip a blind.
+
+3. DEALING RULES
+Must Be Deterministic & Unbiased
+
+Use a 52-card deck
+
+Burn on:
+
+Flop
+
+Turn
+
+River
+
+Bad Beat Corner Cases
+
+Misdeal if:
+
+Cards exposed during deal (depending on house rules).
+
+Wrong number of cards dealt to players.
+
+Extra card appears in deck.
+
+4. BETTING ACTION RULES
+
+Actions allowed:
+
+FOLD
+
+CHECK
+
+CALL
+
+BET
+
+RAISE
+
+ALL-IN (subset of bet/raise)
+
+4A: STRICT RULES FOR BET SIZING
+
+Min-bet postflop = big blind size.
+
+Min-raise = previous bet/raise size.
+
+All-in for less than call:
+
+Does NOT reopen action.
+
+All-in for less than min-raise:
+
+Counts as a call, not a raise → does NOT reopen action.
+
+All-in larger than min-raise:
+
+Reopens action.
+
+4B: ACTION VALIDATION CORNER CASES
+
+Player tries to check while facing a bet → invalid.
+
+Player tries to fold when facing no action → allowed.
+
+Player tries to raise their own all-in → disallowed.
+
+Player calls with 0 chips (free call) → allowed only if no bet.
+
+4C: Facing an All-In
+
+If opponent goes all-in for LESS than a standard raise:
+
+Your call does not re-open the betting.
+
+If opponent goes all-in for MORE than a min-raise:
+
+Action reopens.
+
+This is where 90% of homebrew engines break.
+
+5. TURN ORDER RULES
+Pre-Flop
+
+Action starts left of the BB.
+
+If players are all all-in → skip directly to showdown.
+
+Post-Flop, Turn, River
+
+Action starts at seat left of the button.
+
+Skip Folded / All-In Players
+
+They do not act.
+
+But they still receive cards and go to showdown if all-in.
+
+6. POT & CHIP FLOW
+Single Pot
+
+If no one goes all-in for less → only a main pot exists.
+
+Side Pots
+
+Side pots occur when:
+
+A player goes all-in for less than required amounts.
+
+Subsequent bets create additional pots.
+
+Side Pot Rules
+
+Every player can only win pots they contributed to.
+
+Folded players are removed from all pots.
+
+All-in player CANNOT win more chips than their committed amount would justify.
+
+Side Pot Calculation Pitfalls
+
+Multiple all-ins with different stack sizes create multiple nested pots.
+
+Equal-sized all-ins at different times may combine or remain separate depending on action sequence.
+
+7. STREET TRANSITIONS
+Street ends when:
+
+All active players have:
+
+Folded except one → hand ends.
+
+Or all have acted & bets are equal → deal next community card(s).
+
+If all are all-in → auto-run remaining board.
+
+Corner Cases
+
+Everyone checks → auto transition.
+
+Only one non-all-in player → they control action.
+
+Player exposes cards early → depends on house rules (usually no effect online).
+
+8. SHOWDOWN RULES
+Standard Rules
+
+Best 5-card hand wins.
+
+Showdown order:
+
+Last aggressor shows first.
+
+If no bet on river: order from SB clockwise.
+
+Show/Hide Cards
+
+A player may muck a losing hand.
+
+All-in players must reveal cards.
+
+Multi-Way Showdown
+
+Compare hands pot-by-pot.
+
+Board Playing
+
+If board is best hand → tie.
+
+If multiple players have same best hand → split pot.
+
+9. WIN DISTRIBUTION
+Splitting Pots
+
+Split by number of winners.
+
+Remainder chips (“odd chips”) go:
+
+To left of dealer button or
+
+According to house policy.
+
+Refunds
+
+If a bet is invalidly made for excess chips, refund difference.
+
+Folded Player Cannot Win
+
+Self-explanatory but must be validated in pot logic.
+
+10. HAND TERMINATION LOGIC
+
+A hand ends when:
+
+All but one fold.
+
+Showdown completes.
+
+Only all-in players remain after some street.
+
+Corner Cases
+
+Fold + All-ins = skip action → deal out board → showdown.
+
+A player disconnects with pending action → forced fold (unless facing no bet).
+
+11. POST-HAND LOGIC
+
+Move dealer button clockwise.
+
+If SB or BB was empty → fix blind posting for next hand.
+
+Remove busted players.
+
+Seat new players.
+
+Update win/loss stats.
+
+12. EXTREME EDGE CASES
+
+These are the ones almost every engine forgets:
+
+12A: Zero-Chip “Free Check/Free Fold”
+
+If a player has 0 chips but is not forced all-in (e.g., blinds ate their stack):
+
+They must fold unless facing no bet (then check is allowed).
+
+12B: Betting Cap
+
+In no-limit, not applicable — but allow table-configurable caps.
+
+12C: Misdeal-like anomalies
+
+If a card is discovered face-up in deck:
+
+Usually treated as a dead card and replaced by top of deck (online rarely needed).
+
+12D: Prematurely dealing community cards
+
+If UI drops a card early, engine must have sequence-of-truth to revalidate.
+
+13. ARCHITECTURE-INTEGRATION SUGGESTIONS
+
+Here’s how to weave this into your future engine (Cursor-ready commentary):
+
+A. Use a Deterministic State Machine
+
+States:
+
+INIT → PRE-FLOP → FLOP → TURN → RIVER → SHOWDOWN → END
+
+Transitions triggered by:
+
+“action complete”
+
+“only one player remains”
+
+“all-in freeze”
+
+B. Central “ActionValidator” Must Own All Betting Rules
+
+Validate:
+
+Legal action in context
+
+Bet sizing rules
+
+All-in logic
+
+Reopen action logic
+
+C. “BettingEngine” Owns Chips, Pots, Side Pots
+
+Collect contributions per street
+
+Track committed amount per player
+
+Build pots each time action closes
+
+D. “PotManager” Runs Resolve Logic
+
+Evaluate per pot
+
+Only include eligible players
+
+Return winnings and update stack sizes
+
+E. “SeatManager” Controls Dealer Button / Blinds
+
+Correct heads-up rules
+
+Dead blind situations
+
+Player join/exit
+
+F. “ShowdownEngine” Evaluates Hands
+
+7-card → best 5-card
+
+Multi-pot comparisons
+
+G. “GameOrchestrator”
+
+Enforces turn order
+
+Skips folded/all-in players
+
+Triggers street transitions
+
+Handles auto-runout for all-in scenarios
+SYSTEM PILLARS
+
+Your engine will be correct, testable, and scalable only if you design around these 6 pillars:
+
+State Machine – controls game flow
+
+Action Validator – enforces rules of what actions are legal
+
+Betting Engine – handles chips, bets, min-raises, all-ins, contributions
+
+Pot Manager – builds/settles pots & side pots
+
+Seat & Turn Manager – controls blinds, button, turn order, skipping
+
+Showdown Engine – hand evaluation & pot resolution
+
+Everything in poker is just events passing through these 6 systems.
+
+1. STATE MACHINE (GAME FLOW)
+Purpose
+
+Define where the game is and which transitions are allowed.
+
+High-Level States
+INIT
+PRE_FLOP
+FLOP
+TURN
+RIVER
+SHOWDOWN
+HAND_END
+
+What the state machine needs from rules:
+
+“Street ends when all players have acted & bets equal.”
+
+“If only one player remains → skip to HAND_END.”
+
+“If all players are all-in → auto-run remaining streets.”
+
+“After HAND_END → rotate button, post blinds, start new hand.”
+
+Architectural Invariants
+
+State transitions can only happen when the Betting Engine reports “action closed.”
+
+Never render UI based on assumption — always read state from state machine.
+
+2. ACTION VALIDATOR
+Purpose
+
+This is where most engines fail.
+The validator must be the source of truth for what actions can happen.
+
+Inputs
+
+Current game state
+
+Player state
+
+Facing amount (current highest bet)
+
+Player stack size
+
+Bet geometry (min raise, last raise size)
+
+Outputs
+{
+    isValid: boolean,
+    adjustedAmount: number,  // e.g. all-in conversion
+    isAllIn: boolean,
+    error?: string
+}
+
+What rules map here:
+
+“Can’t check when facing a bet.”
+
+“All-in for less than call does not reopen action.”
+
+“Raise must be >= min_raise unless all-in.”
+
+“Player cannot raise their own all-in.”
+
+“If a player has 0 chips → they may only fold or check.”
+
+Architectural Invariants
+
+The validator never updates state — it only approves or denies.
+
+Betting Engine must not accept any raw input without validator approval.
+
+3. BETTING ENGINE
+Purpose
+
+“Apply” actions and maintain betting geometry.
+This is the engine that turns user intent into actual game state.
+
+Responsibilities
+
+Track committed chips per street
+
+Maintain:
+
+current bet
+
+last raise amount
+
+min-raise size
+
+Move player chips to “committed” stack
+
+Classify actions: fold, check, call, raise, all-in
+
+Signal when action round is closed
+
+What rules map here:
+
+Min bet = big blind
+
+Min raise = last raise size
+
+All-in sizing checks
+
+Call amount logic
+
+Pot odds / facing logic
+
+Architectural Invariants
+
+Betting Engine never determines turn order.
+
+Betting Engine never builds pots — it only tracks commitments.
+
+Betting Engine relies on Action Validator before any change.
+
+4. POT MANAGER
+Purpose
+
+Convert contributions → pots & side pots.
+Resolve winners pot-by-pot.
+
+Responsibilities
+
+At each street end or all-in:
+
+snapshot commitments
+
+build new pots if necessary
+
+At showdown:
+
+determine eligible players for each pot
+
+distribute according to showdown engine results
+
+handle odd chips
+
+remove folded players
+
+What rules map here:
+
+“A player can only win pots they contributed to.”
+
+“Side pots emerge when players go all-in with different stack sizes.”
+
+“Folded players cannot win any pot.”
+
+“Split pots evenly; handle odd chips.”
+
+Architectural Invariants
+
+Pot Manager is stateless per street; it only processes snapshots.
+
+Pot Manager must NEVER depend on turn order.
+
+Pot Manager does not decide winners — only distributes based on results.
+
+5. SEAT MANAGER & TURN ORDER
+Purpose
+
+Control who acts and manage blinds/button.
+
+Responsibilities
+
+Rotate dealer button each HAND_END
+
+Assign SB and BB
+
+Apply heads-up blind rules:
+
+Button = SB
+
+BB acts first pre-flop
+
+Skip folded/all-in/disconnected players
+
+Detect when only one player is active
+
+What rules map here:
+
+Action order (pre-flop vs post-flop)
+
+Dead blinds
+
+Dead button scenarios
+
+Return-from-sit-out posting rules
+
+Architectural Invariants
+
+Turn order is purely seat-based (circular list).
+
+Never skip players implicitly — status must be explicit:
+
+active
+
+folded
+
+all-in
+
+sitting out
+
+6. SHOWDOWN ENGINE
+Purpose
+
+Pure hand-strength evaluation, independent of bets.
+
+Responsibilities
+
+Evaluate each active/all-in player's 7-card hand
+
+Determine best 5-card hand
+
+Break ties
+
+Provide ordered ranking for Pot Manager
+
+What rules map here:
+
+Board plays
+
+Multi-way ties
+
+Kickers
+
+Incorrectly ordered showdowns (force show for all-in)
+
+Architectural Invariants
+
+Showdown engine is pure: input = cards, output = rank.
+
+No knowledge of pots or chip stacks.
+
+7. DATA MODEL (HIGH LEVEL)
+GameRoot
+
+state: PRE_FLOP | FLOP | TURN | …
+
+deck: shuffled 52 cards
+
+communityCards: []
+
+players: Player[]
+
+pots: Pot[]
+
+actionHistory: LogEntry[]
+
+dealerPosition: number
+
+Player
+
+id
+
+seatIndex
+
+holeCards
+
+stack
+
+committedChips
+
+state: active | folded | all-in | sit-out
+
+connectionState
+
+Pot
+
+contributors: Player IDs
+
+amount
+
+Action
+
+type: fold | check | call | bet | raise | all-in
+
+amount
+
+timestamp
+
+playerId
+
+8. GLOBAL INVARIANTS
+
+Your engine stays correct if these invariants never break:
+
+Sum of all chips (player stacks + committed + pots) never changes.
+
+A player can never act out of turn.
+
+All-in players cannot act again.
+
+Folded players are excluded from all betting & all pots.
+
+Street cannot advance unless:
+
+All committed amounts match OR
+
+Only one player remains.
+
+Side pots must partition contributions completely.
+
+Showdown uses only board + hole cards.
+
+Engine state must always be one of the legal high-level states.
+
+9. EVENT LOOP (THE REAL HIGH-LEVEL ARCHITECTURE)
+
+Here’s the entire architecture in one loop:
+
+while (gameRunning):
+
+    if stateMachine.needsNewHand():
+        seatManager.assignBlinds()
+        stateMachine.goto(PRE_FLOP)
+    
+    turnPlayer = seatManager.getNextActor()
+
+    action = waitForPlayerAction(turnPlayer)
+
+    validation = actionValidator.validate(action)
+    if !validation.isValid:
+        reject()
+
+    engineResponse = bettingEngine.apply(validation)
+
+    if engineResponse.roundClosed:
+        potManager.snapshotAndCreatePots()
+        stateMachine.nextStreet()
+
+    if engineResponse.oneRemaining:
+        stateMachine.goto(HAND_END)
+
+    if stateMachine.is(SHOWDOWN):
+        results = showdownEngine.evaluate(players)
+        potManager.distribute(results)
+        stateMachine.goto(HAND_END)
+
+
+This loop is everything.
+All your corner-case handling fits into these modules.
+
+10. HOW THIS FITS INTO YOUR FUTURE CURSOR FILE STRUCTURE
+/engine/stateMachine.ts
+
+controls flow
+
+transitions
+
+street advancement
+
+/engine/actionValidator.ts
+
+all betting rules here
+
+min raise logic
+
+all-in adjustments
+
+/engine/bettingEngine.ts
+
+apply actions
+
+update committed chips
+
+detect round close
+
+/engine/potManager.ts
+
+build pots
+
+distribute chips at showdown
+
+/engine/seatManager.ts
+
+dealer button
+
+blinds
+
+turn order
+
+/engine/showdown.ts
+
+hand evaluator
+
+/engine/models/*
+
+Player
+
+Pot
+
+GameState
+
+/engine/tests/*
+
+simulate every corner case using the above invariants
+
+11

@@ -2120,7 +2120,8 @@ router.post('/:roomId/approve-seat-request', async (req, res) => {
       io.to(`room:${roomId}`).emit('seat_request_resolved', {
         requestId,
         status: 'APPROVED',
-        userId: request.user_id
+        userId: request.user_id,
+        seatIndex: request.seat_index
       });
     }
     
@@ -2187,8 +2188,12 @@ router.post('/:roomId/reject-seat-request', async (req, res) => {
     const io = req.app.locals.io;
     if (io) {
       // Notify requester
+      // Get seat index from request before deleting
+      const requestSeatIndex = requestResult.rows[0]?.seat_index;
+      
       io.to(`user:${userId}`).emit('seat_request_rejected', {
         requestId,
+        seatIndex: requestSeatIndex,
         message: 'Your seat request was rejected by the host'
       });
       
@@ -2196,7 +2201,8 @@ router.post('/:roomId/reject-seat-request', async (req, res) => {
       io.to(`room:${roomId}`).emit('seat_request_resolved', {
         requestId,
         status: 'REJECTED',
-        userId
+        userId,
+        seatIndex: requestSeatIndex
       });
     }
     

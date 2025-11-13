@@ -474,8 +474,20 @@ async function saveAvatar() {
     
     const data = await response.json();
     
+    // ✅ CRITICAL: Update authManager.user.avatar_url to persist in memory
+    if (window.authManager && window.authManager.user) {
+      window.authManager.user.avatar_url = avatarUrl;
+      window.authManager.saveToCache(); // ✅ Persist to localStorage
+      console.log('✅ Updated authManager.user.avatar_url and saved to cache');
+    }
+    
     // Update the display
     previewAvatar(avatarUrl);
+    
+    // ✅ Refresh navbar to show new avatar immediately
+    if (window.navbarController && window.authManager?.user) {
+      await window.navbarController.showUser(window.authManager.user);
+    }
     
     // Refresh username in UI (which also refreshes avatar)
     if (window.refreshUsernameInUI && window.authManager?.user?.id) {

@@ -110,6 +110,7 @@ class AuthManager {
     const isGuest = provider === 'guest' || provider === 'anonymous';
     
     let username = null;
+    let avatar_url = null;
     
     // ✅ CRITICAL: For non-guests, ALWAYS fetch from database (single source of truth)
     if (!isGuest) {
@@ -118,12 +119,16 @@ class AuthManager {
         if (response.ok) {
           const profile = await response.json();
           username = profile.username;
+          avatar_url = profile.avatar_url || null; // ✅ Fetch avatar_url from DB
           console.log(`✅ AuthManager: Loaded username from DB: ${username}`);
+          if (avatar_url) {
+            console.log(`✅ AuthManager: Loaded avatar_url from DB: ${avatar_url.substring(0, 50)}...`);
+          }
         } else {
           console.error(`❌ AuthManager: Failed to fetch profile (${response.status})`);
         }
       } catch (error) {
-        console.error('❌ AuthManager: Failed to load username from DB:', error);
+        console.error('❌ AuthManager: Failed to load profile from DB:', error);
       }
       
       // ❌ NO FALLBACK FOR LOGGED-IN USERS
@@ -136,11 +141,15 @@ class AuthManager {
       username = `Guest_${supabaseUser.id.substring(0, 6)}`;
     }
     
+    // Fallback avatar emoji if no avatar_url
+    const avatarEmoji = provider === 'google' ? '👤' : '👻';
+    
     return {
       id: supabaseUser.id,
       email: email,
       username: username,
-      avatar: provider === 'google' ? '👤' : '👻',
+      avatar: avatarEmoji, // Keep emoji as fallback for display
+      avatar_url: avatar_url, // ✅ Store avatar_url from database
       provider: provider,
       isGuest: isGuest,
       isAnonymous: provider === 'anonymous'
