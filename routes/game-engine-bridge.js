@@ -1210,8 +1210,15 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       console.log(`   ✅ Game ended, room returned to lobby`);
       
     } else {
-      // GAME CONTINUES: Multiple players with chips, auto-start next hand
-      console.log(`🔄 [AUTO-START] ${playersWithChips.length} players remain, auto-starting next hand in 3s`);
+      // GAME CONTINUES: Multiple players with chips
+      // Check if auto-start is enabled (host control setting)
+      const roomSettings = await client.query(
+        `SELECT auto_start_enabled FROM rooms WHERE id = $1`,
+        [roomId]
+      );
+      const autoStartEnabled = roomSettings.rows[0]?.auto_start_enabled !== false; // Default true (backwards compatible)
+      
+      console.log(`🔄 [AUTO-START] ${playersWithChips.length} players remain, auto-start: ${autoStartEnabled}`);
       
       // DON'T delete game_states or clear game_id - keep game running
       // Just mark current hand as complete
@@ -1222,18 +1229,29 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
         [roomId]
       );
       
-      // Broadcast hand_complete with auto-start flag
+      // Broadcast hand_complete
       if (io) {
+        if (autoStartEnabled) {
         io.to(`room:${roomId}`).emit('hand_complete_lobby', {
-          message: `Hand complete. Next hand starting in 3 seconds...`,
-          autoStartIn: 3000,
-          playersRemaining: playersWithChips.length,
+            message: `Hand complete. Next hand starting in 3 seconds...`,
+            autoStartIn: 3000,
+            playersRemaining: playersWithChips.length,
           bustedPlayers: bustedPlayers.length
         });
+        } else {
+          io.to(`room:${roomId}`).emit('hand_complete_lobby', {
+            message: `Hand complete. Host can start next hand.`,
+            autoStartIn: 0,
+            playersRemaining: playersWithChips.length,
+            bustedPlayers: bustedPlayers.length,
+            requiresManualStart: true
+          });
+        }
       }
       
-      // Schedule auto-start after 3 seconds
-      setTimeout(async () => {
+      // Schedule auto-start after 3 seconds (only if enabled)
+      if (autoStartEnabled) {
+        setTimeout(async () => {
         try {
           console.log(`🎬 [AUTO-START] Starting next hand for room ${roomId.substr(0, 8)}`);
           
@@ -1275,7 +1293,8 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
             });
           }
         }
-      }, 3000);
+        }, 3000);
+      }
       
       console.log(`   ✅ Hand complete, auto-start scheduled`);
     }
@@ -1645,31 +1664,31 @@ router.post('/action', async (req, res) => {
           
           try {
             // Step 1: Determine winners
-            MinimalBettingAdapter.handleShowdown(updatedState);
+          MinimalBettingAdapter.handleShowdown(updatedState);
             console.log('   ✅ Winners determined');
-            
+          
             // Step 2: Save completed state to game_states
-            await db.query(
-              `UPDATE game_states 
-               SET current_state = $1, 
-                   total_pot = $2, 
-                   updated_at = NOW()
-               WHERE room_id = $3 AND status = 'active'`,
-              [JSON.stringify(updatedState), updatedState.pot, roomId]
-            );
+          await db.query(
+            `UPDATE game_states 
+             SET current_state = $1, 
+                 total_pot = $2, 
+                 updated_at = NOW()
+             WHERE room_id = $3 AND status = 'active'`,
+            [JSON.stringify(updatedState), updatedState.pot, roomId]
+          );
             console.log('   ✅ Game state saved');
-            
+          
             // Step 3: Persist chips to room_seats (atomic transaction)
-            if (updatedState.status === 'COMPLETED') {
-              await persistHandCompletion(updatedState, roomId, db, reqForCallback);
+          if (updatedState.status === 'COMPLETED') {
+            await persistHandCompletion(updatedState, roomId, db, reqForCallback);
               console.log('   ✅ Chips persisted to database');
-              
+            
               // Step 4: Extract hand history
-              await extractHandHistory(updatedState, roomId, db, gameStateId);
+            await extractHandHistory(updatedState, roomId, db, gameStateId);
               console.log('   ✅ Hand history extracted');
-              
+            
               // Step 5: Emit hand_complete to all clients
-              await handleHandCompleteEmission(updatedState, roomId, db, io);
+            await handleHandCompleteEmission(updatedState, roomId, db, io);
               console.log('   ✅ Hand complete emitted to clients');
             }
             

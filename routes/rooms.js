@@ -2097,6 +2097,13 @@ router.post('/:roomId/approve-seat-request', async (req, res) => {
     
     console.log(`✅ Seat request approved: User ${request.user_id.substr(0, 8)} -> Seat ${request.seat_index} with $${finalChips}`);
     
+    // Get username for notification
+    const usernameResult = await db.query(
+      'SELECT username, display_name FROM user_profiles WHERE id = $1',
+      [request.user_id]
+    );
+    const username = usernameResult.rows[0]?.username || usernameResult.rows[0]?.display_name || 'Player';
+    
     // Broadcast updates
     const io = req.app.locals.io;
     if (io) {
@@ -2116,11 +2123,12 @@ router.post('/:roomId/approve-seat-request', async (req, res) => {
         userId: request.user_id
       });
       
-      // Notify host that request was processed
+      // Notify all spectators that request was processed (includes username)
       io.to(`room:${roomId}`).emit('seat_request_resolved', {
         requestId,
         status: 'APPROVED',
         userId: request.user_id,
+        username, // ADD THIS for corner notification
         seatIndex: request.seat_index
       });
     }

@@ -22,6 +22,14 @@
       --shadow-md: 0 8px 18px rgba(0,0,0,.35);
       --shadow-lg: 0 12px 28px rgba(0,0,0,.45);
       --shadow-xl: 0 18px 44px rgba(0,0,0,.55);
+      
+      /* Liquid Glass Variables (from play page) */
+      --glass-tint-opacity: 0.02;
+      --glass-frost-blur: 20px;
+      --glass-shadow-blur: 20px;
+      --glass-shadow-spread: -5px;
+      --glass-shadow-color: rgba(255, 255, 255, 0.1);
+      --glass-outer-shadow: 12px;
     }
 
     /* Felt color presets */
@@ -44,12 +52,17 @@
       color: #e9eef7;
       font-family: 'Inter', system-ui, -apple-system, Arial, sans-serif;
       padding: 20px;
+      position: relative;
+      overflow-x: hidden;
     }
     
     .container {
       max-width: 1200px;
       margin: 0 auto;
+      position: relative;
+      z-index: 100; /* Above falling cards (z-index: 50) */
     }
+    
     
     /* ============================================ */
     /* ZOOM LOCK TABLE WRAPPER */
@@ -64,6 +77,7 @@
       position: relative;
       overflow: visible;
       margin-bottom: 30px;
+      z-index: 100; /* Above falling cards (z-index: 50) */
     }
 
     .poker-table {
@@ -72,7 +86,7 @@
       height: 1200px;
       transform-origin: top left;
       pointer-events: auto;
-      z-index: 0;
+      z-index: 100; /* Above falling cards (z-index: 50) */
     }
 
     /* Oval Felt Background */
@@ -513,41 +527,21 @@
       font-family: 'Courier New', monospace;
     }
     
-    /* Hand Rank Display (Above Action Buttons) */
+    /* Hand Rank Display - Simple Text Line Above Buttons */
     .hand-rank-display {
-      padding: 12px 24px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(0,212,170,.15) 0%, rgba(0,180,150,.15) 100%);
-      border: 2px solid rgba(0,212,170,.4);
       text-align: center;
-      box-shadow: 
-        0 0 20px rgba(0, 212, 170, 0.2),
-        inset 0 0 20px rgba(0, 212, 170, 0.1);
-      backdrop-filter: blur(10px);
+      margin: 20px auto 15px auto;
       pointer-events: none;
-      margin: 20px auto 10px auto;
-      max-width: 400px;
-    }
-    
-    .hand-rank-label {
-      font-size: 11px;
-      color: rgba(0,212,170,.7);
-      letter-spacing: .15em;
-      font-weight: 700;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     
     .hand-rank-text {
-      font-family: 'Courier New', monospace;
-      font-size: 18px;
-      font-weight: 700;
-      color: #00d4aa;
-      text-shadow: 
-        0 0 10px rgba(0, 212, 170, 0.5),
-        0 2px 4px rgba(0, 0, 0, 0.6);
-      letter-spacing: 0.05em;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: rgba(0, 212, 170, 0.85);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
     }
     
     /* Runout Message Display (During All-In Runout) */
@@ -758,37 +752,269 @@
     }
     
     /* Clean Table Header */
-    .table-header {
+    /* ========================================
+       POKER TABLE OS: ROOM NAME (PLAIN TEXT ABOVE)
+       ======================================== */
+    .room-name-display {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    
+    .room-name-text {
+      color: #ff5100;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px rgba(255, 81, 0, 0.4);
+    }
+    
+    .typing-cursor {
+      color: #ff5100;
+      font-size: 2rem;
+      font-weight: 400;
+      animation: blink 1s step-end infinite;
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* ========================================
+       POKER TABLE OS: THE DOCK (ONLY LIQUID GLASS BOX)
+       DESIGN SYSTEM: JetBrains Mono font, Orange primary, Teal accents
+       ======================================== */
+    .poker-dock {
+      position: relative;
+      z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 24px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      margin-bottom: 20px;
-      border: 1px solid rgba(255,255,255,0.08);
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto 24px auto;
+      padding: 24px 32px;
+      /* Background, border, blur handled by .liquid-glass */
+      font-family: 'JetBrains Mono', monospace;
     }
     
-    .room-code-display {
+    /* Dock Left: Start Hand + Table Code + Connection */
+    .dock-left {
       display: flex;
-      align-items: baseline;
-      gap: 12px;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
     }
     
-    .room-code-label {
-      color: rgba(255,255,255,0.5);
+    .dock-action-btn {
+      padding: 12px 20px;
       font-size: 0.9rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: #ff5100;
+      background: rgba(255, 81, 0, 0.1);
+      border: 2px solid rgba(255, 81, 0, 0.4);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-weight: 600;
+      white-space: nowrap;
+      text-shadow: 0 0 10px rgba(255, 81, 0, 0.3);
     }
     
-    .room-code {
+    .dock-action-btn:hover {
+      background: rgba(255, 81, 0, 0.2);
+      border-color: rgba(255, 81, 0, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(255, 81, 0, 0.4);
+    }
+    
+    .dock-label {
       color: #00d4aa;
-      font-size: 1.8rem;
+      font-size: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .dock-code {
+      color: #00d4aa;
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      text-shadow: 0 0 15px rgba(0, 212, 170, 0.6);
+      white-space: nowrap;
+    }
+    
+    .dock-connection {
+      display: flex;
+      align-items: center;
+      margin-left: 6px;
+    }
+    
+    /* Dock Center: Game State */
+    .dock-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 220px;
+    }
+    
+    .game-state-text {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    
+    /* Dock Right: Control Apps (Vertical Icon + Label) */
+    .dock-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-shrink: 0;
+    }
+    
+    .dock-app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      min-width: 90px;
+    }
+    
+    .dock-app-icon {
+      font-size: 2rem;
+      line-height: 1;
+      color: #ff5100;
+      filter: drop-shadow(0 0 8px rgba(255, 81, 0, 0.5));
+      transition: all 0.25s ease;
+    }
+    
+    .dock-app-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #00d4aa;
+      text-align: center;
+      line-height: 1.3;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+    }
+    
+    .dock-app:hover {
+      transform: translateY(-4px);
+    }
+    
+    .dock-app:hover .dock-app-icon {
+      color: #ff6a2e;
+      filter: drop-shadow(0 0 12px rgba(255, 81, 0, 0.8));
+      transform: scale(1.1);
+    }
+    
+    .dock-app:hover .dock-app-label {
+      color: #00ffcc;
+      text-shadow: 0 0 8px rgba(0, 212, 170, 0.6);
+    }
+    
+    .dock-app:active {
+      transform: translateY(-2px);
+    }
+    
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 10000; /* Way above everything for modals */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .modal-content {
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      padding: 0;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      /* Liquid glass handles all styling - remove conflicts */
+      background: none !important;
+      border: 2px solid rgba(255, 255, 255, 0.1) !important;
+      backdrop-filter: none !important;
+      box-shadow: none !important;
+      z-index: 10001; /* Above modal overlay */
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 32px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    .modal-header h2 {
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 1.5rem;
       font-weight: 700;
-      letter-spacing: 2px;
-      font-family: 'Courier New', monospace;
+      margin: 0;
+    }
+    
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      border-radius: 50%;
+    }
+    
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 1);
+    }
+    
+    .modal-body {
+      padding: 32px;
     }
     
     .connection-indicator {
@@ -2986,130 +3212,93 @@
       letter-spacing: 0.5px;
     }
     
-    /* Action Buttons - Clean, Refined Design (Jobs/Japanese) */
-    #actionButtons .btn,
-    #foldBtn,
-    #callBtn,
-    #raiseBtn {
+    /* Action Buttons - Clean, Clear Design with Colored Borders */
+    /* ========================================
+       ACTION BUTTONS - LIQUID GLASS TILES (SAME AS DOCK)
+       ======================================== */
+    .action-btn {
       position: relative;
-      background: rgba(15, 15, 25, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px 32px;
-      font-size: 16px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: blur(20px) saturate(180%);
-      box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      z-index: 100;
+      min-width: 280px;
+      min-height: 80px;
+      padding: 24px 60px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 3px;
       text-transform: uppercase;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      border-radius: 16px;
+      /* Override browser button default background */
+      background: transparent;
+      /* Liquid glass pseudo-elements handle the visual background */
+      /* Disable distortion on text content */
+      filter: none !important;
     }
     
-    /* FOLD Button - Red/Orange Accent */
+    /* Text inside buttons should not be distorted */
+    .action-btn * {
+      filter: none !important;
+    }
+    
+    .action-btn:hover:not(:disabled):not(.not-your-turn) {
+      transform: translateY(-3px);
+    }
+    
+    .action-btn:active:not(:disabled):not(.not-your-turn) {
+      transform: translateY(-1px);
+    }
+    
+    /* FOLD Button - Red text with glow */
     #foldBtn {
-      color: rgba(255, 100, 100, 0.9);
-      border-color: rgba(255, 100, 100, 0.2);
+      color: #ef4444;
+      border: 2px solid rgba(239, 68, 68, 0.3);
     }
     
     #foldBtn:hover:not(:disabled):not(.not-your-turn) {
-      background: rgba(255, 100, 100, 0.1);
-      border-color: rgba(255, 100, 100, 0.4);
-      color: rgba(255, 120, 120, 1);
+      color: #f87171;
+      border-color: rgba(248, 113, 113, 0.5);
+      text-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
     }
     
-    /* CALL/CHECK Button - Blue/Teal Accent */
+    /* CALL/CHECK Button - Teal (matches dock accent) */
     #callBtn {
-      color: rgba(100, 200, 255, 0.9);
-      border-color: rgba(100, 200, 255, 0.2);
+      color: #00d4aa;
+      border: 2px solid rgba(0, 212, 170, 0.3);
     }
     
     #callBtn:hover:not(:disabled):not(.not-your-turn) {
-      background: rgba(100, 200, 255, 0.1);
-      border-color: rgba(100, 200, 255, 0.4);
-      color: rgba(120, 220, 255, 1);
+      color: #00ffcc;
+      border-color: rgba(0, 255, 204, 0.5);
+      text-shadow: 0 0 12px rgba(0, 212, 170, 0.6);
     }
     
-    /* RAISE/BET Button - Gold/Yellow Accent */
+    /* RAISE/BET Button - Orange (matches dock primary) */
     #raiseBtn {
-      color: rgba(255, 215, 0, 0.9);
-      border-color: rgba(255, 215, 0, 0.2);
+      color: #ff5100;
+      border: 2px solid rgba(255, 81, 0, 0.3);
     }
     
     #raiseBtn:hover:not(:disabled):not(.not-your-turn) {
-      background: rgba(255, 215, 0, 0.1);
-      border-color: rgba(255, 215, 0, 0.4);
-      color: rgba(255, 235, 50, 1);
+      color: #ff6a2e;
+      border-color: rgba(255, 106, 46, 0.5);
+      text-shadow: 0 0 12px rgba(255, 81, 0, 0.6);
     }
     
-    /* Remove glass effect pseudo-elements */
-    #actionButtons .btn::before,
-    #foldBtn::before,
-    #callBtn::before,
-    #raiseBtn::before,
-    #actionButtons .btn::after,
-    #foldBtn::after,
-    #callBtn::after,
-    #raiseBtn::after {
-      display: none;
-    }
-    
-    /* Button content styling */
-    #actionButtons .btn > *,
-    #foldBtn > *,
-    #callBtn > *,
-    #raiseBtn > * {
-      position: relative;
-    }
-    
-    /* YOUR TURN - Subtle Emphasis */
-    #actionButtons .btn.active,
-    #foldBtn.active,
-    #callBtn.active,
-    #raiseBtn.active {
-      border-color: rgba(0, 212, 170, 0.4);
-      background: rgba(0, 212, 170, 0.1);
-      box-shadow: 
-        0 6px 20px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 0 1px rgba(0, 212, 170, 0.2);
-      animation: subtlePulse 2s ease-in-out infinite;
-    }
-    
-    /* NOT YOUR TURN - Muted */
-    #actionButtons .btn.not-your-turn,
-    #foldBtn.not-your-turn,
-    #callBtn.not-your-turn,
-    #raiseBtn.not-your-turn {
+    /* Disabled/Not Your Turn State */
+    .action-btn:disabled,
+    .action-btn.not-your-turn {
       opacity: 0.25;
-      pointer-events: none;
       cursor: not-allowed;
+      transform: none !important;
     }
     
-    /* HOVER STATE - Refined Lift */
-    #actionButtons .btn:hover:not(:disabled):not(.not-your-turn),
-    #foldBtn:hover:not(:disabled):not(.not-your-turn),
-    #callBtn:hover:not(:disabled):not(.not-your-turn),
-    #raiseBtn:hover:not(:disabled):not(.not-your-turn) {
-      transform: translateY(-2px);
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 
-        0 8px 24px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      animation: none;
+    .action-btn:disabled:hover,
+    .action-btn.not-your-turn:hover {
+      transform: none !important;
     }
     
-    #actionButtons .btn:active:not(:disabled):not(.not-your-turn),
-    #foldBtn:active:not(:disabled):not(.not-your-turn),
-    #callBtn:active:not(:disabled):not(.not-your-turn),
-    #raiseBtn:active:not(:disabled):not(.not-your-turn) {
-      transform: translateY(0);
-      box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
     
     /* Force white text on start button */
     #startBtn, #refreshBtn {
@@ -3282,73 +3471,6 @@
       color: #0b0b12;
     }
     
-    /* ============================================ */
-    
-    /* FOLD - Red outline with liquid glass */
-    #foldBtn {
-      color: #dc2626;
-      border-color: #dc2626;
-    }
-    
-    #foldBtn::before {
-      background-color: rgba(220, 38, 38, 0.1);
-      box-shadow: inset 0 0 20px -5px rgba(220, 38, 38, 0.5);
-    }
-    
-    #foldBtn:hover:not(:disabled) {
-      background: rgba(220, 38, 38, 0.2);
-      color: #ff6b6b;
-      box-shadow: 0px 8px 32px rgba(220, 38, 38, 0.4);
-    }
-    
-    #foldBtn:hover:not(:disabled)::before {
-      background-color: rgba(220, 38, 38, 0.15);
-      box-shadow: inset 0 0 25px -3px rgba(220, 38, 38, 0.7);
-    }
-    
-    /* CALL - Teal outline with liquid glass */
-    #callBtn {
-      color: #00d4aa;
-      border-color: #00d4aa;
-    }
-    
-    #callBtn::before {
-      background-color: rgba(0, 212, 170, 0.1);
-      box-shadow: inset 0 0 20px -5px rgba(0, 212, 170, 0.5);
-    }
-    
-    #callBtn:hover:not(:disabled) {
-      background: rgba(0, 212, 170, 0.2);
-      color: #00ffcc;
-      box-shadow: 0px 8px 32px rgba(0, 212, 170, 0.4);
-    }
-    
-    #callBtn:hover:not(:disabled)::before {
-      background-color: rgba(0, 212, 170, 0.15);
-      box-shadow: inset 0 0 25px -3px rgba(0, 212, 170, 0.7);
-    }
-    
-    /* RAISE - Orange outline with liquid glass */
-    #raiseBtn {
-      color: #f97316;
-      border-color: #f97316;
-    }
-    
-    #raiseBtn::before {
-      background-color: rgba(249, 115, 22, 0.1);
-      box-shadow: inset 0 0 20px -5px rgba(249, 115, 22, 0.5);
-    }
-    
-    #raiseBtn:hover:not(:disabled) {
-      background: rgba(249, 115, 22, 0.2);
-      color: #ff8c42;
-      box-shadow: 0px 8px 32px rgba(249, 115, 22, 0.4);
-    }
-    
-    #raiseBtn:hover:not(:disabled)::before {
-      background-color: rgba(249, 115, 22, 0.15);
-      box-shadow: inset 0 0 25px -3px rgba(249, 115, 22, 0.7);
-    }
     
     
     .my-cards {
@@ -3378,21 +3500,6 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
     
-    .debug {
-      background: rgba(255,255,255,0.03);
-      padding: 15px;
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
-      color: #9aa3b2;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    
-    .debug h4 {
-      color: #ff5100;
-      margin-bottom: 10px;
-    }
     
     /* Calming UI Adjustments */
     .container {
@@ -3422,6 +3529,11 @@
   
   <!-- Global CSS for navbar -->
   <link rel="stylesheet" href="/css/pokergeek.css">
+  
+  <!-- Liquid Glass Controller -->
+  <script src="/js/liquid-glass-controller.js"></script>
+  <!-- Global Animations (EXACT same as play page) -->
+  <script src="/js/global-animations.js"></script>
   
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3609,6 +3721,9 @@
   </script>
 </head>
 <body>
+  <!-- EXACT Falling Cards from Play Page -->
+  <div id="floating-cards" class="floating-cards"></div>
+  
   <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
   <div id="navbar-container"></div>
   
@@ -3646,27 +3761,50 @@
   </div>
   
   <div class="container">
-    <!-- CLEAN HEADER -->
-    <div class="table-header">
-      <div class="room-code-display">
-        <span class="room-code-label">Room</span>
-        <span class="room-code" id="roomCode">---</span>
+    <!-- ROOM NAME: Plain text above dock, no box -->
+    <div class="room-name-display">
+      <span class="room-name-text" id="roomNameDisplay">Loading...</span><span class="typing-cursor">|</span>
       </div>
-      <div class="connection-indicator" id="socketStatus">
+
+    <!-- POKER TABLE OS: THE DOCK (ONLY LIQUID GLASS BOX) -->
+    <div class="poker-dock liquid-glass liquid-glass--md liquid-glass--no-hover">
+      <!-- Left: Start Hand + Table Code + Connection -->
+      <div class="dock-left">
+        <button class="dock-action-btn" id="startBtn" onclick="startHand()" style="display: none;">Start Hand</button>
+        <span class="dock-label">Table Code:</span>
+        <span class="dock-code" id="roomCode">---</span>
+        <div class="dock-connection" id="socketStatus">
         <span class="connection-dot"></span>
       </div>
     </div>
     
-    <!-- 🎛️ HOST CONTROLS PANEL -->
-    <div id="hostControlsPanel">
-      <div class="panel-header">
-        <h2>🎛️ HOST CONTROLS <span class="host-badge">ONLY YOU</span></h2>
-        <button class="collapse-btn" onclick="toggleHostControls()">
-        <span class="toggle-icon" id="hostToggleIcon">▼</span>
+      <!-- Center: Game State -->
+      <div class="dock-center">
+        <span class="game-state-text" id="gameStateText">Waiting to start</span>
+      </div>
+
+      <!-- Right: Control Buttons (Dock Apps) -->
+      <div class="dock-right">
+        <button class="dock-app" id="hostControlsBtn" onclick="openHostControlsModal()" style="display: none;" title="Host Controls">
+          <span class="dock-app-icon">⚒</span>
+          <span class="dock-app-label">Host Settings</span>
+        </button>
+        <button class="dock-app" id="playerSettingsBtn" onclick="openPlayerSettingsModal()" title="Settings">
+          <span class="dock-app-icon">☻</span>
+          <span class="dock-app-label">Settings</span>
         </button>
       </div>
+      </div>
       
-      <div class="panel-content" id="hostControlsContent">
+    <!-- 🎛️ HOST CONTROLS MODAL - LIQUID GLASS STYLED -->
+    <div id="hostControlsModal" class="modal-overlay" style="display: none;" onclick="closeModalOnOverlay(event, 'hostControlsModal')">
+      <div class="modal-content liquid-glass liquid-glass--xl" onclick="event.stopPropagation()">
+        <div class="modal-header">
+        <h2>🎛️ HOST CONTROLS <span class="host-badge">ONLY YOU</span></h2>
+          <button class="modal-close-btn" onclick="closeHostControlsModal()">×</button>
+      </div>
+      
+        <div class="modal-body" id="hostControlsContent">
         
         <!-- ============================================ -->
         <!-- SECTION 1: PLAYERS & BLINDS (Unified) -->
@@ -3773,19 +3911,19 @@
             </div>
         </div>
         
+        </div>
       </div>
     </div>
     
-    <!-- ⚙️ PLAYER SETTINGS (Non-Host Players) -->
-    <div id="playerSettingsPanel">
-      <div class="panel-header">
+    <!-- ⚙️ PLAYER SETTINGS MODAL - LIQUID GLASS STYLED -->
+    <div id="playerSettingsModal" class="modal-overlay" style="display: none;" onclick="closeModalOnOverlay(event, 'playerSettingsModal')">
+      <div class="modal-content liquid-glass liquid-glass--xl" onclick="event.stopPropagation()">
+        <div class="modal-header">
         <h2>⚙️ Player Settings</h2>
-        <button class="collapse-btn" onclick="togglePlayerSettings()">
-          <span class="toggle-icon" id="playerSettingsToggle">▼</span>
-        </button>
+          <button class="modal-close-btn" onclick="closePlayerSettingsModal()">×</button>
       </div>
       
-      <div class="panel-content" id="playerSettingsContent">
+        <div class="modal-body" id="playerSettingsContent">
         <!-- TABLE COLOR -->
         <div class="host-section">
           <h4>🎨 Table Color</h4>
@@ -3951,12 +4089,9 @@
             <div><kbd>Space</kbd> = Confirm Action</div>
           </div>
         </div>
+        
       </div>
     </div>
-    
-    <div class="controls">
-      <button class="btn" id="startBtn" style="display:none">🎮 START HAND</button>
-      <button class="btn" id="refreshBtn">🔄 REFRESH</button>
     </div>
     
     <!-- HIDDEN: Old top sections (deprecated - info now on table) -->
@@ -4014,9 +4149,8 @@
       </div>
     </div>
     
-    <!-- HAND RANK DISPLAY (Above Action Buttons) -->
+    <!-- HAND RANK DISPLAY (Simple Text Above Action Buttons) -->
     <div id="handRankDisplay" class="hand-rank-display" style="display: none;">
-      <div class="hand-rank-label">YOUR HAND</div>
       <div class="hand-rank-text" id="handRankText">Evaluating...</div>
     </div>
     
@@ -4025,11 +4159,11 @@
       <div class="runout-message-text">Dealing cards...</div>
     </div>
     
-    <!-- ACTION BUTTONS (Below Table) -->
-    <div id="actionButtons" style="display:none; margin-top: 30px; display: flex; justify-content: center; gap: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
-      <button class="btn" id="foldBtn">FOLD</button>
-      <button class="btn" id="callBtn"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
-      <button class="btn" id="raiseBtn">RAISE</button>
+    <!-- ACTION BUTTONS - Liquid Glass Tiles (same as dock) -->
+    <div id="actionButtons" style="display:none; margin-top: 40px; margin-bottom: 50px; display: flex; justify-content: center; align-items: center; gap: 30px; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 0 40px;">
+      <button class="action-btn liquid-glass liquid-glass--md" id="foldBtn">FOLD</button>
+      <button class="action-btn liquid-glass liquid-glass--md" id="callBtn"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
+      <button class="action-btn liquid-glass liquid-glass--md" id="raiseBtn">RAISE</button>
     </div>
     
     <!-- RAISE PANEL (Below Buttons) -->
@@ -4074,10 +4208,6 @@
       </div>
     </div>
     
-    <div class="debug">
-      <h4>Debug Console</h4>
-      <div id="debugLog"></div>
-    </div>
   </div>
   
   <script src="/socket.io/socket.io.js"></script>
@@ -4132,16 +4262,19 @@
     // UTILITY: DEBUG LOGGING
     // ============================================
     function debug(message, data = null) {
-      console.log(message, data);
-      const log = document.getElementById('debugLog');
-      const time = new Date().toLocaleTimeString();
-      const entry = document.createElement('div');
-      entry.textContent = `[${time}] ${message}`;
-      if (data) {
-        entry.textContent += ' ' + JSON.stringify(data, null, 2);
+      // Debug disabled for clean production UI
+      // console.log(message, data);
+    }
+    
+    // ============================================
+    // UTILITY: UPDATE DOCK GAME STATE
+    // ============================================
+    function updateDockGameState(text) {
+      const gameStateEl = document.getElementById('gameStateText');
+      if (gameStateEl) {
+        gameStateEl.textContent = text;
+        debug('🎯 Dock state updated:', text);
       }
-      log.appendChild(entry);
-      log.scrollTop = log.scrollHeight;
     }
     
     // ============================================
@@ -4176,6 +4309,14 @@
     // ============================================
     function init() {
       debug('🎬 Initializing minimal table...');
+      
+      // Initialize dock state
+      updateDockGameState('Waiting to start');
+      
+      // Initialize falling cards animation (EXACT same as play page)
+      if (typeof initOngoingOnly === 'function') {
+        initOngoingOnly();
+      }
       
       // Get room ID from URL
       const urlParams = new URLSearchParams(window.location.search);
@@ -4246,10 +4387,6 @@
       }
       
       debug('✅ Initialized', { roomId, userId, isAuthenticated });
-      
-      // Wire up buttons
-      document.getElementById('startBtn').onclick = startHand;
-      document.getElementById('refreshBtn').onclick = loadRoom;
       
       // Initialize host controls settings from localStorage
       initializeHostSettings();
@@ -4333,8 +4470,15 @@
         debug('🎮 ACTIVE GAME FOUND - RESTORING STATE', {
           handNumber: data.gameState.handNumber,
           street: data.gameState.street,
-          pot: data.gameState.pot
+          pot: data.gameState.pot,
+          isSpectator: data.isSpectator,
+          inCurrentHand: data.inCurrentHand
         });
+        
+        // ARCHITECTURAL FIX: Use backend spectator detection
+        // Backend knows if user is in gameState.players[] (inCurrentHand)
+        // If not in current hand during active game = spectator
+        isSpectator = data.isSpectator || false;
         
         gameId = data.gameId;
         currentGameState = data.gameState; // Store for UI logic
@@ -4362,6 +4506,8 @@
         if (data.gameState.currentActorSeat !== undefined) {
           actorText.textContent = `(Seat ${data.gameState.currentActorSeat + 1}'s turn)`;
           actorText.style.display = 'inline';
+          // Update dock center with current turn
+          updateDockGameState(`Seat ${data.gameState.currentActorSeat + 1}'s turn`);
         }
         
         // Render my hole cards
@@ -4442,6 +4588,15 @@
         }
       });
       
+      // Listen for seat request resolved (player approved)
+      socket.on('seat_request_resolved', (data) => {
+        if (data.status === 'APPROVED' && data.userId !== userId) {
+          // Someone else got approved - show elegant corner notification
+          const username = data.username || 'Player';
+          showCornerNotification(`${username} joining next hand`, 'info');
+        }
+      });
+      
       socket.on('hand_started', (data) => {
         debug('🃏 Hand started event', data);
         
@@ -4497,6 +4652,8 @@
           if (gs.currentActorSeat !== undefined) {
             actorText.textContent = `(Seat ${gs.currentActorSeat + 1}'s turn)`;
             actorText.style.display = 'inline';
+            // Update dock center with current turn
+            updateDockGameState(`Seat ${gs.currentActorSeat + 1}'s turn`);
           }
           
           debug('✅ Game state updated', { pot: gs.pot, currentBet: gs.currentBet, street: gs.street });
@@ -4615,6 +4772,8 @@
           const actorText = document.getElementById('currentActor');
           if (gs.currentActorSeat !== undefined) {
             actorText.textContent = `(Seat ${gs.currentActorSeat + 1}'s turn)`;
+            // Update dock center with current turn
+            updateDockGameState(`Seat ${gs.currentActorSeat + 1}'s turn`);
           }
           
           // Show community cards if any (but skip if this is an all-in runout - handled by street_reveal)
@@ -4966,7 +5125,15 @@
         const seatsData = await seatsResponse.json();
         debug('✅ Seats data received', seatsData);
         
-        // Update room code (with fallback)
+        // Update room name (top tile)
+        const roomNameEl = document.getElementById('roomNameDisplay');
+        if (roomNameEl) {
+          const roomName = roomData.room?.name || 'Poker Room';
+          roomNameEl.textContent = roomName;
+          debug('✅ Room name updated:', roomName);
+        }
+        
+        // Update room code (dock)
         const roomCodeEl = document.getElementById('roomCode');
         if (roomCodeEl) {
           roomCodeEl.textContent = roomData.room?.code || roomData.room?.invite_code || '---';
@@ -4992,21 +5159,43 @@
           updateSeatChips(currentGameState.players);
         }
         
-        // Detect if user is a spectator (not seated, game active, not host)
-        // CRITICAL: Spectators are users NOT in seats at all - they're outside watching
+        // ARCHITECTURAL FIX: Determine player state
+        // THREE STATES:
+        // 1. LOBBY: Pre-game, everyone sees all 10 seats (hardcoded positions)
+        // 2. ACTIVE PLAYER: In gameState.players[], sees only occupied seats (dynamic positions)
+        // 3. SPECTATOR: Game active but not in gameState.players[] (sees all 10 seats, hardcoded positions)
+        
         const mySeat = seatsData.seats?.find(s => s && s.userId === userId);
         isHost = roomData.room?.hostId === userId; // Update global isHost
         const roomIsActive = !!(roomData.room?.gameId || roomData.room?.game_id); // Game active if gameId exists
-        // Spectator = not seated, game active, not host
-        isSpectator = !mySeat && roomIsActive && !isHost;
         mySeatIndex = mySeat ? mySeat.seatIndex : null;
         
-        debug('👁️ Spectator check:', { 
+        // CRITICAL: Only calculate isSpectator if NOT already set by hydration
+        // Hydration is source of truth (backend checks if user is in gameState.players[])
+        // This local calculation is ONLY for pre-game (when hydration returns no active game)
+        if (typeof isSpectator !== 'boolean') {
+          // Pre-game state: no one is spectating (all can claim seats directly)
+          // OR game active but hydration hasn't run yet (shouldn't happen, but fallback)
+          if (roomIsActive) {
+            // Game active but no hydration data - mark as spectator (safe default)
+            isSpectator = true;
+            debug('⚠️ Game active but isSpectator not set by hydration - defaulting to spectator');
+          } else {
+            // Pre-game: no one is a spectator
+            isSpectator = false;
+          }
+        } else {
+          // Hydration already set isSpectator - trust it (backend is source of truth)
+          debug('✅ Using isSpectator from hydration:', isSpectator);
+        }
+        
+        debug('👁️ Player state:', { 
           isSpectator, 
-          mySeat: !!mySeat, 
-          roomIsActive, 
           isHost,
-          mySeatIndex 
+          roomIsActive,
+          mySeat: !!mySeat, 
+          mySeatIndex,
+          state: !roomIsActive ? 'LOBBY' : (isSpectator ? 'SPECTATOR' : 'ACTIVE_PLAYER')
         });
         
         // Show START button ONLY if:
@@ -5027,12 +5216,12 @@
         } else if (isHost && seatedCount >= 2) {
           document.getElementById('startBtn').style.display = 'inline-block';
           document.getElementById('startBtn').disabled = false;
-          document.getElementById('startBtn').textContent = '🎮 START HAND';
+          document.getElementById('startBtn').textContent = 'Start Hand';
           debug('🎮 START HAND button enabled (HOST)', { seatedCount });
         } else if (!isHost && seatedCount >= 2) {
           document.getElementById('startBtn').style.display = 'inline-block';
           document.getElementById('startBtn').disabled = true;
-          document.getElementById('startBtn').textContent = '⏳ WAITING FOR HOST';
+          document.getElementById('startBtn').textContent = 'Waiting for Host';
           debug('⏳ Waiting for host to start', { hostId: roomData.room?.hostId });
         } else {
           document.getElementById('startBtn').style.display = 'none';
@@ -5188,22 +5377,31 @@
           const isMyRequest = myPendingRequests.has(i);
           
           if (hasPendingRequest) {
-            // ARCHITECTURAL FIX: Show who requested this seat
+            // ARCHITECTURAL FIX: Elegant seat request styling
             if (isMyRequest) {
-              // My request - show waiting state
-            player.textContent = 'PENDING';
-              chips.textContent = 'Waiting for approval...';
+              // Your request - elegant waiting state
+              player.textContent = 'Pending Approval';
+              player.style.color = 'rgba(255, 255, 255, 0.9)';
+              player.style.fontSize = '0.9rem';
+              player.style.fontWeight = '500';
+              chips.textContent = 'Awaiting host...';
+              chips.style.color = 'rgba(255, 255, 255, 0.6)';
+              chips.style.fontSize = '0.75rem';
             } else {
-              // Someone else's request - show who requested it
-              const requesterName = pendingRequest?.username || 'Someone';
-              player.textContent = 'REQUESTED';
-              chips.textContent = `By ${requesterName}`;
-            }
-            chips.style.color = '#ff9500';
+              // Someone else's request - show initiator elegantly
+              const requesterName = pendingRequest?.username || 'Player';
+              player.textContent = requesterName;
+              player.style.color = 'rgba(255, 255, 255, 0.7)';
+              player.style.fontSize = '0.9rem';
+              chips.textContent = 'Requested';
+              chips.style.color = 'rgba(255, 149, 0, 0.8)';
+              chips.style.fontSize = '0.75rem';
             chips.style.fontStyle = 'italic';
+            }
             div.onclick = null; // Disable clicking while pending
-            div.style.opacity = '0.7';
-            div.classList.add('seat-requested'); // Add CSS class for styling
+            div.style.opacity = '0.85';
+            div.style.border = '2px dashed rgba(255, 255, 255, 0.3)';
+            div.classList.add('seat-requested');
           } else {
             // Empty seat - allow requesting
           player.textContent = 'EMPTY';
@@ -6694,6 +6892,9 @@
     function handleHandComplete(gameState) {
       debug('🏆 Hand complete', gameState);
       
+      // Update dock center - hand complete
+      updateDockGameState('Hand complete');
+      
       // Hide action buttons
       document.getElementById('actionButtons').style.display = 'none';
       
@@ -6712,8 +6913,106 @@
         
         debug(`🏆 Winner: Seat ${winner.seatIndex + 1} wins $${potAmount}`);
         
-        // 1. KEEP POT VISIBLE (don't zero it yet)
-        // Pot display will be updated by updatePotDisplay when gameState is processed
+        // NOVEL MODALITY: Show winner IN the pot display with glow/animation
+        const potDisplayEl = document.querySelector('.pot-display-center');
+        if (potDisplayEl) {
+          // Get winner nickname from seat or gameState
+          const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
+          const winnerSeat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
+          const winnerName = winnerPlayer?.nickname || winnerSeat?.querySelector('.seat-player')?.textContent?.replace('@', '') || `Seat ${winner.seatIndex + 1}`;
+          
+          // Replace pot amount with winner message (elegant, glowing)
+          potDisplayEl.innerHTML = `
+            <div class="winner-pot-display" style="text-align: center; animation: winnerGlow 2s ease-in-out infinite;">
+              <div style="color: #FFD700; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">${winnerName} wins</div>
+              <div style="color: #00ff88; font-size: 1.8rem; font-weight: 700; text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);">$${formatChipAmount(potAmount).replace('$', '').trim()}</div>
+            </div>
+          `;
+          
+          // Add winner glow animation
+          if (!document.getElementById('winnerGlowKeyframes')) {
+            const style = document.createElement('style');
+            style.id = 'winnerGlowKeyframes';
+            style.textContent = `
+              @keyframes winnerGlow {
+                0%, 100% { 
+                  transform: scale(1);
+                  filter: brightness(1);
+                }
+                50% { 
+                  transform: scale(1.05);
+                  filter: brightness(1.2);
+                }
+              }
+            `;
+            document.head.appendChild(style);
+          }
+          
+          // After 3s, animate chips dispersing to winner, then reset pot
+          setTimeout(() => {
+            // Animate pot decrementing to zero
+            const mainPotEl = document.getElementById('mainPotAmount');
+            if (mainPotEl) {
+              const startPot = potAmount;
+              const duration = 800;
+              const startTime = Date.now();
+              
+              const animateDecrement = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentPot = startPot * (1 - progress);
+                const formatted = formatChipAmount(currentPot).replace('$', '').trim();
+                mainPotEl.textContent = formatted;
+                
+                if (progress < 1) {
+                  requestAnimationFrame(animateDecrement);
+                } else {
+                  mainPotEl.textContent = '0';
+                  
+                  // Animate winner's stack incrementing (chips moving to them)
+                  const winnerSeat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
+                  const chipsEl = winnerSeat?.querySelector('.seat-chips');
+                  if (chipsEl) {
+                    const currentChips = winnerPlayer?.chips || 0;
+                    const finalChips = currentChips + potAmount;
+                    const startChips = currentChips;
+                    const chipDuration = 800;
+                    const chipStartTime = Date.now();
+                    
+                    const animateStackIncrement = () => {
+                      const chipElapsed = Date.now() - chipStartTime;
+                      const chipProgress = Math.min(chipElapsed / chipDuration, 1);
+                      const chipCurrent = startChips + (potAmount * chipProgress);
+                      const chipFormatted = formatChipAmount(chipCurrent);
+                      chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${chipFormatted.replace('$', '').trim()}`;
+                      
+                      if (chipProgress < 1) {
+                        requestAnimationFrame(animateStackIncrement);
+                      } else {
+                        const finalFormatted = formatChipAmount(finalChips);
+                        chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${finalFormatted.replace('$', '').trim()}`;
+                      }
+                    };
+                    
+                    requestAnimationFrame(animateStackIncrement);
+                  }
+                  
+                  // Reset pot display after animation completes
+                  setTimeout(() => {
+                    potDisplayEl.innerHTML = '<div style="color: #00ff88; font-size: 1.5rem; font-weight: 700;">$0</div>';
+                  }, 200);
+                }
+              };
+              
+              requestAnimationFrame(animateDecrement);
+            } else {
+              // Fallback: just reset pot display
+              setTimeout(() => {
+                potDisplayEl.innerHTML = '<div style="color: #00ff88; font-size: 1.5rem; font-weight: 700;">$0</div>';
+              }, 1000);
+            }
+          }, 3000);
+        }
         
         // 2. HIGHLIGHT WINNER'S SEAT
         highlightWinnerSeat(winner.seatIndex);
@@ -7561,32 +7860,43 @@
     // ============================================
     // 🎛️ HOST CONTROLS FUNCTIONS
     // ============================================
-    function toggleHostControls() {
-      const content = document.getElementById('hostControlsContent');
-      const icon = document.getElementById('hostToggleIcon');
-      content.classList.toggle('expanded');
-      icon.classList.toggle('expanded');
+    // Modal Functions
+    function openHostControlsModal() {
+      document.getElementById('hostControlsModal').style.display = 'flex';
     }
     
-    function togglePlayerSettings() {
-      const content = document.getElementById('playerSettingsContent');
-      const icon = document.getElementById('playerSettingsToggle');
-      content.classList.toggle('expanded');
-      icon.classList.toggle('expanded');
+    function closeHostControlsModal() {
+      document.getElementById('hostControlsModal').style.display = 'none';
+    }
+    
+    function openPlayerSettingsModal() {
+      document.getElementById('playerSettingsModal').style.display = 'flex';
+    }
+    
+    function closePlayerSettingsModal() {
+      document.getElementById('playerSettingsModal').style.display = 'none';
+    }
+    
+    function closeModalOnOverlay(event, modalId) {
+      if (event.target.id === modalId) {
+        document.getElementById(modalId).style.display = 'none';
+      }
     }
     
     async function loadHostControls() {
+      // Show/hide header buttons based on host status
+      const hostBtn = document.getElementById('hostControlsBtn');
+      if (hostBtn) {
+        hostBtn.style.display = isHost ? 'inline-flex' : 'none';
+      }
+      
       if (!isHost) {
-        // Non-hosts: hide host controls, show player settings
-        document.getElementById('hostControlsPanel').style.display = 'none';
-        document.getElementById('playerSettingsPanel').style.display = 'block';
+        // Non-hosts only see settings button
         return;
       }
       
-      // Hosts: show BOTH host controls AND player settings
+      // Hosts: load host controls content
       debug('🎛️ Loading host controls...');
-      document.getElementById('hostControlsPanel').style.display = 'block';
-      document.getElementById('playerSettingsPanel').style.display = 'block';
       
       try {
         const response = await fetch(`/api/engine/host-controls/${roomId}/${userId}`);
@@ -7758,6 +8068,50 @@
     
     // Simple notification function (fallback if showToast doesn't exist)
     // Top-right notification system
+    // Elegant corner notification for player approvals
+    function showCornerNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = 'corner-notification';
+      notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        color: ${type === 'info' ? '#00d9ff' : '#ff9500'};
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        border: 2px solid ${type === 'info' ? '#00d9ff' : '#ff9500'};
+        font-size: 0.9rem;
+        font-weight: 500;
+        z-index: 9999;
+        animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 2.7s;
+        box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+      `;
+      notification.textContent = message;
+      
+      // Add animation keyframes if not exists
+      if (!document.getElementById('cornerNotificationKeyframes')) {
+        const style = document.createElement('style');
+        style.id = 'cornerNotificationKeyframes';
+        style.textContent = `
+          @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      document.body.appendChild(notification);
+      
+      // Remove after 3s
+      setTimeout(() => notification.remove(), 3000);
+    }
+    
     function showNotification(message, type = 'info') {
       // Try showToast first (if it exists)
       if (typeof showToast === 'function') {
@@ -9053,7 +9407,13 @@
       
       positionsToApply.forEach(pos => {
         const seat = document.querySelector(`.seat[data-seat-index="${pos.index}"]`);
-        if (seat && !seat.classList.contains('empty')) {
+        
+        // ARCHITECTURAL FIX: Position ALL seats for spectators (empty + occupied)
+        // Spectators need to see the full table layout (all 10 seats) to understand where they can claim
+        // Active players only see occupied seats (compact dynamic layout)
+        const shouldPosition = seat && (isSpectator || !seat.classList.contains('empty'));
+        
+        if (shouldPosition) {
           // CRITICAL: Dynamic positions from calculateDynamicSeatPositions() are in TABLE COORDINATES (unscaled)
           // Hardcoded positions from calculateSeatPositions() are in VIEWPORT COORDINATES (scaled)
           // We need to handle them differently:
