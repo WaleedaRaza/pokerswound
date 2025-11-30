@@ -1446,3 +1446,81 @@ Document is complete when it contains:
 
 **Next Steps:** Use this document as reference for implementing bug fixes. All changes should maintain these architectural principles and invariants.
 
+
+---
+
+## 9. Observability & Logging
+
+### 9.1 Goals
+- Preserve the rich debugging insight we have today without flooding the console (hundreds of lines per hand).
+- Guarantee every action/hand still emits a deterministic trail for audits and chip-conservation checks.
+- Make log verbosity configurable at runtime so production can stay quiet while local debugging remains detailed.
+
+### 9.2 Log Detail Levels
+| Level | Env Flag (`ENGINE_LOG_DETAIL`) | Behavior |
+|-------|--------------------------------|----------|
+| `summary` (default) | unset / `summary` | Emit one compact line per high-volume event (action, hydration, deal, persistence) plus critical warnings/errors. |
+| `detail` | `detail` | Emit summary line **and** structured detail blocks (player snapshots, pot tables, DB diffs). |
+
+Any other value falls back to `summary`. The flag will be read once during server bootstrap and shared with the helper functions below.
+
+### 9.3 Helper Contracts
+```ts
+type ActionSummary = {
+  phase: 'hydrate' | 'seat' | 'deal' | 'action' | 'persist' | 'autoStart' | 'extract';
+  roomId: string;           // truncated in helper: e.g., roomId.slice(0, 8)
+  handNumber?: number;
+  seq?: number;             // action sequence when relevant
+  playerId?: string;        // truncated to 8 chars
+  seatIndex?: number;
+  action?: 'FOLD' | 'CHECK' | 'CALL' | 'RAISE' | 'ALL_IN' | string;
+  amount?: number;
+  street?: 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN';
+  pot?: number;
+  currentBet?: number;
+  nextActorSeat?: number | null;
+  metadata?: Record<string, unknown>; // optional one-liners (e.g., `{ sb: 50, bb: 100 }`)
+};
+
+logActionSummary(summary: ActionSummary): void
+// → prints a single line such as:
+// [HAND #42][ROOM 7da3e8c4][SEQ 18][ACTION] Seat 3 (a1b2c3d4) RAISE $250 @ FLOP | Pot=850 Next=Seat 4
+
+logActionDetail(label: string, detail: Record<string, unknown>): void
+// → only prints when ENGINE_LOG_DETAIL=detail. Can pretty-print player arrays, pot breakdowns, etc.
+```
+
+Warnings (`console.warn`) and errors (`console.error`) stay as-is, but any `console.log` inside the high-volume paths below should flow through `logActionSummary`/`logActionDetail`.
+
+### 9.4 High-Volume Emitters (Must Use Helper)
+| File | Function / Endpoint | Current Log Description | Summary Fields to Capture |
+|------|---------------------|-------------------------|---------------------------|
+| `routes/game-engine-bridge.js` | `hydrateRoomState` (`GET /api/engine/hydrate`) | Multiple per-request logs for room/game lookup, blind fixes, result payload. | `phase='hydrate'`, `roomId`, `handNumber`, `street`, whether active game exists. |
+| | `claimSeat` / seat unification | Logs for every seat claim, sandbox approval, failures. | `phase='seat'`, `roomId`, `playerId`, `seatIndex`, `amount` (requested chips). |
+| | `dealCards` (`POST /api/engine/deal-cards`) | Deck building, sandbox overrides, blind posting, dealer rotation, save/broadcast. | `phase='deal'`, `handNumber`, `roomId`, `players`, `street='PREFLOP'`. |
+| | `persistHandCompletion` | Chip conservation summaries, DB updates for each player, busted removal, auto-start decisions. | `phase='persist'`, `handNumber`, `roomId`, `pot`, `playersWithChips`, `autoStartEnabled`. Detail block: chip conservation table. |
+| | `extractHandData` | Encoding statistics, insert IDs, storage savings. | `phase='extract'`, `handNumber`, `roomId`, `encodedSize`, `savings`. Detail block: encoded preview & stats. |
+| | `processAction` handler (`POST /api/engine/action`) | Action attempt/completion, pot/bet state dump, verification query. | `phase='action'`, `handNumber`, `seq`, `playerId`, `seatIndex`, `action`, `amount`, `street`, `pot`, `currentBet`, `nextActorSeat`. Detail block: `updatedState.players`, pot arrays when detail enabled. |
+| | Auto-start scheduler | Hand start attempts after completion with HTTP calls and outcomes. | `phase='autoStart'`, `roomId`, `handNumber`, `playersWithChips`. |
+| `src/adapters/game-logic.js` | `processAction` orchestrator | Action attempts, validation warnings, round completion decisions. | `phase='action'`, `handNumber`, `seq`, `playerId`, `action`, `amount`, `street`, `pot`, `currentBet`, `nextActorSeat`. |
+| | `handleFoldWin`, `handleShowdown`, `handleAllInRunout` | Winner announcements, pot calculations, street reveals. | `phase='action'` or `phase='extract'` depending, always include `handNumber`, `street`, `winners`. |
+| | `isBettingRoundComplete` / `progressToNextStreet` | Pot calculations, board dealing, runout scheduling. | `phase='action'`, `street`, `currentBet`, `playersWhoCanAct`, `nextActorSeat`. |
+
+Any other module can still call the helper, but the table above represents the big emitters we must convert before we see log volume drop.
+
+### 9.5 Detail Blocks
+- Player snapshot detail should be a compact array of `{ seat, user, chips, bet, betThisStreet, status }`.
+- Pot snapshot detail should emit `{ mainPot, sidePots: [{ level, amount, eligibleSeats }] }`.
+- DB diff detail should list only rows touched (seat updates, busted removals).
+- All detail blocks go through `logActionDetail(label, payload)` so they respect the env flag.
+
+### 9.6 Implementation Checklist
+1. Add `ENGINE_LOG_DETAIL` to `.env.example` (defaults to `summary`).
+2. Implement helper module (e.g., `src/utils/logging.js`) exporting `logActionSummary`, `logActionDetail`, and `obfuscateId`.
+3. Replace `console.log` calls in the table above with helper usage.
+4. Keep existing warnings/errors for visibility.
+5. Verify both modes manually:
+   - `ENGINE_LOG_DETAIL=summary`: one line per event.
+   - `ENGINE_LOG_DETAIL=detail`: summary + structured JSON blocks.
+6. Document the flag in `README.md` once the helper ships.
+

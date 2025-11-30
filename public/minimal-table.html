@@ -590,6 +590,53 @@
       letter-spacing: 0.05em;
     }
 
+    .hand-transition-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.88);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1300;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .hand-transition-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      border-radius: 16px;
+      padding: 32px 48px;
+      text-align: center;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.35);
+      min-width: 280px;
+    }
+
+    .hand-transition-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.7);
+      margin-bottom: 8px;
+    }
+
+    .hand-transition-countdown {
+      font-size: 4rem;
+      font-weight: 600;
+      color: #00d4aa;
+      letter-spacing: 0.05em;
+      line-height: 1;
+    }
+
+    .board-fade-target {
+      transition: opacity 200ms ease;
+    }
+
+    .board-fade-out {
+      opacity: 0;
+    }
+
     /* Pot Label - Refined Typography */
     .pot-label {
       font-size: 11px;
@@ -1499,87 +1546,6 @@
       background: linear-gradient(135deg, #ff3b3b, #ff0000);
       color: white;
       border-color: #ff6666;
-    }
-    
-    /* 🏆 WINNER BANNER - Modern Design */
-    .winner-banner {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, rgba(15,15,25,0.98), rgba(20,20,30,0.98));
-      border: 2px solid #ff5100;
-      border-radius: 20px;
-      padding: 40px 60px;
-      font-size: 2rem;
-      font-weight: 700;
-      color: #e9eef7;
-      box-shadow: 0 16px 48px rgba(255, 81, 0, 0.4), 0 0 0 1px rgba(255, 81, 0, 0.2);
-      z-index: 1000;
-      animation: winnerBannerPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      display: none;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      text-align: center;
-      min-width: 400px;
-      max-width: 600px;
-    }
-    
-    .winner-banner::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(255, 81, 0, 0.1), rgba(0, 212, 170, 0.05));
-      opacity: 0.5;
-    }
-    
-    .winner-banner::after {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      z-index: -2;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(255, 81, 0, 0.3), rgba(0, 212, 170, 0.2));
-      filter: blur(20px);
-      opacity: 0.6;
-    }
-    
-    @keyframes winnerBannerPop {
-      0% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 0;
-      }
-      50% {
-        transform: translate(-50%, -50%) scale(1.05);
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-      }
-    }
-    
-    .winner-banner.show {
-      display: block;
-    }
-    
-    .winner-banner small {
-      display: block;
-      margin-top: 12px;
-      font-size: 1.2rem;
-      font-weight: 500;
-      line-height: 1.4;
-    }
-    
-    .winner-banner .winner-name {
-      color: #ff5100;
-      text-shadow: 0 0 20px rgba(255, 81, 0, 0.5);
-    }
-    
-    .winner-banner .winner-amount {
-      color: #00d4aa;
-      text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
     }
     
     /* 🃏 SHOW/MUCK CONTROLS */
@@ -3224,22 +3190,24 @@
       padding: 24px 60px;
       cursor: pointer;
       transition: all 0.25s ease;
+      border-radius: 16px;
+      /* Override browser button default background */
+      background: transparent;
+      /* Let liquid glass pseudo-elements handle the background/blur/distortion */
+    }
+    
+    /* Text layer - positioned ABOVE liquid glass effects */
+    .action-btn-text {
+      position: relative;
+      z-index: 1001; /* Above liquid glass ::before (z-index: 1000) */
+      display: block;
       font-family: 'JetBrains Mono', monospace;
       font-size: 1.5rem;
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
-      border-radius: 16px;
-      /* Override browser button default background */
-      background: transparent;
-      /* Liquid glass pseudo-elements handle the visual background */
-      /* Disable distortion on text content */
-      filter: none !important;
-    }
-    
-    /* Text inside buttons should not be distorted */
-    .action-btn * {
-      filter: none !important;
+      /* Text is completely separate from distortion layer */
+      filter: none;
     }
     
     .action-btn:hover:not(:disabled):not(.not-your-turn) {
@@ -3252,37 +3220,55 @@
     
     /* FOLD Button - Red text with glow */
     #foldBtn {
-      color: #ef4444;
       border: 2px solid rgba(239, 68, 68, 0.3);
     }
     
+    #foldBtn .action-btn-text {
+      color: #ef4444;
+    }
+    
     #foldBtn:hover:not(:disabled):not(.not-your-turn) {
-      color: #f87171;
       border-color: rgba(248, 113, 113, 0.5);
+    }
+    
+    #foldBtn:hover:not(:disabled):not(.not-your-turn) .action-btn-text {
+      color: #f87171;
       text-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
     }
     
     /* CALL/CHECK Button - Teal (matches dock accent) */
     #callBtn {
-      color: #00d4aa;
       border: 2px solid rgba(0, 212, 170, 0.3);
     }
     
+    #callBtn .action-btn-text {
+      color: #00d4aa;
+    }
+    
     #callBtn:hover:not(:disabled):not(.not-your-turn) {
-      color: #00ffcc;
       border-color: rgba(0, 255, 204, 0.5);
+    }
+    
+    #callBtn:hover:not(:disabled):not(.not-your-turn) .action-btn-text {
+      color: #00ffcc;
       text-shadow: 0 0 12px rgba(0, 212, 170, 0.6);
     }
     
     /* RAISE/BET Button - Orange (matches dock primary) */
     #raiseBtn {
-      color: #ff5100;
       border: 2px solid rgba(255, 81, 0, 0.3);
     }
     
+    #raiseBtn .action-btn-text {
+      color: #ff5100;
+    }
+    
     #raiseBtn:hover:not(:disabled):not(.not-your-turn) {
-      color: #ff6a2e;
       border-color: rgba(255, 106, 46, 0.5);
+    }
+    
+    #raiseBtn:hover:not(:disabled):not(.not-your-turn) .action-btn-text {
+      color: #ff6a2e;
       text-shadow: 0 0 12px rgba(255, 81, 0, 0.6);
     }
     
@@ -3727,9 +3713,6 @@
   <!-- UNIFIED NAVBAR (Injected by navbar-template.js) -->
   <div id="navbar-container"></div>
   
-  <!-- 🏆 WINNER BANNER (hidden by default) -->
-  <div class="winner-banner" id="winnerBanner"></div>
-  
   <!-- 🃏 SHOW/MUCK CONTROLS (showdown only) -->
   <div class="showdown-controls" id="showdownControls">
     <h3>🃏 Show your cards or muck?</h3>
@@ -3781,6 +3764,9 @@
       <!-- Center: Game State -->
       <div class="dock-center">
         <span class="game-state-text" id="gameStateText">Waiting to start</span>
+        <div class="hand-timer-bar" id="handTimerBar">
+          <div class="hand-timer-fill" id="handTimerFill"></div>
+        </div>
       </div>
 
       <!-- Right: Control Buttons (Dock Apps) -->
@@ -4096,7 +4082,7 @@
     
     <!-- HIDDEN: Old top sections (deprecated - info now on table) -->
     <div style="display: none !important;">
-      <div class="my-cards" id="communitySection">
+      <div class="my-cards board-fade-target" id="communitySection">
         <div class="cards-display"></div>
         <span id="currentBet">0</span>
         <span id="currentBetDisplay">0</span>
@@ -4161,9 +4147,15 @@
     
     <!-- ACTION BUTTONS - Liquid Glass Tiles (same as dock) -->
     <div id="actionButtons" style="display:none; margin-top: 40px; margin-bottom: 50px; display: flex; justify-content: center; align-items: center; gap: 30px; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 0 40px;">
-      <button class="action-btn liquid-glass liquid-glass--md" id="foldBtn">FOLD</button>
-      <button class="action-btn liquid-glass liquid-glass--md" id="callBtn"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></button>
-      <button class="action-btn liquid-glass liquid-glass--md" id="raiseBtn">RAISE</button>
+      <button class="action-btn liquid-glass liquid-glass--md" id="foldBtn">
+        <span class="action-btn-text">FOLD</span>
+      </button>
+      <button class="action-btn liquid-glass liquid-glass--md" id="callBtn">
+        <span class="action-btn-text"><span id="callBtnText">CALL</span> $<span id="callAmount">0</span></span>
+      </button>
+      <button class="action-btn liquid-glass liquid-glass--md" id="raiseBtn">
+        <span class="action-btn-text">RAISE</span>
+      </button>
     </div>
     
     <!-- RAISE PANEL (Below Buttons) -->
@@ -4210,6 +4202,13 @@
     
   </div>
   
+  <div id="handTransitionOverlay" class="hand-transition-overlay">
+    <div class="hand-transition-card">
+      <div class="hand-transition-title" id="handTransitionTitle">Next hand starting</div>
+      <div class="hand-transition-countdown" id="handTransitionCountdown">3</div>
+    </div>
+  </div>
+  
   <script src="/socket.io/socket.io.js"></script>
   <script>
     // ============================================
@@ -4228,6 +4227,64 @@
     let myHoleCards = null; // Track user's hole cards to show on their seat tile
     let isSpectator = false; // Track if user is a spectator (not seated, game active)
     let mySeatIndex = null; // Track which seat the user is in (null if spectator)
+    let autoStartTimer = null;
+    let autoStartCountdownInterval = null;
+    
+    function showOverlayCountdown(seconds, title = 'Next hand starting') {
+    const overlay = document.getElementById('handTransitionOverlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.style.opacity = '0';
+    }
+    const bar = document.getElementById('handTimerBar');
+    const fill = document.getElementById('handTimerFill');
+    const titleEl = document.getElementById('gameStateText');
+    if (!bar || !fill || !titleEl) return;
+    titleEl.textContent = title;
+    bar.style.display = 'block';
+    fill.style.transition = 'none';
+    fill.style.transform = 'scaleX(1)';
+    requestAnimationFrame(() => {
+      fill.style.transition = 'transform ' + seconds + 's linear';
+      fill.style.transform = 'scaleX(0)';
+    });
+    }
+    
+    function updateOverlayCountdown(seconds) {
+    // No-op since we transitioned to bar
+    }
+    
+    function hideOverlayCountdown() {
+      const overlay = document.getElementById('handTransitionOverlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      overlay.style.display = 'none';
+    }
+    const bar = document.getElementById('handTimerBar');
+    const fill = document.getElementById('handTimerFill');
+    if (bar && fill) {
+      bar.style.display = 'none';
+      fill.style.transition = 'none';
+      fill.style.transform = 'scaleX(1)';
+    }
+    }
+    
+    function fadeBoardToNewState(callback) {
+      const section = document.getElementById('communitySection');
+      if (!section) {
+        callback();
+        return;
+      }
+      section.classList.add('board-fade-out');
+      setTimeout(() => {
+        callback();
+        section.classList.remove('board-fade-out');
+        section.classList.add('board-fade-in');
+        setTimeout(() => {
+          section.classList.remove('board-fade-in');
+        }, 220);
+      }, 200);
+    }
     
     // ============================================
     // NAVIGATION PROTECTION
@@ -4599,77 +4656,75 @@
       
       socket.on('hand_started', (data) => {
         debug('🃏 Hand started event', data);
+        hideOverlayCountdown();
         
-        // CRITICAL: Clear UI from previous hand (especially for guests)
-        document.getElementById('communityCards').innerHTML = '';
-        document.getElementById('myCards').innerHTML = '';
+        fadeBoardToNewState(() => {
+          const communityCardsEl = document.getElementById('communityCards');
+          const myCardsEl = document.getElementById('myCards');
+          if (communityCardsEl) communityCardsEl.innerHTML = '';
+          if (myCardsEl) myCardsEl.innerHTML = '';
         document.getElementById('actionButtons').style.display = 'none';
-        // Keep hand strength visible - it shows current hand throughout the game
         document.getElementById('myCardsSection').style.display = 'none';
         document.getElementById('startBtn').style.display = 'none';
         
-        // Reset all-in runout flag for new hand
         isAllInRunout = false;
         previousCommunityCards = [];
-        
-        // Reset showdown actions tracking for new hand
         showdownActions = {};
-        
-        // Reset street tracking for shake animations
         previousStreet = null;
-        
-        // ARCHITECTURAL FIX: Reset chip tracking for new hand
         previousPlayerChips.clear();
         previousPlayerBets.clear();
         currentPotValue = 0;
-        
-        // Clear bet indicators for new hand
         clearBetIndicators();
         
-        // Reset "don't ask again" preference for new hand (but keep for game session)
-        // allInDontAskAgain stays true if user checked it (only resets on new game/room)
-        
-        // Store game state ID
         if (data.gameStateId) {
           gameId = data.gameStateId;
         }
         
-        // Display public game state
         if (data.gameState) {
           const gs = data.gameState;
-          currentGameState = gs; // Store for UI logic
-          
-          // Recalculate seat positions (dynamic positioning based on player count)
+            currentGameState = gs;
           setTimeout(() => applySeatPositions(), 100);
+            const communitySection = document.getElementById('communitySection');
+            if (communitySection) communitySection.style.display = 'block';
           
-          // Show community section
-          document.getElementById('communitySection').style.display = 'block';
+          // CRITICAL FIX: Ensure pot display structure is intact before updating
+          const potDisplayEl = document.querySelector('.pot-display-center');
+          const mainPotEl = document.getElementById('mainPotAmount');
+          if (potDisplayEl && !mainPotEl) {
+            // Structure was destroyed - restore it
+            potDisplayEl.innerHTML = `
+              <div class="pot-amount-container">
+                <div class="pot-amount" id="mainPotAmount">0</div>
+                <div class="pot-total-row" id="potTotalRow" style="display: none;">
+                  <span class="pot-total-label" id="potTotalLabel">total</span>
+                  <span class="pot-total-amount" id="totalPotAmount">0</span>
+                </div>
+              </div>
+              <div id="sidePotsContainer" class="side-pots-container" style="display: none; margin-top: 10px;">
+                <div class="side-pot-label" style="font-size: 0.7rem; color: var(--muted); margin-bottom: 5px;">SIDE POTS</div>
+                <div id="sidePotsList" style="display: flex; flex-direction: column; gap: 5px;"></div>
+              </div>
+            `;
+          }
+          
           updatePotDisplay(gs);
           document.getElementById('currentBet').textContent = gs.currentBet || 0;
           
-          // Show current actor
           const actorText = document.getElementById('currentActor');
           if (gs.currentActorSeat !== undefined) {
             actorText.textContent = `(Seat ${gs.currentActorSeat + 1}'s turn)`;
             actorText.style.display = 'inline';
-            // Update dock center with current turn
             updateDockGameState(`Seat ${gs.currentActorSeat + 1}'s turn`);
           }
           
           debug('✅ Game state updated', { pot: gs.pot, currentBet: gs.currentBet, street: gs.street });
-          
-          // Update seat card backings (pass myHoleCards to show on my seat)
           updateSeatCardBackings(gs, myHoleCards);
-          
-          // Update position badges (dealer, SB, BB)
           updatePositionBadges(gs);
         }
         
-        // Fetch my hole cards (for guests who didn't initiate the hand)
         fetchMyCards();
-        
-        // Reload to show updated seats/chips
         setTimeout(loadRoom, 500);
+        });
       });
       
       // Listen for progressive street reveals (all-in runout)
@@ -4711,6 +4766,14 @@
         // Update game state display
         if (data.gameState) {
           const gs = data.gameState;
+          
+          // GOLDEN PATH: Skip all updates if hand is complete
+          // hand_complete event will handle everything
+          if (gs.status === 'COMPLETED') {
+            debug('⏸️ Hand complete - skipping action_processed, waiting for hand_complete event');
+            return; // Don't process - wait for hand_complete event
+          }
+          
           currentGameState = gs; // Store for UI logic
           
           // Recalculate seat positions (dynamic positioning based on player count)
@@ -4803,11 +4866,6 @@
             }
           }
           
-          // Check if hand is over
-          if (gs.status === 'COMPLETED') {
-            handleHandComplete(gs);
-          }
-          
           // Update seat card backings (show folds, etc) (pass myHoleCards to show on my seat)
           updateSeatCardBackings(gs, myHoleCards);
           
@@ -4855,8 +4913,6 @@
             debug(`✅ @${nickname} showed cards: ${holeCards.join(' ')}`);
           }
           
-          // Update winner banner if this is the winner showing
-          updateWinnerBannerIfNeeded();
         } else if (action === 'MUCK') {
           // Grey out card backs (already folded styling)
           const cardBacksContainer = document.querySelector(`.seat-cards[data-seat-index="${seatIndex}"]`);
@@ -4869,8 +4925,6 @@
             debug(`✅ @${nickname} mucked cards`);
           }
           
-          // Update winner banner if winner mucked
-          updateWinnerBannerIfNeeded();
         }
       });
       
@@ -5071,32 +5125,78 @@
       // ARCHITECTURAL FIX: Handle hand complete lobby event (hand complete, room back in lobby)
       socket.on('hand_complete_lobby', (data) => {
         debug('🏁 Hand complete - back in lobby:', data);
-        showNotification(data.message || 'Hand complete. Host can start the next hand.', 'info');
         
-        // ARCHITECTURAL FIX: Clear game state and gameId to ensure pre-start state
+        // Clear any pending countdowns
+        if (autoStartCountdownInterval) {
+          clearInterval(autoStartCountdownInterval);
+          autoStartCountdownInterval = null;
+        }
+        if (autoStartTimer) {
+          clearTimeout(autoStartTimer);
+          autoStartTimer = null;
+        }
+        
+        const autoStartIn = data.autoStartIn || 0;
+        const requiresManualStart = data.requiresManualStart || false;
+        const allowShowdownWindow = data.showdownWindow || 2000;
+        
+        setTimeout(() => {
         currentGameState = null;
-        gameId = null; // CRITICAL: Clear gameId so START button shows
-        
-        // Hide action buttons
+          gameId = null;
         document.getElementById('actionButtons').style.display = 'none';
-        
-        // Hide runout message
         const runoutMessage = document.getElementById('runoutMessage');
         if (runoutMessage) {
           runoutMessage.classList.remove('show');
         }
+        }, allowShowdownWindow);
         
-        // ARCHITECTURAL FIX: Ensure START button is visible (room is in pre-start state)
         const startBtn = document.getElementById('startBtn');
-        if (startBtn && isHost) {
+        if (startBtn) {
+          if (autoStartIn > 0) {
+            startBtn.style.display = 'none';
+          } else if (requiresManualStart && isHost) {
           startBtn.style.display = 'inline-block';
+          } else {
+            startBtn.style.display = 'none';
+          }
         }
         
-        // Reload room to show lobby state (START button will appear for host)
-        // CRITICAL: Don't auto-start - just reload to show pre-start state
+        if (autoStartIn > 0) {
+          let secondsRemaining = Math.ceil(autoStartIn / 1000);
+          showNotification(data.message || `Hand complete. Next hand starting in ${secondsRemaining}s...`, 'info');
+          
+          showOverlayCountdown(secondsRemaining);
+          
+          updateDockGameState(`Next hand in ${secondsRemaining}s`);
+          autoStartCountdownInterval = setInterval(() => {
+            secondsRemaining -= 1;
+            if (secondsRemaining > 0) {
+              updateDockGameState(`Next hand in ${secondsRemaining}s`);
+              updateOverlayCountdown(secondsRemaining);
+            } else {
+              clearInterval(autoStartCountdownInterval);
+              autoStartCountdownInterval = null;
+              hideOverlayCountdown();
+            }
+          }, 1000);
+          
+        autoStartTimer = setTimeout(() => {
+          updateDockGameState('Starting next hand...');
+          hydrateGameState();
+        }, autoStartIn + allowShowdownWindow + 750);
+          
+        } else {
+          showNotification(data.message || 'Hand complete. Host can start the next hand.', 'info');
+          hideOverlayCountdown();
+        }
+        
+        // Refresh seats/host controls after short delay
         setTimeout(() => {
           loadRoom();
-        }, 1000);
+          if (isHost) {
+            refreshHostControls();
+          }
+        }, autoStartIn > 0 ? 500 : 1000);
       });
     }
     
@@ -5685,8 +5785,8 @@
       const sidePotsContainer = document.getElementById('sidePotsContainer');
       const sidePotsList = document.getElementById('sidePotsList');
       
+      if (sidePotsContainer && sidePotsList) {
       if (sidePots.length > 0) {
-        // Show side pots indicator
         const sidePotsToShow = sidePots;
         sidePotsList.innerHTML = sidePotsToShow.map((pot, index) => {
           return `<div class="side-pot-item" style="font-size: 0.65rem; color: var(--muted);">
@@ -5696,6 +5796,10 @@
         sidePotsContainer.style.display = 'block';
       } else {
         sidePotsContainer.style.display = 'none';
+          sidePotsList.innerHTML = '';
+        }
+      } else {
+        debug('⚠️ Side pot container not found in DOM');
       }
       
       // Note: totalPotEl already declared above, no need to redeclare
@@ -6465,14 +6569,23 @@
       try {
         // Clear UI before starting new hand
         myHoleCards = null; // Clear stored hole cards
-        document.getElementById('communityCards').innerHTML = '';
-        document.getElementById('myCards').innerHTML = '';
+        
+        // Use defensive checks for all DOM elements
+        const communityCards = document.getElementById('communityCards');
+        const myCards = document.getElementById('myCards');
+        const currentBet = document.getElementById('currentBet');
+        const actionButtons = document.getElementById('actionButtons');
+        const myCardsSection = document.getElementById('myCardsSection');
+        
+        if (communityCards) communityCards.innerHTML = '';
+        if (myCards) myCards.innerHTML = '';
+        
         // Reset pot display
         updatePotDisplay({ pot: 0, mainPot: 0, sidePots: [], totalPot: 0 });
-        document.getElementById('currentBet').textContent = '0';
-        document.getElementById('actionButtons').style.display = 'none';
-        // Keep hand strength visible - it shows current hand throughout the game
-        document.getElementById('myCardsSection').style.display = 'none';
+        
+        if (currentBet) currentBet.textContent = '0';
+        if (actionButtons) actionButtons.style.display = 'none';
+        if (myCardsSection) myCardsSection.style.display = 'none';
         
         // Collect sandbox config if enabled (only for first hand, not next hand)
         let sandboxConfig = null;
@@ -6907,25 +7020,43 @@
       // ARCHITECTURAL FIX: Hide hand rank display when hand completes
       updateHandRankDisplay(gameState, myHoleCards);
       
+      // Store current game state
+      currentGameState = gameState;
+      
       if (gameState.winners && gameState.winners.length > 0) {
-        const winner = gameState.winners[0];
-        const potAmount = winner.amount;
+        const winners = gameState.winners;
         
-        debug(`🏆 Winner: Seat ${winner.seatIndex + 1} wins $${potAmount}`);
+        // GOLDEN PATH: Calculate pot BEFORE payout (sum of all winner amounts)
+        const potBeforePayout = winners.reduce((sum, w) => sum + w.amount, 0);
         
-        // NOVEL MODALITY: Show winner IN the pot display with glow/animation
-        const potDisplayEl = document.querySelector('.pot-display-center');
-        if (potDisplayEl) {
-          // Get winner nickname from seat or gameState
+        debug(`🏆 Winners: ${winners.length}, Pot before payout: $${potBeforePayout}`);
+        
+        // Get winner info
+        const winner = winners[0];
           const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
           const winnerSeat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
           const winnerName = winnerPlayer?.nickname || winnerSeat?.querySelector('.seat-player')?.textContent?.replace('@', '') || `Seat ${winner.seatIndex + 1}`;
           
-          // Replace pot amount with winner message (elegant, glowing)
+        // GOLDEN PATH: Set pot display to show pot BEFORE payout
+        const potDisplayEl = document.querySelector('.pot-display-center');
+        const mainPotEl = document.getElementById('mainPotAmount');
+        const totalPotEl = document.getElementById('totalPotAmount');
+        
+        if (potDisplayEl && mainPotEl) {
+          // Set pot to BEFORE payout value (so animation can decrement from here)
+          mainPotEl.textContent = formatChipAmount(potBeforePayout).replace('$', '').trim();
+          currentPotValue = potBeforePayout; // Track this as current
+          
+          // Also update total pot if visible
+          if (totalPotEl && totalPotEl.style.display !== 'none') {
+            totalPotEl.textContent = formatChipAmount(potBeforePayout).replace('$', '').trim();
+          }
+          
+          // Show winner overlay (doesn't touch pot number - it's already set above)
           potDisplayEl.innerHTML = `
             <div class="winner-pot-display" style="text-align: center; animation: winnerGlow 2s ease-in-out infinite;">
               <div style="color: #FFD700; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">${winnerName} wins</div>
-              <div style="color: #00ff88; font-size: 1.8rem; font-weight: 700; text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);">$${formatChipAmount(potAmount).replace('$', '').trim()}</div>
+              <div style="color: #00ff88; font-size: 1.8rem; font-weight: 700; text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);">$${formatChipAmount(potBeforePayout).replace('$', '').trim()}</div>
             </div>
           `;
           
@@ -6947,77 +7078,12 @@
             `;
             document.head.appendChild(style);
           }
-          
-          // After 3s, animate chips dispersing to winner, then reset pot
-          setTimeout(() => {
-            // Animate pot decrementing to zero
-            const mainPotEl = document.getElementById('mainPotAmount');
-            if (mainPotEl) {
-              const startPot = potAmount;
-              const duration = 800;
-              const startTime = Date.now();
-              
-              const animateDecrement = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const currentPot = startPot * (1 - progress);
-                const formatted = formatChipAmount(currentPot).replace('$', '').trim();
-                mainPotEl.textContent = formatted;
-                
-                if (progress < 1) {
-                  requestAnimationFrame(animateDecrement);
-                } else {
-                  mainPotEl.textContent = '0';
-                  
-                  // Animate winner's stack incrementing (chips moving to them)
-                  const winnerSeat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
-                  const chipsEl = winnerSeat?.querySelector('.seat-chips');
-                  if (chipsEl) {
-                    const currentChips = winnerPlayer?.chips || 0;
-                    const finalChips = currentChips + potAmount;
-                    const startChips = currentChips;
-                    const chipDuration = 800;
-                    const chipStartTime = Date.now();
-                    
-                    const animateStackIncrement = () => {
-                      const chipElapsed = Date.now() - chipStartTime;
-                      const chipProgress = Math.min(chipElapsed / chipDuration, 1);
-                      const chipCurrent = startChips + (potAmount * chipProgress);
-                      const chipFormatted = formatChipAmount(chipCurrent);
-                      chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${chipFormatted.replace('$', '').trim()}`;
-                      
-                      if (chipProgress < 1) {
-                        requestAnimationFrame(animateStackIncrement);
-                      } else {
-                        const finalFormatted = formatChipAmount(finalChips);
-                        chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${finalFormatted.replace('$', '').trim()}`;
-                      }
-                    };
-                    
-                    requestAnimationFrame(animateStackIncrement);
-                  }
-                  
-                  // Reset pot display after animation completes
-                  setTimeout(() => {
-                    potDisplayEl.innerHTML = '<div style="color: #00ff88; font-size: 1.5rem; font-weight: 700;">$0</div>';
-                  }, 200);
-                }
-              };
-              
-              requestAnimationFrame(animateDecrement);
-            } else {
-              // Fallback: just reset pot display
-              setTimeout(() => {
-                potDisplayEl.innerHTML = '<div style="color: #00ff88; font-size: 1.5rem; font-weight: 700;">$0</div>';
-              }, 1000);
-            }
-          }, 3000);
         }
         
-        // 2. HIGHLIGHT WINNER'S SEAT
+        // HIGHLIGHT WINNER'S SEAT
         highlightWinnerSeat(winner.seatIndex);
         
-        // 3. DETECT ALL-IN RUNOUT: Check if all players were all-in AND cards increased significantly
+        // DETECT ALL-IN RUNOUT: Check if all players were all-in AND cards increased significantly
         const currentCards = gameState.communityCards || [];
         const previousCardsCount = previousCommunityCards.length;
         const newCardsCount = currentCards.length - previousCardsCount;
@@ -7040,218 +7106,163 @@
           renderCommunityCards(currentCards);
         }
         
-        // 4. SHOW WINNER BANNER (delay if all-in runout animation is happening)
-        // NOTE: Hand description will only show if winner shows cards (handled in updateWinnerBannerIfNeeded)
-        const banner = document.getElementById('winnerBanner');
-        const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
-        const winnerNickname = winnerPlayer ? `@${winnerPlayer.nickname || 'Player'}` : `Seat ${winner.seatIndex + 1}`;
-        
-        // Initially show without hand description (will update when winner shows)
-        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount.toLocaleString()}</span>`;
-        banner.dataset.winnerUserId = winner.userId || winnerPlayer?.userId;
-        banner.dataset.winnerHandDescription = winner.handDescription || '';
-        banner.dataset.winnerNickname = winnerNickname;
-        banner.dataset.potAmount = potAmount.toLocaleString();
-        
-        // Calculate delay for all-in runout: wait for all cards to be animated
-        if (isAllInRunoutScenario) {
-          // Calculate delay: wait for all NEW cards to be dealt + animation time
-          // Each card takes 800ms delay + 500ms animation = 1300ms per card
-          // Add extra buffer for the last card's animation to complete
-          const delayPerCard = 800; // Delay between cards
-          const animationTime = 500; // Time for card flip animation
-          const delayMs = Math.max(0, (newCardsCount * delayPerCard) + animationTime + 500); // Extra 500ms buffer
-          
-          debug('⏱️ Delaying winner banner for all-in runout', { 
-            newCardsCount, 
-            delayMs, 
-            isAllInRunoutScenario,
-            currentCards: currentCards.length,
-            previousCards: previousCardsCount
-          });
-          
-          setTimeout(() => {
-            updateWinnerBannerIfNeeded();
-        banner.classList.add('show');
-            debug('✅ Winner banner shown after all-in runout animation');
-          }, delayMs);
-        } else {
-          // Normal hand completion - show immediately
-          updateWinnerBannerIfNeeded();
-          banner.classList.add('show');
-        }
-        
-        // 5. SHOW/MUCK CONTROLS - PRINCIPLE: ALL players who reached showdown get controls
-        // This means: anyone who didn't fold gets show/muck options, regardless of win/loss
-        // Winners can choose to muck if they want privacy, losers can show if they want
+        // SHOW/MUCK CONTROLS - PRINCIPLE: ALL players who reached showdown get controls
         const myPlayer = gameState.players?.find(p => p.userId === userId);
         const didIFold = myPlayer && myPlayer.folded;
         
-        debug('🃏 Show/muck check:', {
-          hasMyPlayer: !!myPlayer,
-          myUserId: userId,
-          mySeatIndex: myPlayer?.seatIndex,
-          didIFold,
-          principle: 'All non-folded players get show/muck controls'
-        });
-        
-        // PRINCIPLE: Show controls to ALL players who didn't fold (reached showdown)
-        // This includes winners (they can muck for privacy) and losers (they can show)
         if (myPlayer && !didIFold) {
-          debug('🃏 Showing show/muck controls (you reached showdown)', {
-            myUserId: myPlayer.userId,
-            mySeatIndex: myPlayer.seatIndex,
-            didIFold
-          });
           document.getElementById('showdownControls').classList.add('show');
-        } else {
-          debug('🃏 NOT showing controls', { 
-            myPlayer: !!myPlayer, 
-            didIFold,
-            reason: didIFold ? 'You folded' : 'Player not found'
-          });
         }
         
-        // 6. AFTER 3 SECONDS: Hide banner, transfer chips, START COUNTDOWN
+        // GOLDEN PATH: After 3 seconds, animate ONCE - pot decrements, chips increment SYNCHRONIZED
         setTimeout(() => {
-          // Hide banner only (keep show/muck controls visible)
-          banner.classList.remove('show');
-          
           // Clear winner highlight
           clearWinnerHighlight();
           
-          // ARCHITECTURAL FIX: Animate pot decrementing to zero (main pot only for display)
-          // Then animate winner stack incrementing (shows money moving from pot to stack)
-          const potDisplayEl = document.querySelector('.pot-display-center');
-          const mainPotEl = document.getElementById('mainPotAmount');
-          const totalPotEl = document.getElementById('totalPotAmount');
-          const finalMainPot = gameState.mainPot !== undefined ? gameState.mainPot : (gameState.pot || 0);
-          const finalTotalPot = gameState.totalPot !== undefined ? gameState.totalPot : finalMainPot;
+          // Calculate chips BEFORE payout (final chips - winnings)
+          const chipsBeforePayout = new Map();
+          gameState.players.forEach(p => {
+            const winner = winners.find(w => w.seatIndex === p.seatIndex);
+            if (winner) {
+              chipsBeforePayout.set(p.seatIndex, (p.chips || 0) - winner.amount);
+            } else {
+              chipsBeforePayout.set(p.seatIndex, p.chips || 0);
+            }
+          });
           
-          // ARCHITECTURAL FIX: Use mainPot for display animation (what users see)
-          // But track totalPot for chip conservation
-          if (potDisplayEl && mainPotEl && finalMainPot > 0) {
-            // Add decrementing class
-            potDisplayEl.classList.add('pot-decrementing');
+          // Set chips to BEFORE values (so animation can increment from here)
+          gameState.players.forEach(p => {
+            const seat = document.querySelector(`.seat[data-seat-index="${p.seatIndex}"]`);
+            const chipsEl = seat?.querySelector('.seat-chips');
+            if (chipsEl) {
+              const beforeChips = chipsBeforePayout.get(p.seatIndex) || (p.chips || 0);
+              const formatted = formatChipAmount(beforeChips);
+              chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
+              previousPlayerChips.set(p.seatIndex, beforeChips); // Set tracking to BEFORE value
+            }
+          });
+          
+          // CRITICAL FIX: Restore pot display structure WITHOUT destroying it
+          // Just clear the winner overlay but preserve the structure
+          if (potDisplayEl) {
+            // Restore the original pot display structure
+            potDisplayEl.innerHTML = `
+              <div class="pot-amount-container">
+                <div class="pot-amount" id="mainPotAmount">${formatChipAmount(potBeforePayout).replace('$', '').trim()}</div>
+                <div class="pot-total-row" id="potTotalRow" style="display: none;">
+                  <span class="pot-total-label" id="potTotalLabel">total</span>
+                  <span class="pot-total-amount" id="totalPotAmount">0</span>
+                </div>
+              </div>
+              <div id="sidePotsContainer" class="side-pots-container" style="display: none; margin-top: 10px;">
+                <div class="side-pot-label" style="font-size: 0.7rem; color: var(--muted); margin-bottom: 5px;">SIDE POTS</div>
+                <div id="sidePotsList" style="display: flex; flex-direction: column; gap: 5px;"></div>
+              </div>
+            `;
+            // Re-get references after restoring structure
+            const mainPotElRestored = document.getElementById('mainPotAmount');
+            const totalPotElRestored = document.getElementById('totalPotAmount');
             
-            // Animate main pot amount counting down to zero
-            const decrementDuration = 1200; // ms
-            const startTime = Date.now();
-            const startPot = finalMainPot;
+            // CRITICAL FIX: Start pot and chip animations SYNCHRONIZED (same start time)
+            const animationStartTime = Date.now();
+            const duration = 1200; // ms - same duration for both
             
-            const animateDecrement = () => {
-              const elapsed = Date.now() - startTime;
-              const progress = Math.min(elapsed / decrementDuration, 1);
-              
-              // Easing function for smooth animation
+            // Animate pot decrementing (from potBeforePayout to 0)
+            if (mainPotElRestored && potBeforePayout > 0) {
+              const animatePot = () => {
+                const elapsed = Date.now() - animationStartTime;
+                const progress = Math.min(elapsed / duration, 1);
               const eased = 1 - Math.pow(1 - progress, 3); // Ease out cubic
-              
-              const currentValue = Math.max(0, Math.round(startPot * (1 - eased)));
-              const formattedAmount = formatChipAmount(currentValue).replace('$', '').trim();
-              mainPotEl.textContent = formattedAmount;
+                const currentPot = Math.max(0, Math.round(potBeforePayout * (1 - eased)));
+                const formatted = formatChipAmount(currentPot).replace('$', '').trim();
+                mainPotElRestored.textContent = formatted;
               
               // Also animate total pot if visible
-              if (totalPotEl && totalPotEl.style.display !== 'none') {
-                const totalStartPot = finalTotalPot;
-                const totalCurrentValue = Math.max(0, Math.round(totalStartPot * (1 - eased)));
-                const totalFormatted = formatChipAmount(totalCurrentValue).replace('$', '').trim();
-                totalPotEl.textContent = totalFormatted;
+                if (totalPotElRestored && totalPotElRestored.style.display !== 'none') {
+                  totalPotElRestored.textContent = formatted;
               }
               
               if (progress < 1) {
-                requestAnimationFrame(animateDecrement);
+                  requestAnimationFrame(animatePot);
               } else {
-                // Final value (zero)
-                mainPotEl.textContent = '0';
-                if (totalPotEl && totalPotEl.style.display !== 'none') {
-                  totalPotEl.textContent = '0';
+                  mainPotElRestored.textContent = '0';
+                  if (totalPotElRestored && totalPotElRestored.style.display !== 'none') {
+                    totalPotElRestored.textContent = '0';
                 }
-                potDisplayEl.classList.remove('pot-decrementing');
                 currentPotValue = 0;
               }
             };
-            
-            requestAnimationFrame(animateDecrement);
+              requestAnimationFrame(animatePot);
           }
           
-          // ARCHITECTURAL FIX: Animate ALL winners' stacks incrementing
-          // This shows money moving from pot to winner stacks
-          if (gameState.winners && gameState.winners.length > 0) {
-            // Get starting chip values (before distribution)
-            const startingChips = new Map();
-            gameState.players.forEach(p => {
-              const winner = gameState.winners.find(w => w.seatIndex === p.seatIndex);
-              if (winner) {
-                // Starting chips = final chips - winnings
-                startingChips.set(p.seatIndex, (p.chips || 0) - winner.amount);
-              }
-            });
-            
-            // Animate each winner's stack incrementing
-            gameState.winners.forEach((winner, index) => {
+            // Animate winner stacks incrementing SYNCHRONIZED (same start time as pot)
+            winners.forEach((winner, index) => {
               const winnerPlayer = gameState.players.find(p => p.seatIndex === winner.seatIndex);
-              if (winnerPlayer) {
+              const beforeChips = chipsBeforePayout.get(winner.seatIndex) || 0;
                 const finalChips = winnerPlayer.chips || 0;
-                const startChips = startingChips.get(winner.seatIndex) || (finalChips - winner.amount);
-                
-                // Find winner's seat element and animate chip count
-                const winnerSeat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
-                if (winnerSeat) {
-                  const chipsEl = winnerSeat.querySelector('.seat-chips');
-                  if (chipsEl && finalChips > startChips) {
-                    // Stagger animations slightly for multiple winners
+              const difference = finalChips - beforeChips;
+              
+              const seat = document.querySelector(`.seat[data-seat-index="${winner.seatIndex}"]`);
+              const chipsEl = seat?.querySelector('.seat-chips');
+              if (chipsEl && difference > 0) {
+                // CRITICAL FIX: Start at same time as pot (minimal stagger for visual effect only)
                     setTimeout(() => {
-                      const incrementDuration = 1200; // ms
-                      const startTime = Date.now();
-                      const difference = finalChips - startChips;
-                      
-                      const animateStackIncrement = () => {
-                        const elapsed = Date.now() - startTime;
-                        const progress = Math.min(elapsed / incrementDuration, 1);
-                        
-                        // Easing function for smooth animation
+                  const animateChips = () => {
+                    const elapsed = Date.now() - animationStartTime; // Use SAME start time
+                    const progress = Math.min(elapsed / duration, 1);
                         const eased = 1 - Math.pow(1 - progress, 3); // Ease out cubic
-                        
-                        const currentValue = Math.round(startChips + (difference * eased));
-                        // Format with green dollar sign
-                        const formatted = formatChipAmount(currentValue);
+                    const currentChips = Math.round(beforeChips + (difference * eased));
+                    const formatted = formatChipAmount(currentChips);
                         chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${formatted.replace('$', '').trim()}`;
                         
                         if (progress < 1) {
-                          requestAnimationFrame(animateStackIncrement);
+                      requestAnimationFrame(animateChips);
                         } else {
-                          // Final value
-                          // Format with green dollar sign
                           const finalFormatted = formatChipAmount(finalChips);
                           chipsEl.innerHTML = `<span style="color: #00ff88;">$</span>${finalFormatted.replace('$', '').trim()}`;
                           previousPlayerChips.set(winner.seatIndex, finalChips);
                         }
                       };
-                      
-                      requestAnimationFrame(animateStackIncrement);
-                    }, 200 + (index * 100)); // Stagger by 100ms per winner
-                  }
-                }
+                  requestAnimationFrame(animateChips);
+                }, index * 50); // Minimal stagger (50ms) for visual effect only, not functional delay
               }
             });
+            
+            // CRITICAL FIX: Wait for ALL animations to complete before syncing
+            // Pot animation: duration (1200ms)
+            // Chip animations: duration (1200ms) + max stagger (winners.length * 50ms)
+            const maxStagger = Math.max(0, (winners.length - 1) * 50);
+            const totalAnimationTime = duration + maxStagger;
+            
+          setTimeout(() => {
+              // Now sync final values WITHOUT animating (updateSeatChips will see previousPlayerChips already equals final, so no animation)
+              // But first, ensure all previousPlayerChips are set to final (for non-winners too)
+              gameState.players.forEach(p => {
+                previousPlayerChips.set(p.seatIndex, p.chips || 0);
+              });
+              
+              // Update pot display normally (will restore proper structure)
+              updatePotDisplay({ pot: 0, mainPot: 0, sidePots: [], totalPot: 0 });
+              
+              // Update seat chips - but since previousPlayerChips already equals final, no animation will occur
+            updateSeatChips(gameState.players);
+            }, totalAnimationTime + 100); // Extra 100ms buffer to ensure all animations complete
+            
+          } else {
+            // Fallback: just reset normally
+            updatePotDisplay({ pot: 0, mainPot: 0, sidePots: [], totalPot: 0 });
+            gameState.players.forEach(p => {
+              previousPlayerChips.set(p.seatIndex, p.chips || 0);
+            });
+            updateSeatChips(gameState.players);
           }
           
-          // Update all seat chips (show final amounts) after animations
-          setTimeout(() => {
-            updateSeatChips(gameState.players);
-            
-            // Zero the pot (chips now in winner's stack)
-            updatePotDisplay({ pot: 0, mainPot: 0, sidePots: [], totalPot: 0 });
-          }, 1200);
-          
-          // ARCHITECTURAL FIX: Don't auto-start - room is in pre-start state (lobby)
-          // Show START button for host to manually start next hand
+          // Show START button for host
           const startBtn = document.getElementById('startBtn');
           if (startBtn && isHost) {
           startBtn.style.display = 'inline-block';
             startBtn.disabled = false;
             startBtn.textContent = '🎮 START HAND';
-            debug('🏁 Hand complete - START button visible. Host can manually start next hand.');
           }
               
           // Hide show/muck controls after delay
@@ -7433,28 +7444,6 @@
       });
     }
     
-    // Helper: Update winner banner based on whether winner showed cards
-    function updateWinnerBannerIfNeeded() {
-      const banner = document.getElementById('winnerBanner');
-      if (!banner || !banner.dataset.winnerUserId) return;
-      
-      const winnerUserId = banner.dataset.winnerUserId;
-      const winnerHandDescription = banner.dataset.winnerHandDescription;
-      const winnerNickname = banner.dataset.winnerNickname || 'Player';
-      const potAmount = banner.dataset.potAmount || '0';
-      const winnerAction = showdownActions[winnerUserId];
-      
-      // Only show hand description if winner showed their cards
-      if (winnerAction === 'SHOW' && winnerHandDescription) {
-        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount}</span><small style="color: #00d4aa; text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);">${winnerHandDescription}</small>`;
-      } else if (winnerAction === 'MUCK') {
-        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount}</span><small style="color: #9aa3b2; font-style: italic;">(Cards mucked)</small>`;
-      } else {
-        // Winner hasn't shown/mucked yet - just show win without hand description
-        banner.innerHTML = `<span class="winner-name">🏆 ${winnerNickname}</span> WINS <span class="winner-amount">$${potAmount}</span>`;
-      }
-    }
-    
     // ============================================
     // SHOW/MUCK FUNCTIONALITY
     // ============================================
@@ -7487,9 +7476,6 @@
         
         // Hide controls
         document.getElementById('showdownControls').classList.remove('show');
-        
-        // Update winner banner if we're the winner
-        updateWinnerBannerIfNeeded();
         
         // NO NEED to manually display - WebSocket will handle it for all players
         
@@ -7528,9 +7514,6 @@
         
         // Hide controls
         document.getElementById('showdownControls').classList.remove('show');
-        
-        // Update winner banner if we're the winner
-        updateWinnerBannerIfNeeded();
         
       } catch (error) {
         console.error('❌ Muck cards network error:', error);
@@ -8637,16 +8620,39 @@
     }
     
     // Toggle Auto-Start
-    function toggleAutoStart() {
+    async function toggleAutoStart() {
       const checkbox = document.getElementById('autoStartToggle');
       const autoStart = checkbox.checked;
       
-      localStorage.setItem('pokergeek_auto_start', autoStart);
-      
-      if (autoStart) {
-        debug('🔄 Auto-start enabled');
-      } else {
-        debug('⏹️ Auto-start disabled');
+      try {
+        const response = await fetch('/api/engine/host-controls/toggle-autostart', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId,
+            hostId: userId,
+            autoStartEnabled: autoStart
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update auto-start setting');
+        }
+        
+        localStorage.setItem('pokergeek_auto_start', autoStart);
+        
+        if (autoStart) {
+          showToast('✅ Auto-start enabled - hands will start automatically', 'success');
+          debug('🔄 Auto-start enabled');
+        } else {
+          showToast('⏹️ Auto-start disabled - use Start Hand button', 'info');
+          debug('⏹️ Auto-start disabled');
+        }
+      } catch (error) {
+        console.error('Error toggling auto-start:', error);
+        // Revert checkbox
+        checkbox.checked = !autoStart;
+        showToast('❌ Failed to update auto-start setting', 'error');
       }
     }
     

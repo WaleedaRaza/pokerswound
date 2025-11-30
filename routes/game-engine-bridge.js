@@ -4,6 +4,13 @@
 
 const express = require('express');
 const router = express.Router();
+const { 
+  setLogDetail, 
+  logActionSummary, 
+  logActionDetail 
+} = require('../src/utils/action-logger');
+
+setLogDetail(process.env.ENGINE_LOG_DETAIL);
 
 /**
  * PHILOSOPHY:
@@ -23,7 +30,11 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
   try {
     const { roomId, userId } = req.params;
     
-    console.log('💧 [GAME] Hydrating game state for:', { roomId: roomId.substr(0, 8), userId: userId.substr(0, 8) });
+    logActionSummary({
+      phase: 'hydrate',
+      roomId,
+      playerId: userId
+    });
     
     const getDb = req.app.locals.getDb;
     const db = getDb();
@@ -45,7 +56,7 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
     
     // If no game_id, return lobby state
     if (!room.game_id) {
-      console.log('   ⏸️  Room in lobby - no active game');
+      logActionDetail('hydrate.status', { hasActiveGame: false });
       return res.json({
         hasActiveGame: false,
         roomStatus: 'WAITING'
@@ -61,7 +72,7 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
     );
     
     if (gameResult.rows.length === 0) {
-      console.log('   ❌ Room says ACTIVE but game not found - data inconsistency');
+      logActionDetail('hydrate.status', { hasActiveGame: false, reason: 'room-record-missing-game' });
       return res.json({
         hasActiveGame: false,
         roomStatus: 'WAITING'
@@ -71,7 +82,14 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
     // CRITICAL: current_state is JSONB in Postgres, which returns an object, NOT a string
     // Do NOT call JSON.parse() on it - it's already parsed
     const gameState = gameResult.rows[0].current_state;
-    console.log(`   🎮 Active game found - Hand #${gameState.handNumber}, Street: ${gameState.street}`);
+    logActionSummary({
+      phase: 'hydrate',
+      roomId,
+      playerId: userId,
+      handNumber: gameState.handNumber,
+      street: gameState.street,
+      metadata: { hasActiveGame: true }
+    });
     
     // ARCHITECTURAL FIX: Reset stale betting state if on PREFLOP
     // This prevents minRaise from previous hand persisting (e.g., minRaise=400 when it should be bigBlind=10)
@@ -84,12 +102,15 @@ router.get('/hydrate/:roomId/:userId', async (req, res) => {
         const { big_blind } = roomBlinds.rows[0];
         // CRITICAL: Reset minRaise to bigBlind if it's incorrect (stale from previous hand)
         if (gameState.minRaise !== big_blind && gameState.minRaise > big_blind) {
-          console.log(`   🔧 [HYDRATION] Fixing stale minRaise: ${gameState.minRaise} → ${big_blind}`);
+          logActionDetail('hydrate.fixMinRaise', { from: gameState.minRaise, to: big_blind });
           gameState.minRaise = big_blind;
         }
         // CRITICAL: Reset raise tracking fields if they're stale
         if (gameState.lastRaiseSize > 0 || gameState.lastAggressor !== null) {
-          console.log(`   🔧 [HYDRATION] Resetting stale raise tracking: lastRaiseSize=${gameState.lastRaiseSize}, lastAggressor=${gameState.lastAggressor}`);
+          logActionDetail('hydrate.resetRaiseTracking', {
+            lastRaiseSize: gameState.lastRaiseSize,
+            lastAggressor: gameState.lastAggressor
+          });
           gameState.lastRaiseSize = 0;
           gameState.lastAggressor = null;
           gameState.reopensAction = false;
@@ -182,7 +203,13 @@ router.post('/claim-seat', async (req, res) => {
   try {
     const { roomId, userId, seatIndex, nickname, requestedChips = 1000 } = req.body;
     
-    console.log('🪑 [MINIMAL] Claim seat:', { roomId, userId, seatIndex, nickname, requestedChips });
+    logActionSummary({
+      phase: 'seat',
+      roomId,
+      playerId: userId,
+      seatIndex,
+      metadata: { requestedChips }
+    });
     
     // Validate input
     if (!roomId || !userId || seatIndex === undefined) {
@@ -273,7 +300,13 @@ router.post('/claim-seat', async (req, res) => {
     
     // AUTO-APPROVE if host is requesting their own seat
     if (isHost) {
-      console.log('✅ [MINIMAL] Host requesting seat - auto-approving:', { requestId, seatIndex, requestedChips });
+      logActionSummary({
+        phase: 'seat',
+        roomId,
+        playerId: userId,
+        seatIndex,
+        metadata: { requestId, requestedChips, autoApproved: true }
+      });
       
       // Generate default nickname if not provided
       const finalNickname = nickname || displayName;
@@ -365,7 +398,13 @@ router.post('/claim-seat', async (req, res) => {
     }
     
     // Non-host: Create request and notify host
-    console.log('✅ [MINIMAL] Seat request created (unified flow):', { requestId, roomId, userId, seatIndex, requestedChips });
+    logActionSummary({
+      phase: 'seat',
+      roomId,
+      playerId: userId,
+      seatIndex,
+      metadata: { requestId, requestedChips, requiresApproval: true }
+    });
     
     // Notify host via WebSocket
     const io = req.app.locals.io;
@@ -413,7 +452,11 @@ router.get('/seats/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
     
-    console.log('🔍 [MINIMAL] Get seats:', roomId);
+    logActionSummary({
+      phase: 'seat',
+      roomId,
+      metadata: { action: 'fetchSeats' }
+    });
     
     const getDb = req.app.locals.getDb;
     const db = getDb();
@@ -454,7 +497,7 @@ router.get('/seats/:roomId', async (req, res) => {
       };
     });
     
-    console.log('✅ [MINIMAL] Seats retrieved:', result.rows.length, 'occupied');
+    logActionDetail('seats.occupied', { roomId, occupied: result.rows.length });
     
     res.json({ 
       seats: seatsArray,
@@ -481,7 +524,12 @@ router.post('/deal-cards', async (req, res) => {
   try {
     const { roomId, userId, sandboxConfig } = req.body;
     
-    console.log('🃏 [MINIMAL] Starting hand:', { roomId, userId, sandboxMode: !!sandboxConfig });
+    logActionSummary({
+      phase: 'deal',
+      roomId,
+      playerId: userId,
+      metadata: { sandboxMode: !!sandboxConfig }
+    });
     
     if (!roomId || !userId) {
       return res.status(400).json({ 
@@ -509,14 +557,13 @@ router.post('/deal-cards', async (req, res) => {
     
     // HOST-ONLY CHECK: Only the host can start a hand
     if (userId !== host_user_id) {
-      console.log(`❌ [MINIMAL] Non-host tried to start hand: ${userId} (host: ${host_user_id})`);
+      console.warn(`❌ [MINIMAL] Non-host tried to start hand: ${userId} (host: ${host_user_id})`);
       return res.status(403).json({ 
         error: 'Only the host can start a hand',
         hostId: host_user_id 
       });
     }
-    
-    console.log(`✅ [MINIMAL] Host verified: ${userId}`);
+    logActionDetail('deal.hostVerified', { roomId, host: userId });
     
     // Get all seated players
     const playersResult = await db.query(
@@ -536,7 +583,12 @@ router.post('/deal-cards', async (req, res) => {
       });
     }
     
-    console.log(`🎲 Starting hand with ${seatedPlayers.length} players`);
+    logActionSummary({
+      phase: 'deal',
+      roomId,
+      playerId: userId,
+      metadata: { players: seatedPlayers.length }
+    });
     
     // ===== STEP 1: CREATE SHUFFLED DECK =====
     const suits = ['h', 'd', 'c', 's']; // hearts, diamonds, clubs, spades
@@ -558,7 +610,7 @@ router.post('/deal-cards', async (req, res) => {
     // ===== SANDBOX MODE: Replace deck with pre-set cards =====
     // CRITICAL: Sandbox should use EXACT same game logic, only difference is deck initialization
     if (sandboxConfig && sandboxConfig.players && sandboxConfig.players.length > 0) {
-      console.log('🧪 [SANDBOX] Building deck from pre-set cards');
+      logActionDetail('deal.sandboxDeck', { roomId, presetPlayers: sandboxConfig.players.length });
       
       // Validate and collect all sandbox cards
       const allSandboxCards = [];
@@ -672,14 +724,17 @@ router.post('/deal-cards', async (req, res) => {
       
       // Replace deck with sandbox deck (reverse so pop() works correctly)
       deck = sandboxDeck.reverse();
-      console.log(`🧪 [SANDBOX] Deck built: ${allSandboxCards.length} pre-set cards at top, ${remainingCards.length} remaining`);
+      logActionDetail('deal.sandboxDeckBuilt', {
+        presetCards: allSandboxCards.length,
+        remaining: remainingCards.length
+      });
     } else {
       // NORMAL MODE: Shuffle deck randomly
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
       }
-      console.log('🃏 Deck shuffled, total cards:', deck.length);
+      logActionDetail('deal.deckShuffled', { size: deck.length });
     }
     
     // ===== STEP 2: DEAL HOLE CARDS (SAME LOGIC FOR BOTH MODES) =====
@@ -709,12 +764,12 @@ router.post('/deal-cards', async (req, res) => {
       };
     });
     
-    console.log('🎴 Dealt hole cards to all players');
+    logActionDetail('deal.holeCards', { players: players.length });
     
     // ===== SANDBOX MODE: UPDATE STACKS IN DATABASE =====
     // CRITICAL: Update room_seats.chips_in_play BEFORE starting hand so game reads correct values
     if (sandboxConfig && sandboxConfig.players && sandboxConfig.players.length > 0) {
-      console.log('🧪 [SANDBOX] Updating player stacks in database...');
+      logActionDetail('deal.sandboxStacks', { players: sandboxConfig.players.length });
       for (const sandboxPlayer of sandboxConfig.players) {
         const updateResult = await db.query(
           `UPDATE room_seats 
@@ -725,7 +780,11 @@ router.post('/deal-cards', async (req, res) => {
         );
         
         if (updateResult.rows.length > 0) {
-          console.log(`🧪 [SANDBOX] Updated seat ${sandboxPlayer.seatIndex} stack to ${sandboxPlayer.chips} (user: ${updateResult.rows[0].user_id.substr(0, 8)})`);
+          logActionDetail('deal.sandboxStackUpdated', {
+            seat: sandboxPlayer.seatIndex,
+            chips: sandboxPlayer.chips,
+            userId: updateResult.rows[0].user_id
+          });
           
           // Also update the players array to use the sandbox chips
           const playerIndex = players.findIndex(p => p.seatIndex === sandboxPlayer.seatIndex);
@@ -754,11 +813,10 @@ router.post('/deal-cards', async (req, res) => {
       
       if (lastHandResult.rows.length > 0 && lastHandResult.rows[0].last_dealer !== null) {
         const lastDealer = parseInt(lastHandResult.rows[0].last_dealer);
-        // Rotate dealer to next active seat
         dealerPosition = (lastDealer + 1) % players.length;
-        console.log(`🔄 Dealer rotated from seat ${lastDealer} → ${dealerPosition}`);
+        logActionDetail('deal.dealerRotated', { from: lastDealer, to: dealerPosition });
       } else {
-        console.log('🆕 First hand, dealer starts at seat 0');
+        logActionDetail('deal.dealerRotated', { from: null, to: dealerPosition });
       }
     } catch (rotationError) {
       console.warn('⚠️ Could not fetch last dealer, defaulting to 0:', rotationError.message);
@@ -777,6 +835,9 @@ router.post('/deal-cards', async (req, res) => {
       bbPosition = (dealerPosition + 2) % players.length;
     }
     
+    // Total chips BEFORE blinds are posted (for chip conservation)
+    const startingTotalChips = players.reduce((sum, p) => sum + (p.chips || 0), 0);
+    
     // Post blinds
     // CRITICAL: Clamp chips to 0 minimum (prevent negative balances)
     players[sbPosition].bet = small_blind;
@@ -789,19 +850,18 @@ router.post('/deal-cards', async (req, res) => {
     
     const pot = small_blind + big_blind;
     
-    // CRITICAL: Calculate starting total chips for chip conservation validation
-    // This is the total chips on the table BEFORE blinds are posted
-    const startingTotalChips = players.reduce((sum, p) => sum + (p.chips || 0), 0);
-    
-    console.log(`💰 Blinds posted: SB=${small_blind}, BB=${big_blind}, Pot=${pot}`);
-    console.log(`💰 Starting total chips: $${startingTotalChips} (for conservation validation)`);
+    logActionSummary({
+      phase: 'deal',
+      roomId,
+      metadata: { sb: small_blind, bb: big_blind, pot, startingTotalChips }
+    });
     
     // ===== STEP 4: DETERMINE FIRST ACTOR =====
     // First to act: after BB in normal play, dealer/SB in heads-up
     const firstActorIndex = players.length === 2 ? dealerPosition : (bbPosition + 1) % players.length;
     const currentActorSeat = players[firstActorIndex].seatIndex;
     
-    console.log(`👉 First to act: Seat ${currentActorSeat}`);
+    logActionDetail('deal.firstActor', { seat: currentActorSeat });
     
     // ===== STEP 5: CREATE GAME STATE JSONB =====
     // Handle sandbox board cards (store them for use when dealing streets)
@@ -824,7 +884,7 @@ router.post('/deal-cards', async (req, res) => {
       } else {
         initialStreet = 'FLOP';
       }
-      console.log(`🧪 [SANDBOX] Board cards set: ${initialCommunityCards.join(' ')} (${initialStreet})`);
+      logActionDetail('deal.sandboxBoard', { cards: initialCommunityCards, street: initialStreet });
     }
     
     const gameState = {
@@ -981,7 +1041,11 @@ router.get('/room/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
     
-    console.log('🏠 [MINIMAL] Get room:', roomId);
+    logActionSummary({
+      phase: 'room',
+      roomId,
+      metadata: { action: 'fetchRoom' }
+    });
     
     const getDb = req.app.locals.getDb;
     const db = getDb();
@@ -1010,8 +1074,7 @@ router.get('/room/:roomId', async (req, res) => {
     }
     
     const room = result.rows[0];
-    
-    console.log('✅ [MINIMAL] Room retrieved:', room.name);
+    logActionDetail('room.data', { roomId, name: room.name });
     
     res.json({ 
       room: {
@@ -1046,7 +1109,12 @@ const MinimalBettingAdapter = require('../src/adapters/minimal-engine-bridge');
 
 // Helper function to persist hand completion (chips, busted players → spectators, game end check)
 async function persistHandCompletion(updatedState, roomId, db, req) {
-  console.log('💰 [MINIMAL] Hand complete - persisting chips to DB');
+  logActionSummary({
+    phase: 'persist',
+    roomId,
+    handNumber: updatedState.handNumber,
+    metadata: { players: updatedState.players?.length }
+  });
   
   // Get host user ID for bust event handling
   const hostResult = await db.query(
@@ -1054,8 +1122,8 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
     [roomId]
   );
   const hostUserId = hostResult.rows[0]?.host_user_id || null;
-  console.log('   Players in updatedState:', updatedState.players.map(p => ({ 
-    userId: p.userId.substr(0, 8), 
+  logActionDetail('persist.players', updatedState.players.map(p => ({
+    userId: p.userId,
     chips: p.chips 
   })));
   
@@ -1063,7 +1131,7 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    console.log('   🔒 Transaction started');
+    logActionDetail('persist.tx', { status: 'BEGIN' });
     
     // Update room_seats with final chip counts and convert busted players to spectators
     const bustedPlayers = [];
@@ -1083,21 +1151,26 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       // Only include stacks + remaining pots (should be 0 after full distribution)
       const currentTotal = currentStacks + currentPot + totalSidePots;
       
-      console.log(`💰 [CHIP CONSERVATION CHECK] Before persistence:`);
-      console.log(`   Starting Total: $${startingTotal}`);
-      console.log(`   Current Total: $${currentTotal}`);
-      console.log(`   Stacks: $${currentStacks}, Pot: $${currentPot}, Side Pots: $${totalSidePots}`);
+      logActionDetail('persist.chipConservation', {
+        startingTotal,
+        currentTotal,
+        stacks: currentStacks,
+        pot: currentPot,
+        sidePots: totalSidePots
+      });
       
       if (Math.abs(currentTotal - startingTotal) > 0.01) {
         console.error(`❌ CHIP CONSERVATION VIOLATION at hand completion!`);
         console.error(`   Difference: $${Math.abs(currentTotal - startingTotal)}`);
-      } else {
-        console.log(`✅ Chip conservation valid at hand completion`);
       }
     }
     
     for (const player of updatedState.players) {
-      console.log(`   🔄 Attempting UPDATE for ${player.userId.substr(0, 8)}: chips=${player.chips}, roomId=${roomId.substr(0, 8)}`);
+      logActionDetail('persist.updateSeat', {
+        userId: player.userId,
+        seatIndex: player.seatIndex,
+        chips: player.chips
+      });
       
       // CRITICAL: Use chips from gameState (final chips after showdown distribution)
       // NEVER reset to DB value - gameState.chips is the source of truth
@@ -1130,15 +1203,13 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       if (updateResult.rows.length === 0) {
         console.error(`   ❌ UPDATE failed - no rows matched! userId=${player.userId.substr(0, 8)}, roomId=${roomId.substr(0, 8)}`);
         throw new Error(`Failed to update chips for player ${player.userId.substr(0, 8)}`);
-      } else {
-        console.log(`   ✅ Updated chips for ${updateResult.rows[0].user_id.substr(0, 8)}: $${updateResult.rows[0].chips_in_play}`);
       }
     }
     
     // LIFECYCLE FIX: Remove busted players from seats silently (no ceremony)
     // They become spectators and can rejoin by claiming an empty seat
     if (bustedPlayers.length > 0) {
-      console.log(`   💀 Removing ${bustedPlayers.length} busted player(s) from seats SILENTLY`);
+      logActionDetail('persist.bustedPlayers', { count: bustedPlayers.length });
       
       for (const busted of bustedPlayers) {
         await client.query(
@@ -1147,7 +1218,6 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
            WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL`,
           [roomId, busted.userId]
         );
-        console.log(`   ✅ Removed busted player: ${busted.userId.substr(0, 8)} from seat ${busted.seatIndex}`);
       }
       
       // NO bust event broadcasts - players just disappear from table
@@ -1163,13 +1233,23 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
     const playersWithChips = updatedState.players.filter(p => (p.chips || 0) > 0);
     
     // LIFECYCLE FIX: Check if game should continue or end
-    console.log(`🏁 [HAND COMPLETE] Players with chips: ${playersWithChips.length}`);
+    logActionSummary({
+      phase: 'persist',
+      roomId,
+      handNumber: updatedState.handNumber,
+      metadata: { playersWithChips: playersWithChips.length }
+    });
       
     const io = req.app.locals.io;
     
     if (playersWithChips.length <= 1) {
       // GAME OVER: Only 1 or 0 players with chips remain
-      console.log(`🏆 [GAME OVER] Game ended with ${playersWithChips.length} player(s) remaining`);
+      logActionSummary({
+        phase: 'persist',
+        roomId,
+        handNumber: updatedState.handNumber,
+        metadata: { gameOver: true, playersRemaining: playersWithChips.length }
+      });
       
       // Delete active game_states
       await client.query(
@@ -1207,18 +1287,28 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
         });
       }
       
-      console.log(`   ✅ Game ended, room returned to lobby`);
+      logActionDetail('persist.gameStatus', { returnedToLobby: true });
       
     } else {
       // GAME CONTINUES: Multiple players with chips
       // Check if auto-start is enabled (host control setting)
-      const roomSettings = await client.query(
-        `SELECT auto_start_enabled FROM rooms WHERE id = $1`,
-        [roomId]
-      );
-      const autoStartEnabled = roomSettings.rows[0]?.auto_start_enabled !== false; // Default true (backwards compatible)
+      // NOTE: Column may not exist yet - default to true for backwards compatibility
+      let autoStartEnabled = true;
+      try {
+        const roomSettings = await client.query(
+          `SELECT auto_start_enabled FROM rooms WHERE id = $1`,
+          [roomId]
+        );
+        autoStartEnabled = roomSettings.rows[0]?.auto_start_enabled !== false;
+      } catch (err) {
+        console.warn('⚠️  auto_start_enabled column not found, defaulting to true');
+      }
       
-      console.log(`🔄 [AUTO-START] ${playersWithChips.length} players remain, auto-start: ${autoStartEnabled}`);
+      logActionSummary({
+        phase: 'autoStart',
+        roomId,
+        metadata: { playersRemaining: playersWithChips.length, autoStartEnabled }
+      });
       
       // DON'T delete game_states or clear game_id - keep game running
       // Just mark current hand as complete
@@ -1232,16 +1322,32 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       // Broadcast hand_complete
       if (io) {
         if (autoStartEnabled) {
+          const autoStartInMs = 3000;
+          const nextHandAt = Date.now() + autoStartInMs;
         io.to(`room:${roomId}`).emit('hand_complete_lobby', {
             message: `Hand complete. Next hand starting in 3 seconds...`,
-            autoStartIn: 3000,
+            autoStartIn: autoStartInMs,
             playersRemaining: playersWithChips.length,
           bustedPlayers: bustedPlayers.length
         });
+          emitPhaseUpdate(io, roomId, 'TRANSITION_PENDING', {
+            autoStartIn: autoStartInMs,
+            nextHandAt,
+            playersRemaining: playersWithChips.length,
+            bustedPlayers: bustedPlayers.length,
+            requiresManualStart: false
+          });
         } else {
           io.to(`room:${roomId}`).emit('hand_complete_lobby', {
             message: `Hand complete. Host can start next hand.`,
             autoStartIn: 0,
+            playersRemaining: playersWithChips.length,
+            bustedPlayers: bustedPlayers.length,
+            requiresManualStart: true
+          });
+          emitPhaseUpdate(io, roomId, 'TRANSITION_PENDING', {
+            autoStartIn: 0,
+            nextHandAt: null,
             playersRemaining: playersWithChips.length,
             bustedPlayers: bustedPlayers.length,
             requiresManualStart: true
@@ -1253,11 +1359,15 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
       if (autoStartEnabled) {
         setTimeout(async () => {
         try {
-          console.log(`🎬 [AUTO-START] Starting next hand for room ${roomId.substr(0, 8)}`);
+          logActionSummary({
+            phase: 'autoStart',
+            roomId,
+            metadata: { action: 'startNextHand' }
+          });
           
-          // Get host user_id and room settings
+          // Get host user_id for the next-hand call
           const roomData = await db.query(
-            `SELECT host_user_id, small_blind, big_blind, dealer_position FROM rooms WHERE id = $1`,
+            `SELECT host_user_id FROM rooms WHERE id = $1`,
             [roomId]
           );
           
@@ -1266,7 +1376,7 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
             return;
           }
           
-          const { host_user_id: hostUserId, small_blind, big_blind, dealer_position } = roomData.rows[0];
+          const { host_user_id: hostUserId } = roomData.rows[0];
           
           // Make internal HTTP request to next-hand endpoint
           // This ensures all logic is reused consistently
@@ -1275,11 +1385,16 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
           
           const response = await axios.post(`http://localhost:${port}/api/engine/next-hand`, {
             roomId: roomId,
-            userId: hostUserId
+            userId: hostUserId,
+            trigger: 'auto'
           });
           
           if (response.data.success) {
-            console.log(`✅ [AUTO-START] Hand started successfully, hand #${response.data.handNumber}`);
+            logActionSummary({
+              phase: 'autoStart',
+              roomId,
+              metadata: { result: 'success', handNumber: response.data.handNumber }
+            });
           } else {
             console.error(`❌ [AUTO-START] Failed to start hand:`, response.data.error);
           }
@@ -1296,12 +1411,12 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
         }, 3000);
       }
       
-      console.log(`   ✅ Hand complete, auto-start scheduled`);
+      logActionDetail('persist.autoStart', { scheduled: autoStartEnabled });
     }
     
     // Commit transaction - chip updates, spectator conversions, and game state are atomic
     await client.query('COMMIT');
-    console.log('   ✅ Transaction committed - chip updates and game state atomic');
+    logActionDetail('persist.tx', { status: 'COMMIT' });
     
     // LIFECYCLE FIX: No bust event broadcasts - players are removed silently
     // Next hand will show their seats as empty and claimable
@@ -1317,6 +1432,16 @@ async function persistHandCompletion(updatedState, roomId, db, req) {
 
 // Helper function to emit hand_complete event (ensures consistent principle)
 // CRITICAL PRINCIPLE: Only emit when ALL cards are revealed AND winner determined
+function emitPhaseUpdate(io, roomId, phase, payload = {}) {
+  if (!io || !roomId || !phase) return;
+  io.to(`room:${roomId}`).emit('phase_update', {
+    roomId,
+    phase,
+    timestamp: Date.now(),
+    data: payload
+  });
+}
+
 async function handleHandCompleteEmission(updatedState, roomId, db, io) {
   if (!io || !roomId) return;
   
@@ -1364,7 +1489,23 @@ async function handleHandCompleteEmission(updatedState, roomId, db, io) {
     finalPot: updatedState.totalPot || updatedState.pot || 0
   });
   
-  console.log(`📡 [MINIMAL] Emitted hand_complete event to room:${roomId} (all cards revealed, winner determined)`);
+  emitPhaseUpdate(io, roomId, 'HAND_COMPLETED', {
+    handNumber: updatedState.handNumber,
+    winners: winners.map(w => ({
+      seatIndex: w.seatIndex,
+      amount: w.amount,
+      userId: w.userId,
+      handDescription: w.handDescription
+    })),
+    finalPot: publicState.totalPot
+  });
+  
+  logActionSummary({
+    phase: 'action',
+    roomId,
+    handNumber: updatedState.handNumber,
+    metadata: { event: 'hand_complete', winners: winners.length }
+  });
   
   // LIFECYCLE FIX: No bust event broadcasts - silent player removal
   // Busted players are already removed from seats, their seats show as empty next hand
@@ -1372,14 +1513,18 @@ async function handleHandCompleteEmission(updatedState, roomId, db, io) {
 
 // Helper function to extract hand history (ensures consistent principle)
 async function extractHandHistory(updatedState, roomId, db, gameStateId) {
-  console.log('📊 [MINIMAL] Extracting hand data to hand_history + player_statistics');
+  logActionSummary({
+    phase: 'extract',
+    roomId,
+    handNumber: updatedState.handNumber
+  });
   
   try {
     // ✅ TRANSACTION: Wrap all hand history writes for atomicity
     const historyClient = await db.connect();
     try {
       await historyClient.query('BEGIN');
-      console.log('   🔒 Transaction started for hand history');
+      logActionDetail('extract.tx', { status: 'BEGIN' });
     
       // Helper function to get hand rank from description
       const getHandRank = (handDescription) => {
@@ -1411,6 +1556,17 @@ async function extractHandHistory(updatedState, roomId, db, gameStateId) {
       // Extract winner data
       const winner = (updatedState.winners && updatedState.winners[0]) ? updatedState.winners[0] : null;
       const winnerId = winner ? winner.userId : null;
+      
+      let winnerIdForInsert = winnerId;
+      if (winnerIdForInsert) {
+        const winnerExists = await historyClient.query(
+          `SELECT 1 FROM user_profiles WHERE id = $1`,
+          [winnerIdForInsert]
+        );
+        if (winnerExists.rows.length === 0) {
+          winnerIdForInsert = null;
+        }
+      }
       const winningHand = winner ? winner.handDescription : null;
       const handRank = getHandRank(winningHand);
       
@@ -1456,13 +1612,16 @@ async function extractHandHistory(updatedState, roomId, db, gameStateId) {
         }))
       });
       
-      console.log(`   📦 Encoded hand: ${encodedHand.substring(0, 60)}... (${encodedHand.length} chars)`);
+      logActionDetail('extract.encodedHand', {
+        preview: encodedHand.substring(0, 60),
+        length: encodedHand.length
+      });
       
       // Calculate size savings
       const jsonSize = JSON.stringify(snapshot.actionHistory || []).length;
       const encodedSize = encodedHand.length;
       const savings = Math.round((1 - encodedSize / jsonSize) * 100);
-      console.log(`   💾 Storage: ${encodedSize} bytes (${savings}% smaller than JSON)`);
+      logActionDetail('extract.storage', { encodedSize, savings });
       
       // 1. INSERT HAND_HISTORY
       const handHistoryInsert = await historyClient.query(
@@ -1480,7 +1639,7 @@ async function extractHandHistory(updatedState, roomId, db, gameStateId) {
           updatedState.handNumber || 1,
           potSize,
           playerIds,
-          winnerId,
+          winnerIdForInsert,
           winningHand,
           handRank,
           updatedState.communityCards ? updatedState.communityCards.join(' ') : null,
@@ -1493,7 +1652,7 @@ async function extractHandHistory(updatedState, roomId, db, gameStateId) {
         ]
       );
       
-      console.log(`   ✅ hand_history insert: ${handHistoryInsert.rows[0].id}`);
+      logActionDetail('extract.insert', { handHistoryId: handHistoryInsert.rows[0].id });
       
       // 2. UPDATE PLAYER_STATISTICS
       const winnerIds = new Set((updatedState.winners || []).map(w => w.userId));
@@ -1523,19 +1682,19 @@ async function extractHandHistory(updatedState, roomId, db, gameStateId) {
       }
       
       // 3. UPDATE BIGGEST_POT FOR WINNERS
-      if (winner && potSize > 0) {
+      if (winnerIdForInsert && potSize > 0) {
         await historyClient.query(`
           UPDATE user_profiles
           SET 
             biggest_pot = GREATEST(COALESCE(biggest_pot, 0), $1),
             updated_at = NOW()
           WHERE id = $2
-        `, [potSize, winnerId]);
+        `, [potSize, winnerIdForInsert]);
       }
       
       // Commit transaction
       await historyClient.query('COMMIT');
-      console.log('   ✅ Transaction committed - hand history writes atomic');
+      logActionDetail('extract.tx', { status: 'COMMIT' });
     } catch (error) {
       await historyClient.query('ROLLBACK');
       console.error('   ❌ Transaction rolled back due to error:', error.message);
@@ -1553,7 +1712,13 @@ router.post('/action', async (req, res) => {
   try {
     const { roomId, userId, action, amount } = req.body;
     
-    console.log('🎮 [MINIMAL] Action:', { roomId, userId, action, amount });
+    logActionSummary({
+      phase: 'action',
+      roomId,
+      playerId: userId,
+      action,
+      amount
+    });
     
     if (!roomId || !userId || !action) {
       return res.status(400).json({ 
@@ -1615,7 +1780,12 @@ router.post('/action', async (req, res) => {
     // ===== STEP 2B: HANDLE ALL-IN RUNOUT PROGRESSIVE REVEALS =====
     // CRITICAL PRINCIPLE: hand_complete only broadcast when ALL cards are revealed AND winner determined
     if (updatedState.needsProgressiveReveal && updatedState.allInRunoutStreets && updatedState.allInRunoutStreets.length > 0) {
-      console.log(`🎬 [ALL-IN RUNOUT] Progressive reveal needed: ${updatedState.allInRunoutStreets.length} streets`);
+      logActionSummary({
+        phase: 'action',
+        roomId,
+        handNumber: updatedState.handNumber,
+        metadata: { allInRunoutStreets: updatedState.allInRunoutStreets.length }
+      });
       
       // Save state with progressive reveal flag (but NOT completed yet)
       await db.query(
@@ -1639,7 +1809,10 @@ router.post('/action', async (req, res) => {
         
         updatedState.allInRunoutStreets.forEach((streetData, index) => {
           setTimeout(() => {
-            console.log(`  🃏 Revealing ${streetData.street}: ${streetData.cards.join(', ')}`);
+            logActionDetail('allInRunout.reveal', {
+              street: streetData.street,
+              cards: streetData.cards
+            });
             io.to(`room:${roomId}`).emit('street_reveal', {
               street: streetData.street,
               communityCards: streetData.cards,
@@ -1654,18 +1827,26 @@ router.post('/action', async (req, res) => {
         const bufferDelay = 2000; // 2 seconds after last card so players can see it
         const finalDelay = revealDelay + bufferDelay;
         
-        console.log(`⏰ [ALL-IN RUNOUT] Will complete hand in ${finalDelay}ms (${updatedState.allInRunoutStreets.length} streets × ${revealDelayMs}ms + ${bufferDelay}ms buffer)`);
+        logActionDetail('allInRunout.schedule', {
+          finalDelay,
+          streets: updatedState.allInRunoutStreets.length
+        });
         
         // HOTFIX 4: Complete showdown synchronously after progressive reveals
         // Wait for card reveals to finish, THEN run all completion steps atomically
         // This prevents chip distribution race conditions
         setTimeout(async () => {
-          console.log('🏆 [ALL-IN RUNOUT] All cards revealed - completing showdown SYNCHRONOUSLY');
+          logActionSummary({
+            phase: 'action',
+            roomId,
+            handNumber: updatedState.handNumber,
+            metadata: { event: 'allInRunoutComplete' }
+          });
           
           try {
             // Step 1: Determine winners
           MinimalBettingAdapter.handleShowdown(updatedState);
-            console.log('   ✅ Winners determined');
+            logActionDetail('allInRunout.winners', { count: updatedState.winners?.length || 0 });
           
             // Step 2: Save completed state to game_states
           await db.query(
@@ -1676,23 +1857,22 @@ router.post('/action', async (req, res) => {
              WHERE room_id = $3 AND status = 'active'`,
             [JSON.stringify(updatedState), updatedState.pot, roomId]
           );
-            console.log('   ✅ Game state saved');
+            logActionDetail('allInRunout.stateSaved', { roomId });
           
             // Step 3: Persist chips to room_seats (atomic transaction)
           if (updatedState.status === 'COMPLETED') {
             await persistHandCompletion(updatedState, roomId, db, reqForCallback);
-              console.log('   ✅ Chips persisted to database');
+              logActionDetail('allInRunout.chipsPersisted', { roomId });
             
               // Step 4: Extract hand history
             await extractHandHistory(updatedState, roomId, db, gameStateId);
-              console.log('   ✅ Hand history extracted');
+              logActionDetail('allInRunout.handHistory', { roomId });
             
               // Step 5: Emit hand_complete to all clients
             await handleHandCompleteEmission(updatedState, roomId, db, io);
-              console.log('   ✅ Hand complete emitted to clients');
             }
             
-            console.log('🏆 [ALL-IN RUNOUT] Synchronous completion successful');
+            logActionDetail('allInRunout.status', { result: 'success' });
           } catch (error) {
             console.error('❌ [ALL-IN RUNOUT] Error during synchronous completion:', error);
             // Don't throw - log and continue (chips already distributed in memory)
@@ -1724,20 +1904,30 @@ router.post('/action', async (req, res) => {
       [JSON.stringify(updatedState), totalPotToSave, roomId]
     );
     
-    console.log(`✅ [MINIMAL] Action processed: ${userId.substr(0, 8)} ${action} $${amount || 0}`);
-    console.log(`   Pot: ${updatedState.pot}, Current Bet: ${updatedState.currentBet}, Street: ${updatedState.street}`);
+    logActionSummary({
+      phase: 'action',
+      roomId,
+      playerId: userId,
+      action,
+      amount,
+      handNumber: updatedState.handNumber,
+      street: updatedState.street,
+      pot: updatedState.pot,
+      currentBet: updatedState.currentBet,
+      nextActorSeat: updatedState.currentActorSeat
+    });
     
     // ===== DEBUG LOGGING: Post-action game state =====
-    console.log(`\n📊 [DEBUG] Post-action game state:`, {
+    logActionDetail('action.state', {
       street: updatedState.street,
       currentBet: updatedState.currentBet,
       currentActorSeat: updatedState.currentActorSeat,
       reopensAction: updatedState.reopensAction,
       players: updatedState.players.map(p => ({
         seat: p.seatIndex,
-        userId: p.userId?.substr(0, 8),
-        bet: p.bet,              // Cumulative
-        betThisStreet: p.betThisStreet,  // Street-scoped
+        userId: p.userId,
+        bet: p.bet,
+        betThisStreet: p.betThisStreet,
         chips: p.chips,
         status: p.status,
         folded: p.folded
@@ -1767,12 +1957,12 @@ router.post('/action', async (req, res) => {
         `SELECT user_id, chips_in_play FROM room_seats WHERE room_id = $1 ORDER BY seat_index`,
         [roomId]
       );
-      console.log('🔍 [MINIMAL] VERIFICATION - room_seats after update:');
-      verifyResult.rows.forEach(row => {
-        console.log(`   ${row.user_id.substr(0, 8)}: $${row.chips_in_play}`);
-      });
+      logActionDetail('action.verifySeats', verifyResult.rows.map(row => ({
+        userId: row.user_id,
+        chips: row.chips_in_play
+      })));
       
-      console.log('✅ [MINIMAL] Chips persisted, game marked complete, room ready for next hand');
+      logActionDetail('action.handComplete', { roomReady: true });
     }
     
     // ===== STEP 4: BROADCAST TO ALL PLAYERS =====
@@ -1831,6 +2021,9 @@ router.post('/action', async (req, res) => {
         }))
       };
       
+      // GOLDEN PATH: Don't send action_processed when hand is complete
+      // Only hand_complete event should update UI at hand end
+      if (updatedState.status !== 'COMPLETED') {
       io.to(`room:${roomId}`).emit('action_processed', {
         userId,
         action,
@@ -1838,7 +2031,10 @@ router.post('/action', async (req, res) => {
         gameState: publicState
       });
       
-      console.log(`📡 [MINIMAL] Broadcast action_processed to room:${roomId}`);
+        logActionDetail('action.broadcast', { roomId, event: 'action_processed' });
+      } else {
+        logActionDetail('action.broadcast', { roomId, event: 'action_processed', skipped: 'hand_complete' });
+      }
     }
     
     res.json({ 
@@ -2036,7 +2232,7 @@ router.get('/health', (req, res) => {
 
 router.post('/next-hand', async (req, res) => {
   try {
-    const { roomId, userId } = req.body;
+    const { roomId, userId, trigger } = req.body;
     
     console.log('🎬 [GAME] Starting next hand:', { roomId, userId });
     
@@ -2049,10 +2245,11 @@ router.post('/next-hand', async (req, res) => {
     if (!db) {
       return res.status(500).json({ error: 'Database not available' });
     }
+    const io = req.app.locals.io;
     
     // ===== STEP 1: VERIFY HOST =====
     const roomResult = await db.query(
-      `SELECT host_user_id, small_blind, big_blind, dealer_position FROM rooms WHERE id = $1`,
+      `SELECT host_user_id, small_blind, big_blind FROM rooms WHERE id = $1`,
       [roomId]
     );
     
@@ -2060,7 +2257,7 @@ router.post('/next-hand', async (req, res) => {
       return res.status(404).json({ error: 'Room not found' });
     }
     
-    const { host_user_id, small_blind, big_blind, dealer_position } = roomResult.rows[0];
+    const { host_user_id, small_blind, big_blind } = roomResult.rows[0];
     
     if (userId !== host_user_id) {
       return res.status(403).json({ error: 'Only host can start next hand' });
@@ -2086,16 +2283,42 @@ router.post('/next-hand', async (req, res) => {
       console.log(`   Player ${p.user_id.substr(0, 8)} (Seat ${p.seat_index}): $${p.chips_in_play}`);
     });
     
+    if (io) {
+      emitPhaseUpdate(io, roomId, 'TRANSITION_RUNNING', {
+        startedAt: Date.now(),
+        trigger: trigger === 'auto' ? 'auto' : 'manual'
+      });
+    }
+    
     // ===== STEP 3: ROTATE DEALER =====
-    const oldDealer = dealer_position || 0;
+    // NOTE: dealer_position column may not exist yet - handle gracefully
+    let dealer_position = 0;
+    try {
+      const dealerResult = await db.query(
+        `SELECT dealer_position FROM rooms WHERE id = $1`,
+        [roomId]
+      );
+      dealer_position = dealerResult.rows[0]?.dealer_position || 0;
+    } catch (err) {
+      // Column doesn't exist yet - start at 0
+      console.log('⚠️  dealer_position column not found, starting at 0');
+    }
+    
+    const oldDealer = dealer_position;
     const newDealer = (oldDealer + 1) % seatedPlayers.length;
     
     console.log(`🔄 [GAME] Dealer rotation: ${oldDealer} → ${newDealer}`);
     
-    await db.query(
-      `UPDATE rooms SET dealer_position = $1 WHERE id = $2`,
-      [newDealer, roomId]
-    );
+    // Try to update dealer position (will fail silently if column doesn't exist)
+    try {
+      await db.query(
+        `UPDATE rooms SET dealer_position = $1 WHERE id = $2`,
+        [newDealer, roomId]
+      );
+    } catch (err) {
+      // Column doesn't exist yet - that's ok, we'll calculate from scratch each hand
+      console.log('⚠️  Could not update dealer_position (column may not exist)');
+    }
     
     // ===== STEP 4: CALCULATE POSITIONS =====
     const dealerSeatIndex = seatedPlayers[newDealer].seat_index;
@@ -2236,7 +2459,6 @@ router.post('/next-hand', async (req, res) => {
     console.log(`✅ [GAME] Hand #${handNumber} created: ${gameStateId}`);
     
     // ===== STEP 11: BROADCAST =====
-    const io = req.app.locals.io;
     if (io) {
       // Fetch nicknames from room_seats
       const seatsResult = await db.query(
@@ -2271,6 +2493,16 @@ router.post('/next-hand', async (req, res) => {
       });
       
       console.log(`📡 [GAME] Broadcast hand_started for Hand #${handNumber}`);
+      
+      emitPhaseUpdate(io, roomId, 'DEALING', {
+        handNumber,
+        gameStateId
+      });
+      
+      emitPhaseUpdate(io, roomId, 'HAND_ACTIVE', {
+        handNumber,
+        gameStateId
+      });
     }
     
     // ===== STEP 12: RETURN =====
@@ -2588,6 +2820,54 @@ router.patch('/host-controls/update-blinds', async (req, res) => {
   } catch (error) {
     console.error('❌ [HOST] Update blinds error:', error);
     res.status(500).json({ error: 'Failed to update blinds', details: error.message });
+  }
+});
+
+// PATCH /api/engine/host-controls/toggle-autostart
+// Body: { roomId, hostId, autoStartEnabled }
+router.patch('/host-controls/toggle-autostart', async (req, res) => {
+  try {
+    const { roomId, hostId, autoStartEnabled } = req.body;
+    
+    console.log('🔄 [HOST] Toggle auto-start:', { roomId: roomId?.substr(0, 8), autoStartEnabled });
+    
+    const getDb = req.app.locals.getDb;
+    const db = getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+    
+    // Verify host
+    const roomResult = await db.query(
+      `SELECT host_user_id FROM rooms WHERE id = $1`,
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    if (roomResult.rows[0].host_user_id !== hostId) {
+      return res.status(403).json({ error: 'Not authorized - host only' });
+    }
+    
+    // Update auto-start setting (gracefully handle missing column)
+    try {
+      await db.query(
+        `UPDATE rooms SET auto_start_enabled = $1 WHERE id = $2`,
+        [autoStartEnabled, roomId]
+      );
+      console.log(`✅ [HOST] Auto-start ${autoStartEnabled ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      // Column doesn't exist yet - that's ok, just log it
+      console.log('⚠️  auto_start_enabled column not found, setting not persisted');
+    }
+    
+    res.json({ success: true, autoStartEnabled });
+    
+  } catch (error) {
+    console.error('❌ [HOST] Toggle auto-start error:', error);
+    res.status(500).json({ error: 'Failed to toggle auto-start', details: error.message });
   }
 });
 

@@ -21,6 +21,7 @@ const {
 } = require('./turn-logic');
 const { evaluateHand } = require('./rules-ranks');
 const { evaluatePokerHand, compareHands } = require('./simple-hand-evaluator');
+const { logActionSummary, logActionDetail } = require('../utils/action-logger');
 
 /**
  * PROCESS ACTION
@@ -33,8 +34,18 @@ const { evaluatePokerHand, compareHands } = require('./simple-hand-evaluator');
  * @returns {Object} Result with success flag and updated gameState
  */
 function processAction(gameState, userId, action, amount = 0, expectedSeq = null) {
-  // PRODUCTION LOGGING: Action attempt
-  console.log(`🎯 [GAME] Player ${userId.substr(0, 8)} attempting ${action}${amount > 0 ? ` ($${amount})` : ''} on ${gameState.street}`);
+  logActionSummary({
+    phase: 'action',
+    roomId: gameState.roomId,
+    handNumber: gameState.handNumber,
+    playerId: userId,
+    action,
+    amount,
+    street: gameState.street,
+    pot: gameState.pot,
+    currentBet: gameState.currentBet,
+    nextActorSeat: gameState.currentActorSeat
+  });
   
   // FIX: Validate action sequence (prevents duplicate/out-of-order actions)
   if (expectedSeq !== null) {
@@ -82,15 +93,20 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
   
   // Log warnings if validation adjusted the action
   if (validation.warning) {
-    console.log(`⚠️ [GAME] ${validation.warning}`);
+    logActionDetail('game.validationWarning', { warning: validation.warning });
   }
   
   if (adjustedAmount !== amount) {
-    console.log(`📝 [GAME] Amount adjusted: $${amount} → $${adjustedAmount}`);
+    logActionDetail('game.amountAdjusted', { from: amount, to: adjustedAmount });
   }
 
   // 3. APPLY ACTION (production logic - use adjusted amount)
-  console.log(`✅ [GAME] Applying ${action}${adjustedAmount > 0 ? ` ($${adjustedAmount})` : ''} for player ${userId.substr(0, 8)}`);
+  logActionDetail('game.applyAction', {
+    playerId: userId,
+    action,
+    amount: adjustedAmount,
+    street: gameState.street
+  });
   const updatedState = applyAction(
     gameState, 
     player, 
@@ -105,7 +121,11 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
     const activePlayers = updatedState.players.filter(p => !p.folded && p.status !== 'ALL_IN');
     
     if (activePlayers.length === 1) {
-      console.log('🏆 [GAME] Only 1 player remaining, ending hand immediately');
+      logActionSummary({
+        phase: 'action',
+        handNumber: gameState.handNumber,
+        metadata: { event: 'foldWin', remainingPlayers: activePlayers.length }
+      });
       handleFoldWin(updatedState, activePlayers[0]);
       return { success: true, gameState: updatedState };
     }
@@ -124,7 +144,7 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
     return turnLogic.canPlayerAct(updatedState, p);
   });
   
-  console.log(`🔍 [GAME] Betting round check after ${action}:`, {
+  logActionDetail('game.roundCheck', {
     bettingComplete,
     activePlayers: activePlayers.length,
     playersWithChips: playersWithChips.length,
@@ -135,7 +155,7 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
     currentActorSeat: updatedState.currentActorSeat,
     playerStatuses: activePlayers.map(p => ({
       seat: p.seatIndex,
-      userId: p.userId?.substr(0, 8),
+      userId: p.userId,
       chips: p.chips,
       bet: p.bet,
       betThisStreet: p.betThisStreet || 0,
@@ -150,10 +170,10 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
     // This ensures pot state is correct BEFORE any decisions about progression
     // Prevents pot display issues and chip conservation violations
     const potLogic = require('./pot-logic');
-    console.log('💰 [GAME] Betting round complete - calculating pots before progression');
+    logActionDetail('game.roundComplete', { stage: 'preProgression' });
     potLogic.handleUncalledBets(updatedState);
     potLogic.calculateSidePots(updatedState);
-    console.log('💰 [GAME] Pots calculated:', {
+    logActionDetail('game.potState', {
       mainPot: updatedState.mainPot,
       sidePots: updatedState.sidePots?.length || 0,
       totalPot: updatedState.totalPot
@@ -166,18 +186,16 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
     const playersWhoCanBetList = turnLogic.playersWhoCanBet(updatedState);
     
     if (playersWhoCanBetList.length === 0 && activePlayers.length > 1) {
-      // NO ONE CAN BET - Deal out all remaining streets immediately
-      console.log(`🃏 [GAME] NO PLAYERS CAN BET (${activePlayers.length} active, 0 can bet) - Dealing out remaining streets`);
+      logActionDetail('game.runoutTriggered', { activePlayers: activePlayers.length });
       handleAllInRunout(updatedState);
     } else {
-      // Normal betting round completion - advance to next street
-      console.log(`✅ [GAME] Round complete, advancing to next street`);
+      logActionDetail('game.streetAdvance', { from: updatedState.street });
       progressToNextStreet(updatedState);
     }
   } else {
     // Betting round not complete - rotate to next player
     // ARCHITECTURAL TRUTH: rotateToNextPlayer will set currentActorSeat to null if no one can act
-    console.log(`🔄 [GAME] Round not complete, rotating to next player`);
+    logActionDetail('game.rotatePlayer', {});
     rotateToNextPlayer(updatedState);
     
     // ARCHITECTURAL TRUTH: If currentActorSeat is null after rotation, no one can act
@@ -186,7 +204,7 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
       console.warn('⚠️ [GAME] currentActorSeat is null after rotation - checking if round should complete');
       const recheckComplete = isBettingRoundComplete(updatedState);
       if (recheckComplete) {
-        console.log('✅ [GAME] Round actually complete (no one can act) - advancing street');
+        logActionDetail('game.streetAdvance', { reason: 'noActor' });
         progressToNextStreet(updatedState);
       } else {
         console.error('❌ [GAME] INCONSISTENT STATE: No one can act but round not complete!', {
@@ -198,7 +216,11 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
     }
   }
 
-  console.log(`✅ [GAME] Action processed successfully`);
+  logActionDetail('game.actionProcessed', {
+    street: updatedState.street,
+    currentBet: updatedState.currentBet,
+    nextActorSeat: updatedState.currentActorSeat
+  });
   return { success: true, gameState: updatedState };
 }
 
@@ -208,7 +230,14 @@ function processAction(gameState, userId, action, amount = 0, expectedSeq = null
  * FIXED: Handle uncalled bets before awarding pot
  */
 function handleFoldWin(gameState, winner) {
-  console.log(`🏆 [GAME] Player ${winner.userId.substr(0, 8)} (Seat ${winner.seatIndex}) wins by fold`);
+  logActionSummary({
+    phase: 'action',
+    handNumber: gameState.handNumber,
+    playerId: winner.userId,
+    seatIndex: winner.seatIndex,
+    action: 'WIN_BY_FOLD',
+    amount: gameState.pot
+  });
   
   // Handle uncalled bets first (return excess to winner if they had highest bet)
   handleUncalledBets(gameState);
@@ -237,7 +266,14 @@ function handleFoldWin(gameState, winner) {
   stateMachine.setStatus(gameState, 'COMPLETED');
   stateMachine.transitionToShowdown(gameState); // Set to showdown so UI knows hand is over
   
-  console.log(`✅ [GAME] Hand complete - ${winner.userId.substr(0, 8)} wins $${potAmount}`);
+  logActionSummary({
+    phase: 'action',
+    handNumber: gameState.handNumber,
+    playerId: winner.userId,
+    seatIndex: winner.seatIndex,
+    action: 'HAND_COMPLETE',
+    amount: potAmount
+  });
 }
 
 /**
@@ -246,9 +282,10 @@ function handleFoldWin(gameState, winner) {
  * FIXED: Works with side pots - bets stay, just deal cards
  */
 function handleAllInRunout(gameState) {
-  console.log('🃏 [GAME] Dealing out remaining streets');
-  console.log('   Current street:', gameState.street);
-  console.log('   Current board:', gameState.communityCards || []);
+  logActionDetail('game.dealRunout', {
+    street: gameState.street,
+    board: gameState.communityCards || []
+  });
   
   const streetOrder = ['PREFLOP', 'FLOP', 'TURN', 'RIVER', 'SHOWDOWN'];
   const currentIndex = streetOrder.indexOf(gameState.street);
@@ -264,7 +301,7 @@ function handleAllInRunout(gameState) {
   // Deal out all remaining streets based on current street
   if (currentIndex < 1) {
     // Preflop - deal flop, turn, river
-    console.log('  Dealing: FLOP, TURN, RIVER');
+    logActionDetail('game.runoutSequence', { sequence: 'FLOP, TURN, RIVER' });
     if (!gameState.communityCards) gameState.communityCards = [];
     
     if (useSandboxCards) {
@@ -347,7 +384,7 @@ function handleAllInRunout(gameState) {
     }
   } else if (currentIndex === 1) {
     // Flop - deal turn, river
-    console.log('  Dealing: TURN, RIVER');
+    logActionDetail('game.runoutSequence', { sequence: 'TURN, RIVER' });
     if (!gameState.communityCards) gameState.communityCards = [];
     
     if (useSandboxCards && gameState.sandboxBoardCards.length >= 4) {
@@ -392,7 +429,7 @@ function handleAllInRunout(gameState) {
     }
   } else if (currentIndex === 2) {
     // Turn - deal river
-    console.log('  Dealing: RIVER');
+    logActionDetail('game.runoutSequence', { sequence: 'RIVER' });
     if (!gameState.communityCards) gameState.communityCards = [];
     
     if (useSandboxCards && gameState.sandboxBoardCards.length >= 5) {
@@ -427,8 +464,12 @@ function handleAllInRunout(gameState) {
     gameState.street = 'RIVER';
   }
   
-  console.log(`✅ [GAME] All-in runout prepared: ${gameState.allInRunoutStreets.length} streets to reveal`);
-  console.log(`   Streets: ${gameState.allInRunoutStreets.map(s => s.street).join(', ')}`);
+  logActionSummary({
+    phase: 'action',
+    handNumber: gameState.handNumber,
+    metadata: { event: 'allInRunoutPrepared', streets: gameState.allInRunoutStreets.length }
+  });
+  logActionDetail('game.allInRunoutStreets', gameState.allInRunoutStreets.map(s => s.street));
   // Note: handleShowdown will be called by the bridge after progressive reveals
 }
 
@@ -437,8 +478,7 @@ function handleAllInRunout(gameState) {
  * FIXED: Uses side pot distribution, handles uncalled bets, odd chip rule
  */
 function handleShowdown(gameState) {
-  console.log('🏆 [GAME] Starting showdown with side pot calculation');
-  console.log('   Community cards:', gameState.communityCards);
+  logActionDetail('game.showdownStart', { board: gameState.communityCards });
   
   // CRITICAL: Capture snapshot BEFORE any mutations for accurate extraction
   const snapshotBeforeShowdown = {
@@ -489,7 +529,14 @@ function handleShowdown(gameState) {
     gameState.pot = 0;
     // Reuse stateMachine already declared above
     stateMachine.setStatus(gameState, 'COMPLETED');
-    console.log('✅ [GAME] Winner (last standing):', winner.userId.substr(0, 8));
+    logActionSummary({
+      phase: 'action',
+      handNumber: gameState.handNumber,
+      playerId: winner.userId,
+      seatIndex: winner.seatIndex,
+      action: 'WINNER_LAST_STANDING',
+      amount: gameState.pot
+    });
     return;
   }
   
@@ -502,15 +549,17 @@ function handleShowdown(gameState) {
   // Evaluate all hands
   const playerHands = [];
   
-  console.log(`🔍 [GAME] Evaluating ${showdownPlayers.length} players`);
+  logActionDetail('game.showdownEvaluate', { players: showdownPlayers.length });
   
   for (const player of showdownPlayers) {
-    console.log(`   Player ${player.userId.substr(0, 8)} (Seat ${player.seatIndex}):`, player.holeCards);
-    
     if (player.holeCards && player.holeCards.length === 2 && gameState.communityCards.length === 5) {
       const handEval = evaluatePokerHand(player.holeCards, gameState.communityCards);
       
-      console.log(`   → ${handEval.name}`);
+      logActionDetail('game.showdownPlayer', {
+        playerId: player.userId,
+        seatIndex: player.seatIndex,
+        hand: handEval.name
+      });
       
       playerHands.push({
         player,
@@ -545,7 +594,7 @@ function handleShowdown(gameState) {
   // Reuse stateMachine already declared above
   stateMachine.setStatus(gameState, 'COMPLETED');
   
-  console.log('✅ [GAME] Showdown complete');
+  logActionDetail('game.showdownComplete', {});
 }
 
 /**
@@ -612,7 +661,14 @@ function distributePots(gameState, playerHands, dealerPosition) {
           handDescription: winner.handEval.name
         });
         
-        console.log(`💰 [GAME] Pot ${pot.level}: ${winner.player.userId.substr(0, 8)} wins $${amount} (${winner.handEval.name})${index < remainder ? ' [+1 odd chip]' : ''}`);
+        logActionDetail('game.potDistribution', {
+          potLevel: pot.level,
+          userId: winner.player.userId,
+          seatIndex: winner.player.seatIndex,
+          amount,
+          hand: winner.handEval.name,
+          oddChip: index < remainder
+        });
       }
     });
   }
